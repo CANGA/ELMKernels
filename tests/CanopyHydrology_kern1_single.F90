@@ -80,11 +80,12 @@ program testcanopyhydrologykern1
    urbpoi=.false. 
    do_capsnow = .false. 
    call CanopyHydrologyKern1( dtime, &
-             qflx_prec_intr, frac_veg_nosno, dewmx, elai, esai, h2ocan, &
-             n_irrig_steps_left, qflx_irrig, qflx_prec_grnd, &
-             qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd_patch, qflx_rain_grnd,irrig_rate, &
-             ltype, urbpoi, &
-             ctype, do_capsnow, forc_rain, forc_snow )
+     forc_rain, forc_snow, irrig_rate, &
+     ltype, ctype, urbpoi, do_capsnow, &
+     elai, esai, dewmx, frac_veg_nosno, &
+     h2ocan, n_irrig_steps_left, &
+     qflx_prec_intr, qflx_irrig, qflx_prec_grnd, &
+     qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd_patch, qflx_rain_grnd)
 
    print *, itime, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr 
   end do 
