@@ -5,7 +5,7 @@ OBJECT        = .
 default: all
 
 include $(OBJECT)/config/Makefile.config
-FCFLAGS += -I $(ELM_UTILS_DIR) -fbounds-check -g3
+FCFLAGS += -I$(ELM_UTILS_DIR)
 
 # Order is important due to .mod file creation
 OBJS = \
@@ -22,9 +22,8 @@ all: $(OBJS)
 	$(AR) cr libelm.a $(OBJS)
 
 clean:
-	@$(ELM_CLEAN)
-
-allclean: clean
+	@$(ELM_CLEAN); 
 	@cd $(ELM_UTILS_DIR); $(ELM_CLEAN)
+
 
 

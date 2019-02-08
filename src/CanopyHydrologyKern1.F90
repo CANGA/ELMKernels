@@ -7,7 +7,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
-       i4 => shr_kind_i8, &
+       i4 => shr_kind_i4, &
        bool => shr_kind_bool
 
   use column_varcon      , only : icol_sunwall, icol_shadewall
@@ -55,9 +55,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
 
      if (ctype /= icol_sunwall .and. ctype /= icol_shadewall) then
-
         if (frac_veg_nosno == 1 .and. (forc_rain + forc_snow) > 0._r8) then
-
            ! determine fraction of input precipitation that is snow and rain
            fracsnow = forc_snow/(forc_snow + forc_rain)
            fracrain = forc_rain/(forc_snow + forc_rain)
@@ -100,7 +98,7 @@ subroutine CanopyHydrologyKern1( dtime, &
      end if
 
   else if (ltype==istice .or. ltype==istice_mec) then
-
+     
      h2ocan            = 0._r8
      qflx_candrip      = 0._r8
      qflx_through_snow = 0._r8
@@ -108,6 +106,7 @@ subroutine CanopyHydrologyKern1( dtime, &
      qflx_prec_intr    = 0._r8
      fracsnow          = 0._r8
      fracrain          = 0._r8
+
 
   end if
 
@@ -150,6 +149,7 @@ subroutine CanopyHydrologyKern1( dtime, &
      qflx_snow_grnd_patch = 0._r8
      qflx_rain_grnd = 0._r8
   else
+
      qflx_snwcp_liq = 0._r8
      qflx_snwcp_ice = 0._r8
      qflx_snow_grnd_patch = qflx_prec_grnd_snow           ! ice onto ground (mm/s)
