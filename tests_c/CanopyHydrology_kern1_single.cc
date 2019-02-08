@@ -10,7 +10,7 @@
 #include <iostream>
 using namespace std;
 
-#include "CanopyHydrology_private.h"
+#include "CanopyHydrology.hh"
 
 
 #define handle_error( status, what )         \
@@ -124,14 +124,14 @@ int main(int argc, char ** argv)
 		n_irrig_steps_left = 0;
 		urbpoi = false;
 		do_capsnow = false;
-		canopyhydrologykern1_(&dtime,
-                        &forc_rain, &forc_snow, &irrig_rate,
-                        &ltype, &ctype, &urbpoi, &do_capsnow,
-                        &elai, &esai, &dewmx, &frac_veg_nosno,
-                        &h2ocan, &n_irrig_steps_left,
-                        &qflx_prec_intr, &qflx_irrig, &qflx_prec_grnd,
-                        &qflx_snwcp_liq, &qflx_snwcp_ice,
-                        &qflx_snow_grnd_patch, &qflx_rain_grnd);
+
+                ELM::CanopyHydrologyKern1(dtime, forc_snow, forc_snow, irrig_rate,
+                        ltype, ctype, urbpoi, do_capsnow,
+                        elai, esai, dewmx, frac_veg_nosno,
+                        h2ocan, n_irrig_steps_left,
+                        qflx_prec_intr, qflx_irrig, qflx_prec_grnd,
+                        qflx_snwcp_liq, qflx_snwcp_ice,
+                        qflx_snow_grnd_patch, qflx_rain_grnd);
 		
 		//printf("[ %d,%E,%4.4f,%E,%E]\n",itime, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr);
 		std::cout << "[ " << itime << " , " << forc_rain<< " , " << h2ocan<< " , " << qflx_prec_grnd<< " , " << qflx_prec_intr << " ]" << std::endl;
