@@ -60,7 +60,9 @@ program CanopyHydrology_kern1_multiple
   ! end setup stage
   ! -----------------------------
   h2ocan_pft = 0.0d0 
-
+  print*, "Time", "Total Canopy Water", "Min Water", "MaxWater"
+  print*, 0, sum(h2ocan_pft), minval(h2ocan_pft), maxval(h2ocan_pft)
+  
   do itime=1,28*48  ! February is shortest month 
 
      do g=1,ngrcs ! grid cell loop 
@@ -83,21 +85,26 @@ program CanopyHydrology_kern1_multiple
                 qflx_prec_intr, qflx_irrig, qflx_prec_grnd, &
                 qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd_patch, qflx_rain_grnd)
 
+           !print*, g, p, forc_rain, forc_snow, elai, esai, h2ocan, qflx_prec_intr
+           
            h2ocan_pft(p,g) = h2ocan
            qflx_snow_grnd_col = qflx_snow_grnd_col + qflx_snow_grnd_patch 
         end do ! PFT loop
 
-     end do ! grid cell loop 
+     end do ! grid cell loop
 
+     print*, itime, sum(h2ocan_pft), minval(h2ocan_pft), maxval(h2ocan_pft)
+     
   end do ! time loop  
 
-  print*, "Final canopy water:"
-  print*, "Grid Cell", "PFT", "H2O"
-  do g=1,ngrcs
-     do p=1,npfts
-        print*, g, p, h2ocan_pft(p,g)
-     end do
-  end do
+  ! print*, ""
+  ! print*, "Final canopy water:"
+  ! print*, "Grid Cell", "PFT", "H2O"
+  ! do g=1,ngrcs
+  !    do p=1,npfts
+  !       print*, g, p, h2ocan_pft(p,g)
+  !    end do
+  ! end do  
   stop 
 contains 
 

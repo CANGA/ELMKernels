@@ -1,5 +1,5 @@
 subroutine CanopyHydrologyKern1( dtime, &  
-     forc_rain, forc_snow, irrig_rate, &
+     forc_rain, forc_snow, forc_irrig, &
      ltype, ctype, urbpoi, do_capsnow, &
      elai, esai, dewmx, frac_veg_nosno, &
      h2ocan, n_irrig_steps_left, &
@@ -31,7 +31,7 @@ subroutine CanopyHydrologyKern1( dtime, &
   real(r8), intent(out) :: qflx_irrig 
   real(r8), intent(out)    :: qflx_prec_grnd
   real(r8), intent(out) :: qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd_patch, qflx_rain_grnd
-  real(r8), intent(in)  ::   irrig_rate
+  real(r8), intent(in)  ::   forc_irrig
 
   !local variables  
   real(r8) :: fpi, xrun, h2ocanmx   
@@ -44,7 +44,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
   ! Canopy interception and precipitation onto ground surface
   ! Add precipitation to leaf water
-
+  
   if (ltype==istsoil .or. ltype==istwet .or. urbpoi .or. &
        ltype==istcrop) then
 
@@ -58,6 +58,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
      if (ctype /= icol_sunwall .and. ctype /= icol_shadewall) then
         if (frac_veg_nosno == 1 .and. (forc_rain + forc_snow) > 0._r8) then
+
            ! determine fraction of input precipitation that is snow and rain
            fracsnow = forc_snow/(forc_snow + forc_rain)
            fracrain = forc_rain/(forc_snow + forc_rain)
@@ -79,6 +80,8 @@ subroutine CanopyHydrologyKern1( dtime, &
 
            ! Intercepted precipitation [mm/s]
            qflx_prec_intr = (forc_snow + forc_rain) * fpi
+           !print*, forc_rain, forc_snow, elai, esai, qflx_prec_intr, fpi
+
 
            ! Water storage of intercepted precipitation and dew
            h2ocan = max(0._r8, h2ocan + dtime*qflx_prec_intr)
@@ -129,7 +132,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
   ! Determine whether we're irrigating here; set qflx_irrig appropriately
   if (n_irrig_steps_left > 0) then
-     qflx_irrig         = irrig_rate
+     qflx_irrig         = forc_irrig
      n_irrig_steps_left = n_irrig_steps_left - 1
   else
      qflx_irrig = 0._r8
