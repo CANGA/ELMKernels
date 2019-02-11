@@ -1,5 +1,4 @@
-
-program testcanopyhydrologykern1
+program CanopyHydrology_kern1_single
   use netcdf
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
@@ -102,8 +101,5 @@ program testcanopyhydrologykern1
     stop 
 
     end subroutine err_handle 
-
-
-  
 
 end program 
