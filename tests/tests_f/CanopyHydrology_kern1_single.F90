@@ -7,8 +7,8 @@ program CanopyHydrology_kern1_single
 
   implicit none
 
-  character (len = *), parameter :: SURFDAT_FILE_NAME = "links/surfacedataWBW.nc"
-  character (len = *), parameter :: FORCDAT_FILE_NAME = "links/forcing8.nc"
+  character (len = *), parameter :: SURFDAT_FILE_NAME = "../links/surfacedataWBW.nc"
+  character (len = *), parameter :: FORCDAT_FILE_NAME = "../links/forcing7.nc"
 
   integer(i4), parameter :: npfts=17, nmonths=12
   integer(i4) :: ltype=1, ctype=1 

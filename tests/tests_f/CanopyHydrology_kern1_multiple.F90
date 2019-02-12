@@ -6,9 +6,9 @@ program CanopyHydrology_kern1_multiple
        bool => shr_kind_bool
   implicit none
 
-  character (len = *), dimension(2),parameter :: SURFDAT_FILE_NAME = (/"links/surfacedataWBW.nc", "links/surfacedataBRW.nc"/) 
+  character (len = *), dimension(2),parameter :: SURFDAT_FILE_NAME = (/"../links/surfacedataWBW.nc", "../links/surfacedataBRW.nc"/) 
   character (len = 100)  :: FORCDAT_FILE_NAME 
-  character (len = *), parameter :: FORCDAT_BASE = "links/forcing"
+  character (len = *), parameter :: FORCDAT_BASE = "../links/forcing"
 
   integer(i4) :: frac_veg_nosno = 1 
   integer(i4), parameter :: npfts=17, nmonths=12, ngrcs=24  

@@ -87,13 +87,13 @@ void read_phenology(const std::string& fname,
 // -----------------------------------------------------------------------------
 template<typename Matrix_t>
 int read_forcing(const std::string& fname,
-                 size_t n_times, size_t n_grid_cells,
+                 size_t n_times, size_t start_grid_cell, size_t n_grid_cells,
                  Matrix_t& rain, Matrix_t& snow, Matrix_t& temp) {
 
   size_t min_ntimes = n_times;
   for (size_t lcv_gc=0; lcv_gc!=n_grid_cells; ++lcv_gc) {
     std::stringstream fname_full;
-    fname_full << fname << lcv_gc+1 << ".nc";
+    fname_full << fname << lcv_gc+1+start_grid_cell << ".nc";
     
     int ncid = -1;
     auto status = nc_open(fname_full.str().c_str(), NC_NOWRITE, &ncid);

@@ -1,5 +1,5 @@
-SRCDIR	      =	../src/fortran/
-OBJECT        = ../src/
+SRCDIR	      =	../../src/fortran/
+OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
 FCFLAGS += -I$(SRCDIR) -I$(SRCDIR)$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
@@ -18,15 +18,14 @@ default: all
 all: links library $(TESTS)
 
 test: $(EXEC_TESTS)
-	echo "done"
+	python ../compare_to_gold.py $(TESTS)
 
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
-	./test_CanopyHydrology_kern1_single
+	./test_CanopyHydrology_kern1_single &> test_CanopyHydrology_kern1_single.stdout
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple
-
+	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
 
 
 test_%: %.o
@@ -44,7 +43,7 @@ allclean:
 
 links:
 	@echo "making in links"
-	$(MAKE) -C links links
+	$(MAKE) -C ../links links
 
 library:
 	$(MAKE) -C $(OBJECT) all

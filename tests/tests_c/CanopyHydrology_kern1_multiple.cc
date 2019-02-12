@@ -7,34 +7,12 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <iomanip>
 #include <numeric>
 
 #include "utils.hh"
 #include "readers.hh"
-
-using namespace std;
-
 #include "CanopyHydrology.hh"
-
-
-#define handle_error( status, what )            \
-  do {                                          \
-    if ( status )                               \
-    {                                           \
-      std::cout                                 \
-          << __FILE__                           \
-          << ':'                                \
-          << __LINE__                           \
-          << ':'                                \
-          << what                               \
-          << " failed with rc = "               \
-          << status                             \
-          << ':'                                \
-          << nc_strerror( status )              \
-          << '\n' ;                             \
-      abort() ;                                 \
-    }                                           \
-  } while ( 0 )
 
 
 int main(int argc, char ** argv)
@@ -60,14 +38,14 @@ int main(int argc, char ** argv)
   // phenology state
   ELM::Utils::Matrix<> elai(n_grid_cells, n_pfts);
   ELM::Utils::Matrix<> esai(n_grid_cells, n_pfts);
-  ELM::Utils::read_phenology("links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
-  ELM::Utils::read_phenology("links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
+  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
+  ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
   // forcing state
   ELM::Utils::Matrix<> forc_rain(n_max_times, n_grid_cells);
   ELM::Utils::Matrix<> forc_snow(n_max_times, n_grid_cells);
   ELM::Utils::Matrix<> forc_air_temp(n_max_times, n_grid_cells);
-  const int n_times = ELM::Utils::read_forcing("links/forcing", n_max_times, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
+  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
 
   ELM::Utils::Matrix<> forc_irrig(n_max_times, n_grid_cells); forc_irrig = 0.;
   
@@ -85,7 +63,8 @@ int main(int argc, char ** argv)
 
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-  std::cout << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
+  std::cout << std::setprecision(16)
+            << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
             << "\t" << *min_max.first
             << "\t" << *min_max.second << std::endl;
   
@@ -112,7 +91,8 @@ int main(int argc, char ** argv)
     }
 
     auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-    std::cout << t << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
+    std::cout << std::setprecision(16)
+              << t+1 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 
