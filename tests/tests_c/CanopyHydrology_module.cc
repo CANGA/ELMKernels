@@ -53,14 +53,15 @@ int main(int argc, char ** argv)
   const double dewmx = 0.1;
   const double dtime = 1800.0;
 
-  const int oldfflag = 0;
+  // fixed magic parameters for SnowWater
+  const double qflx_snow_melt = 0.;
 
   // fixed magic parameters for fracH2Osfc  
+  const int oldfflag = 0;
   const double micro_sigma = 0.1;
   const double min_h2osfc = 1.0e-8;
   
-  // NOTE: confusing parameters that need to be fixed --etc
-  const double qflx_snow_melt = 0.;
+  // FIXME: confusing parameters that need to be fixed --etc
   const double n_melt = 0.7;
                                
   // phenology input
@@ -111,7 +112,7 @@ int main(int argc, char ** argv)
   auto qflx_snow_grnd_patch = ELM::Utils::MatrixStatePFT();
   auto qflx_rain_grnd = ELM::Utils::MatrixStatePFT();
 
-  // NOTE: I have no clue what this is... it is inout on WaterSnow.  For now I
+  // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
   auto int_snow = ELM::Utils::VectorColumn(0.);
   
@@ -160,7 +161,7 @@ int main(int argc, char ** argv)
         //
         // Calculate fraction of ?LAI? that is wet vs dry.
         //
-        // NOTE: this currently punts on what to do with the fwet/fdry variables.
+        // FIXME: this currently punts on what to do with the fwet/fdry variables.
         // Surely they should be something, as such this is dead code.
         // --etc
         double fwet = 0., fdry = 0.;
