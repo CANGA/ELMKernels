@@ -26,14 +26,14 @@ Single kernel and single grid cell tests/questions:
 -----------------------------------------------------------------------------
 
 - how do write kernels such that they can be called by:         (Ethan)
-        - fortran
-        - c
-        - Legion
-        - Kokkos
+  * fortran
+  * c
+  * Legion
+  * Kokkos
 
 - how do we wrap a kernel for Legion                    (Himanshu)
-        - sequence of blocked tasks
-        - sequence of non-blocked tasks (based on futures)
+  * sequence of blocked tasks
+  * sequence of non-blocked tasks (based on futures)
         
 
 
@@ -56,8 +56,8 @@ Module level part 2:            (Dali / Ethan / Himanshu)
 
 - Implement driver with ACTUAL ELM data layout (with filter / lake PFTs / ???) (masking??)
 - compare alternative data layouts
-        - ragged layouts (no filter)
-        - fixed layout with no filter (maybe better for threading models e.g. GPUs?)
+  * ragged layouts (no filter)
+  * fixed layout with no filter (maybe better for threading models e.g. GPUs?)
 
 
 automation...
