@@ -135,15 +135,16 @@ program test_CanopyHydrology_module
         
         call CanopyHydrology_SnowWater( dtime, &
              qflx_floodg, &
-             ctype, ltype, urbpoi, do_capsnow, oldfflag, &
+             ltype, ctype, urbpoi, do_capsnow, oldfflag, &
              forc_t, t_grnd, qflx_snow_grnd_col, qflx_snow_melt, n_melt, frac_h2osfc, & ! forcing 
              snow_depth, h2osno, int_snow, swe_old, &
              h2osoi_liq, h2osoi_ice, t_soisno, frac_iceold, & ! state
              snl, dz, z, zi, newnode, & ! snow mesh for initialization
              qflx_floodc, qflx_snow_h2osfc, &
-             frac_sno_eff, frac_sno)
+             frac_sno, frac_sno_eff)
 
-
+        ! FIXME: Fortran black magic... h2osoi_liq is a vector, but
+        ! the interface specifies a single double.  --etc
         call CanopyHydrology_FracH2OSfc( dtime, min_h2osfc, &
              ltype, micro_sigma, h2osno, &
              h2osfc, h2osoi_liq, frac_sno, frac_sno_eff, &

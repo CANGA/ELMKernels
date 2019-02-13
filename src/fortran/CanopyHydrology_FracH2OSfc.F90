@@ -1,32 +1,43 @@
 subroutine CanopyHydrology_FracH2OSfc( dtime, min_h2osfc, &
-     itype, micro_sigma, h2osno, &
+     ltype, micro_sigma, h2osno, &
      h2osfc, h2osoi_liq, frac_sno, frac_sno_eff, &
      qflx_h2osfc2topsoi, frac_h2osfc, &
      no_update)
 
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
-       i4 => shr_kind_i4
-  use landunit_varcon    , only : istcrop, istice, istwet, istsoil, istice_mec
+       i4 => shr_kind_i4, &
+       bool => shr_kind_bool
+  use landunit_varcon, only : istcrop, istice, istwet, istsoil, istice_mec
   implicit none 
 
+  !
+  ! interface
   real(r8), intent(in) :: dtime, min_h2osfc, micro_sigma, h2osno
-  integer(i4), intent(in) :: itype
-  integer(i4), intent(in), optional :: no_update
+  integer(i4), intent(in) :: ltype
 
   real(r8), intent(inout) :: h2osfc, h2osoi_liq, frac_sno, frac_sno_eff
   real(r8), intent(out) :: qflx_h2osfc2topsoi, frac_h2osfc
 
+  logical(bool), intent(in), optional :: no_update
+
   !local
   real(r8), parameter :: shr_const_pi=4.0d0*atan(1.0d0)
+  logical(bool) :: no_update_l
 
   integer :: l
   real(r8):: d,fd,dfdd      ! temporary variable for frac_h2oscs iteration
   real(r8):: sigma          ! microtopography pdf sigma in mm
 
+  if (.not. present(no_update) ) then
+     no_update_l = .false.
+  else
+     no_update_l = no_update
+  end if
+  
   qflx_h2osfc2topsoi = 0._r8
   ! h2osfc only calculated for soil vegetated land units
-  if ( itype  == istsoil .or. itype == istcrop) then
+  if ( ltype  == istsoil .or. ltype == istcrop) then
 
      !  Use newton-raphson method to iteratively determine frac_h20sfc
      !  based on amount of surface water storage (h2osfc) and
@@ -55,7 +66,7 @@ subroutine CanopyHydrology_FracH2OSfc( dtime, min_h2osfc, &
         h2osfc=0._r8
      endif
 
-     if (.not. present(no_update)) then
+     if (.not.no_update_l) then
 
         ! adjust fh2o, fsno when sum is greater than zero
         if (frac_sno > (1._r8 - frac_h2osfc) .and. h2osno > 0) then

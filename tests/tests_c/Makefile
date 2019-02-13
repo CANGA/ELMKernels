@@ -8,10 +8,12 @@ CPPFLAGS += -I$(CSRCDIR) -I$(NETCDF_ROOT)/include
 
 
 TESTS = test_CanopyHydrology_kern1_single \
-        test_CanopyHydrology_kern1_multiple
+        test_CanopyHydrology_kern1_multiple \
+        test_CanopyHydrology_module
 
 EXEC_TESTS = CanopyHydrology_kern1_single \
-             CanopyHydrology_kern1_multiple
+             CanopyHydrology_kern1_multiple \
+             CanopyHydrology_module
 
 
 .PHONY: links library test
@@ -29,6 +31,9 @@ CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
+
+CanopyHydrology_module: test_CanopyHydrology_module
+	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
 
 
 test_%: %.o readers.hh utils.hh

@@ -7,12 +7,34 @@ namespace ELM {
 namespace Utils {
 
 
+template<size_t N, typename T=double>
+class VectorStatic {
+ public:
+  VectorStatic() {}
+  VectorStatic(T t) { *this = t; }
 
+  T& operator()(size_t i) { return d_[i]; }
+  const T& operator()(size_t i) const { return d_[i]; }
+
+  T& operator[](size_t i) { return d_[i]; }
+  const T& operator[](size_t i) const { return d_[i]; }
+  
+  void operator=(T t) {
+    for (size_t i=0; i!=N; ++i) {
+      d_[i] = t;
+    }
+  }
+
+ private:
+  std::array<T,N> d_;
+};
+  
 
 template<size_t ROW, size_t COL, typename T=double>
 class MatrixStatic {
  public:
   MatrixStatic() {}
+  MatrixStatic(T t) { *this = t; }
   
   T& operator()(size_t i, size_t j) { return d_[i][j]; }
   const T& operator()(size_t i, size_t j) const { return d_[i][j]; }

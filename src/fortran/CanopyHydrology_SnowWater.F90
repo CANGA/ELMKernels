@@ -1,12 +1,12 @@
 subroutine CanopyHydrology_SnowWater( dtime, &
   qflx_floodg, &
-  ctype, ltype, urbpoi, do_capsnow, oldfflag, &
+  ltype, ctype, urbpoi, do_capsnow, oldfflag, &
   forc_t, t_grnd, qflx_snow_grnd_col, qflx_snow_melt, n_melt, frac_h2osfc, & ! forcing 
   snow_depth, h2osno, int_snow, swe_old, &
   h2osoi_liq, h2osoi_ice, t_soisno, frac_iceold, & ! state
   snl, dz, z, zi, newnode, & ! snow mesh for initialization
   qflx_floodc, qflx_snow_h2osfc, &
-  frac_sno_eff, frac_sno)
+  frac_sno, frac_sno_eff)
        
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
@@ -20,28 +20,31 @@ subroutine CanopyHydrology_SnowWater( dtime, &
   
   implicit none 
 
+  !
+  ! parameters
   real(r8), parameter :: rpi=4.0d0*atan(1.0d0)  
   real(r8), parameter :: tfrz=273.15
-  real(r8) :: zlnd = 0.01_r8
+  real(r8), parameter :: zlnd = 0.01_r8
 
+  !
+  ! interface variables
   real(r8), intent(in)    :: dtime 
-  integer, intent(in)     :: oldfflag, ctype , ltype
-  logical, intent(in) :: do_capsnow, urbpoi 
   real(r8), intent(in)  :: qflx_floodg 
-  real(r8), intent(in) :: frac_h2osfc, qflx_snow_grnd_col, forc_t , qflx_snow_melt, n_melt
-  real(r8), intent(in) :: t_grnd
+  integer(i4), intent(in)     :: ltype, ctype, oldfflag
+  logical(bool), intent(in) :: urbpoi, do_capsnow
+  real(r8), intent(in) :: forc_t, t_grnd, qflx_snow_grnd_col, qflx_snow_melt, n_melt, frac_h2osfc
+
+  real(r8), intent(inout) :: snow_depth , h2osno, int_snow
+  real(r8), intent(inout), dimension(-nlevsno+1:0)  :: swe_old 
+  real(r8), intent(inout), dimension(-nlevsno+1:0) :: h2osoi_liq, h2osoi_ice
+  real(r8), intent(inout), dimension(-nlevsno+1:0)  :: t_soisno, frac_iceold
 
   integer, intent(inout)  :: snl 
-  real(r8), intent(inout) :: snow_depth , h2osno, int_snow
-  real(r8), intent(inout), dimension(-nlevsno+1:0) :: h2osoi_liq, h2osoi_ice
-  real(r8), intent(inout), dimension(-nlevsno+1:0)  :: dz
-
+  real(r8), intent(inout), dimension(-nlevsno+1:0)  :: dz, z, zi
+  
   integer, intent(out)  :: newnode 
   real(r8), intent(out) :: qflx_floodc 
   real(r8), intent(out)  :: qflx_snow_h2osfc 
-  real(r8), intent(out), dimension(-nlevsno+1:0)  :: swe_old 
-  real(r8), intent(out), dimension(-nlevsno+1:0)  :: z, zi
-  real(r8), intent(out), dimension(-nlevsno+1:0)  :: t_soisno, frac_iceold
   real(r8), intent(out) :: frac_sno_eff, frac_sno
 
   ! local variables 
