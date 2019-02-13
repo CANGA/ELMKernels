@@ -25,7 +25,7 @@ Work Plan
 Single kernel and single grid cell tests/questions:
 -----------------------------------------------------------------------------
 
-- how do write kernels such that they can be called by:         (Ethan)
+- how do we write kernels such that they can be called by:         (Ethan)
   * fortran
   * c
   * Legion
