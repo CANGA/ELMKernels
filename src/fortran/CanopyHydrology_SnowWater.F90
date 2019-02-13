@@ -2,11 +2,11 @@ subroutine CanopyHydrology_SnowWater( dtime, &
   qflx_floodg, &
   ctype, ltype, urbpoi, do_capsnow, oldfflag, &
   forc_t, t_grnd, qflx_snow_grnd_col, qflx_snow_melt, n_melt, frac_h2osfc, & ! forcing 
-  snow_depth, h2osno, swe_old, &
+  snow_depth, h2osno, int_snow, swe_old, &
   h2osoi_liq, h2osoi_ice, t_soisno, frac_iceold, & ! state
   snl, dz, z, zi, newnode, & ! snow mesh for initialization
   qflx_floodc, qflx_snow_h2osfc, &
-  int_snow, frac_sno_eff, frac_sno)
+  frac_sno_eff, frac_sno)
        
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
@@ -15,9 +15,6 @@ subroutine CanopyHydrology_SnowWater( dtime, &
   use column_varcon      , only : icol_sunwall, icol_shadewall
   use landunit_varcon    , only : istcrop, istice, istwet, istsoil, istice_mec
   use clm_varpar         , only : nlevsno
-  !use column_varcon      , only : icol_sunwall, icol_shadewall
-  !use landunit_varcon    , only : istcrop, istice, istwet, istsoil, istice_mec 
-  !use clm_varcon         , only : zlnd, rpi,  tfrz
   use clm_varctl         , only : subgridflag
 
   
@@ -35,7 +32,7 @@ subroutine CanopyHydrology_SnowWater( dtime, &
   real(r8), intent(in) :: t_grnd
 
   integer, intent(inout)  :: snl 
-  real(r8), intent(inout) :: snow_depth , h2osno 
+  real(r8), intent(inout) :: snow_depth , h2osno, int_snow
   real(r8), intent(inout), dimension(-nlevsno+1:0) :: h2osoi_liq, h2osoi_ice
   real(r8), intent(inout), dimension(-nlevsno+1:0)  :: dz
 
@@ -45,7 +42,7 @@ subroutine CanopyHydrology_SnowWater( dtime, &
   real(r8), intent(out), dimension(-nlevsno+1:0)  :: swe_old 
   real(r8), intent(out), dimension(-nlevsno+1:0)  :: z, zi
   real(r8), intent(out), dimension(-nlevsno+1:0)  :: t_soisno, frac_iceold
-  real(r8), intent(out) :: int_snow, frac_sno_eff, frac_sno
+  real(r8), intent(out) :: frac_sno_eff, frac_sno
 
   ! local variables 
   real(r8) :: temp_intsnow, temp_snow_depth, z_avg, fmelt, dz_snowf, snowmelt
@@ -82,6 +79,7 @@ subroutine CanopyHydrology_SnowWater( dtime, &
      frac_sno=1._r8
      int_snow = 5.e2_r8
   else
+
      if (forc_t > tfrz + 2._r8) then
         bifall=50._r8 + 1.7_r8*(17.0_r8)**1.5_r8
      else if (forc_t > tfrz - 15._r8) then

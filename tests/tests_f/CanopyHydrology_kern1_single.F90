@@ -20,7 +20,7 @@ program CanopyHydrology_kern1_single
   real(r8) :: qflx_snow_grnd_patch, qflx_rain_grnd,irrig_rate, h2ocan 
   integer(i4), dimension(4) :: start, count 
   integer(i4), dimension(3) :: start3, count3 
-  integer(i4) :: ipft,itime,ntimes 
+  integer(i4) :: itime,ntimes 
   real(r8), dimension(npfts,nmonths) :: monthly_lai 
   real(r8), dimension(npfts,nmonths) :: monthly_sai 
   real(r8), dimension(:,:,:), allocatable  :: total_precip

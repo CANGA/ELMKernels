@@ -33,7 +33,7 @@ CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
 
 
-test_%: %.o
+test_%: %.o library
 	$(LINKER) $(FCFLAGS) -L$(OBJECT)fortran -lelm -L$(NETCDF_ROOT)/lib -lnetcdff $< -o $@
 
 
