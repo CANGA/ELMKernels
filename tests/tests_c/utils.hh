@@ -7,8 +7,36 @@ namespace ELM {
 namespace Utils {
 
 
-enum struct Ordering { C, FORTRAN };
 
+
+template<size_t ROW, size_t COL, typename T=double>
+class MatrixStatic {
+ public:
+  MatrixStatic() {}
+  
+  T& operator()(size_t i, size_t j) { return d_[i][j]; }
+  const T& operator()(size_t i, size_t j) const { return d_[i][j]; }
+
+  std::array<T,COL>& operator[](size_t i) { return d_[i]; }
+  const std::array<T,COL>& operator[](size_t i) const { return d_[i]; }
+
+  void operator=(T t) {
+    for (size_t i=0; i!=ROW; ++i) {
+      for (size_t j=0; j!=COL; ++j) {
+        d_[i][j] = t;
+      }
+    }
+  }
+
+  double const * begin() const { return &d_[0][0]; }
+  double const * end() const { return &d_[ROW-1][COL-1] +1; }
+  
+ private:
+  std::array<std::array<T,COL>,ROW> d_;
+};
+  
+
+enum struct Ordering { C, FORTRAN };
 template <typename T=double, Ordering O=Ordering::C>
 class Matrix {
 

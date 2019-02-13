@@ -77,7 +77,7 @@ program CanopyHydrology_kern1_multiple
            esai = surfdata(g)%sai(p)  
            h2ocan = h2ocan_pft(p,g) 
 
-           call CanopyHydrologyKern1( dtime, &
+           call CanopyHydrology_Interception( dtime, &
                 forc_rain, forc_snow, irrig_rate, &
                 ltype, ctype, urbpoi, do_capsnow, &
                 elai, esai, dewmx, frac_veg_nosno, &

@@ -17,8 +17,10 @@ OBJS = \
 	column_varcon.o \
 	clm_varpar.o \
 	clm_varctl.o \
-	CanopyHydrologyKern1.o \
-	CanopyHydrologyKern2.o
+	CanopyHydrology_Interception.o \
+	CanopyHydrology_SnowWater.o \
+	CanopyHydrology_FracWet.o \
+	CanopyHydrology_FracH2OSfc.o
 
 all: $(OBJS)
 	$(AR) cr libelm.a $(OBJS)

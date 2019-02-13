@@ -134,13 +134,13 @@ int read_forcing(const std::string& fname,
     // allocate the precip to rain or snow
     for (int lcv_t=0; lcv_t!=ntimes_l; ++lcv_t) {
       if (data_temp[lcv_t] < 273.15) {
-        snow(lcv_t, lcv_gc) = data_precip[lcv_t];
-        rain(lcv_t, lcv_gc) = 0.;
-        temp(lcv_t, lcv_gc) = data_temp[lcv_t];
+        snow[lcv_t][lcv_gc] = data_precip[lcv_t];
+        rain[lcv_t][lcv_gc] = 0.;
+        temp[lcv_t][lcv_gc] = data_temp[lcv_t];
       } else {
-        snow(lcv_t, lcv_gc) = 0.;
-        rain(lcv_t, lcv_gc) = data_precip[lcv_t];
-        temp(lcv_t, lcv_gc) = data_temp[lcv_t];
+        snow[lcv_t][lcv_gc] = 0.;
+        rain[lcv_t][lcv_gc] = data_precip[lcv_t];
+        temp[lcv_t][lcv_gc] = data_temp[lcv_t];
       }
     }
   }

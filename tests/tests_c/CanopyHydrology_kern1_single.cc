@@ -14,6 +14,19 @@
 #include "readers.hh"
 #include "CanopyHydrology.hh"
 
+namespace ELM {
+namespace Utils {
+
+static const int n_months = 12;
+static const int n_pfts = 17;
+using MatrixState = MatrixStatic<n_months, n_pfts>;
+
+static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
+                                            // day * half hour timestep
+using MatrixForc = MatrixStatic<n_max_times,1>;
+
+} // namespace
+} // namespace
 
 int main(int argc, char ** argv)
 {
@@ -35,14 +48,14 @@ int main(int argc, char ** argv)
   const double dtime = 1800.0;
 
   // phenology state
-  ELM::Utils::Matrix<> elai(n_months, n_pfts);
-  ELM::Utils::Matrix<> esai(n_months, n_pfts);
+  ELM::Utils::MatrixState elai;
+  ELM::Utils::MatrixState esai;
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
 
   // forcing state
-  ELM::Utils::Matrix<> forc_rain(n_max_times, 1);
-  ELM::Utils::Matrix<> forc_snow(n_max_times, 1);
-  ELM::Utils::Matrix<> forc_air_temp(n_max_times, 1);
+  ELM::Utils::MatrixForc forc_rain;
+  ELM::Utils::MatrixForc forc_snow;
+  ELM::Utils::MatrixForc forc_air_temp;
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 6, 1, forc_rain, forc_snow, forc_air_temp);
 
   double h2ocan = 0.0;
@@ -57,10 +70,10 @@ int main(int argc, char ** argv)
   std::cout << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
-    double total_precip = forc_rain(itime, 0) + forc_snow(itime, 0);
-    ELM::CanopyHydrologyKern1(dtime, total_precip, 0., 0.,
+    double total_precip = forc_rain[itime][0] + forc_snow[itime][0];
+    ELM::CanopyHydrology_Interception(dtime, total_precip, 0., 0.,
             ltype, ctype, urbpoi, do_capsnow,
-            elai(5,7), esai(5,7), dewmx, frac_veg_nosno,
+            elai[5][7], esai[5][7], dewmx, frac_veg_nosno,
             h2ocan, n_irrig_steps_left,
             qflx_prec_intr, qflx_irrig, qflx_prec_grnd,
             qflx_snwcp_liq, qflx_snwcp_ice,

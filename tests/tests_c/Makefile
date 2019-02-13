@@ -21,7 +21,7 @@ default: all
 all: links library $(TESTS)
 
 test: $(EXEC_TESTS)
-	@echo "done"
+	python ../compare_to_gold.py $(TESTS)
 
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single

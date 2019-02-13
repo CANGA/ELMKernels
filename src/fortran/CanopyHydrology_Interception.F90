@@ -1,4 +1,4 @@
-subroutine CanopyHydrologyKern1( dtime, &  
+subroutine CanopyHydrology_Interception( dtime, &  
      forc_rain, forc_snow, forc_irrig, &
      ltype, ctype, urbpoi, do_capsnow, &
      elai, esai, dewmx, frac_veg_nosno, &
@@ -41,10 +41,8 @@ subroutine CanopyHydrologyKern1( dtime, &
   real(r8) :: fracsnow 
   real(r8) :: fracrain 
 
-
   ! Canopy interception and precipitation onto ground surface
   ! Add precipitation to leaf water
-  
   if (ltype==istsoil .or. ltype==istwet .or. urbpoi .or. &
        ltype==istcrop) then
 
@@ -80,7 +78,7 @@ subroutine CanopyHydrologyKern1( dtime, &
 
            ! Intercepted precipitation [mm/s]
            qflx_prec_intr = (forc_snow + forc_rain) * fpi
-           !print*, forc_rain, forc_snow, elai, esai, qflx_prec_intr, fpi
+           ! print*, forc_rain, forc_snow, elai, esai, qflx_prec_intr, fpi
 
 
            ! Water storage of intercepted precipitation and dew
@@ -162,5 +160,5 @@ subroutine CanopyHydrologyKern1( dtime, &
 
   return 
 
-end subroutine CanopyHydrologyKern1
+end subroutine CanopyHydrology_Interception
 

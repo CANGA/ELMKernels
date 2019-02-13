@@ -78,7 +78,7 @@ program CanopyHydrology_kern1_single
    n_irrig_steps_left = 0
    urbpoi=.false. 
    do_capsnow = .false. 
-   call CanopyHydrologyKern1( dtime, &
+   call CanopyHydrology_Interception( dtime, &
      forc_rain, forc_snow, irrig_rate, &
      ltype, ctype, urbpoi, do_capsnow, &
      elai, esai, dewmx, frac_veg_nosno, &

@@ -3,7 +3,7 @@
 
 
 extern "C" {
-  void canopyhydrologykern1_(const double* dtime,
+  void canopyhydrology_interception_(const double* dtime,
                             const double* forc_rain,
                             const double* forc_snow,
                             const double* irrig_rate,

@@ -1,12 +1,13 @@
-subroutine CanopyHydrologyKern2( dtime, oldfflag, newnode, &  
-     ctype, qflx_floodc, qflx_snow_h2osfc, snow_depth, snl, & 
-     swe_old, h2osoi_liq, h2osoi_ice, dz, z, zi, & 
-     t_soisno, frac_iceold, &  
-     do_capsnow, frac_h2osfc, qflx_snow_grnd_col, frac_sno, int_snow, forc_t, & 
-     h2osno,qflx_snow_melt, n_melt, frac_sno_eff, t_grnd, & 
-     qflx_floodg,  &  
-     ltype, urbpoi) bind(C)
-
+subroutine CanopyHydrology_SnowWater( dtime, &
+  qflx_floodg, &
+  ctype, ltype, urbpoi, do_capsnow, oldfflag, &
+  forc_t, t_grnd, qflx_snow_grnd_col, qflx_snow_melt, n_melt, frac_h2osfc, & ! forcing 
+  snow_depth, h2osno, swe_old, &
+  h2osoi_liq, h2osoi_ice, t_soisno, frac_iceold, & ! state
+  snl, dz, z, zi, newnode, & ! snow mesh for initialization
+  qflx_floodc, qflx_snow_h2osfc, &
+  int_snow, frac_sno_eff, frac_sno)
+       
   use shr_kind_mod, only : &
        r8 => shr_kind_r8, &
        i4 => shr_kind_i4, &
@@ -26,28 +27,29 @@ subroutine CanopyHydrologyKern2( dtime, oldfflag, newnode, &
   real(r8), parameter :: tfrz=273.15
   real(r8) :: zlnd = 0.01_r8
 
-
   real(r8), intent(in)    :: dtime 
   integer, intent(in)     :: oldfflag, ctype , ltype
-  integer, intent(inout)  :: snl 
-  integer, intent(out)  :: newnode 
-  real(r8), intent(out) :: qflx_floodc 
+  logical, intent(in) :: do_capsnow, urbpoi 
   real(r8), intent(in)  :: qflx_floodg 
-  real(r8), intent(out)  :: qflx_snow_h2osfc 
-  real(r8), intent(out), dimension(-nlevsno+1:0)  :: swe_old 
+  real(r8), intent(in) :: frac_h2osfc, qflx_snow_grnd_col, forc_t , qflx_snow_melt, n_melt
+  real(r8), intent(in) :: t_grnd
+
+  integer, intent(inout)  :: snl 
   real(r8), intent(inout) :: snow_depth , h2osno 
   real(r8), intent(inout), dimension(-nlevsno+1:0) :: h2osoi_liq, h2osoi_ice
   real(r8), intent(inout), dimension(-nlevsno+1:0)  :: dz
+
+  integer, intent(out)  :: newnode 
+  real(r8), intent(out) :: qflx_floodc 
+  real(r8), intent(out)  :: qflx_snow_h2osfc 
+  real(r8), intent(out), dimension(-nlevsno+1:0)  :: swe_old 
   real(r8), intent(out), dimension(-nlevsno+1:0)  :: z, zi
   real(r8), intent(out), dimension(-nlevsno+1:0)  :: t_soisno, frac_iceold
-  logical, intent(in) :: do_capsnow, urbpoi 
-  real(r8), intent(in) :: frac_h2osfc, qflx_snow_grnd_col, forc_t , qflx_snow_melt, n_melt
   real(r8), intent(out) :: int_snow, frac_sno_eff, frac_sno
-  real(r8), intent(in) :: t_grnd
 
   ! local variables 
   real(r8) :: temp_intsnow, temp_snow_depth, z_avg, fmelt, dz_snowf, snowmelt
-  real(r8) :: newsnow, bifall, fsnow_new, accum_factor, fsno_new, smr 
+  real(r8) :: newsnow, bifall, accum_factor, fsno_new, smr 
   integer :: j 
 
   ! apply gridcell flood water flux to non-lake columns
@@ -236,5 +238,5 @@ subroutine CanopyHydrologyKern2( dtime, oldfflag, newnode, &
      dz(snl+1) = dz(snl+1)+dz_snowf*dtime
   end if
 
-end subroutine CanopyHydrologyKern2
+end subroutine CanopyHydrology_SnowWater
 
