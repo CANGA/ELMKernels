@@ -60,8 +60,6 @@ int main(int argc, char ** argv)
   const int oldfflag = 0;
   const double micro_sigma = 0.1;
   const double min_h2osfc = 1.0e-8;
-  
-  // FIXME: confusing parameters that need to be fixed --etc
   const double n_melt = 0.7;
                                
   // phenology input
@@ -159,10 +157,11 @@ int main(int argc, char ** argv)
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2ocan(g,p), qflx_prec_intr[g]);
 
         //
-        // Calculate fraction of ?LAI? that is wet vs dry.
+        // Calculate fraction of LAI that is wet vs dry.
         //
         // FIXME: this currently punts on what to do with the fwet/fdry variables.
         // Surely they should be something, as such this is dead code.
+        // By the PFT?
         // --etc
         double fwet = 0., fdry = 0.;
         ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
