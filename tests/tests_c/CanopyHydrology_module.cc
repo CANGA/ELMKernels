@@ -82,24 +82,24 @@ int main(int argc, char ** argv)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // need them to be for these kernels. --etc
-  auto z = ELM::Utils::MatrixStateSoilColumn(); z = 0.;
-  auto zi = ELM::Utils::MatrixStateSoilColumn(); zi = 0.;
-  auto dz = ELM::Utils::MatrixStateSoilColumn(); dz = 0.;
+  auto z = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto zi = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto dz = ELM::Utils::MatrixStateSoilColumn(0.);
 
   // state variables that require ICs and evolve (in/out)
-  auto h2ocan = ELM::Utils::MatrixStatePFT(); h2ocan = 0.;
-  auto swe_old = ELM::Utils::MatrixStateSoilColumn(); swe_old = 0.;
-  auto h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(); h2osoi_liq = 0.;
-  auto h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(); h2osoi_ice = 0.;
-  auto t_soisno = ELM::Utils::MatrixStateSoilColumn(); t_soisno = 0.;
-  auto frac_iceold = ELM::Utils::MatrixStateSoilColumn(); frac_iceold = 0.;
-  auto t_grnd = ELM::Utils::VectorColumn(); t_grnd = 0.;
-  auto h2osno = ELM::Utils::VectorColumn(); h2osno = 0.;
-  auto snow_depth = ELM::Utils::VectorColumn(); snow_depth= 0.;
-  auto snl = ELM::Utils::VectorColumnInt(); snl = 0; // note this tracks the snow_depth
+  auto h2ocan = ELM::Utils::MatrixStatePFT(0.);
+  auto swe_old = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto t_soisno = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto frac_iceold = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto t_grnd = ELM::Utils::VectorColumn(0.);
+  auto h2osno = ELM::Utils::VectorColumn(0.);
+  auto snow_depth = ELM::Utils::VectorColumn(0.);
+  auto snl = ELM::Utils::VectorColumnInt(0.); // note this tracks the snow_depth
 
-  auto h2osfc = ELM::Utils::VectorColumn(); h2osfc = 0.1;
-  auto frac_h2osfc = ELM::Utils::VectorColumn(); frac_h2osfc = 0.;
+  auto h2osfc = ELM::Utils::VectorColumn(0.);
+  auto frac_h2osfc = ELM::Utils::VectorColumn(0.);
 
   
   // output fluxes by pft
@@ -113,7 +113,7 @@ int main(int argc, char ** argv)
 
   // NOTE: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  auto int_snow = ELM::Utils::VectorColumn(); int_snow = 0.;
+  auto int_snow = ELM::Utils::VectorColumn(0.);
   
   // output fluxes, state by the column
   auto qflx_snow_grnd_col = ELM::Utils::VectorColumn();
