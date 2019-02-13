@@ -15,7 +15,10 @@ CanopyHydrologyMod
 
 Kernels include:
 
-* Interception: (rename me) partitions incoming precip into throughfall/precip
+- Interception: partitions incoming precip into throughfall/precip
+- Fraction Wet/Dry: identifies fraction of LAI that is wet and dry
+- SnowWater: deals with a bunch of water balance aspects of the snowpack
+- Fraction H2O on the surface: partitions water streams between surface and soil column
 
 
 
