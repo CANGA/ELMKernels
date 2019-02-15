@@ -19,9 +19,9 @@ USE_HDF         ?= 0		# Include HDF5 support (requires HDF5)
 ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 
 # Put the binary file name here
-OUTFILE		?= CanopyHydrology_kern1_multiple_read_phenology
+OUTFILE		?= CanopyHydrology_kern1_multiple
 # List all the application source files here
-GEN_SRC		?= CanopyHydrology_kern1_multiple_read_phenology.cc	# .cc files
+GEN_SRC		?= CanopyHydrology_kern1_multiple.cc	# .cc files
 
 # You can modify these variables, some will be appended to by the runtime makefile
 INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c
