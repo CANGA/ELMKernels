@@ -12,6 +12,7 @@ class VectorStatic {
  public:
   VectorStatic() {}
   VectorStatic(T t) { *this = t; }
+  VectorStatic(const VectorStatic<N,T>& other) = default;
 
   T& operator()(size_t i) { return d_[i]; }
   const T& operator()(size_t i) const { return d_[i]; }
@@ -35,6 +36,7 @@ class MatrixStatic {
  public:
   MatrixStatic() {}
   MatrixStatic(T t) { *this = t; }
+  MatrixStatic(const MatrixStatic<ROW,COL,T>& other) = default;
   
   T& operator()(size_t i, size_t j) { return d_[i][j]; }
   const T& operator()(size_t i, size_t j) const { return d_[i][j]; }
