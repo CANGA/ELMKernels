@@ -22,6 +22,7 @@
 #include "readers.hh"
 #include "CanopyHydrology.hh"
 #include "legion.h"
+#include "domains.hh"
 
 using namespace Legion;
 
@@ -54,12 +55,6 @@ enum FieldIDs {
 };
 } // namespace
 
-static const int n_months = 12;
-static const int n_pfts = 17;
-static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
-                                            // day * half hour timestep
-static const int n_grid_cells = 24;
-
 
 std::array<double,3> SumMinMaxReduction(const Task *task,
                  const std::vector<PhysicalRegion> &regions,
@@ -68,6 +63,7 @@ std::array<double,3> SumMinMaxReduction(const Task *task,
   assert(regions.size() == 1);
   assert(task->regions.size() == 1);
   assert(task->regions[0].privilege_fields.size() == 1);
+  std::cout << "LOG: Executing SumMinMax Task" << std::endl;
   FieldID fid = *(task->regions[0].privilege_fields.begin());
 
   FieldAccessor<READ_ONLY,double,2,coord_t,
@@ -98,8 +94,14 @@ void InitPhenology(const Task *task,
   std::cout << "LOG: Executing InitPhenology task" << std::endl;
   const FieldAccessor<WRITE_DISCARD,double,2> elai(regions[0], FieldIDs::ELAI);
   const FieldAccessor<WRITE_DISCARD,double,2> esai(regions[0], FieldIDs::ESAI);
-  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
-  ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
+
+  Rect<2> my_bounds = Domain(runtime->get_index_space_domain(regions[0].get_logical_region().get_index_space()));
+  coord_t n_grid_cells = my_bounds.hi[0] - my_bounds.lo[0] + 1;
+  coord_t n_pfts = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  
+  assert(n_grid_cells == 24); // hard coded as two reads of 2x 12 increments
+  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", 12, n_pfts, 0, elai, esai);
+  ELM::Utils::read_phenology("../links/surfacedataBRW.nc", 12, n_pfts, 12, elai, esai);
 }  
 
 int InitForcing(const Task *task,
@@ -111,17 +113,20 @@ int InitForcing(const Task *task,
   assert(task->regions[0].privilege_fields.size() == 4); // rain, snow, temp, irrig
 
   std::cout << "LOG: Executing InitForcing task" << std::endl;
-
+  Rect<2> my_bounds = Domain(runtime->get_index_space_domain(regions[0].get_logical_region().get_index_space()));
+  coord_t n_times_max = my_bounds.hi[0] - my_bounds.lo[0] + 1;
+  coord_t n_grid_cells = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  
   // init rain, snow, and air temp through reader
   const FieldAccessor<WRITE_DISCARD,double,2> rain(regions[0], FieldIDs::FORC_RAIN);
   const FieldAccessor<WRITE_DISCARD,double,2> snow(regions[0], FieldIDs::FORC_SNOW);
   const FieldAccessor<WRITE_DISCARD,double,2> air_temp(regions[0], FieldIDs::FORC_AIR_TEMP);
-  int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells,
+  int n_times = ELM::Utils::read_forcing("../links/forcing", n_times_max, 0, n_grid_cells,
           rain, snow, air_temp);
 
   // init irrig to zero
   const FieldAccessor<WRITE_DISCARD,double,2> irrig(regions[0], FieldIDs::FORC_IRRIG);
-  for (size_t t=0; t!=n_max_times; ++t) {
+  for (size_t t=0; t!=n_times_max; ++t) {
     for (size_t g=0; g!=n_grid_cells; ++g) {
       irrig[t][g] = 0.;
     }
@@ -137,6 +142,7 @@ void CanopyHydrology_Interception_task(const Task *task,
 {
   assert(regions.size() == 3);
   assert(task->regions.size() == 3);
+  std::cout << "LOG: Executing Interception task" << std::endl;
 
   // process args / parameters
   int lcv_time;
@@ -172,11 +178,16 @@ void CanopyHydrology_Interception_task(const Task *task,
   const AffineAccessorRW qflx_rain_grnd(regions[2], FieldIDs::QFLX_RAIN_GRND);
   const AffineAccessorRW h2ocan(regions[2], FieldIDs::H2O_CAN);
 
+  LogicalRegion lr = regions[2].get_logical_region();
+  IndexSpaceT<2> is(lr.get_index_space());
+  Rect<2> bounds = Domain(runtime->get_index_space_domain(is));
 
+  std::cout << "LOG: With bounds: " << bounds.lo << "," << bounds.hi << std::endl;
+  
   int n_irrig_steps_left = 0.;  // NOTE: still not physical quite sure what to do with this one.
   
-  for (size_t g = 0; g != n_grid_cells; ++g) {
-    for (size_t p = 0; p != n_pfts; ++p) {
+  for (size_t g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
+    for (size_t p = bounds.lo[1]; p != bounds.hi[1]+1; ++p) {
       ELM::CanopyHydrology_Interception(dtime,
               forc_rain[lcv_time][g], forc_snow[lcv_time][g], forc_irrig[lcv_time][g],
               ltype, ctype, urbpoi, do_capsnow,
@@ -197,105 +208,59 @@ void top_level_task(const Task *task,
 {
   std::cout << "LOG: Executing Top Level Task" << std::endl;
 
+  const int n_pfts = 17;
+  const int n_times_max = 31 * 24 * 2; // max days per month times hours per
+                                       // day * half hour timestep
+  const int n_grid_cells = 24;
+  const int n_parts = 4;
+
   // -----------------------------------------------------------------------------
   // SETUP Phase
   // -----------------------------------------------------------------------------
   //
-  // Create index spaces
+  // Create data
   //
-  // create a domain and index space for PFT-state
-  const Rect<2> pft_state_domain(Point<2>(0,0), Point<2>(n_grid_cells-1, n_pfts-1));
-  IndexSpace pft_state_is = runtime->create_index_space(ctx, pft_state_domain); 
-  std::cout << "LOG: Created index space for PFTs: " <<  pft_state_is.get_id() << std::endl;
+  // grid cell x pft data for phenology
+  auto phenology_fs_ids = std::vector<unsigned>{ FieldIDs::ELAI, FieldIDs::ESAI };
+  Data2D phenology(n_grid_cells, n_pfts, n_parts, "phenology", phenology_fs_ids,
+                   ctx, runtime);
 
-  // create a domain and index space for forcing data
-  const Rect<2> forcing_domain(Point<2>(0,0), Point<2>(n_max_times-1,n_grid_cells-1));
-  IndexSpace forcing_is = runtime->create_index_space(ctx, forcing_domain); 
-  std::cout << "LOG: Created index space for forcing data: " <<  forcing_is.get_id() << std::endl;
-
-  //
-  // Create field spaces
-  //
-  // phenology field space
-  FieldSpace phenology_fs = runtime->create_field_space(ctx);
-  auto phenology_fs_ids = std::vector<FieldIDs::FieldIDs>{ FieldIDs::ELAI, FieldIDs::ESAI };
-  printf("Created field space for phenology: %x\n", phenology_fs.get_id());
-  {
-    FieldAllocator allocator = runtime->create_field_allocator(ctx, phenology_fs);
-    for (auto id : phenology_fs_ids) allocator.allocate_field(sizeof(double), id);
-  }
-
-  // forcing field space
-  FieldSpace forcing_fs = runtime->create_field_space(ctx);
-  auto forcing_fs_ids = std::vector<FieldIDs::FieldIDs>{
+  // ntimes x grid cells forcing data
+  auto forcing_fs_ids = std::vector<unsigned>{
     FieldIDs::FORC_RAIN, FieldIDs::FORC_SNOW, FieldIDs::FORC_AIR_TEMP, FieldIDs::FORC_IRRIG};
-  printf("Created field space for forcing: %x\n", forcing_fs.get_id());
-  {
-    FieldAllocator allocator = runtime->create_field_allocator(ctx, forcing_fs);
-    for (auto id : forcing_fs_ids) allocator.allocate_field(sizeof(double), id);
-  }
-
-  // grid-cell flux data field space
-  FieldSpace flux_fs = runtime->create_field_space(ctx);
-  auto flux_fs_ids = std::vector<FieldIDs::FieldIDs>{
+  Data2D_Transposed forcing(n_grid_cells, n_times_max, n_parts, "forcing", forcing_fs_ids,
+                            ctx, runtime);
+  
+  // grid cell x pft water state and flux outputs
+  auto flux_fs_ids = std::vector<unsigned>{
     FieldIDs::QFLX_PREC_INTR, FieldIDs::QFLX_IRRIG, FieldIDs::QFLX_PREC_GRND,
     FieldIDs::QFLX_SNWCP_LIQ, FieldIDs::QFLX_SNWCP_ICE,
     FieldIDs::QFLX_SNOW_GRND_PATCH, FieldIDs::QFLX_RAIN_GRND,
     FieldIDs::H2O_CAN};
-  printf("Created field space for PFT-level fluxes: %x\n", flux_fs.get_id());
-  {
-    FieldAllocator allocator = runtime->create_field_allocator(ctx, flux_fs);
-    for (auto id : flux_fs_ids) allocator.allocate_field(sizeof(double), id);
-  }
-  
-  
-  //
-  // Physical Regions
-  //  
-  // Logical region is the cross product of IndexSpace and FieldSpace --
-  // create logical regions, physical regions, and the block til memory is
-  // available.
-  LogicalRegion phenology_lr = runtime->create_logical_region(ctx, pft_state_is, phenology_fs);
-  RegionRequirement phenology_req(phenology_lr, READ_WRITE, EXCLUSIVE, phenology_lr);
-  for (auto id : phenology_fs_ids) phenology_req.add_field(id);
-  InlineLauncher phenology_region_launcher(phenology_req);
-  PhysicalRegion phenology_region = runtime->map_region(ctx, phenology_region_launcher);
+  Data2D flux(n_grid_cells, n_pfts, n_parts, "flux", flux_fs_ids, ctx, runtime);
 
-  LogicalRegion forcing_lr = runtime->create_logical_region(ctx, forcing_is, forcing_fs);
-  RegionRequirement forcing_req(forcing_lr, READ_WRITE, EXCLUSIVE, forcing_lr);
-  for (auto id : forcing_fs_ids) forcing_req.add_field(id);
-  InlineLauncher forcing_region_launcher(forcing_req);
-  PhysicalRegion forcing_region = runtime->map_region(ctx, forcing_region_launcher);
-
-  LogicalRegion flux_lr = runtime->create_logical_region(ctx, pft_state_is, flux_fs);
-  RegionRequirement flux_req(flux_lr, READ_WRITE, EXCLUSIVE, flux_lr);
-  for (auto id : flux_fs_ids) flux_req.add_field(id);
-  InlineLauncher flux_region_launcher(flux_req);
-  PhysicalRegion flux_region = runtime->map_region(ctx, flux_region_launcher);
-
-  
-  // -----------------------------------------------------------------------------
-  // END SETUP
-  // -----------------------------------------------------------------------------
+  // create a color space for indexed launching.  This is what a Data1D
+  // color_space would look like.
+  auto color_space = Rect<1>(Point<1>(0), Point<1>(n_parts-1));
   
   // -----------------------------------------------------------------------------
   // Initialization Phase
   // -----------------------------------------------------------------------------
   // launch task to read phenology
   std::cout << "LOG: Launching Init Phenology" << std::endl;
-  //  phenology_region.wait_until_valid(); // actually likely not needed, implicit wait on accessor
   TaskLauncher phenology_launcher(TaskIDs::INIT_PHENOLOGY, TaskArgument(NULL, 0));
   phenology_launcher.add_region_requirement(
-      RegionRequirement(phenology_lr, WRITE_DISCARD, EXCLUSIVE, phenology_lr));
+      RegionRequirement(phenology.logical_region, WRITE_DISCARD, EXCLUSIVE,
+                        phenology.logical_region));
   for (auto id : phenology_fs_ids) phenology_launcher.add_field(0,id);
   runtime->execute_task(ctx, phenology_launcher);
 
   // launch task to read forcing
   std::cout << "LOG: Launching Init Forcing" << std::endl;
-  //  forcing_region.wait_until_valid(); // actually likely not needed, implicit wait on accessor
   TaskLauncher forcing_launcher(TaskIDs::INIT_FORCING, TaskArgument(NULL, 0));
   forcing_launcher.add_region_requirement(
-      RegionRequirement(forcing_lr, WRITE_DISCARD, EXCLUSIVE, forcing_lr));
+      RegionRequirement(forcing.logical_region, WRITE_DISCARD, EXCLUSIVE,
+                        forcing.logical_region));
   for (auto id : forcing_fs_ids) forcing_launcher.add_field(0,id);
   auto forcing_future = runtime->execute_task(ctx, forcing_launcher);
   int n_times = forcing_future.get_result<int>();
@@ -317,37 +282,46 @@ void top_level_task(const Task *task,
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
+  // DEBUG HACK --ETC
+  //n_times = 12;
+  // END DEBUG HACK
   std::vector<Future> futures;
   for (int i=0; i!=n_times; ++i) {
     auto args = std::make_tuple(i, dtime, ltype, ctype, urbpoi, do_capsnow, dewmx, frac_veg_nosno);
-    TaskLauncher interception_launcher(TaskIDs::CANOPY_HYDROLOGY_INTERCEPTION,
-            TaskArgument(&args, sizeof(args)));
+
+    ArgumentMap arg_map;
+    IndexLauncher interception_launcher(TaskIDs::CANOPY_HYDROLOGY_INTERCEPTION,
+            color_space, TaskArgument(&args, sizeof(args)), arg_map);
 
     // -- permissions on forcing
     interception_launcher.add_region_requirement(
-        RegionRequirement(forcing_lr, READ_ONLY, EXCLUSIVE, forcing_lr));
+        RegionRequirement(forcing.logical_partition, forcing.projection_id,
+                          READ_ONLY, EXCLUSIVE, forcing.logical_region));
     interception_launcher.add_field(0, FieldIDs::FORC_RAIN);
     interception_launcher.add_field(0, FieldIDs::FORC_SNOW);
     interception_launcher.add_field(0, FieldIDs::FORC_IRRIG);
 
     // -- permissions on phenology
     interception_launcher.add_region_requirement(
-        RegionRequirement(phenology_lr, READ_ONLY, EXCLUSIVE, phenology_lr));
+        RegionRequirement(phenology.logical_partition, phenology.projection_id,
+                          READ_ONLY, EXCLUSIVE, phenology.logical_region));
     interception_launcher.add_field(1, FieldIDs::ELAI);
     interception_launcher.add_field(1, FieldIDs::ESAI);
 
     // -- permissions on output
     interception_launcher.add_region_requirement(
-        RegionRequirement(flux_lr, READ_WRITE, EXCLUSIVE, flux_lr));
+        RegionRequirement(flux.logical_partition, flux.projection_id,
+                          READ_WRITE, EXCLUSIVE, flux.logical_region));
     for (auto id : flux_fs_ids) interception_launcher.add_field(2, id);
 
     // -- launch the interception
-    runtime->execute_task(ctx, interception_launcher);
+    runtime->execute_index_space(ctx, interception_launcher);
 
     // launch accumulator for h2ocan
+    // NOTE: need to somehow make this a reduction or something?  Shouldn't be on the full region!
     TaskLauncher accumlate_launcher(TaskIDs::UTIL_SUM_MIN_MAX_REDUCTION, TaskArgument());
     accumlate_launcher.add_region_requirement(
-        RegionRequirement(flux_lr, READ_ONLY, EXCLUSIVE, flux_lr));
+        RegionRequirement(flux.logical_region, READ_ONLY, EXCLUSIVE, flux.logical_region));
     accumlate_launcher.add_field(0, FieldIDs::H2O_CAN);
     futures.push_back(runtime->execute_task(ctx, accumlate_launcher));
   }
@@ -363,19 +337,7 @@ void top_level_task(const Task *task,
               << "\t" << sum_min_max[1]
               << "\t" << sum_min_max[2] << std::endl;
   }
-
-  // clean up resources
-  soln_file.close();
-  runtime->destroy_logical_region(ctx, phenology_lr);
-  runtime->destroy_logical_region(ctx, forcing_lr);
-  runtime->destroy_logical_region(ctx, flux_lr);
-  runtime->destroy_field_space(ctx, phenology_fs);
-  runtime->destroy_field_space(ctx, forcing_fs);
-  runtime->destroy_field_space(ctx, flux_fs);
-  runtime->destroy_index_space(ctx, pft_state_is);
-  runtime->destroy_index_space(ctx, forcing_is);
 }
-
 
 
 // Main just calls top level task
@@ -417,6 +379,12 @@ int main(int argc, char **argv)
     registrar.set_leaf();
     Runtime::preregister_task_variant<std::array<double,3>,SumMinMaxReduction>(registrar, "sum_min_max_reduction");
   }
+
+  Runtime::preregister_projection_functor(Data2D::projection_id,
+          new Data2D::LocalProjectionFunction());
+  Runtime::preregister_projection_functor(Data2D_Transposed::projection_id,
+          new Data2D_Transposed::LocalProjectionFunction());
+  
   
   return Runtime::start(argc, argv);
 }
