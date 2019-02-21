@@ -2,7 +2,8 @@ SRCDIR	      =	../../src/fortran/
 OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
-FCFLAGS += -I$(SRCDIR) -I$(SRCDIR)$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
+
+FC_FLAGS += -I$(SRCDIR) -I$(SRCDIR)$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
 
 
 TESTS = test_CanopyHydrology_kern1_single \
@@ -33,8 +34,8 @@ CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
 
 
-test_%: %.o library
-	$(LINKER) $(FCFLAGS) -L$(OBJECT)fortran -lelm -L$(NETCDF_ROOT)/lib -lnetcdff $< -o $@
+test_%: %.F90.o library
+	$(FC) -o $@ $< $(FC_LD_FLAGS)
 
 
 clean:

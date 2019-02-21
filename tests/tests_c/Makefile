@@ -4,7 +4,7 @@ OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
 
-CPPFLAGS += -I$(CSRCDIR) -I$(NETCDF_ROOT)/include
+INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c
 
 
 TESTS = test_CanopyHydrology_kern1_single \
@@ -36,8 +36,8 @@ CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
 
 
-test_%: %.o readers.hh utils.hh
-	$(LINKER) $(FCFLAGS) -L$(OBJECT)fortran -lelm -L$(NETCDF_ROOT)/lib -lnetcdf -L$(STD_LIB_ROOT)/lib -lc++ $< -o $@
+test_%: %.cc.o readers.hh utils.hh library
+	$(CXX) -o $@ $< $(CC_LD_FLAGS)
 
 
 clean:
