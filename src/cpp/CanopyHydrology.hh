@@ -5,7 +5,7 @@
 
 namespace ELM {
 
-void CanopyHydrology_Interception(double dtime,
+inline void CanopyHydrology_Interception(double dtime,
         const double& forc_rain,
         const double& forc_snow,
         const double& irrig_rate,
@@ -31,7 +31,7 @@ void CanopyHydrology_Interception(double dtime,
 
 
 
-void CanopyHydrology_FracWet(const int& frac_veg_nosno,
+inline void CanopyHydrology_FracWet(const int& frac_veg_nosno,
         const double& h2ocan,
         const double& elai, 
         const double& esai,
@@ -83,7 +83,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
 }
 
 
-void CanopyHydrology_FracH2OSfc(const double& dtime,
+inline void CanopyHydrology_FracH2OSfc(const double& dtime,
         const double& min_h2osfc,
         const int& ltype,
         const double& micro_sigma,

@@ -1,7 +1,12 @@
 //! A set of utilities for testing ELM kernels in C++
-
 #ifndef ELM_KERNEL_TEST_NETCDF_HH_
 #define ELM_KERNEL_TEST_NETCDF_HH_
+
+#include <string>
+#include <array>
+#include <vector>
+#include <sstream>
+#include <iostream>
 
 #include "netcdf.h"
 
