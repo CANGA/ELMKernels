@@ -37,6 +37,9 @@ void top_level_task(const Task *task,
                                        // day * half hour timestep
   const int n_grid_cells = 24;
   const int n_parts = 4;
+  const int n_levels_soil_col = 5;  // NOTE: this will change once we get soil,
+                                    // currently this is just n_lev_snow
+  
 
   // -----------------------------------------------------------------------------
   // SETUP Phase
@@ -56,15 +59,40 @@ void top_level_task(const Task *task,
   Data<2> forcing("forcing", ctx, runtime,
                   Point<2>(n_times_max, n_grid_cells), Point<2>(1,n_parts),
                   forcing_fs_names);
-
+  
   // grid cell x pft water state and flux outputs
+  //
+  // NOTE: Combine this with phenology I think?  Or look into ELM and how they
+  // split these things.
   auto flux_fs_names = std::vector<std::string>{
     "qflx_prec_intr", "qflx_irrig", "qflx_prec_grnd", "qflx_snwcp_liq",
-    "qflx_snwcp_ice", "qflx_snow_grnd_patch", "qflx_rain_grnd", "h2ocan"};
+    "qflx_snwcp_ice", "qflx_snow_grnd_patch", "qflx_rain_grnd",
+    "h2ocan", "fwet", "fdry"};
   Data<2> flux("flux", ctx, runtime,
-               Point<2>(n_grid_cells, n_pfts), Point<2>(n_parts,1),
-               flux_fs_names);
+                    Point<2>(n_grid_cells, n_pfts), Point<2>(n_parts,1),
+                    flux_fs_names);
 
+  // grid cell x soil/snow column
+  auto soil_fs_names = std::vector<std::string>{
+    "swe_old", "h2osoi_liq", "h2osoi_ice", "t_soisno", "frac_iceold"};
+  Data<2> soil("soil", ctx, runtime,
+               Point<2>(n_grid_cells, n_levels_soil_col), Point<2>(n_parts,1),
+               soil_fs_names);
+
+  // grid cell data
+  // NOTE this has an int in it, not just doubles!
+  auto grid_cell_fs_names_double = std::vector<std::string>{
+    "t_grnd", "h2osno", "snow_depth", "integrated_snow",
+    "h2osfc", "frac_h2osfc", "qflx_snow_grnd_col", "qflx_snow_h2osfc",
+    "qflx_h2osfc2topsoi", "qflx_floodc", "frac_snow_eff", "frac_sno"};
+  Data<1> surface("surface", ctx, runtime,
+                  Point<1>(n_grid_cells), Point<1>(n_parts));
+  for (auto fname : grid_cell_fs_names_double)
+    surface.addField<double>(fname);
+  surface.addField<int>("snow_level");
+  surface.finalize();
+  
+  
   // -----------------------------------------------------------------------------
   // Initialization Phase
   // -----------------------------------------------------------------------------
@@ -85,18 +113,52 @@ void top_level_task(const Task *task,
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
-  // create a color space for indexed launching.  This is what a Data1D
-  // color_space would look like.
-  auto color_space = Rect<1>(Point<1>(0), Point<1>(n_parts-1));
+  // create a color space for indexed launching.  Can just launch of the
+  // existing 1D data structure's color_space
+  auto color_space = surface.color_domain;
   
   std::vector<Future> futures;
   for (int i=0; i!=n_times; ++i) {
     // launch interception
+
+    // NOTE: This is where it would be interesting to have launches over PFTs
+    // as well as over grid cells.  This would allow to explore whether it
+    // makes sense to keep all PFTs of the same type together or the other
+    // direction.  This would require a second color_space, and a Data
+    // structure that allowed multiple partitionings of the same
+    // logical_region.  We would have one partitioning that included
+    // partitioning over PFTs and grid cells, and one that only partitioned
+    // over grid cells (for, e.g. SumOverPFTs launch below).  For now,
+    // however, we'll just launch this decomposed over the same grid-cell only
+    // partitioning as the other tasks.
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
             phenology, forcing, flux, i);
-    
-    // launch accumulator for h2ocan
+
+    // NOTE: WRITE ME!
+    CanopyHydrology_FracWet().launch(ctx, runtime, color_space,
+            phenology, flux);
+
+    // launch integration kernel/task to, for each grid cell, sum over PFTs.
+    // NOTE: WRITE ME!  This task should be generic!
+    SumOverPFTs().launch(ctx, runtime, color_space,
+                         flux, "qflx_snow_grnd_patch",
+                         surface, "qflx_snow_grnd_col");
+
+    // launch water balance kernel
+    // NOTE: WRITE ME!
+    CanopyHydrology_SnowWater().launch(ctx, runtime, color_space,
+            forcing, surface, i);
+
+    // launch fraction of water to surface
+    // NOTE: WRITE ME!
+    CanopyHydrology_FracH2OSfc().launch(ctx, runtime, color_space, surface);
+
+    // NOTE: Figure out how to evaluate the success of this test!  launch
+    // accumulators?  Print something to file?  Can we make
+    // SumMinMaxReduction() both an actual reduction and dimension
+    // independent?
     futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
+    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
   }
 
   int i = 0;
@@ -124,10 +186,14 @@ int main(int argc, char **argv)
     Runtime::preregister_task_variant<top_level_task>(registrar, "top_level");
   }
 
-  CanopyHydrology_Interception::preregister();
   InitForcing::preregister();
   InitPhenology::preregister();
   SumMinMaxReduction::preregister();
+  SumOverPFTs::preregister();
+  CanopyHydrology_Interception::preregister();
+  CanopyHydrology_FracWet::preregister();
+  CanopyHydrology_SnowWater::preregister();
+  CanopyHydrology_FracH2OSfc::preregister();
 
   return Runtime::start(argc, argv);
 }

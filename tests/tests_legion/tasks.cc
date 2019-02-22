@@ -249,7 +249,11 @@ CanopyHydrology_Interception::launch(Context ctx, Runtime *runtime,
   interception_launcher.add_region_requirement(
       RegionRequirement(flux.logical_partition, flux.projection_id,
                         READ_WRITE, EXCLUSIVE, flux.logical_region));
-  for (auto fname : flux.field_names)
+  std::vector<std::string> output{"qflx_prec_intr", "qflx_irrig",
+                                  "qflx_prec_grnd", "qflx_snwcp_liq",
+                                  "qflx_snwcp_ice", "qflx_snow_grnd_patch",
+                                  "qflx_rain_grnd","h2ocan"};
+  for (auto fname : output)
     interception_launcher.add_field(2,flux.field_ids[fname]);
 
   // -- launch the interception
