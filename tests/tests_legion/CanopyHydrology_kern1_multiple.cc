@@ -20,7 +20,7 @@
 
 #include "legion.h"
 
-#include "domains.hh"
+#include "data.hh"
 #include "tasks.hh"
 #include "CanopyHydrology.hh"
 
@@ -46,20 +46,24 @@ void top_level_task(const Task *task,
   //
   // grid cell x pft data for phenology
   auto phenology_fs_names = std::vector<std::string>{ "elai", "esai" };
-  Data2D phenology(n_grid_cells, n_pfts, n_parts, "phenology", phenology_fs_names,
-                   ctx, runtime);
+  Data<2> phenology("phenology", ctx, runtime,
+                    Point<2>(n_grid_cells, n_pfts), Point<2>(n_parts,1),
+                    phenology_fs_names);
   
   // n_times_max x n_grid_cells forcing data
-  auto forcing_fs_ids = std::vector<std::string>{
+  auto forcing_fs_names = std::vector<std::string>{
     "forc_rain", "forc_snow", "forc_air_temp", "forc_irrig"};
-  Data2D_Transposed forcing(n_grid_cells, n_times_max, n_parts, "forcing",
-                            forcing_fs_ids, ctx, runtime);
-  
+  Data<2> forcing("forcing", ctx, runtime,
+                  Point<2>(n_times_max, n_grid_cells), Point<2>(1,n_parts),
+                  forcing_fs_names);
+
   // grid cell x pft water state and flux outputs
-  auto flux_fs_ids = std::vector<std::string>{
+  auto flux_fs_names = std::vector<std::string>{
     "qflx_prec_intr", "qflx_irrig", "qflx_prec_grnd", "qflx_snwcp_liq",
     "qflx_snwcp_ice", "qflx_snow_grnd_patch", "qflx_rain_grnd", "h2ocan"};
-  Data2D flux(n_grid_cells, n_pfts, n_parts, "flux", flux_fs_ids, ctx, runtime);
+  Data<2> flux("flux", ctx, runtime,
+               Point<2>(n_grid_cells, n_pfts), Point<2>(n_parts,1),
+               flux_fs_names);
 
   // -----------------------------------------------------------------------------
   // Initialization Phase
@@ -124,12 +128,6 @@ int main(int argc, char **argv)
   InitPhenology::preregister();
   SumMinMaxReduction::preregister();
 
-  Runtime::preregister_projection_functor(Data2D::projection_id,
-          new Data2D::LocalProjectionFunction());
-  Runtime::preregister_projection_functor(Data2D_Transposed::projection_id,
-          new Data2D_Transposed::LocalProjectionFunction());
-  
-  
   return Runtime::start(argc, argv);
 }
   

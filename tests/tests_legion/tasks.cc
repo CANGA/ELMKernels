@@ -12,7 +12,7 @@ using namespace Legion;
 
 Future
 SumMinMaxReduction::launch(Context ctx, Runtime *runtime,
-                           Data2D& domain, const std::string& fname)
+                           Data<2>& domain, const std::string& fname)
 {
   TaskLauncher accumlate_launcher(taskid, TaskArgument());
   accumlate_launcher.add_region_requirement(
@@ -70,7 +70,7 @@ std::string SumMinMaxReduction::name = "sum_min_max_reduction";
 //
 // =============================================================================
 Future
-InitPhenology::launch(Context ctx, Runtime *runtime, Data2D& data)
+InitPhenology::launch(Context ctx, Runtime *runtime, Data<2>& data)
 {
   TaskLauncher phenology_launcher(taskid, TaskArgument(NULL, 0));
   phenology_launcher.add_region_requirement(
@@ -130,7 +130,7 @@ std::string InitPhenology::name = "init_phenology";
 //
 // =============================================================================
 Future
-InitForcing::launch(Context ctx, Runtime *runtime, Data2D_Transposed& data)
+InitForcing::launch(Context ctx, Runtime *runtime, Data<2>& data)
 {
 
   std::cout << "LOG: Launching Init Forcing" << std::endl;
@@ -209,9 +209,9 @@ std::string InitForcing::name = "init_forcing";
 FutureMap
 CanopyHydrology_Interception::launch(Context ctx, Runtime *runtime,
         Rect<1>& color_space,
-        Data2D& phenology,
-        Data2D_Transposed& forcing,
-        Data2D& flux,
+        Data<2>& phenology,
+        Data<2>& forcing,
+        Data<2>& flux,
         int itime)
 {
   // launch task to call interception

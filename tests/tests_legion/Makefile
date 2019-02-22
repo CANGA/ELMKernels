@@ -57,8 +57,8 @@ CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
 
 
-sandbox: test_sandbox
-	./sandbox
+sandbox: test_sandbox_domain_template_magic
+	./test_sandbox_domain_template_magic
 
 # If we're using CUDA we have to link with nvcc
 test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)

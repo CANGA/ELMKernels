@@ -39,7 +39,7 @@
 
 #include <array>
 #include "legion.h"
-#include "domains.hh"
+#include "data.hh"
 
 using namespace Legion;
 
@@ -62,7 +62,7 @@ enum TaskIDs {
 // global on the full region!
 struct SumMinMaxReduction {
   Future launch(Context ctx, Runtime *runtime,
-                Data2D& domain, const std::string& fname);  
+                Data<2>& domain, const std::string& fname);  
   static std::array<double,3> cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,
           Context ctx, Runtime *runtime);
@@ -77,7 +77,7 @@ struct SumMinMaxReduction {
 //
 // If this grows, will need to make it index-launched.
 struct InitPhenology {
-  Future launch(Context ctx, Runtime *runtime, Data2D& data);
+  Future launch(Context ctx, Runtime *runtime, Data<2>& data);
   static void cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,
           Context ctx, Runtime *runtime);
@@ -92,7 +92,7 @@ struct InitPhenology {
 //
 // If this grows, will need to make it index-launched.
 struct InitForcing {
-  Future launch(Context ctx, Runtime *runtime, Data2D_Transposed& data);
+  Future launch(Context ctx, Runtime *runtime, Data<2>& data);
   static int cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,
           Context ctx, Runtime *runtime);
@@ -108,9 +108,9 @@ struct InitForcing {
 struct CanopyHydrology_Interception {
   FutureMap launch(Context ctx, Runtime *runtime,
                    Rect<1>& color_space,
-                   Data2D& phenology_data,
-                   Data2D_Transposed& forcing_data,
-                   Data2D& flux,
+                   Data<2>& phenology_data,
+                   Data<2>& forcing_data,
+                   Data<2>& flux,
                    int itime);
   static void cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,
