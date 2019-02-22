@@ -16,19 +16,18 @@ enum ProjectionIDs {
 
 struct Data1D {
   Data1D(coord_t n_grid_cells_, coord_t n_parts_,
-         const std::vector<unsigned>& field_ids_,
+         const std::vector<std::string>& field_names_,
          const std::string& name_,
          Context ctx_, Runtime* runtime_) :
       name(name_),
+      field_names(field_names_),
       n_grid_cells(n_grid_cells_),
       domain(Point<1>(0), Point<1>(n_grid_cells_-1)),
-      field_ids(field_ids_),
       n_parts(n_parts_),
       color_domain(Point<1>(0), Point<1>(n_parts_-1)),
       ctx(ctx_),
       runtime(runtime_)
   {
-    
     index_space = runtime->create_index_space<1, coord_t>(ctx, domain);
 
     auto block = Point<1>(n_grid_cells / n_parts);
@@ -38,7 +37,8 @@ struct Data1D {
     field_space = runtime->create_field_space(ctx);
     {
       FieldAllocator allocator = runtime->create_field_allocator(ctx, field_space);
-      for (auto fid : field_ids) allocator.allocate_field(sizeof(double), fid);
+      for (auto fname : field_names)
+        field_ids[fname] = allocator.allocate_field(sizeof(double), AUTO_GENERATE_ID);
     }
     runtime->attach_name(field_space, (std::string("field_space_")+name).c_str());
 
@@ -55,40 +55,45 @@ struct Data1D {
     runtime->destroy_index_partition(ctx, index_partition);
     runtime->destroy_index_space(ctx, index_space);
   }
-  
+
+  // name the container
   std::string name;
-  
+  std::vector<std::string> field_names;
+
+  // index space and partition
   coord_t n_grid_cells;
   const Rect<1> domain;
   IndexSpaceT<1,coord_t> index_space;
-  IndexPartitionT<1, coord_t> index_partition;
-
-  std::vector<unsigned> field_ids;
-  FieldSpace field_space;
-
-  LogicalRegion logical_region;
-  LogicalPartition logical_partition;
 
   coord_t n_parts;
   const Rect<1> color_domain;
+  IndexPartitionT<1, coord_t> index_partition;
 
+  // field space
+  std::map<std::string, unsigned> field_ids;
+  FieldSpace field_space;
+
+  // cross product of index and field
+  LogicalRegion logical_region;
+  LogicalPartition logical_partition;
+
+  // projection from this color_space into the 1D default color_space
   const static unsigned projection_id = ProjectionIDs::IDENTITY;
   Context ctx;
   Runtime* runtime;
 };
 
 
-
 struct Data2D {
   Data2D(coord_t n_grid_cells_, coord_t n_second_, coord_t n_parts_,
          const std::string& name_,
-         const std::vector<unsigned>& field_ids_,
+         const std::vector<std::string>& field_names_,
          Context ctx_, Runtime* runtime_) :
       name(name_),
+      field_names(field_names_),
       n_grid_cells(n_grid_cells_),
       n_second(n_second_),
       domain(Point<2>(0,0), Point<2>(n_grid_cells_-1, n_second_-1)),
-      field_ids(field_ids_),
       n_parts(n_parts_),
       color_domain(Point<2>(0,0), Point<2>(n_parts_-1,0)),
       ctx(ctx_),
@@ -103,7 +108,8 @@ struct Data2D {
     field_space = runtime->create_field_space(ctx);
     {
       FieldAllocator allocator = runtime->create_field_allocator(ctx, field_space);
-      for (auto fid : field_ids) allocator.allocate_field(sizeof(double), fid);
+      for (auto fname : field_names_)
+        field_ids[fname] = allocator.allocate_field(sizeof(double), AUTO_GENERATE_ID);
     }
     runtime->attach_name(field_space, (std::string("field_space_")+name).c_str());
 
@@ -122,13 +128,14 @@ struct Data2D {
   }
   
   std::string name;
+  std::vector<std::string> field_names;
 
   coord_t n_grid_cells, n_second;
   const Rect<2> domain;
   IndexSpaceT<2,coord_t> index_space;
   IndexPartitionT<2, coord_t> index_partition;
 
-  std::vector<unsigned> field_ids;
+  std::map<std::string, unsigned> field_ids;
   FieldSpace field_space;
 
   LogicalRegion logical_region;
@@ -168,14 +175,14 @@ struct Data2D {
 
 struct Data2D_Transposed {
   Data2D_Transposed(coord_t n_grid_cells_, coord_t n_second_, coord_t n_parts_,
-                  const std::string& name_,
-                  const std::vector<unsigned>& field_ids_,
-                  Context ctx_, Runtime* runtime_) :
+                    const std::string& name_,
+                    const std::vector<std::string>& field_names_,
+                    Context ctx_, Runtime* runtime_) :
       name(name_),
+      field_names(field_names_),
       n_grid_cells(n_grid_cells_),
       n_second(n_second_),
       domain(Point<2>(0,0), Point<2>(n_second_-1, n_grid_cells_-1)),
-      field_ids(field_ids_),
       n_parts(n_parts_),
       color_domain(Point<2>(0,0), Point<2>(0,n_parts_-1)),
       ctx(ctx_),
@@ -190,7 +197,15 @@ struct Data2D_Transposed {
     field_space = runtime->create_field_space(ctx);
     {
       FieldAllocator allocator = runtime->create_field_allocator(ctx, field_space);
-      for (auto fid : field_ids) allocator.allocate_field(sizeof(double), fid);
+      for (auto fname : field_names_)
+        field_ids[fname] = allocator.allocate_field(sizeof(double), AUTO_GENERATE_ID);
+
+      std::cout << "Field IDs (" << name_ << "):";
+      for (auto fid : field_ids) {
+        std::cout << fid.first << "," << fid.second << ";";
+      }
+      std::cout << std::endl;
+        
     }
     runtime->attach_name(field_space, (std::string("field_space_")+name).c_str());
 
@@ -210,13 +225,14 @@ struct Data2D_Transposed {
 
   
   std::string name;
+  std::vector<std::string> field_names;
 
   coord_t n_grid_cells, n_second;
   const Rect<2> domain;
   IndexSpaceT<2,coord_t> index_space;
   IndexPartitionT<2, coord_t> index_partition;
 
-  std::vector<unsigned> field_ids;
+  std::map<std::string,unsigned> field_ids;
   FieldSpace field_space;
 
   LogicalRegion logical_region;

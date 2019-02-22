@@ -17,6 +17,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # Put the binary file name here
 
 # You can modify these variables, some will be appended to by the runtime makefile
+GEN_SRC		?= tasks.cc
 INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
@@ -56,6 +57,9 @@ CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
 
 
+sandbox: test_sandbox
+	./sandbox
+
 # If we're using CUDA we have to link with nvcc
 test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
 	@echo "---> Linking objects into one binary: $()"
@@ -70,7 +74,7 @@ $(SLIB_REALM) : $(REALM_OBJS)
 	$(AR) rc $@ $^
 
 $(GEN_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(CPP_FLAGS) $(INC_FLAGS)
 
 $(ASM_OBJS) : %.S.o : %.S
 	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
@@ -93,8 +97,8 @@ $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 # disable gmake's default rule for building % from %.o
 #% : %.o
 
-#%.cc.o : %.cc domains.hh readers.hh utils.hh
-#	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+%.cc.o : %.cc domains.hh readers.hh utils.hh
+	$(CXX) $(CC_FLAGS) $(CPP_FLAGS) $(INC_FLAGS) -c $< -o $@
 
 clean :
 	$(ELM_CLEAN)
