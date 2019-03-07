@@ -65,13 +65,13 @@ int main(int argc, char ** argv)
   ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
   
   // output state by the grid cell
-  auto qflx_prec_intr = std::array<double,n_grid_cells>();
-  auto qflx_irrig = std::array<double,n_grid_cells>();
-  auto qflx_prec_grnd = std::array<double,n_grid_cells>();
-  auto qflx_snwcp_liq = std::array<double,n_grid_cells>();
-  auto qflx_snwcp_ice = std::array<double,n_grid_cells>();
-  auto qflx_snow_grnd_patch = std::array<double,n_grid_cells>();
-  auto qflx_rain_grnd = std::array<double,n_grid_cells>();
+  auto qflx_prec_intr = ELM::Utils::MatrixState();
+  auto qflx_irrig = ELM::Utils::MatrixState();
+  auto qflx_prec_grnd = ELM::Utils::MatrixState();
+  auto qflx_snwcp_liq = ELM::Utils::MatrixState();
+  auto qflx_snwcp_ice = ELM::Utils::MatrixState();
+  auto qflx_snow_grnd_patch = ELM::Utils::MatrixState();
+  auto qflx_rain_grnd = ELM::Utils::MatrixState();
 
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
@@ -98,9 +98,9 @@ int main(int argc, char ** argv)
                 ltype, ctype, urbpoi, do_capsnow,
                 elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
                 h2o_can(g,p), n_irrig_steps_left,
-                qflx_prec_intr[g], qflx_irrig[g], qflx_prec_grnd[g],
-                qflx_snwcp_liq[g], qflx_snwcp_ice[g],
-                qflx_snow_grnd_patch[g], qflx_rain_grnd[g]);
+                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2o_can(g,p), qflx_prec_intr[g]);
       }
     }
