@@ -66,6 +66,7 @@ int main(int argc, char ** argv)
   ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
   
   // output state by the grid cell
+<<<<<<< HEAD:tests/tests_c_legion/CanopyHydrology_kern1_multiple.cc
   // auto qflx_prec_intr = std::array<double,n_grid_cells>();
   // auto qflx_irrig = std::array<double,n_grid_cells>();
   // auto qflx_prec_grnd = std::array<double,n_grid_cells>();
@@ -73,6 +74,8 @@ int main(int argc, char ** argv)
   // auto qflx_snwcp_ice = std::array<double,n_grid_cells>();
   // auto qflx_snow_grnd_patch = std::array<double,n_grid_cells>();
   // auto qflx_rain_grnd = std::array<double,n_grid_cells>();
+=======
+>>>>>>> 97d55b085ade7cfd754b791e50482f5b6061911e:tests/tests_c/CanopyHydrology_kern1_multiple.cc
   auto qflx_prec_intr = ELM::Utils::MatrixState();
   auto qflx_irrig = ELM::Utils::MatrixState();
   auto qflx_prec_grnd = ELM::Utils::MatrixState();
@@ -80,7 +83,10 @@ int main(int argc, char ** argv)
   auto qflx_snwcp_ice = ELM::Utils::MatrixState();
   auto qflx_snow_grnd_patch = ELM::Utils::MatrixState();
   auto qflx_rain_grnd = ELM::Utils::MatrixState();
+<<<<<<< HEAD:tests/tests_c_legion/CanopyHydrology_kern1_multiple.cc
 
+=======
+>>>>>>> 97d55b085ade7cfd754b791e50482f5b6061911e:tests/tests_c/CanopyHydrology_kern1_multiple.cc
 
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
@@ -110,10 +116,13 @@ int main(int argc, char ** argv)
                 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+<<<<<<< HEAD:tests/tests_c_legion/CanopyHydrology_kern1_multiple.cc
 
                 // qflx_prec_intr[g], qflx_irrig[g], qflx_prec_grnd[g],
                 // qflx_snwcp_liq[g], qflx_snwcp_ice[g],
                 // qflx_snow_grnd_patch[g], qflx_rain_grnd[g]);
+=======
+>>>>>>> 97d55b085ade7cfd754b791e50482f5b6061911e:tests/tests_c/CanopyHydrology_kern1_multiple.cc
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2o_can(g,p), qflx_prec_intr[g]);
       }
     }
