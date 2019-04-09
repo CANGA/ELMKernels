@@ -5,13 +5,13 @@ OBJECT        = .
 default: all
 
 all:
-	$(MAKE) -C fortran all
+	$(MAKE) -C cc all
 
 clean:
-	$(MAKE) -C fortran clean
+	$(MAKE) -C cc clean
 
 allclean:
-	$(MAKE) -C fortran clean
+	$(MAKE) -C cc clean
 
 
 

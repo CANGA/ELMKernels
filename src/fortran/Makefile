@@ -3,7 +3,7 @@ OBJECT        = ../
 
 default: all
 
-include $(OBJECT)/config/Makefile.config
+include $(OBJECT)config/Makefile.config
 FCFLAGS += -I$(ELM_UTILS_DIR)
 
 # Order is important due to .mod file creation
