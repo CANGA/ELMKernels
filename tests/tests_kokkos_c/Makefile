@@ -1,10 +1,10 @@
 KOKKOS_PATH = ${HOME}/Downloads/kokkos
 KOKKOS_DEVICES = "Cuda"
-EXE_NAME = "CanopyHydrology_kern1_multiple"
+EXE_NAME = "CanopyHydrology_module"
 OBJECT        = ../../src/
 include $(OBJECT)config/Makefile.config
 
-SRC = CanopyHydrology_kern1_multiple.cpp
+SRC = CanopyHydrology_module.cpp
 
 default: build
 	echo "Start Build"
@@ -36,7 +36,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 build: $(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) ../../src/cpp/CanopyHydrology_Interception.cpp.o $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE) $(LINKFLAGS) $(EXTRA_PATH)
+	$(LINK) $(KOKKOS_LDFLAGS) ../../src/cpp/CanopyHydrology_FracH2OSfc.cpp.o ../../src/cpp/CanopyHydrology_FracWet.cpp.o  ../../src/cpp/CanopyHydrology_Interception.cpp.o $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE) $(LINKFLAGS) $(EXTRA_PATH)
 
 clean: kokkos-clean
 	rm -f *.o *.cuda *.host

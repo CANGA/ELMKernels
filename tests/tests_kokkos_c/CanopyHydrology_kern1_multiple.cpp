@@ -122,6 +122,7 @@ int main(int argc, char ** argv)
   //h_h2o_can = 0.;
   auto h2o_can1 = ELM::Utils::MatrixState(); 
   // Array<int64_t, 2> a = h_h2o_can;
+  //const size_t n0 = h2o_can.extent_0 ();
 
   //   const int64_t begin0 = h_h2o_can.begin();
   //   const int64_t end0= h_h2o_can.end();
@@ -142,9 +143,9 @@ int main(int argc, char ** argv)
   
 
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(h2o_can1.begin(), h2o_can1.end());
+  auto min_max = std::minmax_element(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts));//h2o_can1.begin(), h2o_can1.end());
   std::cout << std::setprecision(16)
-            << 0 << "\t" << std::accumulate(h2o_can1.begin(), h2o_can1.end(), 0.)
+            << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts), 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
             << "\t" << *min_max.first
             << "\t" << *min_max.second << std::endl;
 
@@ -168,7 +169,7 @@ int main(int argc, char ** argv)
 
     // Kokkos::parallel_for("CanopyHydrology_Interception", Kokkos::MDRangePolicy<Kokkos::Rank<2,Kokkos::Iterate::Left>>({0,0},{n_grid_cells,n_pfts}),
     //    KOKKOS_LAMBDA (size_t g, size_t p) {
-    Kokkos::parallel_for("InitA", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
+    Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
       for (size_t p = 0; p != n_pfts; ++p) {
         ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
@@ -187,9 +188,9 @@ int main(int argc, char ** argv)
       }
     });
 
-    auto min_max = std::minmax_element(h2o_can1.begin(), h2o_can1.end());
+    auto min_max = std::minmax_element(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts));//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts), 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 

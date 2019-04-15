@@ -481,18 +481,18 @@ SumOverPFTs::launch(Context ctx, Runtime *runtime,
           color_space, TaskArgument(&args, sizeof(args)), arg_map);
 
    
-  // -- permissions on output
+  // -- permissions on input
   interception_launcher.add_region_requirement(
       RegionRequirement(flux.logical_partition, flux.projection_id,
-                        READ_WRITE, EXCLUSIVE, flux.logical_region));
-  std::vector<std::string> output{"qflx_snow_grnd_patch"};
-  for (auto fname : output)
+                        READ_ONLY, EXCLUSIVE, flux.logical_region));
+  std::vector<std::string> input{"qflx_snow_grnd_patch"};
+  for (auto fname : input)
     interception_launcher.add_field(2,flux.field_ids[fname]);
 
   // -- permissions on output
   interception_launcher.add_region_requirement(
       RegionRequirement(surface.logical_partition, surface.projection_id,
-                        READ_WRITE, EXCLUSIVE, surface.logical_region));
+                        WRITE_DISCARD, EXCLUSIVE, surface.logical_region));
   std::vector<std::string> output1{"qflx_snow_grnd_col"};
   for (auto fname1 : output1)
     interception_launcher.add_field(1,surface.field_ids[fname1]);
@@ -515,13 +515,14 @@ SumOverPFTs::cpu_execute_task(const Task *task,
  // get accessors
   using AffineAccessorRO = FieldAccessor<READ_ONLY,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
-  using AffineAccessorWO = FieldAccessor<WRITE_DISCARD,double,2,coord_t,
-                                         Realm::AffineAccessor<double,2,coord_t> >;
+  using AffineAccessorWO = FieldAccessor<WRITE_DISCARD,double,1,coord_t,
+                                         Realm::AffineAccessor<double,1,coord_t> >;
+ // -- input
+  const AffineAccessorRO qflx_snow_grnd_patch (regions[0], task->regions[0].instance_fields[0]);
   // -- output
-  const AffineAccessorWO qflx_snow_grnd_patch(regions[0], task->regions[0].instance_fields[0]);
+  const AffineAccessorWO qflx_snow_grnd_col(regions[1], task->regions[1].instance_fields[0]);
   
-  // -- output
-  const AffineAccessorRO qflx_snow_grnd_col(regions[1], task->regions[1].instance_fields[0]);
+  
   
   LogicalRegion lr = regions[0].get_logical_region();
   IndexSpaceT<2> is(lr.get_index_space());
@@ -532,9 +533,9 @@ SumOverPFTs::cpu_execute_task(const Task *task,
 
    //int n = sizeof(qflx_snow_grnd_col) / sizeof(qflx_snow_grnd_patch[0]); 
    
-  for (size_t g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
+  for (int g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
   double sum = 0 ;    
-  for (size_t p = bounds.lo[1]; p != bounds.hi[1]+1; ++p) {
+  for (int p = bounds.lo[1]; p != bounds.hi[1]+1; ++p) {
       sum += qflx_snow_grnd_patch[g][p];
      }
      qflx_snow_grnd_col[g] = sum ;
@@ -687,7 +688,7 @@ CanopyHydrology_SnowWater::cpu_execute_task(const Task *task,
   
   int newnode = 0.;  
   
-  for (size_t g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
+  for (int g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
     
       ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
@@ -745,6 +746,15 @@ CanopyHydrology_FracH2OSfc::launch(Context ctx, Runtime *runtime,
   IndexLauncher interception_launcher(taskid,
           color_space, TaskArgument(&args, sizeof(args)), arg_map);
 
+// -- permissions on input
+  interception_launcher.add_region_requirement(
+      RegionRequirement(surface.logical_partition, surface.projection_id,
+                        READ_ONLY, EXCLUSIVE, surface.logical_region));
+  std::vector<std::string> input{"h2osno"}; 
+  for (auto fname1 : input)
+    interception_launcher.add_field(1,surface.field_ids[fname1]);
+
+
 // -- permissions on output
   interception_launcher.add_region_requirement(
       RegionRequirement(soil.logical_partition, soil.projection_id,
@@ -753,11 +763,10 @@ CanopyHydrology_FracH2OSfc::launch(Context ctx, Runtime *runtime,
   for (auto fname : output)
     interception_launcher.add_field(2,soil.field_ids[fname]);
   
-  // -- permissions on output
   interception_launcher.add_region_requirement(
-      RegionRequirement(surface.logical_partition, surface.projection_id,
+  RegionRequirement(surface.logical_partition, surface.projection_id,
                         READ_WRITE, EXCLUSIVE, surface.logical_region));
-  std::vector<std::string> output1{"h2osno", "h2osfc", "frac_h2osfc", "qflx_h2osfc2topsoi", "frac_snow_eff", "frac_sno"}; //h2osnow rw thing
+  std::vector<std::string> output1{"h2osfc", "frac_h2osfc", "qflx_h2osfc2topsoi", "frac_snow_eff", "frac_sno"}; //h2osnow rw thing
   for (auto fname1 : output1)
     interception_launcher.add_field(1,surface.field_ids[fname1]);
 
@@ -782,7 +791,7 @@ CanopyHydrology_FracH2OSfc::cpu_execute_task(const Task *task,
       *((args_t*) task->args);
 
   // get accessors
-  using AffineAccessorRO = FieldAccessor<READ_ONLY,double,2,coord_t,
+  using AffineAccessorRW1 = FieldAccessor<READ_WRITE,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
   using AffineAccessorRO1 = FieldAccessor<READ_ONLY,double,1,coord_t,
                                          Realm::AffineAccessor<double,1,coord_t> >;                                         
@@ -791,13 +800,13 @@ CanopyHydrology_FracH2OSfc::cpu_execute_task(const Task *task,
   using AffineAccessorWO = FieldAccessor<WRITE_DISCARD,double,1,coord_t,
                                          Realm::AffineAccessor<double,1,coord_t> >;
   // -- output
-  const AffineAccessorRO h2osoi_liq(regions[0], task->regions[0].instance_fields[0]);
+  const AffineAccessorRO1 h2osno(regions[0], task->regions[0].instance_fields[0]);
   
   // -- output
-  const AffineAccessorRW h2osno(regions[1], task->regions[1].instance_fields[0]);
+  const AffineAccessorRW1 h2osoi_liq(regions[1], task->regions[1].instance_fields[0]);
   const AffineAccessorRW h2osfc(regions[1], task->regions[1].instance_fields[1]);
-  const AffineAccessorWO frac_h2osfc(regions[1], task->regions[1].instance_fields[2]);
-  const AffineAccessorWO qflx_h2osfc2topsoi(regions[1], task->regions[1].instance_fields[3]);
+  const AffineAccessorRW frac_h2osfc(regions[1], task->regions[1].instance_fields[2]);
+  const AffineAccessorRW qflx_h2osfc2topsoi(regions[1], task->regions[1].instance_fields[3]);
   const AffineAccessorRW frac_snow_eff(regions[1], task->regions[1].instance_fields[4]);
   const AffineAccessorRW frac_sno(regions[1], task->regions[1].instance_fields[5]);
   
@@ -808,7 +817,7 @@ CanopyHydrology_FracH2OSfc::cpu_execute_task(const Task *task,
   std::cout << "LOG: With bounds: " << bounds.lo << "," << bounds.hi << std::endl;
   
    
-  for (size_t g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
+  for (int g = bounds.lo[0]; g != bounds.hi[0]+1; ++g) {
     //for (size_t p = bounds.lo[1]; p != bounds.hi[1]+1; ++p) {
          ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
               h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_snow_eff[g],qflx_h2osfc2topsoi[g], frac_h2osfc[g] );

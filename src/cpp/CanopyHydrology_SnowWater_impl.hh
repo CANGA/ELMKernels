@@ -27,15 +27,15 @@ void CanopyHydrology_SnowWater(const double& dtime,
         double& snow_depth,
         double& h2osno,
         double& int_snow,
-        Array_d& swe_old,
-        Array_d& h2osoi_liq,
-        Array_d& h2osoi_ice,
-        Array_d& t_soisno,
-        Array_d& frac_iceold,
-        int& snl,
-        Array_d& dz,
-        Array_d& z,
-        Array_d& zi,
+        Array_d swe_old,
+        Array_d h2osoi_liq,
+        Array_d h2osoi_ice,
+        Array_d t_soisno,
+        Array_d frac_iceold,
+        int& snow_level,
+        Array_d dz,
+        Array_d z,
+        Array_d zi,
         int& newnode,
         double& qflx_floodc,
         double& qflx_snow_h2osfc,
@@ -77,10 +77,10 @@ void CanopyHydrology_SnowWater(const double& dtime,
 //set temporary variables prior to updating
   temp_snow_depth=snow_depth;
 //save initial snow content
-  for(j = -nlevsno+1; j < snl; j++) {
+  for(j = -nlevsno+1; j < snow_level; j++) {
      swe_old[j] = 0.00;
   }
-  for(j = snl+1; j < 0; j++) {
+  for(j = snow_level+1; j < 0; j++) {
      swe_old[j]=h2osoi_liq[j]+h2osoi_ice[j];
   }
 
@@ -223,9 +223,9 @@ void CanopyHydrology_SnowWater(const double& dtime,
 //Currently, the water temperature for the precipitation is simply set
 //as the surface air temperature
   newnode = 0 ; //flag for when snow node will be initialized
-        if (snl == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
+        if (snow_level == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
            newnode = 1;
-           snl = -1;
+           snow_level = -1;
            dz[0] = snow_depth ;                    //meter
            z[0] = -0.50*dz[0];
            zi[-1] = -dz[0];
@@ -238,9 +238,9 @@ void CanopyHydrology_SnowWater(const double& dtime,
 //The change of ice partial density of surface node due to precipitation.
 //Only ice part of snowfall is added here, the liquid part will be added
 //later.
-        if (snl < 0 && newnode == 0) {
-        h2osoi_ice[snl+1] = h2osoi_ice[snl+1]+newsnow;
-        dz[snl+1] = dz[snl+1]+dz_snowf*dtime;
+        if (snow_level < 0 && newnode == 0) {
+        h2osoi_ice[snow_level+1] = h2osoi_ice[snow_level+1]+newsnow;
+        dz[snow_level+1] = dz[snow_level+1]+dz_snowf*dtime;
         }
   }
  }
