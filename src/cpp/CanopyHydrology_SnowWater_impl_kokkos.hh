@@ -1,5 +1,6 @@
 #include <stdio.h>  
 #include <math.h>     
+#include <Kokkos_Core.hpp>
 #include "landunit_varcon.h"    
 #include "column_varcon.h" 
 #include "clm_varpar.h"         
@@ -18,7 +19,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
         const bool& urbpoi,
         const bool& do_capsnow,                            
         const int& oldfflag,
-        const double& forc_air_temp,
+        const double& forc_t,
         const double& t_grnd,
         const double& qflx_snow_grnd_col,
         const double& qflx_snow_melt,
@@ -26,7 +27,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
         const double& frac_h2osfc,
         double& snow_depth,
         double& h2osno,
-        double& integrated_snow,
+        double& int_snow,
         Array_d swe_old,
         Array_d h2osoi_liq,
         Array_d h2osoi_ice,
@@ -43,7 +44,8 @@ void CanopyHydrology_SnowWater(const double& dtime,
         double& frac_sno)
 {       
   
-  
+Kokkos::initialize( argc, argv );
+{ 
 //parameters
   double rpi=4.0e0*atan(1.0e0)  ;
   double tfrz=273.15;
@@ -88,13 +90,13 @@ void CanopyHydrology_SnowWater(const double& dtime,
      dz_snowf = 0.;
      newsnow = (1. - frac_h2osfc) * qflx_snow_grnd_col * dtime;
      frac_sno=1.;
-     integrated_snow = 5.e2; 
+     int_snow = 5.e2; 
   } else {
 
-     if (forc_air_temp > tfrz + 2.) {
+     if (forc_t > tfrz + 2.) {
         bifall=50. + 1.7*std::pow((17.0),1.5);
-     } else if (forc_air_temp > tfrz - 15.) {
-        bifall=50. + 1.7*std::pow((forc_air_temp - tfrz + 15.),1.5);
+     } else if (forc_t > tfrz - 15.) {
+        bifall=50. + 1.7*std::pow((forc_t - tfrz + 15.),1.5);
      } else {
         bifall=50.;
      }
@@ -102,8 +104,8 @@ void CanopyHydrology_SnowWater(const double& dtime,
      // newsnow is all snow that doesn't fall on h2osfc
      newsnow = (1. - frac_h2osfc) * qflx_snow_grnd_col * dtime;
 
-     // update integrated_snow
-     integrated_snow = std::max(integrated_snow,h2osno) ; //h2osno could be larger due to frost
+     // update int_snow
+     int_snow = std::max(int_snow,h2osno) ; //h2osno could be larger due to frost
 
      // snowmelt from previous time step * dtime
      snowmelt = qflx_snow_melt * dtime;
@@ -118,7 +120,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
         // first compute change from melt during previous time step
         if(snowmelt > 0.) {
 
-           smr=std::min(1.,(h2osno)/(integrated_snow));
+           smr=std::min(1.,(h2osno)/(int_snow));
 
            frac_sno = 1. - std::pow((acos(min(1.,(2.*smr - 1.)))/rpi),(n_melt)) ;
 
@@ -129,9 +131,9 @@ void CanopyHydrology_SnowWater(const double& dtime,
            fsno_new = 1. - (1. - tanh(accum_factor*newsnow))*(1. - frac_sno);
            frac_sno = fsno_new;
 
-           // reset integrated_snow after accumulation events
+           // reset int_snow after accumulation events
            temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*std::pow((1.0-std::max(frac_sno,1e-6)),(1.0/n_melt))+1.0))) ;
-           integrated_snow = std::min(1.e8,temp_intsnow) ;
+           int_snow = std::min(1.e8,temp_intsnow) ;
         }
 
         //====================================================================
@@ -166,10 +168,10 @@ void CanopyHydrology_SnowWater(const double& dtime,
            fmelt=newsnow;
            frac_sno = tanh(accum_factor*newsnow);
 
-           // make integrated_snow consistent w/ new fsno, h2osno
-           integrated_snow = 0. ;//reset prior to adding newsnow below
+           // make int_snow consistent w/ new fsno, h2osno
+           int_snow = 0. ;//reset prior to adding newsnow below
            temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*std::pow((1.0-std::max(frac_sno,1e-6)),(1.0/n_melt)))+1.0));
-           integrated_snow = std::min(1.e8,temp_intsnow);
+           int_snow = std::min(1.e8,temp_intsnow);
 
            // update snow_depth and h2osno to be consistent with frac_sno, z_avg
            if (subgridflag ==1 && !urbpoi) {
@@ -196,7 +198,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
 
      // update h2osno for new snow
      h2osno = h2osno + newsnow ;
-     integrated_snow = integrated_snow + newsnow;
+     int_snow = int_snow + newsnow;
 
      // update change in snow depth
      dz_snowf = (snow_depth - temp_snow_depth) / dtime;
@@ -229,7 +231,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
            dz[0] = snow_depth ;                    //meter
            z[0] = -0.50*dz[0];
            zi[-1] = -dz[0];
-           t_soisno[0] = min(tfrz, forc_air_temp) ;   //K
+           t_soisno[0] = min(tfrz, forc_t) ;   //K
            h2osoi_ice[0] = h2osno ;            //kg/m2
            h2osoi_liq[0] = 0.0  ;               //kg/m2
            frac_iceold[0] = 1.0;
@@ -243,5 +245,9 @@ void CanopyHydrology_SnowWater(const double& dtime,
         dz[snow_level+1] = dz[snow_level+1]+dz_snowf*dtime;
         }
   }
- }
+  
+  Kokkos::finalize();
+  //return 0; 
+}
+}
 

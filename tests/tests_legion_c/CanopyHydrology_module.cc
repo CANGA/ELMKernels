@@ -141,8 +141,7 @@ void top_level_task(const Task *task,
     // launch integration kernel/task to, for each grid cell, sum over PFTs.
     // NOTE: WRITE ME!  This task should be generic!
     SumOverPFTs().launch(ctx, runtime, color_space,
-                         flux, "qflx_snow_grnd_patch",
-                         surface, "qflx_snow_grnd_col");
+                         flux, surface);
 
     // launch water balance kernel
     // NOTE: WRITE ME!
@@ -157,8 +156,8 @@ void top_level_task(const Task *task,
     // accumulators?  Print something to file?  Can we make
     // SumMinMaxReduction() both an actual reduction and dimension
     // independent?
-    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
-    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
+    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
+    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
   }
 
   int i = 0;

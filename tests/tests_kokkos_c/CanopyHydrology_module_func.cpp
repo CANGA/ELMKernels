@@ -33,6 +33,43 @@ using VectorColumn = VectorStatic<n_grid_cells>;
 using VectorColumnInt = VectorStatic<n_grid_cells,int>;
 
 } // namespace
+
+template<typename Array_d>
+inline
+void CanopyHydrology_SnowWater(const double& dtime,
+        const double& qflx_floodg,
+        const int& ltype,
+        const int& ctype,
+        const bool& urbpoi,
+        const bool& do_capsnow,                            
+        const int& oldfflag,
+        const double& forc_air_temp,
+        const double& t_grnd,
+        const double& qflx_snow_grnd_col,
+        const double& qflx_snow_melt,
+        const double& n_melt,
+        const double& frac_h2osfc,
+        double& snow_depth,
+        double& h2osno,
+        double& integrated_snow,
+        Array_d swe_old,
+        Array_d h2osoi_liq,
+        Array_d h2osoi_ice,
+        Array_d t_soisno,
+        Array_d frac_iceold,
+        int& snow_level,
+        Array_d dz,
+        Array_d z,
+        Array_d zi,
+        int& newnode,
+        double& qflx_floodc,
+        double& qflx_snow_h2osfc,
+        double& frac_sno_eff,
+        double& frac_sno){
+
+
+  
+}
 } // namespace
 
 
@@ -170,9 +207,9 @@ int main(int argc, char ** argv)
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  //auto integrated_snow = ELM::Utils::VectorColumn(0.);
-  ViewVectorType integrated_snow( "integrated_snow", n_grid_cells );
-  ViewVectorType::HostMirror h_integrated_snow = Kokkos::create_mirror_view(  integrated_snow);
+  //auto int_snow = ELM::Utils::VectorColumn(0.);
+  ViewVectorType int_snow( "int_snow", n_grid_cells );
+  ViewVectorType::HostMirror h_int_snow = Kokkos::create_mirror_view(  int_snow);
   
   // output fluxes, state by the column
   // auto qflx_snow_grnd_col = ELM::Utils::VectorColumn();
@@ -230,7 +267,7 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( qflx_snwcp_ice,h_qflx_snwcp_ice);
   Kokkos::deep_copy( qflx_snow_grnd_patch,h_qflx_snow_grnd_patch);
   Kokkos::deep_copy( qflx_rain_grnd,h_qflx_rain_grnd);
-  Kokkos::deep_copy( integrated_snow,h_integrated_snow);
+  Kokkos::deep_copy( int_snow,h_int_snow);
   Kokkos::deep_copy( qflx_snow_grnd_col, h_qflx_snow_grnd_col);
   Kokkos::deep_copy( qflx_snow_h2osfc, h_qflx_snow_h2osfc);
   Kokkos::deep_copy( qflx_h2osfc2topsoi, h_qflx_h2osfc2topsoi);
@@ -293,7 +330,7 @@ int main(int argc, char ** argv)
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
-              snow_depth(g), h2osno(g), integrated_snow(g), Kokkos::subview(swe_old, g , Kokkos::ALL),
+              snow_depth(g), h2osno(g), int_snow(g), Kokkos::subview(swe_old, g , Kokkos::ALL),
               Kokkos::subview(h2osoi_liq, g , Kokkos::ALL), Kokkos::subview(h2osoi_ice, g , Kokkos::ALL), Kokkos::subview(t_soisno, g , Kokkos::ALL), Kokkos::subview(frac_iceold, g , Kokkos::ALL),
               snow_level(g), Kokkos::subview(dz, g , Kokkos::ALL), Kokkos::subview(z, g , Kokkos::ALL), Kokkos::subview(zi, g , Kokkos::ALL), newnode,
               qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));

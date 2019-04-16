@@ -4,6 +4,7 @@
 #include <functional>
 #include "readers.hh"
 #include "CanopyHydrology_cc.hh"
+#include "CanopyHydrology_SnowWater_impl.hh"
 #include "legion.h"
 #include "tasks.hh"
 
@@ -595,7 +596,7 @@ CanopyHydrology_SnowWater::launch(Context ctx, Runtime *runtime,
   interception_launcher.add_region_requirement(
       RegionRequirement(forcing.logical_partition, forcing.projection_id,
                         READ_ONLY, EXCLUSIVE, forcing.logical_region));
-  interception_launcher.add_field(0, forcing.field_ids["forc_air_temp"]);
+  interception_launcher.add_field(2, forcing.field_ids["forc_air_temp"]);
   
   // -- permissions on output
   interception_launcher.add_region_requirement(
@@ -646,6 +647,8 @@ CanopyHydrology_SnowWater::cpu_execute_task(const Task *task,
                                          Realm::AffineAccessor<double,1,coord_t> >;
   using AffineAccessorRW1 = FieldAccessor<READ_WRITE,double,1,coord_t,
                                          Realm::AffineAccessor<double,1,coord_t> >;
+  using AffineAccessorWO1 = FieldAccessor<WRITE_DISCARD,double,1,coord_t,
+                                         Realm::AffineAccessor<double,1,coord_t> >;
   using AffineAccessorRW1_int = FieldAccessor<READ_WRITE,int,1,coord_t,
                                          Realm::AffineAccessor<int,1,coord_t> >;
 
@@ -668,16 +671,16 @@ CanopyHydrology_SnowWater::cpu_execute_task(const Task *task,
 
 
   // -- output
-  const AffineAccessorRW1 t_grnd(regions[2], task->regions[2].instance_fields[0]);
+  const AffineAccessorRO1 t_grnd(regions[2], task->regions[2].instance_fields[0]);
   const AffineAccessorRW1 h2osno(regions[2], task->regions[2].instance_fields[1]);
   const AffineAccessorRW1 snow_depth(regions[2], task->regions[2].instance_fields[2]);
   const AffineAccessorRW1 integrated_snow(regions[2], task->regions[2].instance_fields[3]);
-  const AffineAccessorRW1 qflx_snow_grnd_col(regions[2], task->regions[2].instance_fields[4]);
-  const AffineAccessorRW1 qflx_snow_h2osfc(regions[2], task->regions[2].instance_fields[5]); 
-  const AffineAccessorRW1 qflx_floodc(regions[2], task->regions[2].instance_fields[6]);
-  const AffineAccessorRW1 frac_snow_eff(regions[2], task->regions[2].instance_fields[7]);
-  const AffineAccessorRW1 frac_sno(regions[2], task->regions[2].instance_fields[8]);
-  const AffineAccessorRW1 frac_h2osfc(regions[2], task->regions[2].instance_fields[9]);
+  const AffineAccessorRO1 qflx_snow_grnd_col(regions[2], task->regions[2].instance_fields[4]);
+  const AffineAccessorWO1 qflx_snow_h2osfc(regions[2], task->regions[2].instance_fields[5]); 
+  const AffineAccessorWO1 qflx_floodc(regions[2], task->regions[2].instance_fields[6]);
+  const AffineAccessorWO1 frac_snow_eff(regions[2], task->regions[2].instance_fields[7]);
+  const AffineAccessorWO1 frac_sno(regions[2], task->regions[2].instance_fields[8]);
+  const AffineAccessorRO1 frac_h2osfc(regions[2], task->regions[2].instance_fields[9]);
   const AffineAccessorRW1_int snow_level(regions[2], task->regions[2].instance_fields[10]);
 
   LogicalRegion lr = regions[2].get_logical_region();
