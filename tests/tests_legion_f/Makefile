@@ -24,13 +24,10 @@ GASNET_FLAGS	?=
 
 include $(OBJECT)config/Makefile.config
 
-TESTS = test_CanopyHydrology_kern1_multiple \
-        test_CanopyHydrology_module
+TESTS = test_CanopyHydrology_kern1_multiple 
 
 
-EXEC_TESTS = CanopyHydrology_kern1_multiple \
-             CanopyHydrology_module
-
+EXEC_TESTS = CanopyHydrology_kern1_multiple 
 
 
 #
@@ -55,10 +52,6 @@ test: $(EXEC_TESTS)
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
-
-CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
-
 
 sandbox: test_sandbox_domain_template_magic
 	./test_sandbox_domain_template_magic

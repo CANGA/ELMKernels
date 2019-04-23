@@ -1,8 +1,8 @@
 KOKKOS_PATH = ${HOME}/Downloads/kokkos
-KOKKOS_DEVICES = "Cuda"
+KOKKOS_DEVICES = "OpenMP"
 EXE_NAME = "CanopyHydrology_kern1_multiple"
-OBJECT        = ../../src/
-#include $(OBJECT)config/Makefile.config
+OBJECT        = ../../../src/
+include $(OBJECT)config/Makefile.config
 
 SRC = CanopyHydrology_kern1_multiple.cpp
 
@@ -36,7 +36,7 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 build: $(EXE)
 
 $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE) $(LINKFLAGS) $(EXTRA_PATH)
+	$(LINK) $(KOKKOS_LDFLAGS) ../../../src/cpp/CanopyHydrology_Interception.cpp.o $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE) $(LINKFLAGS) $(EXTRA_PATH)
 
 clean: kokkos-clean
 	rm -f *.o *.cuda *.host
@@ -44,7 +44,7 @@ clean: kokkos-clean
 # Compilation rules
 
 %.o:%.cpp $(KOKKOS_CPP_DEPENDS)
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_PATH) $(EXTRA_INC) -c $<
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -I../../../src/cpp $(EXTRA_PATH) $(EXTRA_INC) -c $<
 
 test: $(EXE)
 	./$(EXE)

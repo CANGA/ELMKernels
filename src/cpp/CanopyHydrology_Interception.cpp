@@ -10,7 +10,6 @@
 using namespace std;
 
 namespace ELM {
-
 void CanopyHydrology_Interception(double dtime,
         const double& forc_rain,
         const double& forc_snow,
