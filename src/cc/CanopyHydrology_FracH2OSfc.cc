@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <stdio.h>     
-#include <math.h>   
+#include <cmath>   
 #include <iostream>
 #include <string>
 #include "landunit_varcon.h"
@@ -23,7 +23,7 @@ void CanopyHydrology_FracH2OSfc(const double& dtime,
         double& frac_h2osfc)
   {
     bool no_update = false;
-    double shr_const_pi=4.0e0*atan(1.0e0) ;
+    double shr_const_pi=4.0e0*std::atan(1.0e0) ;
     bool no_update_l ;
 
     
@@ -45,13 +45,13 @@ void CanopyHydrology_FracH2OSfc(const double& dtime,
 
           sigma=1.0e3 * micro_sigma ;
           for(int l = 0 ; l < 10; l++) {
-             fd = 0.5*d*(1.00+erf(d/(sigma*sqrt(2.0)))) + sigma/sqrt(2.0*shr_const_pi)*std::exp(-std::pow(d,2)/(2.0*std::pow(sigma,2))) -h2osfc;
-             dfdd = 0.5*(1.00+erf(d/(sigma*sqrt(2.0))));
+             fd = 0.5*d*(1.00+std::erf(d/(sigma*std::sqrt(2.0)))) + sigma/std::sqrt(2.0*shr_const_pi)*std::exp(-std::pow(d,2)/(2.0*std::pow(sigma,2))) -h2osfc;
+             dfdd = 0.5*(1.00+std::erf(d/(sigma*std::sqrt(2.0))));
 
              d = d - fd/dfdd;
           }
           
-          frac_h2osfc = 0.5*(1.00+erf(d/(sigma*sqrt(2.0)))) ;  }
+          frac_h2osfc = 0.5*(1.00+std::erf(d/(sigma*std::sqrt(2.0)))) ;  }
 
        else {
           frac_h2osfc = 0.0 ;

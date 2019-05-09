@@ -19,6 +19,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
+
 INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I../../src/cc -I../tests_c_legion
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
@@ -31,6 +32,7 @@ TESTS = test_CanopyHydrology_kern1_multiple \
 
 EXEC_TESTS = CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
+
 
 
 
@@ -47,6 +49,8 @@ include $(LG_RT_DIR)/runtime.mk
 .PHONY: links library test
 
 default: all
+	echo "GEN OBJS = $(GEN_OBJS)"
+
 
 all: links library $(TESTS)
 

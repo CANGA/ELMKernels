@@ -90,6 +90,7 @@ void top_level_task(const Task *task,
   auto color_space = Rect<1>(Point<1>(0), Point<1>(n_parts-1));
   
   std::vector<Future> futures;
+  std::cout << "LOG: running steps: " << n_times << std::endl;
   for (int i=0; i!=n_times; ++i) {
     // launch interception
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
@@ -110,6 +111,7 @@ void top_level_task(const Task *task,
               << "\t" << sum_min_max[1]
               << "\t" << sum_min_max[2] << std::endl;
   }
+  soln_file.close();
 }
 
 

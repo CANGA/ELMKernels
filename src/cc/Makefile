@@ -16,4 +16,3 @@ all: $(OBJS)
 
 clean:
 	@$(ELM_CLEAN); 
-	@cd $(ELM_UTILS_DIR); $(ELM_CLEAN)
