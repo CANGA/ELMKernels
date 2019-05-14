@@ -18,7 +18,7 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
 
 default: all
 
-all: links library $(TESTS)
+all: library $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
@@ -52,4 +52,4 @@ links:
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) all
+	$(MAKE) -C $(OBJECT) fortran

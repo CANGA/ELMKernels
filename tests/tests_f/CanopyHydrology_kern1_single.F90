@@ -93,13 +93,11 @@ program CanopyHydrology_kern1_single
   stop 
   contains 
 
-    subroutine err_handle( status ) 
-    integer :: status 
-   
-    print *, 'error ', status 
-
-    stop 
-
-    end subroutine err_handle 
+    subroutine err_handle( status )
+      use netcdf
+      integer :: status 
+      print *, 'error ', status, nf90_strerror(status)
+      stop 
+    end subroutine err_handle
 
 end program 

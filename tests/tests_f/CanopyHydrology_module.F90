@@ -166,13 +166,11 @@ program test_CanopyHydrology_module
   stop 
 contains 
 
-  subroutine err_handle( status ) 
-    integer(i4) :: status 
-
-    print *, 'error ', status 
-
+  subroutine err_handle( status )
+    use netcdf
+    integer :: status 
+    print *, 'error ', status, nf90_strerror(status)
     stop 
-
   end subroutine err_handle
 
   subroutine get_forcing_data( filename , asurfcell)
