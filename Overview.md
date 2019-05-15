@@ -14,6 +14,6 @@ Evaluation
 | OpenMP/OpenACC | Works 	 | On it 	 |
 | FleCSI 	 | N/A 		 | On it  	 |
 | Tpetra 	 | N/A 		 | N/A		 |
-
+| HPX	 	 | N/A 		 | N/A		 |
 
 
