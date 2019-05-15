@@ -18,7 +18,7 @@
 
 
 namespace ELM {
-void CanopyHydrology_Interception(double dtime,
+KOKKOS_INLINE_FUNCTION void CanopyHydrology_Interception(double dtime,
         const double& forc_rain,
         const double& forc_snow,
         const double& irrig_rate,
@@ -195,14 +195,14 @@ int main(int argc, char ** argv)
   const double dewmx = 0.1;
   double dtime = 1800.0;
 
-  Kokkos::HostSpace::execution_space::initialize();
-  Kokkos::Cuda::initialize( );//argc, argv );
+  
+  Kokkos::initialize( );//argc, argv );
   {
 
   typedef Kokkos::View<double**>  ViewMatrixType;
-  typedef Kokkos::Cuda ExecSpace;
-  typedef Kokkos::Cuda MemSpace;
-  typedef Kokkos::RangePolicy<ExecSpace> range_policy;
+  // typedef Kokkos::Cuda ExecSpace;
+  // typedef Kokkos::Cuda MemSpace;
+  // typedef Kokkos::RangePolicy<ExecSpace> range_policy;
  
   ViewMatrixType elai( "elai", n_months, n_pfts );
   ViewMatrixType esai( "esai", n_months, n_pfts );
@@ -344,7 +344,6 @@ int main(int argc, char ** argv)
   }
   }
   //Kokkos::finalize();
-  Kokkos::Cuda::finalize();
-  Kokkos::HostSpace::execution_space::finalize();
+  Kokkos::finalize();
   return 0;
 }

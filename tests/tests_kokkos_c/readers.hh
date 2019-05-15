@@ -63,7 +63,7 @@ void read_phenology(const std::string& fname,
   // LAI.  Good for C order, bad for Fortran
   for (int i=offset; i!=offset+n_grid_cells; ++i) {
     for (int j=0; j!=n_pfts; ++j) {
-      lai(i,j) = data[(i-offset)*n_pfts + j];
+      lai(j,i) = data[(i-offset)*n_pfts + j];
     }
   }
   
@@ -78,7 +78,7 @@ void read_phenology(const std::string& fname,
   // LAI.  Good for C order, bad for Fortran
   for (int i=offset; i!=offset+n_grid_cells; ++i) {
     for (int j=0; j!=n_pfts; ++j) {
-      sai(i,j) = data[(i-offset)*n_pfts + j];
+      sai(j,i) = data[(i-offset)*n_pfts + j];
     }
   }
 

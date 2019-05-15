@@ -1,6 +1,6 @@
 /* ---------------------------------------------
 Makefile constructed configuration:
-Thu Apr 18 14:15:29 EDT 2019
+Tue May 14 16:33:29 EDT 2019
 ----------------------------------------------*/
 #if !defined(KOKKOS_MACROS_HPP) || defined(KOKKOS_CORE_CONFIG_H)
 #error "Do not include KokkosCore_config.h directly; include Kokkos_Macros.hpp instead."
@@ -21,7 +21,6 @@ Thu Apr 18 14:15:29 EDT 2019
 /* Optimization Settings */
 /* Cuda Settings */
 #define KOKKOS_ENABLE_CUDA_UVM
-#define KOKKOS_ENABLE_CUDA_LAMBDA
 #define KOKKOS_ARCH_AVX2
 #define KOKKOS_ARCH_PASCAL
 #define KOKKOS_ARCH_PASCAL60
