@@ -128,13 +128,22 @@ int main(int argc, char ** argv)
   auto frac_sno_eff = ELM::Utils::VectorColumn();
   auto frac_sno = ELM::Utils::VectorColumn();
   
+  {
+    std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+    auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
+    auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
-  // std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-  // std::cout << std::setprecision(16)
-  //           << 0 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-  //           << "\t" << *min_max.first
-  //           << "\t" << *min_max.second << std::endl;
+    auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
+    auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
+
+    auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
+    auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
+    
+    std::cout << std::setprecision(16)
+              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
+  }
   
   // main loop
   // -- the timestep loop cannot/should not be parallelized
@@ -203,13 +212,19 @@ int main(int argc, char ** argv)
       
     } // end grid cell loop
 
-    
-    // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-    // std::cout << std::setprecision(16)
-    //           << t+1 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-    //           << "\t" << *min_max.first
-    //           << "\t" << *min_max.second << std::endl;
+    auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
+    auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
+    auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
+    auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
+
+    auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
+    auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
+                  
+    std::cout << std::setprecision(16)
+              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   } // end timestep loop
   return 0;
 }
