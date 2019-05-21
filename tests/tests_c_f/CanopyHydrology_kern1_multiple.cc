@@ -29,7 +29,10 @@ static const int n_max_times = 31 * 24 * 2; // max days per month times hours pe
                                             // day * half hour timestep
 static const int n_grid_cells = 24;
 
+// NOTE: This is C -- row major, or n_pfts is fastest varying dimension
 using MatrixState = MatrixStatic<n_grid_cells, n_pfts>;
+
+// NOTE: This is C -- row major, or n_grid_cells is fastest varying
 using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
 
 
@@ -89,12 +92,14 @@ int main(int argc, char ** argv)
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
 
-  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-  std::cout << std::setprecision(16)
-            << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
-            << "\t" << *min_max.first
-            << "\t" << *min_max.second << std::endl;
+  {
+    std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
+    auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
+    std::cout << std::setprecision(16)
+              << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
+              << "\t" << *min_max.first
+              << "\t" << *min_max.second << std::endl;
+  }
   
   // main loop
   // -- the timestep loop cannot/should not be parallelized

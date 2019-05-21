@@ -93,3 +93,7 @@ surfacedataBRW.nc:
 
 surfacedataWBW.nc:
 	ln -s $(ELM_DATA_LOCATION)/lnd/clm2/surfdata_map/surfdata_1x1pt_wbw_simyr1850.nc surfacedataWBW.nc
+
+
+clean:
+	rm -f ./*.nc

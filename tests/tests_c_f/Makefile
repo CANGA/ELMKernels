@@ -4,6 +4,7 @@ OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
 
+CPP_FLAGS += -DKERNEL_LANG_FORT
 INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c
 
 
@@ -16,6 +17,7 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
              CanopyHydrology_module
 
 
+
 .PHONY: links library test
 
 default: all
@@ -24,7 +26,6 @@ all: library $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
-
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 	./test_CanopyHydrology_kern1_single &> test_CanopyHydrology_kern1_single.stdout
