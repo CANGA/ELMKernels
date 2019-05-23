@@ -4,7 +4,8 @@ OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
 
-INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I$(CSRCDIR) -I../tests_c
+
+INC_FLAGS = -I$(NETCDF_ROOT)/include -I$(CSRCDIR) -I../tests_c
 
 
 TESTS = test_CanopyHydrology_kern1_single \

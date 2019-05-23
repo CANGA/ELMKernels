@@ -1,10 +1,11 @@
 KOKKOS_PATH = ${HOME}/Downloads/kokkos
 KOKKOS_DEVICES = "Cuda"
-EXE_NAME = "CanopyHydrology_kern1_multiple"
+KOKKOS_DEBUG = "yes"
+EXE_NAME = "CanopyHydrology_module"
 OBJECT        = ../../src/
 #include $(OBJECT)config/Makefile.config
 
-SRC = CanopyHydrology_kern1_multiple.cpp
+SRC = CanopyHydrology_module.cpp
 
 default: build
 	echo "Start Build"
@@ -14,7 +15,7 @@ ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = ${EXE_NAME}.cuda
 KOKKOS_ARCH = "HSW,Pascal60"
-KOKKOS_CUDA_OPTIONS = "force_uvm" #enable_lambda,
+KOKKOS_CUDA_OPTIONS = "enable_lambda,force_uvm" #
 else
 CXX = g++
 EXE = ${EXE_NAME}.host
@@ -40,6 +41,14 @@ $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
 
 clean: kokkos-clean
 	rm -f *.o *.cuda *.host
+
+links:
+	@echo "making in links"
+	$(MAKE) -C ../links links
+
+
+library:
+	$(MAKE) -C $(OBJECT) all
 
 # Compilation rules
 

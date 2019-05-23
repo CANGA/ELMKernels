@@ -30,7 +30,7 @@ void top_level_task(const Task *task,
                     const std::vector<PhysicalRegion> &regions,
                     Context ctx, Runtime *runtime)
 {
-  std::cout << "LOG: Executing Top Level Task" << std::endl;
+  //std::cout << "LOG: Executing Top Level Task" << std::endl;
 
   const int n_pfts = 17;
   const int n_times_max = 31 * 24 * 2; // max days per month times hours per
@@ -97,11 +97,11 @@ void top_level_task(const Task *task,
   // Initialization Phase
   // -----------------------------------------------------------------------------
   // launch task to read phenology
-  std::cout << "LOG: Launching Init Phenology" << std::endl;
+  //std::cout << "LOG: Launching Init Phenology" << std::endl;
   InitPhenology().launch(ctx, runtime, phenology);
 
   // launch task to read forcing
-  std::cout << "LOG: Launching Init Forcing" << std::endl;
+  //std::cout << "LOG: Launching Init Forcing" << std::endl;
   auto forc_future = InitForcing().launch(ctx, runtime, forcing);
   int n_times = forc_future.get_result<int>();
   
@@ -109,9 +109,12 @@ void top_level_task(const Task *task,
   // Run Phase
   // -----------------------------------------------------------------------------
   std::ofstream soln_file;
-  soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
-  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
+  soln_file.open("test_CanopyHydrology_module.soln");
+  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
+
+  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  std::cout << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
   // create a color space for indexed launching.  Can just launch of the
   // existing 1D data structure's color_space
@@ -133,6 +136,7 @@ void top_level_task(const Task *task,
     // partitioning as the other tasks.
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
             phenology, forcing, flux, i);
+    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
 
     // NOTE: WRITE ME!
     CanopyHydrology_FracWet().launch(ctx, runtime, color_space,
@@ -147,17 +151,20 @@ void top_level_task(const Task *task,
     // NOTE: WRITE ME!
     CanopyHydrology_SnowWater().launch(ctx, runtime, color_space,
             forcing, soil,surface, i);
+    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "h2osno"));
 
     // launch fraction of water to surface
     // NOTE: WRITE ME!
     CanopyHydrology_FracH2OSfc().launch(ctx, runtime, color_space, soil,surface);
+    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
 
     // NOTE: Figure out how to evaluate the success of this test!  launch
     // accumulators?  Print something to file?  Can we make
     // SumMinMaxReduction() both an actual reduction and dimension
     // independent?
-    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
-    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
+    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
+    futures.push_back(SumMinMaxReduction1().launch(ctx, runtime, surface, "h2osno"));
+    futures.push_back(SumMinMaxReduction1().launch(ctx, runtime, surface, "frac_h2osfc"));
   }
 
   int i = 0;
@@ -166,11 +173,25 @@ void top_level_task(const Task *task,
     //
     // write out to file
     //  
-    auto sum_min_max = future.get_result<std::array<double,3>>();
-    soln_file << std::setprecision(16) << i << "\t" << sum_min_max[0]
-              << "\t" << sum_min_max[1]
-              << "\t" << sum_min_max[2] << std::endl;
-  }
+    auto min_max_water = future.get_result<std::array<double,3>>();
+    auto min_max_snow = future.get_result<std::array<double,3>>();
+    auto min_max_frac_sfc = future.get_result<std::array<double,3>>();
+    // soln_file << std::setprecision(16) << i << "\t" << sum_min_max[0]
+    //           << "\t" << sum_min_max[1]
+    //           << "\t" << sum_min_max[2] << std::endl;
+
+    std::cout << std::setprecision(16)
+              << i << "\t" << min_max_water[0] << "\t" << min_max_water[1]<< "\t" << min_max_water[2]
+              << "\t" << min_max_snow[0] << "\t" << min_max_snow[1]<< "\t" << min_max_snow[2]
+              << "\t" << min_max_frac_sfc[0] << "\t" << min_max_frac_sfc[1]<< "\t" << min_max_frac_sfc[2] << std::endl;
+
+    soln_file << std::setprecision(16)
+              << i << "\t" << min_max_water[0] << "\t" << min_max_water[1]<< "\t" << min_max_water[2]
+              << "\t" << min_max_snow[0] << "\t" << min_max_snow[1]<< "\t" << min_max_snow[2]
+              << "\t" << min_max_frac_sfc[0] << "\t" << min_max_frac_sfc[1]<< "\t" << min_max_frac_sfc[2] << std::endl;          
+
+    
+  } soln_file.close();
 }
 
 
@@ -184,15 +205,17 @@ int main(int argc, char **argv)
     registrar.add_constraint(ProcessorConstraint(Processor::LOC_PROC));
     Runtime::preregister_task_variant<top_level_task>(registrar, "top_level");
   }
-
-  InitForcing::preregister();
-  InitPhenology::preregister();
-  SumMinMaxReduction::preregister();
-  SumOverPFTs::preregister();
   CanopyHydrology_Interception::preregister();
+  SumOverPFTs::preregister();
   CanopyHydrology_FracWet::preregister();
   CanopyHydrology_SnowWater::preregister();
   CanopyHydrology_FracH2OSfc::preregister();
+  InitForcing::preregister();
+  InitPhenology::preregister();
+  SumMinMaxReduction::preregister();
+  SumMinMaxReduction1::preregister();
+  
+  
 
   return Runtime::start(argc, argv);
 }

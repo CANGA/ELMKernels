@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <stdio.h>     
-#include <math.h>   
+#include <cmath>   
 #include <iostream>
 #include <string>
 #include "landunit_varcon.h"

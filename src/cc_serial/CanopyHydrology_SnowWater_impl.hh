@@ -1,5 +1,5 @@
 #include <stdio.h>  
-#include <math.h>     
+#include <cmath>     
 #include "landunit_varcon.h"    
 #include "column_varcon.h" 
 #include "clm_varpar.h"         

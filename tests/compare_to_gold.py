@@ -5,9 +5,9 @@ Error codes:
   G     | Error in the gold file -- bad testname?
   D     | Error in my file -- test did not complete?
   E     | Error in my file size -- test did not complete.
-  *     | Unknown error
-  F     | Failing test
-  .     | Passing test
+  N/A   | Unknown error
+  FAIL  | Failing test
+  PASS  | Passing test
 ----------------------------------------------------------
 
 """
@@ -49,9 +49,9 @@ def run_comparison(testname, full_message=False):
         return 'E'
 
     if close:
-        return '.'
+        return 'PASS'
     else:
-        return 'F'
+        return 'FAIL'
                       
 
 if __name__ == "__main__":
@@ -69,5 +69,5 @@ if __name__ == "__main__":
             results.append(run_comparison(test, args.verbose))
         except Exception as err:
             print err
-            results.append('*')
+            results.append('N/A')
     print ''.join(results)

@@ -10,10 +10,6 @@
 #include <iomanip>
 #include <numeric>
 #include <Kokkos_Core.hpp>
-#include "landunit_varcon.h"    
-#include "column_varcon.h" 
-#include "clm_varpar.h"         
-#include "clm_varctl.h"   
 #include "utils.hh"
 #include "readers.hh"
 #include "CanopyHydrology_cpp.hh"
@@ -76,12 +72,12 @@ int main(int argc, char ** argv)
   typedef Kokkos::View<int*>   ViewVectorType1;
   // ELM::Utils::MatrixState elai;
   // ELM::Utils::MatrixState esai;
-  ViewMatrixType elai( "elai", n_months, n_pfts );
-  ViewMatrixType esai( "esai", n_months, n_pfts );
+  ViewMatrixType elai( "elai", n_grid_cells, n_pfts );
+  ViewMatrixType esai( "esai", n_grid_cells, n_pfts );
   ViewMatrixType::HostMirror h_elai = Kokkos::create_mirror_view( elai );
   ViewMatrixType::HostMirror h_esai = Kokkos::create_mirror_view( esai );
-  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
-  ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, h_elai, h_esai);
+  ELM::Utils::read_phenology("../../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
+  ELM::Utils::read_phenology("../../links/surfacedataBRW.nc", n_months, n_pfts, n_months, h_elai, h_esai);
 
   // forcing input
   ViewMatrixType forc_rain( "forc_rain", n_max_times,n_grid_cells );
@@ -90,8 +86,10 @@ int main(int argc, char ** argv)
   ViewMatrixType::HostMirror h_forc_rain = Kokkos::create_mirror_view( forc_rain );
   ViewMatrixType::HostMirror h_forc_snow = Kokkos::create_mirror_view( forc_snow );
   ViewMatrixType::HostMirror h_forc_air_temp = Kokkos::create_mirror_view( forc_air_temp );
-  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
-  ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
+  const int n_times = ELM::Utils::read_forcing("../../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
+  //ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
+  ViewMatrixType forc_irrig( "forc_irrig", n_max_times,n_grid_cells );
+  ViewMatrixType::HostMirror h_forc_irrig = Kokkos::create_mirror_view( forc_irrig );
   double qflx_floodg = 0.0;
 
   
@@ -213,6 +211,7 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( forc_rain, h_forc_rain);
   Kokkos::deep_copy( forc_snow, h_forc_snow);
   Kokkos::deep_copy( forc_air_temp, h_forc_air_temp);
+  Kokkos::deep_copy( forc_irrig, h_forc_irrig);
   Kokkos::deep_copy( z, h_z);
   Kokkos::deep_copy( zi, h_zi);
   Kokkos::deep_copy( dz, h_dz);
@@ -242,6 +241,24 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( qflx_floodc, h_qflx_floodc);
   Kokkos::deep_copy( frac_sno_eff, h_frac_sno_eff);
   Kokkos::deep_copy( frac_sno, h_frac_sno);
+
+  double* end1 = &h_h2ocan(n_grid_cells-1, n_pfts-1) ;
+  double* end2 = &h_h2osno(n_grid_cells-1) ;
+  double* end3 = &h_frac_h2osfc(n_grid_cells-1) ;
+  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  auto min_max_water = std::minmax_element(&h_h2ocan(0,0), end1+1);
+  auto sum_water = std::accumulate(&h_h2ocan(0,0), end1+1, 0.);
+
+  auto min_max_snow = std::minmax_element(&h_h2osno(0), end2+1);
+  auto sum_snow = std::accumulate(&h_h2osno(0), end2+1, 0.);
+
+  auto min_max_frac_sfc = std::minmax_element(&h_frac_h2osfc(0), end3+1);
+  auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
+
+  std::cout << std::setprecision(16)
+            << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+            << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+            << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 
 
   // main loop
@@ -320,6 +337,19 @@ int main(int argc, char ** argv)
     //           << t+1 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
     //           << "\t" << *min_max.first
     //           << "\t" << *min_max.second << std::endl;
+    auto min_max_water = std::minmax_element(&h_h2ocan(0,0), end1+1);
+    auto sum_water = std::accumulate(&h_h2ocan(0,0), end1+1, 0.);
+
+    auto min_max_snow = std::minmax_element(&h_h2osno(0), end2+1);
+    auto sum_snow = std::accumulate(&h_h2osno(0), end2+1, 0.);
+
+    auto min_max_frac_sfc = std::minmax_element(&h_frac_h2osfc(0), end3+1);
+    auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
+                  
+    std::cout << std::setprecision(16)
+              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 
   } // end timestep loop
   }

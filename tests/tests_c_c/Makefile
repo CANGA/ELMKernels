@@ -4,7 +4,7 @@ SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
 
 include $(OBJECT)config/Makefile.config
 
-INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp/ -I../test_c_c
+INC_FLAGS = -I$(NETCDF_ROOT)/include  -I$(SRCDIR)
 
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \

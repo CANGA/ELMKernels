@@ -204,8 +204,8 @@ int main(int argc, char ** argv)
   // typedef Kokkos::Cuda MemSpace;
   // typedef Kokkos::RangePolicy<ExecSpace> range_policy;
  
-  ViewMatrixType elai( "elai", n_months, n_pfts );
-  ViewMatrixType esai( "esai", n_months, n_pfts );
+  ViewMatrixType elai( "elai", n_grid_cells, n_pfts );
+  ViewMatrixType esai( "esai", n_grid_cells, n_pfts );
   ViewMatrixType::HostMirror h_elai = Kokkos::create_mirror_view( elai );
   ViewMatrixType::HostMirror h_esai = Kokkos::create_mirror_view( esai );
 
@@ -287,12 +287,12 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( qflx_rain_grnd, h_qflx_rain_grnd);
   Kokkos::deep_copy( h2o_can, h_h2o_can);
 
-  
+  double* end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
 
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts));//h2o_can1.begin(), h2o_can1.end());
+  auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
   std::cout << std::setprecision(16)
-            << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts), 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+            << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
             << "\t" << *min_max.first
             << "\t" << *min_max.second << std::endl;
 
@@ -335,9 +335,9 @@ int main(int argc, char ** argv)
       }
     });
 
-    auto min_max = std::minmax_element(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts));//h2o_can1.begin(), h2o_can1.end());
+    auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), &h_h2o_can(n_grid_cells, n_pfts), 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 
