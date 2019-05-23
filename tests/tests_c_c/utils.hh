@@ -26,6 +26,9 @@ class VectorStatic {
     }
   }
 
+  double const * begin() const { return d_.begin(); }
+  double const * end() const { return d_.end(); }
+  
  private:
   std::array<T,N> d_;
 };

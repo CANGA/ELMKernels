@@ -13,11 +13,8 @@
 #include "utils.hh"
 #include "readers.hh"
 
-#ifdef KERNEL_LANG_FORT
-#include "CanopyHydrology_fort.hh"
-#else
-#include "CanopyHydrology_cpp.hh"
-#endif
+#include "CanopyHydrology.hh"
+
 
 
 namespace ELM {

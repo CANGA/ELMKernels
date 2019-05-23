@@ -1,6 +1,6 @@
 OBJECT        = ../../src/
-KERNEL_LANG	  = cpp
-SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
+KERNEL_FOLDER = cc_implementation
+SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
 
 include $(OBJECT)config/Makefile.config
 
@@ -53,4 +53,4 @@ links:
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) all
+	$(MAKE) -C $(OBJECT) cc_serial

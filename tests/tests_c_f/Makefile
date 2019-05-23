@@ -1,11 +1,10 @@
 SRCDIR	      =	../../src/fortran/
-CSRCDIR	      =	../../src/cpp/
+CSRCDIR	      =	../../src/cc_fortran_wrappers/
 OBJECT        = ../../src/
 
 include $(OBJECT)config/Makefile.config
 
-CPP_FLAGS += -DKERNEL_LANG_FORT
-INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c
+INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I$(CSRCDIR) -I../tests_c
 
 
 TESTS = test_CanopyHydrology_kern1_single \
@@ -55,4 +54,4 @@ links:
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) fortran
+	$(MAKE) -C $(OBJECT) cc_fortran_wrappers 
