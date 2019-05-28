@@ -163,8 +163,8 @@ void top_level_task(const Task *task,
     // SumMinMaxReduction() both an actual reduction and dimension
     // independent?
     futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
-    futures.push_back(SumMinMaxReduction1().launch(ctx, runtime, surface, "h2osno"));
-    futures.push_back(SumMinMaxReduction1().launch(ctx, runtime, surface, "frac_h2osfc"));
+    futures.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "h2osno"));
+    futures.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "frac_h2osfc"));
   }
 
   int i = 0;
@@ -213,7 +213,7 @@ int main(int argc, char **argv)
   InitForcing::preregister();
   InitPhenology::preregister();
   SumMinMaxReduction::preregister();
-  SumMinMaxReduction1::preregister();
+  SumMinMaxReduction1D::preregister();
   
   
 

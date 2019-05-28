@@ -71,24 +71,24 @@ std::string SumMinMaxReduction::name = "sum_min_max_reduction";
 
 
 //
-// SumMinMaxReduction task1
+// SumMinMaxReduction1D task
 //
 // =============================================================================
 
 Future
-SumMinMaxReduction1::launch(Context ctx, Runtime *runtime,
+SumMinMaxReduction1D::launch(Context ctx, Runtime *runtime,
                            Data<1>& domain, const std::string& fname)
 {
-  TaskLauncher accumlate_launcher(taskid, TaskArgument());
-  accumlate_launcher.add_region_requirement(
+  TaskLauncher accumlate1D_launcher(taskid, TaskArgument());
+  accumlate1D_launcher.add_region_requirement(
       RegionRequirement(domain.logical_region, READ_ONLY, EXCLUSIVE,
                         domain.logical_region));
-  accumlate_launcher.add_field(0, domain.field_ids[fname]);
-  return runtime->execute_task(ctx, accumlate_launcher);
+  accumlate1D_launcher.add_field(0, domain.field_ids[fname]);
+  return runtime->execute_task(ctx, accumlate1D_launcher);
 }
 
 std::array<double,3>
-SumMinMaxReduction1::cpu_execute_task(const Task *task,
+SumMinMaxReduction1D::cpu_execute_task(const Task *task,
                          const std::vector<PhysicalRegion> &regions,
                          Context ctx, Runtime *runtime)
 {
@@ -103,18 +103,18 @@ SumMinMaxReduction1::cpu_execute_task(const Task *task,
   Rect<2> rect = runtime->get_index_space_domain(ctx,
           task->regions[0].region.get_index_space());
 
-  std::array<double,3> sum_min_max = {0., 0., 0.};
+  std::array<double,3> sum_min_max1D = {0., 0., 0.};
   for (PointInRectIterator<2> pir(rect); pir(); pir++) {  
-    auto val = field[*pir];
-    sum_min_max[0] += val;
-    sum_min_max[1] = std::min(sum_min_max[1], val);
-    sum_min_max[2] = std::max(sum_min_max[2], val);
+    auto val1D = field[*pir];
+    sum_min_max1D[0] += val1D;
+    sum_min_max1D[1] = std::min(sum_min_max1D[1], val1D);
+    sum_min_max1D[2] = std::max(sum_min_max1D[2], val1D);
   }
-  return sum_min_max;
+  return sum_min_max1D;
 }
 
 void
-SumMinMaxReduction1::preregister(TaskID new_taskid) {
+SumMinMaxReduction1D::preregister(TaskID new_taskid) {
   // taskid = (taskid == AUTO_GENERATE_ID ?
   //           Legion::Runtime::generate_static_task_id() :
   //             new_taskid);
@@ -125,8 +125,8 @@ SumMinMaxReduction1::preregister(TaskID new_taskid) {
   Runtime::preregister_task_variant<std::array<double,3>,cpu_execute_task>(registrar, name.c_str());
 }    
 
-TaskID SumMinMaxReduction1::taskid = TaskIDs::UTIL_SUM_MIN_MAX_REDUCTION1;
-std::string SumMinMaxReduction1::name = "sum_min_max_reduction";
+TaskID SumMinMaxReduction1D::taskid = TaskIDs::UTIL_SUM_MIN_MAX_REDUCTION1D;
+std::string SumMinMaxReduction1D::name = "sum_min_max_reduction1D";
 
 
 //

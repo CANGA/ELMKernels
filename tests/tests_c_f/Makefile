@@ -28,13 +28,13 @@ test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
-	./test_CanopyHydrology_kern1_single &> test_CanopyHydrology_kern1_single.stdout
+	./test_CanopyHydrology_kern1_single > test_CanopyHydrology_kern1_single.stdout
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
+	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
+	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
 test_%: %.cc.o readers.hh utils.hh library

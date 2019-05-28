@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <numeric>
+#include <fstream>
 #include <Kokkos_Core.hpp>
 #include "utils.hh"
 #include "readers.hh"
@@ -245,7 +246,9 @@ int main(int argc, char ** argv)
   double* end1 = &h_h2ocan(n_grid_cells-1, n_pfts-1) ;
   double* end2 = &h_h2osno(n_grid_cells-1) ;
   double* end3 = &h_frac_h2osfc(n_grid_cells-1) ;
-  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_module.soln");
+  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
   auto min_max_water = std::minmax_element(&h_h2ocan(0,0), end1+1);
   auto sum_water = std::accumulate(&h_h2ocan(0,0), end1+1, 0.);
 
@@ -255,7 +258,7 @@ int main(int argc, char ** argv)
   auto min_max_frac_sfc = std::minmax_element(&h_frac_h2osfc(0), end3+1);
   auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
 
-  std::cout << std::setprecision(16)
+  soln_file << std::setprecision(16)
             << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
             << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
             << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
@@ -346,12 +349,13 @@ int main(int argc, char ** argv)
     auto min_max_frac_sfc = std::minmax_element(&h_frac_h2osfc(0), end3+1);
     auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
                   
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 
   } // end timestep loop
+  soln_file.close();
   }
   Kokkos::finalize();
   return 0;

@@ -29,7 +29,7 @@ program CanopyHydrology_kern1_single
   ! This will be the netCDF ID for the file and data variable.
   integer :: ncid, varid, dimid, status
 
-  status = nf90_open(SURFDAT_FILE_NAME, NF90_NOWRITE, ncid) 
+  status = nf90_open(SURFDAT_FILE_NAME, NF90_NOwrite, ncid) 
   if( status .ne. 0) call err_handle( status ) 
    
 
@@ -48,7 +48,7 @@ program CanopyHydrology_kern1_single
 
   status = nf90_close(ncid) 
 
-  status = nf90_open(FORCDAT_FILE_NAME, NF90_NOWRITE, ncid) 
+  status = nf90_open(FORCDAT_FILE_NAME, NF90_NOwrite, ncid) 
   if( status .ne. 0) call err_handle( status ) 
   status = nf90_inq_dimid(ncid, "time", dimid) 
   if( status .ne. 0) call err_handle( status ) 
@@ -65,6 +65,8 @@ program CanopyHydrology_kern1_single
 
   h2ocan = 0.0d0 
   print *, "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr"
+  !open(1, file = 'test_CanopyHydrology_kern1_single.stdout', status = 'new')
+  !write(1,*)"Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr"
   do itime=1,ntimes 
 
 
@@ -87,8 +89,11 @@ program CanopyHydrology_kern1_single
      qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd_patch, qflx_rain_grnd)
 
    print *, itime, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr 
+   
+   !open(1,file='test_CanopyHydrology_kern1_single.stdout',action='write',position='append')
+   !write(1,*) itime, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr
   end do 
-
+  !close(1)
 
   stop 
   contains 
@@ -97,6 +102,8 @@ program CanopyHydrology_kern1_single
       use netcdf
       integer :: status 
       print *, 'error ', status, nf90_strerror(status)
+      !open(1,file='test_CanopyHydrology_kern1_single.stdout',action='write',position='append')
+      !write(1,*) 'error ', status, nf90_strerror(status)
       stop 
     end subroutine err_handle
 

@@ -56,7 +56,7 @@ enum TaskIDs {
   CANOPY_HYDROLOGY_SNOWWATER,
   CANOPY_HYDROLOGY_FRACH2OS,
   UTIL_SUM_MIN_MAX_REDUCTION,
-  UTIL_SUM_MIN_MAX_REDUCTION1
+  UTIL_SUM_MIN_MAX_REDUCTION1D
 };
 } // namespace
 
@@ -81,7 +81,7 @@ struct SumMinMaxReduction {
 //
 // NOTE: need to somehow make this a reduction or something?  Shouldn't be
 // global on the full region!
-struct SumMinMaxReduction1 {
+struct SumMinMaxReduction1D {
   Future launch(Context ctx, Runtime *runtime,
                 Data<1>& domain, const std::string& fname);  
   static std::array<double,3> cpu_execute_task(const Task *task,

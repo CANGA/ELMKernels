@@ -1,5 +1,5 @@
 OBJECT        = ../../src/
-KERNEL_FOLDER = cc_implementation
+KERNEL_FOLDER = cc_serial
 SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
 
 include $(OBJECT)config/Makefile.config
@@ -26,13 +26,13 @@ test: $(EXEC_TESTS)
 
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
-	./test_CanopyHydrology_kern1_single &> test_CanopyHydrology_kern1_single.stdout
+	./test_CanopyHydrology_kern1_single > test_CanopyHydrology_kern1_single.stdout
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
+	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
+	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
 test_%: %.cpp.o readers.hh utils.hh library

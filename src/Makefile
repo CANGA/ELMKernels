@@ -5,7 +5,7 @@ OBJECT        = .
 
 default: all
 
-all: cc_fortran_wrappers fortran cc_implementation
+all: cc_fortran_wrappers fortran cc_serial cc_kokkos
 
 cc_fortran_wrappers: fortran
 	$(MAKE) -C cc_fortran_wrappers all

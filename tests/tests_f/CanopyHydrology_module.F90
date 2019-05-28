@@ -93,7 +93,12 @@ program test_CanopyHydrology_module
 
 
   h2ocan_pft = 0.0d0 
-  frac_h2osfc = 0.0d0 
+  frac_h2osfc = 0.0d0
+  print*, "Time", "Total Canopy Water", "Min Water", "Max Water", "Total Snow", &
+  "Min Snow", "Max Snow", "Avg Frac Sfc", "Min Frac Sfc", "Max Frac Sfc"
+  print*, 0, sum(h2ocan_pft), minval(h2ocan_pft), maxval(h2ocan_pft), sum(h2osno_grc), &
+  minval(h2osno_grc), maxval(h2osno_grc), sum(h2osoi_liq), minval(h2osoi_liq), maxval(h2osoi_liq)
+
   do itime=1,28*48  ! February is shortest month 
 
      do g=1,ngrcs ! grid cell loop 
@@ -159,6 +164,9 @@ program test_CanopyHydrology_module
         dz_grc(g,:) = dz 
 
      end do !mesh loop 
+     print*, itime, sum(h2ocan_pft), minval(h2ocan_pft), maxval(h2ocan_pft), &
+     sum(h2osno_grc), minval(h2osno_grc), maxval(h2osno_grc), &
+     sum(h2osoi_liq), minval(h2osoi_liq), maxval(h2osoi_liq)
 
   end do ! time loop  
 

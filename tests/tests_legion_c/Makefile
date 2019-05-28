@@ -4,7 +4,7 @@ endif
 
 # from Makefile.config
 OBJECT        = ../../src/
-KERNEL_LANG	  = cc
+KERNEL_LANG	  = cc_kokkos
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
@@ -20,7 +20,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I../../src/cc -I../tests_c_legion
+INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_c_legion
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
 
@@ -59,7 +59,7 @@ test: $(EXEC_TESTS)
 
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
+	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
@@ -110,6 +110,7 @@ $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 
 clean :
 	$(ELM_CLEAN)
+	rm -f test_*
 
 allclean : clean
 	$(MAKE) -C $(OBJECT) allclean
