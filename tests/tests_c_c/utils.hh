@@ -14,11 +14,11 @@ class VectorStatic {
   VectorStatic(T t) { *this = t; }
   VectorStatic(const VectorStatic<N,T>& other) = default;
 
-  T& operator()(size_t i) { return d_[i]; }
-  const T& operator()(size_t i) const { return d_[i]; }
+  T& operator()(size_t i) { assert(0 <= i && i < N); return d_[i]; }
+  const T& operator()(size_t i) const { assert(0 <= i && i < N); return d_[i]; }
 
-  T& operator[](size_t i) { return d_[i]; }
-  const T& operator[](size_t i) const { return d_[i]; }
+  T& operator[](size_t i) { assert(0 <= i && i < N); return d_[i]; }
+  const T& operator[](size_t i) const { assert(0 <= i && i < N); return d_[i]; }
   
   void operator=(T t) {
     for (size_t i=0; i!=N; ++i) {
@@ -41,11 +41,11 @@ class MatrixStatic {
   MatrixStatic(T t) { *this = t; }
   MatrixStatic(const MatrixStatic<ROW,COL,T>& other) = default;
   
-  T& operator()(size_t i, size_t j) { return d_[i][j]; }
-  const T& operator()(size_t i, size_t j) const { return d_[i][j]; }
+  T& operator()(size_t i, size_t j) { assert(0 <= i && i < ROW && 0 <= j && j < COL); return d_[i][j]; }
+  const T& operator()(size_t i, size_t j) const { assert(0 <= i && i < ROW && 0 <= j && j < COL); return d_[i][j]; }
 
-  std::array<T,COL>& operator[](size_t i) { return d_[i]; }
-  const std::array<T,COL>& operator[](size_t i) const { return d_[i]; }
+  VectorStatic<COL,T>& operator[](size_t i) { assert(0 <= i && i < ROW); return d_[i]; }
+  const VectorStatic<COL,T>& operator[](size_t i) const { assert(0 <= i && i < ROW); return d_[i]; }
 
   void operator=(T t) {
     for (size_t i=0; i!=ROW; ++i) {
@@ -59,7 +59,7 @@ class MatrixStatic {
   double const * end() const { return &d_[ROW-1][COL-1] +1; }
   
  private:
-  std::array<std::array<T,COL>,ROW> d_;
+  std::array<VectorStatic<COL,T>,ROW> d_;
 };
   
 
