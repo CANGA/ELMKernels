@@ -218,7 +218,7 @@ int main(int argc, char ** argv)
     auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
                   
     std::cout << std::setprecision(16)
-              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   } // end timestep loop
