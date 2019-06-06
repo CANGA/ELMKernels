@@ -4,7 +4,7 @@
 //
 // The first strategy is a 2D Rect IndexSpace
 //
-
+#include <bits/stdc++.h>
 #include <array>
 #include <sstream>
 #include <iterator>
@@ -17,7 +17,8 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
-
+#include <tuple>
+#include <functional>
 #include "legion.h"
 
 #include "data.hh"
@@ -113,14 +114,16 @@ void top_level_task(const Task *task,
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
   soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
-  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
-  std::cout << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
+  // std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  // std::cout << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
   // create a color space for indexed launching.  Can just launch of the
   // existing 1D data structure's color_space
+  //auto color_space = Rect<1>(Point<1>(0), Point<1>(n_parts-1));
   auto color_space = surface.color_domain;
   
-  std::vector<Future> futures;
+  std::vector<Future> futures1,futures2,futures3;
+
   for (int i=0; i!=n_times; ++i) {
     // launch interception
 
@@ -136,7 +139,7 @@ void top_level_task(const Task *task,
     // partitioning as the other tasks.
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
             phenology, forcing, flux, i);
-    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
+    futures1.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
 
     // NOTE: WRITE ME!
     CanopyHydrology_FracWet().launch(ctx, runtime, color_space,
@@ -151,44 +154,43 @@ void top_level_task(const Task *task,
     // NOTE: WRITE ME!
     CanopyHydrology_SnowWater().launch(ctx, runtime, color_space,
             forcing, soil,surface, i);
-    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "h2osno"));
+    futures2.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "h2osno"));
 
     // launch fraction of water to surface
     // NOTE: WRITE ME!
     CanopyHydrology_FracH2OSfc().launch(ctx, runtime, color_space, soil,surface);
-    //futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
+    futures3.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "frac_h2osfc"));
 
     // NOTE: Figure out how to evaluate the success of this test!  launch
     // accumulators?  Print something to file?  Can we make
     // SumMinMaxReduction() both an actual reduction and dimension
     // independent?
-    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
-    futures.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "h2osno"));
-    futures.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "frac_h2osfc"));
+    
   }
 
   int i = 0;
-  for (auto future : futures) {
-    i++;
+  for(i = 0; i < futures1.size() ; ++i ){
+  //for (auto future : futures1.size() + futures2.siz futures3) {
+   // i++;
     //
     // write out to file
     //  
-    auto min_max_water = future.get_result<std::array<double,3>>();
-    auto min_max_snow = future.get_result<std::array<double,3>>();
-    auto min_max_frac_sfc = future.get_result<std::array<double,3>>();
-    // soln_file << std::setprecision(16) << i << "\t" << sum_min_max[0]
-    //           << "\t" << sum_min_max[1]
-    //           << "\t" << sum_min_max[2] << std::endl;
+    auto sum_min_max1 = futures1[i].get_result<std::array<double,3>>();
+    auto sum_min_max2 = futures2[i].get_result<std::array<double,3>>();
+    auto sum_min_max3 = futures3[i].get_result<std::array<double,3>>();
+    // soln_file << std::setprecision(16) << i << "\t" << sum_min_max1[0]
+    //           << "\t" << sum_min_max1[1]
+    //           << "\t" << sum_min_max1[2] << std::endl;
 
-    std::cout << std::setprecision(16)
-              << i << "\t" << min_max_water[0] << "\t" << min_max_water[1]<< "\t" << min_max_water[2]
-              << "\t" << min_max_snow[0] << "\t" << min_max_snow[1]<< "\t" << min_max_snow[2]
-              << "\t" << min_max_frac_sfc[0] << "\t" << min_max_frac_sfc[1]<< "\t" << min_max_frac_sfc[2] << std::endl;
+    soln_file  << std::setprecision(16)
+              << i+1 << "\t" << sum_min_max1[0] << "\t" << sum_min_max1[1]<< "\t" << sum_min_max1[2]
+              << "\t" << sum_min_max2[0] << "\t" << sum_min_max2[1]<< "\t" << sum_min_max2[2]
+              << "\t" << sum_min_max3[0] << "\t" << sum_min_max3[1]<< "\t" << sum_min_max3[2] << std::endl;
 
-    soln_file << std::setprecision(16)
-              << i << "\t" << min_max_water[0] << "\t" << min_max_water[1]<< "\t" << min_max_water[2]
-              << "\t" << min_max_snow[0] << "\t" << min_max_snow[1]<< "\t" << min_max_snow[2]
-              << "\t" << min_max_frac_sfc[0] << "\t" << min_max_frac_sfc[1]<< "\t" << min_max_frac_sfc[2] << std::endl;          
+    // soln_file << std::setprecision(16)
+    //           << 0 << "\t" << sum_min_max[0] << "\t" << sum_min_max[1]<< "\t" << sum_min_max[2]
+    //           << "\t" << sum_min_max[3] << "\t" << sum_min_max[4]<< "\t" << sum_min_max[5]
+    //           << "\t" << sum_min_max[6] << "\t" << sum_min_max[7]<< "\t" << sum_min_max[8] << std::endl;          
 
     
   } soln_file.close();

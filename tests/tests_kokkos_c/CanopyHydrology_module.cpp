@@ -284,12 +284,18 @@ KOKKOS_INLINE_FUNCTION void CanopyHydrology_SnowWater(const double& dtime,
 //set temporary variables prior to updating
   temp_snow_depth=snow_depth;
 //save initial snow content
-  for(j = -nlevsno+1; j < snow_level; j++) {
-     swe_old[j] = 0.00;
-  }
-  for(j = snow_level+1; j < 0; j++) {
-     swe_old[j]=h2osoi_liq[j]+h2osoi_ice[j];
-  }
+  //for(j = -nlevsno+1; j < snow_level; j++) {
+  // for(j = 0; j <= snow_level+nlevsno-1; j++) {
+  //    swe_old[j] = 0.00;
+  // }
+  // //for(j = snow_level+1; j < 0; j++) {
+  // for(j = snow_level+nlevsno; j <= 0+nlevsno-1; j++) {
+  //    swe_old[j]=h2osoi_liq[j]+h2osoi_ice[j];
+  // }
+  for(j = 0; j < nlevsno; j++) {
+       if(j < nlevsno+snow_level )  swe_old[j]=0.00;
+       else  swe_old[j] = h2osoi_liq[j]+h2osoi_ice[j];
+     }
 
   if (do_capsnow) {
      dz_snowf = 0.;
@@ -430,24 +436,42 @@ KOKKOS_INLINE_FUNCTION void CanopyHydrology_SnowWater(const double& dtime,
 //Currently, the water temperature for the precipitation is simply set
 //as the surface air temperature
   newnode = 0 ; //flag for when snow node will be initialized
-        if (snow_level == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
-           newnode = 1;
-           snow_level = -1;
-           dz[0] = snow_depth ;                    //meter
-           z[0] = -0.50*dz[0];
-           zi[-1] = -dz[0];
-           t_soisno[0] = fmin(tfrz, forc_air_temp) ;   //K
-           h2osoi_ice[0] = h2osno ;            //kg/m2
-           h2osoi_liq[0] = 0.0  ;               //kg/m2
-           frac_iceold[0] = 1.0;
-        }
+//         if (snow_level == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
+//            newnode = 1;
+//            snow_level = -1;
+//            dz[0] = snow_depth ;                    //meter
+//            z[0] = -0.50*dz[0];
+//            zi[-1] = -dz[0];
+//            t_soisno[0] = fmin(tfrz, forc_air_temp) ;   //K
+//            h2osoi_ice[0] = h2osno ;            //kg/m2
+//            h2osoi_liq[0] = 0.0  ;               //kg/m2
+//            frac_iceold[0] = 1.0;
+//         }
 
-//The change of ice partial density of surface node due to precipitation.
-//Only ice part of snowfall is added here, the liquid part will be added
-//later.
-        if (snow_level < 0 && newnode == 0) {
-        h2osoi_ice[snow_level+1] = h2osoi_ice[snow_level+1]+newsnow;
-        dz[snow_level+1] = dz[snow_level+1]+dz_snowf*dtime;
+// //The change of ice partial density of surface node due to precipitation.
+// //Only ice part of snowfall is added here, the liquid part will be added
+// //later.
+//         if (snow_level < 0 && newnode == 0) {
+//         h2osoi_ice[snow_level+1] = h2osoi_ice[snow_level+1]+newsnow;
+//         dz[snow_level+1] = dz[snow_level+1]+dz_snowf*dtime;
+      if (snow_level == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
+   newnode = 1;
+   snow_level = -1;
+   dz[nlevsno-1] = snow_depth ;                    //meter
+   z[nlevsno-1] = -0.50*dz[nlevsno-1];
+   zi[nlevsno-2] = -dz[nlevsno-1];
+   t_soisno[nlevsno-1] = min(tfrz, forc_air_temp) ;   //K
+   h2osoi_ice[nlevsno-1] = h2osno ;            //kg/m2
+   h2osoi_liq[nlevsno-1] = 0.0  ;               //kg/m2
+   frac_iceold[nlevsno-1] = 1.0;
+ }
+
+  //The change of ice partial density of surface node due to precipitation.
+  //Only ice part of snowfall is added here, the liquid part will be added
+  //later.
+ if (snow_level < 0 && newnode == 0) {
+  h2osoi_ice[nlevsno-1+snow_level+1] = h2osoi_ice[nlevsno-1+snow_level+1]+newsnow;
+  dz[nlevsno-1+snow_level+1] = dz[nlevsno-1+snow_level+1]+dz_snowf*dtime;
         }
   }
  }
@@ -806,7 +830,15 @@ int main(int argc, char ** argv)
       
       double* qpatch = &qflx_snow_grnd_patch(n_grid_cells-1, n_pfts-1);
       // NOTE: this is effectively an accumulation kernel/task! --etc
-      qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), qpatch+1, 0.);
+      //qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), qpatch+1, 0.);
+      // for (int x = 0; x <n_grid_cells; x++) {
+      double sum = 0 ;    
+      for (size_t p = 0; p != n_pfts; ++p) {
+      sum += qflx_snow_grnd_patch(g,p);
+      }
+      qflx_snow_grnd_col(g) = sum ; 
+      
+      
 
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
@@ -834,7 +866,18 @@ int main(int argc, char ** argv)
       
     }); // end grid cell loop
 
-    
+    // Kokkos::parallel_reduce( n_pfts-1, KOKKOS_LAMBDA ( int j ) {
+    //   double sum = 0;
+
+    //   for ( int i = 0; i < n_grid_cells-1; ++i ) {
+    //     sum += qflx_snow_grnd_patch( j, i );
+    //   }
+
+    //   qflx_snow_grnd_col(j) = sum ;
+    //   });
+
+
+
     // auto min_max = std::minmax_element(&h_h2ocan(0,0), end1+1);
     // std::cout << std::minmax_element(16)
     //           << t+1 << "\t" << std::accumulate(&h_h2ocan(0,0), end1+1, 0.)
@@ -851,7 +894,7 @@ int main(int argc, char ** argv)
     auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
                   
     std::cout << std::setprecision(16)
-              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 

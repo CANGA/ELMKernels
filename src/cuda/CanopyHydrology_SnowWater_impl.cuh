@@ -4,21 +4,21 @@
 #include "column_varcon.h" 
 #include "clm_varpar.h"         
 #include "clm_varctl.h"     
-#include "CanopyHydrology_cpp.hh"    
+#include "CanopyHydrology.cuh"    
 
 using namespace std;
 
 namespace ELM {
 
 template<typename Array_d>
-void CanopyHydrology_SnowWater(const double& dtime,
+__device__ void CanopyHydrology_SnowWater(const double& dtime,
         const double& qflx_floodg,
         const int& ltype,
         const int& ctype,
         const bool& urbpoi,
         const bool& do_capsnow,                            
         const int& oldfflag,
-        const double& forc_t,
+        const double& forc_air_temp,
         const double& t_grnd,
         const double& qflx_snow_grnd_col,
         const double& qflx_snow_melt,
@@ -27,15 +27,15 @@ void CanopyHydrology_SnowWater(const double& dtime,
         double& snow_depth,
         double& h2osno,
         double& int_snow,
-        Array_d& swe_old,
-        Array_d& h2osoi_liq,
-        Array_d& h2osoi_ice,
-        Array_d& t_soisno,
-        Array_d& frac_iceold,
-        int& snl,
-        Array_d& dz,
-        Array_d& z,
-        Array_d& zi,
+        Array_d swe_old,
+        Array_d h2osoi_liq,
+        Array_d h2osoi_ice,
+        Array_d t_soisno,
+        Array_d frac_iceold,
+        int& snow_level,
+        Array_d dz,
+        Array_d z,
+        Array_d zi,
         int& newnode,
         double& qflx_floodc,
         double& qflx_snow_h2osfc,
@@ -77,11 +77,10 @@ void CanopyHydrology_SnowWater(const double& dtime,
 //set temporary variables prior to updating
   temp_snow_depth=snow_depth;
 //save initial snow content
-  for(j = -nlevsno+1; j < snl; j++) {
-     swe_old[j] = 0.00;
-  }
-  for(j = snl+1; j < 0; j++) {
-     swe_old[j]=h2osoi_liq[j]+h2osoi_ice[j];
+  
+  for(j = 0; j < nlevsno; j++) {
+       if(j < nlevsno+snow_level )  swe_old[j]=0.00;
+       else  swe_old[j] = h2osoi_liq[j]+h2osoi_ice[j];
   }
 
   if (do_capsnow) {
@@ -91,10 +90,10 @@ void CanopyHydrology_SnowWater(const double& dtime,
      int_snow = 5.e2; 
   } else {
 
-     if (forc_t > tfrz + 2.) {
-        bifall=50. + 1.7*std::pow((17.0),1.5);
-     } else if (forc_t > tfrz - 15.) {
-        bifall=50. + 1.7*std::pow((forc_t - tfrz + 15.),1.5);
+     if (forc_air_temp > tfrz + 2.) {
+        bifall=50. + 1.7*pow((17.0),1.5);
+     } else if (forc_air_temp > tfrz - 15.) {
+        bifall=50. + 1.7*pow((forc_air_temp - tfrz + 15.),1.5);
      } else {
         bifall=50.;
      }
@@ -103,7 +102,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
      newsnow = (1. - frac_h2osfc) * qflx_snow_grnd_col * dtime;
 
      // update int_snow
-     int_snow = std::max(int_snow,h2osno) ; //h2osno could be larger due to frost
+     int_snow = max(int_snow,h2osno) ; //h2osno could be larger due to frost
 
      // snowmelt from previous time step * dtime
      snowmelt = qflx_snow_melt * dtime;
@@ -118,9 +117,9 @@ void CanopyHydrology_SnowWater(const double& dtime,
         // first compute change from melt during previous time step
         if(snowmelt > 0.) {
 
-           smr=std::min(1.,(h2osno)/(int_snow));
+           smr=min(1.,(h2osno)/(int_snow));
 
-           frac_sno = 1. - std::pow((acos(min(1.,(2.*smr - 1.)))/rpi),(n_melt)) ;
+           frac_sno = 1. - pow((acos(min(1.,(2.*smr - 1.)))/rpi),(n_melt)) ;
 
         }
 
@@ -130,8 +129,8 @@ void CanopyHydrology_SnowWater(const double& dtime,
            frac_sno = fsno_new;
 
            // reset int_snow after accumulation events
-           temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*std::pow((1.0-std::max(frac_sno,1e-6)),(1.0/n_melt))+1.0))) ;
-           int_snow = std::min(1.e8,temp_intsnow) ;
+           temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*pow((1.0-max(frac_sno,1e-6)),(1.0/n_melt))+1.0))) ;
+           int_snow = min(1.e8,temp_intsnow) ;
         }
 
         //====================================================================
@@ -152,10 +151,10 @@ void CanopyHydrology_SnowWater(const double& dtime,
         if (oldfflag == 1) { 
            // snow cover fraction in Niu et al. 2007
            if(snow_depth > 0.0)  {
-              frac_sno = tanh(snow_depth/(2.5*zlnd*std::pow((std::min(800.0,(h2osno+ newsnow)/snow_depth)/100.0),1.0)) ) ;
+              frac_sno = tanh(snow_depth/(2.5*zlnd*pow((min(800.0,(h2osno+ newsnow)/snow_depth)/100.0),1.0)) ) ;
            }
            if(h2osno < 1.0)  {
-              frac_sno=std::min(frac_sno,h2osno);
+              frac_sno=min(frac_sno,h2osno);
            }
         }
 
@@ -168,8 +167,8 @@ void CanopyHydrology_SnowWater(const double& dtime,
 
            // make int_snow consistent w/ new fsno, h2osno
            int_snow = 0. ;//reset prior to adding newsnow below
-           temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*std::pow((1.0-std::max(frac_sno,1e-6)),(1.0/n_melt)))+1.0));
-           int_snow = std::min(1.e8,temp_intsnow);
+           temp_intsnow= (h2osno + newsnow) / (0.5*(cos(rpi*pow((1.0-max(frac_sno,1e-6)),(1.0/n_melt)))+1.0));
+           int_snow = min(1.e8,temp_intsnow);
 
            // update snow_depth and h2osno to be consistent with frac_sno, z_avg
            if (subgridflag ==1 && !urbpoi) {
@@ -181,7 +180,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
            if (oldfflag == 1) { 
               // snow cover fraction in Niu et al. 2007
               if(snow_depth > 0.0)  {
-                 frac_sno = tanh(snow_depth/(2.5*zlnd*std::pow((std::min(800.0,newsnow/snow_depth)/100.0),1.0)) );
+                 frac_sno = tanh(snow_depth/(2.5*zlnd*pow((min(800.0,newsnow/snow_depth)/100.0),1.0)) );
               }
            }
         } else {
@@ -223,24 +222,24 @@ void CanopyHydrology_SnowWater(const double& dtime,
 //Currently, the water temperature for the precipitation is simply set
 //as the surface air temperature
   newnode = 0 ; //flag for when snow node will be initialized
-        if (snl == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
-           newnode = 1;
-           snl = -1;
-           dz[0] = snow_depth ;                    //meter
-           z[0] = -0.50*dz[0];
-           zi[-1] = -dz[0];
-           t_soisno[0] = min(tfrz, forc_t) ;   //K
-           h2osoi_ice[0] = h2osno ;            //kg/m2
-           h2osoi_liq[0] = 0.0  ;               //kg/m2
-           frac_iceold[0] = 1.0;
-        }
+            if (snow_level == 0 && qflx_snow_grnd_col > 0.00 && frac_sno*snow_depth >= 0.010) {
+   newnode = 1;
+   snow_level = -1;
+   dz[nlevsno-1] = snow_depth ;                    //meter
+   z[nlevsno-1] = -0.50*dz[nlevsno-1];
+   zi[nlevsno-2] = -dz[nlevsno-1];
+   t_soisno[nlevsno-1] = min(tfrz, forc_air_temp) ;   //K
+   h2osoi_ice[nlevsno-1] = h2osno ;            //kg/m2
+   h2osoi_liq[nlevsno-1] = 0.0  ;               //kg/m2
+   frac_iceold[nlevsno-1] = 1.0;
+ }
 
 //The change of ice partial density of surface node due to precipitation.
 //Only ice part of snowfall is added here, the liquid part will be added
 //later.
-        if (snl < 0 && newnode == 0) {
-        h2osoi_ice[snl+1] = h2osoi_ice[snl+1]+newsnow;
-        dz[snl+1] = dz[snl+1]+dz_snowf*dtime;
+        if (snow_level < 0 && newnode == 0) {
+        h2osoi_ice[snow_level+1] = h2osoi_ice[snow_level+1]+newsnow;
+        dz[snow_level+1] = dz[snow_level+1]+dz_snowf*dtime;
         }
   }
  }

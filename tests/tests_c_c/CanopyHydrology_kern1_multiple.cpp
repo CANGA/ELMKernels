@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <numeric>
 #include <algorithm>
+#include <assert.h>
 #include "utils.hh"
 #include "readers.hh"
 

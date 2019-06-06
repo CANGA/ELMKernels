@@ -25,7 +25,7 @@ def run_comparison(testname, full_message=False):
         gold = np.loadtxt(fname_gold, skiprows=1)
     except IOError:
         print 'ERROR: cannot find gold file "%s", bad testname?'%fname_gold
-        return 'G '
+        return 'Error in the gold file '
 
     # get my file
     fname_mine = '%s.soln'%testname
@@ -37,7 +37,7 @@ def run_comparison(testname, full_message=False):
             mine = np.loadtxt(fname_mine, skiprows=1)
         except IOError:
             print 'ERROR: cannot find my file "%s", failed test run?'%fname_mine
-            return 'D '
+            return 'Error in my file '
         
     # compare
     try:
@@ -46,7 +46,7 @@ def run_comparison(testname, full_message=False):
         if full_message:
             print ''
             print 'Test: "%s" FAILED with error: "%r"'%(testname, err)
-        return 'E '
+        return 'Error in my file size '
 
     if close:
         return 'PASS '

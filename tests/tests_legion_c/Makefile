@@ -62,7 +62,7 @@ CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module &> test_CanopyHydrology_module.stdout
+	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
 sandbox: test_sandbox_domain_template_magic

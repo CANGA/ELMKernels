@@ -98,17 +98,18 @@ SumMinMaxReduction1D::cpu_execute_task(const Task *task,
   //std::cout << "LOG: Executing SumMinMax Task" << std::endl;
   FieldID fid = *(task->regions[0].privilege_fields.begin());
 
-  FieldAccessor<READ_ONLY,double,2,coord_t,
-                Realm::AffineAccessor<double,2,coord_t> > field(regions[0], fid);
-  Rect<2> rect = runtime->get_index_space_domain(ctx,
+  FieldAccessor<READ_ONLY,double,1,coord_t,
+                Realm::AffineAccessor<double,1,coord_t> > field(regions[0], fid);
+  Rect<1> rect = runtime->get_index_space_domain(ctx,
           task->regions[0].region.get_index_space());
 
   std::array<double,3> sum_min_max1D = {0., 0., 0.};
-  for (PointInRectIterator<2> pir(rect); pir(); pir++) {  
+  for (PointInRectIterator<1> pir(rect); pir(); pir++) {  
     auto val1D = field[*pir];
     sum_min_max1D[0] += val1D;
     sum_min_max1D[1] = std::min(sum_min_max1D[1], val1D);
     sum_min_max1D[2] = std::max(sum_min_max1D[2], val1D);
+        
   }
   return sum_min_max1D;
 }

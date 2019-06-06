@@ -1,19 +1,21 @@
 Evaluation
 ================
 
-
-| Tables         | FORTRAN       | C++           |
-| -------------- |:-------------:| ------------: |
-| FORTRAN        | Works         | Works	 |
-| C++   	 | 		 | Works	 |
-| LEGION Fortran | N/A           | 1		 |
-| LEGION C++  	 |Partially 	 | Works	 |
-| KOKKOS Fortran | X 		 |  X 		 |
-| KOKKOS C++ 	 | X 		 | Debugging mode|
-| CUDA 		 | X 		 | Debugging mode|
-| OpenMP/OpenACC | Works 	 | On it 	 |
-| FleCSI 	 | N/A 		 | On it  	 |
-| Tpetra 	 | N/A 		 | N/A		 |
-| HPX	 	 | N/A 		 | N/A		 |
-
+				 |:-------------:|:------------:|
+                 | KERNEL                       |
+|----------------|:-------------:|:------------:|
+| DRIVER         | FORTRAN       | C++          |
+|----------------|:-------------:|:------------:|
+| FORTRAN        | Works         | Works	 	|
+| C++   	     | 	X			 | Works	 	|
+| LEGION Fortran |  X          	 | X		 	|
+| LEGION C++  	 | Partially 	 | Works	 	|
+| KOKKOS Fortran | X 			 |  X 		 	|
+| KOKKOS C++ 	 | X 			 | Works		|
+| CUDA 		     | X 			 | Debugging 	|
+| OpenMP/OpenACC | N/A 			 | N/A 	 		|
+| FleCSI 	     | N/A 			 | Writing  	|
+| Tpetra 	     | N/A 			 | N/A			|
+| HPX	 	     | N/A 			 | N/A		 	|
+|----------------|:-------------:|:------------:|
 

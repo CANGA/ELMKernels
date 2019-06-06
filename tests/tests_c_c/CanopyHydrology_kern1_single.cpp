@@ -9,7 +9,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
-
+#include <assert.h>
 #include "utils.hh"
 #include "readers.hh"
 

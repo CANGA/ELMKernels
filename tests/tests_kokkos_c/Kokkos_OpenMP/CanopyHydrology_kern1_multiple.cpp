@@ -149,13 +149,17 @@ int main(int argc, char ** argv)
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
+  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
   soln_file << std::setprecision(16)
           << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
           << "\t" << *min_max.first
           << "\t" << *min_max.second << std::endl;
 
-  
+  std::cout << std::setprecision(16)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << "\t" << *min_max.first
+          << "\t" << *min_max.second << std::endl;
 
 
 
@@ -195,6 +199,10 @@ int main(int argc, char ** argv)
     });
 
     auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
+    std::cout << std::setprecision(16)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << "\t" << *min_max.first
+              << "\t" << *min_max.second << std::endl;
     soln_file << std::setprecision(16)
               << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first

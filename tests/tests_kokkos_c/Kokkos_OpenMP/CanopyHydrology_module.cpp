@@ -249,6 +249,7 @@ int main(int argc, char ** argv)
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_module.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
   auto min_max_water = std::minmax_element(&h_h2ocan(0,0), end1+1);
   auto sum_water = std::accumulate(&h_h2ocan(0,0), end1+1, 0.);
 
@@ -259,6 +260,11 @@ int main(int argc, char ** argv)
   auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
 
   soln_file << std::setprecision(16)
+            << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+            << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+            << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
+
+  std::cout << std::setprecision(16)
             << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
             << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
             << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
@@ -306,8 +312,15 @@ int main(int argc, char ** argv)
       
 
       // NOTE: this is effectively an accumulation kernel/task! --etc
-      qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), 
-        &qflx_snow_grnd_patch(n_grid_cells, n_pfts), 0.);
+      double* qpatch = &qflx_snow_grnd_patch(n_grid_cells-1, n_pfts-1);
+      // NOTE: this is effectively an accumulation kernel/task! --etc
+      //qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), qpatch+1, 0.);
+      // for (int x = 0; x <n_grid_cells; x++) {
+      double sum = 0 ;    
+      for (size_t p = 0; p != n_pfts; ++p) {
+      sum += qflx_snow_grnd_patch(g,p);
+      }
+      qflx_snow_grnd_col(g) = sum ; 
 
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
@@ -348,9 +361,14 @@ int main(int argc, char ** argv)
 
     auto min_max_frac_sfc = std::minmax_element(&h_frac_h2osfc(0), end3+1);
     auto avg_frac_sfc = std::accumulate(&h_frac_h2osfc(0), end3+1, 0.) / (end3+1 - &h_frac_h2osfc(0));
-                  
+     
+    std::cout << std::setprecision(16)
+              << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
+              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
+                          
     soln_file << std::setprecision(16)
-              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
+              << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 

@@ -9,6 +9,9 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <numeric>
+#include <fstream>
+#include <algorithm>
 #include <Kokkos_Core.hpp>
 
 #include "utils.hh"
@@ -59,7 +62,7 @@ int main(int argc, char ** argv)
   ViewMatrixType esai( "esai", n_months, n_pfts );
   ViewMatrixType::HostMirror h_elai = Kokkos::create_mirror_view( elai );
   ViewMatrixType::HostMirror h_esai = Kokkos::create_mirror_view( esai );
-  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
+  ELM::Utils::read_phenology("../../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
     
 
   // forcing state
@@ -72,7 +75,7 @@ int main(int argc, char ** argv)
   ViewMatrixType::HostMirror h_forc_rain = Kokkos::create_mirror_view( forc_rain );
   ViewMatrixType::HostMirror h_forc_snow = Kokkos::create_mirror_view( forc_snow );
   ViewMatrixType::HostMirror h_forc_air_temp = Kokkos::create_mirror_view( forc_air_temp );
-  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 6, 1, h_forc_rain, h_forc_snow, h_forc_air_temp);
+  const int n_times = ELM::Utils::read_forcing("../../links/forcing", n_max_times, 6, 1, h_forc_rain, h_forc_snow, h_forc_air_temp);
 
   
 
@@ -93,7 +96,10 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( forc_snow, h_forc_snow);
   Kokkos::deep_copy( forc_air_temp, h_forc_air_temp);
 
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_single.soln");
   std::cout << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr, total_precip_loop" << std::endl;
+  soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr, total_precip_loop" << std::endl;
   for(size_t itime = 0; itime < n_times; itime += 1) { //Kokkos::parallel_for(n_times, KOKKOS_LAMBDA (const int itime) { 
     // note this call puts all precip as rain for testing
       
@@ -106,8 +112,9 @@ int main(int argc, char ** argv)
             qflx_snwcp_liq, qflx_snwcp_ice,
             qflx_snow_grnd_patch, qflx_rain_grnd); 
 		
+    soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl; 
     std::cout << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl; 
-  }
+  }soln_file.close();
 	}
   Kokkos::finalize();
   return 0;

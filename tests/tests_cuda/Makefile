@@ -4,11 +4,13 @@ SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 
 include $(OBJECT)config/Makefile.config
 
-INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I../../src/cuda/ -I../tests_cuda
+INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I$(SRCDIR)
 
-TESTS = test_CanopyHydrology_kern1_multiple
+TESTS = test_CanopyHydrology_kern1_multiple \
+        test_CanopyHydrology_module
 
-EXEC_TESTS = CanopyHydrology_kern1_multiple
+EXEC_TESTS = CanopyHydrology_kern1_multiple \
+             CanopyHydrology_module
 
 
 .PHONY: links library test
@@ -24,9 +26,11 @@ test: $(EXEC_TESTS)
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 	./test_CanopyHydrology_kern1_multiple&> test_CanopyHydrology_kern1_single.stdout
 
+CanopyHydrology_module: test_CanopyHydrology_module
+	./test_CanopyHydrology_module&> test_CanopyHydrology_module.stdout
 
 test_%: %.cu.o readers.hh utils.hh library
-	$(NVCC) -o $@ $< $(CC_LD_FLAGS)
+	$(NVCC) -o $@ $< $(CUDA_LD_FLAGS)
 
 
 clean:
