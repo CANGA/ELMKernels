@@ -1,7 +1,6 @@
 Evaluation
 ================
 |		DRIVER		|   KERNEL    |   KERNEL    |
-| ---------------	| :---------: | :---------: |
 | PROGRAMMING MODEL | 	FORTRAN   | 	C++    	|
 | ---------------	| :---------: | :---------: |
 | FORTRAN       	| Works       | Works	    |
