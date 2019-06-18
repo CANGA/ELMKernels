@@ -1,7 +1,7 @@
 SRCDIR	      =	../../src/fortran/
 CSRCDIR	      =	../../src/cc_fortran_wrappers/
 OBJECT        = ../../src/
-
+NATURE		  =
 include $(OBJECT)config/Makefile.config
 
 

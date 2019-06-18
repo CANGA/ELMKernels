@@ -2,6 +2,7 @@ OBJECT        = ../../src/
 KERNEL_FOLDER = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
 MPI           = /usr/lib/x86_64-linux-gnu/openmpi/include
+NATURE		  =
 include $(OBJECT)config/Makefile.config
 
 INC_FLAGS = -I$(NETCDF_ROOT)/include  -I$(MPI) -I$(SRCDIR)

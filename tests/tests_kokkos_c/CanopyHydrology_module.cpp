@@ -287,7 +287,7 @@ int main(int argc, char ** argv)
         // NOTE: this currently punts on what to do with the qflx variables!
         // Surely they should be either accumulated or stored on PFTs as well.
         // --etc
-        ELM::CanopyHydrology_Interception(dtime,
+         ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
                 elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
@@ -305,7 +305,7 @@ int main(int argc, char ** argv)
         // By the PFT?
         // --etc
         double fwet = 0., fdry = 0.;
-        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
+         ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
       } // end PFT loop
 
       // Column level operations
@@ -327,7 +327,7 @@ int main(int argc, char ** argv)
       //
       // local outputs
       int newnode;
-      ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+       ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
@@ -341,7 +341,7 @@ int main(int argc, char ** argv)
       // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
       // interface specifies a single double.  For now passing the 0th
       // entry. --etc
-      ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
+       ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
               h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
               qflx_h2osfc2topsoi(g), frac_h2osfc(g));
       

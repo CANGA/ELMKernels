@@ -3,38 +3,50 @@ KOKKOS_DEBUG = "yes"
 EXE_NAME1 = "test_CanopyHydrology_kern1_single"
 EXE_NAME2 = "test_CanopyHydrology_kern1_multiple"
 EXE_NAME3 = "test_CanopyHydrology_module"
-OBJECT        = ../../src/
-KERNEL_FOLDER = cc
-SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
-KOKKOS_DEVICES = $1
-myDEVICE     = Cuda
+SRCDIR	      =	../../src/cc
+KOKKOS_DEVICES = ${myDEVICE}
 
 
-# ifeq ($(KOKKOS_DEVICES),$(myDEVICE))
-#     NATURE = KOKKOS_INLINE_FUNCTION
+
+# ifeq ($(KOKKOS_DEVICES),Cuda)
+# 	NATURE = KOKKOS_INLINE_FUNCTION
+# 	CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
+# 	EXE1 = ${EXE_NAME1}.cuda
+# 	EXE2 = ${EXE_NAME2}.cuda
+# 	EXE3 = ${EXE_NAME3}.cuda
+# 	KOKKOS_ARCH = "BSW,Pascal60"
+# 	KOKKOS_CUDA_OPTIONS = "enable_lambda,force_uvm"
 # else
-#     NATURE = 
+# 	NATURE = 
+# 	CXX = g++
+# 	EXE1 = ${EXE_NAME1}.host
+# 	EXE2 = ${EXE_NAME2}.host
+# 	EXE3 = ${EXE_NAME3}.host
+# 	KOKKOS_ARCH = "BSW"
 # endif
 
 
-include $(OBJECT)config/Makefile.config
+include $(SRCDIR)/../config/Makefile.config
 
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
 
+TESTS1 = test_CanopyHydrology_kern1_multiple \
+         test_CanopyHydrology_module
+
 SRC1 = CanopyHydrology_kern1_single.cpp        
 SRC2 = CanopyHydrology_kern1_multiple.cpp
 SRC3 = CanopyHydrology_module.cpp      
 
-serial: build1 build2 build3 test
-	KOKKOS_DEVICES = "Serial"
+Serial: build1 build2 build3 test
+	echo "Serial"
 	echo "Start Build"
-openmp: build1 build2 build3 test
-	KOKKOS_DEVICES = "OpenMP"
+OpenMP: build1 build2 build3 test
+	echo "OpenMP"
 	echo "Start Build"
-cuda: build1 build2 build3 test
-	KOKKOS_DEVICES = "Cuda"
+Cuda: build2 build3 test1
+	echo "Cuda"
 	echo "Start Build"
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
@@ -43,7 +55,7 @@ EXE1 = ${EXE_NAME1}.cuda
 EXE2 = ${EXE_NAME2}.cuda
 EXE3 = ${EXE_NAME3}.cuda
 KOKKOS_ARCH = "BSW,Pascal60"
-KOKKOS_CUDA_OPTIONS = "enable_lambda"
+KOKKOS_CUDA_OPTIONS = "force_uvm,enable_lambda"
 else
 CXX = g++
 EXE1 = ${EXE_NAME1}.host
@@ -52,7 +64,7 @@ EXE3 = ${EXE_NAME3}.host
 KOKKOS_ARCH = "BSW"
 endif
 
-CXXFLAGS = -g -O0
+CXXFLAGS = -g -O0 -DNATURE=KOKKOS_INLINE_FUNCTION
 LINK = ${CXX}
 LINKFLAGS = -lnetcdf
 EXTRA_PATH = -I$(NETCDF_ROOT)/include
@@ -96,9 +108,18 @@ test : $(SRC1) $(SRC2) $(SRC3)
 	./$(EXE3) > test_CanopyHydrology_module.stdout
 	python ../compare_to_gold.py $(TESTS)
 
+test1 : $(SRC2) $(SRC3)
+	./$(EXE1) > test_CanopyHydrology_kern1_single.stdout
+	./$(EXE2) > test_CanopyHydrology_kern1_multiple.stdout
+	./$(EXE3) > test_CanopyHydrology_module.stdout
+	python ../compare_to_gold.py $(TESTS1)
+
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) cc
+	$(MAKE) CXX=$(CXX) -C $(SRCDIR)
+
+allclean: clean
+	$(MAKE) -C $(SRCDIR) clean

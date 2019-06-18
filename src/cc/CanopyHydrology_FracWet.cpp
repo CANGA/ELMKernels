@@ -10,7 +10,7 @@ using std::max ;
 
 namespace ELM {
 
-void CanopyHydrology_FracWet(const int& frac_veg_nosno,
+NATURE void CanopyHydrology_FracWet(const int& frac_veg_nosno,
         const double& h2ocan,
         const double& elai, 
         const double& esai,

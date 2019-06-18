@@ -12,7 +12,7 @@ using std::min ;
 using std::max ;
 
 namespace ELM {
- void CanopyHydrology_Interception(double dtime,
+ NATURE void CanopyHydrology_Interception(double dtime,
         const double& forc_rain,
         const double& forc_snow,
         const double& irrig_rate,

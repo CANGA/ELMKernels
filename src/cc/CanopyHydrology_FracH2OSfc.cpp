@@ -12,7 +12,7 @@ using std::max ;
 
 namespace ELM {
 
-void CanopyHydrology_FracH2OSfc(const double& dtime,
+NATURE void CanopyHydrology_FracH2OSfc(const double& dtime,
         const double& min_h2osfc,
         const int& ltype,
         const double& micro_sigma,

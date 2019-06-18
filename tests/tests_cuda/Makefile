@@ -1,6 +1,7 @@
 OBJECT        = ../../src/
 KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
+NATURE 		  = "__global__"
 
 include $(OBJECT)config/Makefile.config
 

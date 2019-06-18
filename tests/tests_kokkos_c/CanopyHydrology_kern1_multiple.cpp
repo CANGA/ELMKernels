@@ -181,7 +181,7 @@ int main(int argc, char ** argv)
     //    KOKKOS_LAMBDA (size_t g, size_t p) {
     Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
       for (size_t p = 0; p != n_pfts; ++p) {
-        ELM::CanopyHydrology_Interception(dtime,
+         ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
                 elai(g,p), esai(g,p), dewmx, frac_veg_nosno,

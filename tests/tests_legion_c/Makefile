@@ -6,6 +6,7 @@ endif
 OBJECT        = ../../src/
 KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
+NATURE		=
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
 OUTPUT_LEVEL    ?= LEVEL_DEBUG	# Compile time logging level

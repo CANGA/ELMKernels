@@ -1,9 +1,13 @@
 #ifndef ELM_CANOPY_HYDROLOGY_CPP_HH_
 #define ELM_CANOPY_HYDROLOGY_CPP_HH_
 
+#ifndef NATURE
+#define NATURE 
+#endif
+
 namespace ELM {
 
-void CanopyHydrology_Interception(double dtime,
+NATURE void CanopyHydrology_Interception(double dtime,
         const double& forc_rain,
         const double& forc_snow,
         const double& irrig_rate,
@@ -23,7 +27,7 @@ void CanopyHydrology_Interception(double dtime,
 
 
 
-void CanopyHydrology_FracWet(const int& frac_veg_nosno,
+NATURE void CanopyHydrology_FracWet(const int& frac_veg_nosno,
         const double& h2ocan,
         const double& elai, 
         const double& esai,
@@ -33,7 +37,7 @@ void CanopyHydrology_FracWet(const int& frac_veg_nosno,
 
 
 template<typename Array_d>
-void CanopyHydrology_SnowWater(const double& dtime,
+NATURE void CanopyHydrology_SnowWater(const double& dtime,
         const double& qflx_floodg,
         const int& ltype,
         const int& ctype,
@@ -65,7 +69,7 @@ void CanopyHydrology_SnowWater(const double& dtime,
         double& frac_sno) ;
 
 
-void CanopyHydrology_FracH2OSfc(const double& dtime,
+NATURE void CanopyHydrology_FracH2OSfc(const double& dtime,
         const double& min_h2osfc,
         const int& ltype,
         const double& micro_sigma,
