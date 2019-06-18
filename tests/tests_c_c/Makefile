@@ -6,6 +6,8 @@ FC = mpifort
 CXX = mpicxx
 CC = mpicc
 
+CXXFLAGS = -std=c++11 -g
+
 include $(ELM_BASE)/config/Makefile.config
 
 TESTS = test_CanopyHydrology_kern1_single \
