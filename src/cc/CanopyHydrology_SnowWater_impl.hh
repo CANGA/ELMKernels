@@ -1,10 +1,12 @@
+#ifndef CANOPY_HYDROLOGY_SNOWWATER_IMPL_HH_
+#define CANOPY_HYDROLOGY_SNOWWATER_IMPL_HH_
+
 #include <stdio.h>  
 #include <cmath>     
 #include "landunit_varcon.h"    
 #include "column_varcon.h" 
 #include "clm_varpar.h"         
 #include "clm_varctl.h"     
-#include "CanopyHydrology_cpp.hh"    
 
 using namespace std;
 using std::min ;
@@ -252,3 +254,5 @@ if (ltype==istwet && t_grnd>tfrz) {
 }
 }
 
+
+#endif

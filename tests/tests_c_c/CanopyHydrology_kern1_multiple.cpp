@@ -15,7 +15,7 @@
 #include "utils.hh"
 #include "readers.hh"
 
-#include "CanopyHydrology_cpp.hh"
+#include "CanopyHydrology.hh"
 
 
 namespace ELM {
@@ -24,7 +24,7 @@ namespace Utils {
 static const int n_months = 12;
 static const int n_pfts = 17;
 static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
-                                            // day * half hour timestep
+// day * half hour timestep
 static const int n_grid_cells = 24;
 
 using MatrixState = MatrixStatic<n_grid_cells, n_pfts>;
@@ -88,12 +88,14 @@ int main(int argc, char ** argv)
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
 
-  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-  std::cout << std::setprecision(16)
-            << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
-            << "\t" << *min_max.first
-            << "\t" << *min_max.second << std::endl;
+  {
+    std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
+    auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
+    std::cout << std::setprecision(16)
+              << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
+              << "\t" << *min_max.first
+              << "\t" << *min_max.second << std::endl;
+  }
   
   // main loop
   // -- the timestep loop cannot/should not be parallelized
@@ -114,19 +116,20 @@ int main(int argc, char ** argv)
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
 
-                // qflx_prec_intr[g], qflx_irrig[g], qflx_prec_grnd[g],
-                // qflx_snwcp_liq[g], qflx_snwcp_ice[g],
-                // qflx_snow_grnd_patch[g], qflx_rain_grnd[g]);
+        // qflx_prec_intr[g], qflx_irrig[g], qflx_prec_grnd[g],
+        // qflx_snwcp_liq[g], qflx_snwcp_ice[g],
+        // qflx_snow_grnd_patch[g], qflx_rain_grnd[g]);
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2o_can(g,p), qflx_prec_intr[g]);
       }
     }
 
-    auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-    std::cout << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
-              << "\t" << *min_max.first
-              << "\t" << *min_max.second << std::endl;
-
+    {
+      auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
+      std::cout << std::setprecision(16)
+                << t+1 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
+                << "\t" << *min_max.first
+                << "\t" << *min_max.second << std::endl;
+    }
   }
   return 0;
   MPI_Finalize();

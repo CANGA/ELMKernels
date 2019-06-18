@@ -1,33 +1,51 @@
+ELM_BASE = ../../src
+KERNEL_FOLDER = cc
+ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
+
+
 KOKKOS_PATH = ${HOME}/Downloads/kokkos
+#KOKKOS_PATH = /Users/uec/codes/ats/amanzi-tpls/build-dev-tpetra/trilinos/trilinos-12-14-1_master-source/packages/kokkos
+
+
 KOKKOS_DEBUG = "yes"
 EXE_NAME1 = "test_CanopyHydrology_kern1_single"
 EXE_NAME2 = "test_CanopyHydrology_kern1_multiple"
 EXE_NAME3 = "test_CanopyHydrology_module"
-SRCDIR	      =	../../src/cc
 KOKKOS_DEVICES = ${myDEVICE}
 
 
+# Get the Kokkos Device
+ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 
-# ifeq ($(KOKKOS_DEVICES),Cuda)
-# 	NATURE = KOKKOS_INLINE_FUNCTION
-# 	CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
-# 	EXE1 = ${EXE_NAME1}.cuda
-# 	EXE2 = ${EXE_NAME2}.cuda
-# 	EXE3 = ${EXE_NAME3}.cuda
-# 	KOKKOS_ARCH = "BSW,Pascal60"
-# 	KOKKOS_CUDA_OPTIONS = "enable_lambda,force_uvm"
-# else
-# 	NATURE = 
-# 	CXX = g++
-# 	EXE1 = ${EXE_NAME1}.host
-# 	EXE2 = ${EXE_NAME2}.host
-# 	EXE3 = ${EXE_NAME3}.host
-# 	KOKKOS_ARCH = "BSW"
-# endif
+CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
+EXE1 = ${EXE_NAME1}.cuda
+EXE2 = ${EXE_NAME2}.cuda
+EXE3 = ${EXE_NAME3}.cuda
+KOKKOS_ARCH = "BSW,Pascal60"
+KOKKOS_CUDA_OPTIONS = "force_uvm,enable_lambda"
 
+else
 
-include $(SRCDIR)/../config/Makefile.config
+EXE1 = ${EXE_NAME1}.host
+EXE2 = ${EXE_NAME2}.host
+EXE3 = ${EXE_NAME3}.host
+KOKKOS_ARCH = "BSW"
 
+endif
+
+# Set the Kernel programming model
+CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION
+
+default: Serial
+
+# include Kokkos
+include $(KOKKOS_PATH)/Makefile.kokkos
+CXXFLAGS += $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
+
+#include ELM
+include $(ELM_BASE)/config/Makefile.config
+
+# build the tess
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
@@ -39,6 +57,14 @@ SRC1 = CanopyHydrology_kern1_single.cpp
 SRC2 = CanopyHydrology_kern1_multiple.cpp
 SRC3 = CanopyHydrology_module.cpp      
 
+LINK = ${CXX}
+
+OBJ1 =  $(SRC1:.cpp=.cpp.o)
+OBJ2 =  $(SRC2:.cpp=.cpp.o)
+OBJ3 =  $(SRC3:.cpp=.cpp.o)	
+
+.PHONY: links Serial OpenMP Cuda
+
 Serial: build1 build2 build3 test
 	echo "Serial"
 	echo "Start Build"
@@ -49,58 +75,32 @@ Cuda: build2 build3 test1
 	echo "Cuda"
 	echo "Start Build"
 
-ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
-CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
-EXE1 = ${EXE_NAME1}.cuda
-EXE2 = ${EXE_NAME2}.cuda
-EXE3 = ${EXE_NAME3}.cuda
-KOKKOS_ARCH = "BSW,Pascal60"
-KOKKOS_CUDA_OPTIONS = "force_uvm,enable_lambda"
-else
-CXX = g++
-EXE1 = ${EXE_NAME1}.host
-EXE2 = ${EXE_NAME2}.host
-EXE3 = ${EXE_NAME3}.host
-KOKKOS_ARCH = "BSW"
-endif
+build1: links $(EXE1)
 
-CXXFLAGS = -g -O0 -DNATURE=KOKKOS_INLINE_FUNCTION
-LINK = ${CXX}
-LINKFLAGS = -lnetcdf
-EXTRA_PATH = -I$(NETCDF_ROOT)/include
+$(EXE1): $(KOKKOS_CPP_DEPENDS) $(OBJ1) $(KOKKOS_LINK_DEPENDS)
+	# @echo "LINKING"
+	# @echo "----------------"
+	# @echo "LINK = $(LINK)"
+	# @echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)"
+	# @echo "OBJ1 = $(OBJ1)"
+	# @echo "NETCDF_FLAGS = $(NETCDF_FLAGS)"
+	# @echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
+	# @echo "EXE = $(EXE1)"
+	$(LINK) $(OBJ1) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE1)
 
-DEPFLAGS = -M
-OBJ1 =  $(SRC1:.cpp=.o)
-OBJ2 =  $(SRC2:.cpp=.o)
-OBJ3 =  $(SRC3:.cpp=.o)	
-EXTRA_INC = -I$(NETCDF_ROOT)/include  -I$(SRCDIR)
-LIB = -I$(NETCDF_ROOT)/include  -I$(SRCDIR)
-
-include $(KOKKOS_PATH)/Makefile.kokkos
-
-.PHONY: links library 
-
-build1: links library $(EXE1)
-
-$(EXE1): $(OBJ1) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ1) $(KOKKOS_LIBS) $(LIB) $(CXX_LD_FLAGS) -o $(EXE1)
-
-build2: links library $(EXE2)
+build2: links $(EXE2)
 
 $(EXE2): $(OBJ2) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ2) $(KOKKOS_LIBS) $(LIB) $(CXX_LD_FLAGS) -o $(EXE2)
+	$(LINK) $(OBJ2) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE2)
 
-build3: links library $(EXE3)
+build3: links $(EXE3)
 
 $(EXE3): $(OBJ3) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(KOKKOS_LDFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(OBJ3) $(KOKKOS_LIBS) $(LIB) $(CXX_LD_FLAGS) -o $(EXE3)
+	$(LINK) $(OBJ3) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE3)
 
 clean:
 	@$(ELM_CLEAN)
 	rm -f test_* *.o *.cuda *.host
-
-%.o:%.cpp $(KOKKOS_CPP_DEPENDS)
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(EXTRA_INC) -c $<
 
 test : $(SRC1) $(SRC2) $(SRC3)
 	./$(EXE1) > test_CanopyHydrology_kern1_single.stdout
@@ -118,8 +118,6 @@ links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
 
-library:
-	$(MAKE) CXX=$(CXX) -C $(SRCDIR)
 
 allclean: clean
 	$(MAKE) -C $(SRCDIR) clean

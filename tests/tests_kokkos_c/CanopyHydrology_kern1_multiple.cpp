@@ -16,7 +16,7 @@
 #include "readers.hh"
 #include "landunit_varcon.h"
 #include "column_varcon.h" 
-#include "CanopyHydrology_cpp.hh"
+#include "CanopyHydrology.hh"
 
 namespace ELM {
 namespace Utils {

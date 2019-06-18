@@ -1,4 +1,5 @@
-
+#ifndef LANDUNIT_VARCON_HH_
+#define LANDUNIT_VARCON_HH_
 
   static const int istsoil    = 1  ;
   static const int istcrop    = 2  ;
@@ -19,3 +20,5 @@
 //  character(len=landunit_name_length), public  :: landunit_names(max_lunit)  ;
 
   static const int numurbl = isturb_MAX - isturb_MIN + 1  ;
+
+#endif

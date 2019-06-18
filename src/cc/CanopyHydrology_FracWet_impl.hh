@@ -1,8 +1,11 @@
+#ifndef CANOPY_HYDROLOGY_FRACWET_IMPL_HH_
+#define CANOPY_HYDROLOGY_FRACWET_IMPL_HH_
+
 #include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <string>
-#include "CanopyHydrology_cpp.hh"
+
 
 using namespace std;
 using std::min ;
@@ -41,3 +44,5 @@ NATURE void CanopyHydrology_FracWet(const int& frac_veg_nosno,
 }
 
 }
+
+#endif

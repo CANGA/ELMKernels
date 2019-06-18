@@ -1,3 +1,7 @@
+#ifndef CANOPYHYDROLOGY_INTERCEPTION_IMPL_HH_
+#define CANOPYHYDROLOGY_INTERCEPTION_IMPL_HH_
+
+
 #include <algorithm>
 #include <stdio.h>     
 #include <cmath>   
@@ -5,7 +9,6 @@
 #include <string>
 #include "landunit_varcon.h"
 #include "column_varcon.h"     
-#include "CanopyHydrology_cpp.hh"
 
 using namespace std;
 using std::min ;
@@ -153,3 +156,6 @@ namespace ELM {
   }
 
 }
+
+
+#endif

@@ -11,17 +11,15 @@ cc_fortran_wrappers: fortran
 	$(MAKE) -C cc_fortran_wrappers all
 
 cc:
-	$(MAKE) -C cc all
+	echo "header only"
 
 fortran:
 	$(MAKE) -C fortran all
 
 clean:
-	$(MAKE) -C cc clean
 	$(MAKE) -C fortran clean
 
 allclean:
-	$(MAKE) -C cc clean
 	$(MAKE) -C fortran clean
 
 

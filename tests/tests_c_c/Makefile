@@ -1,11 +1,12 @@
-OBJECT        = ../../src/
+ELM_BASE = ../../src
 KERNEL_FOLDER = cc
-SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
-MPI           = /usr/lib/x86_64-linux-gnu/openmpi/include
-NATURE		  =
-include $(OBJECT)config/Makefile.config
+ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
-INC_FLAGS = -I$(NETCDF_ROOT)/include  -I$(MPI) -I$(SRCDIR)
+FC = mpifort
+CXX = mpicxx
+CC = mpicc
+
+include $(ELM_BASE)/config/Makefile.config
 
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
@@ -36,22 +37,16 @@ CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
-test_%: %.cpp.o readers.hh utils.hh library
-	$(MPICXX) -o $@ $< $(CC_LD_FLAGS)
+test_%: %.cpp.o readers.hh utils.hh
+	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
 
 clean:
-	@$(ELM_CLEAN)
-	$(RM) test_*
+	$(RM) test_* *.o 
 
-allclean:
-	@$(ELM_CLEAN)
-	$(RM) test_*
-	$(MAKE) -C $(OBJECT) allclean
+allclean: clean
 
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
 
-library:
-	$(MAKE) -C $(OBJECT)cc
