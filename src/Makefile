@@ -1,38 +1,28 @@
 SRCDIR	      =	.
 OBJECT        = .
 
-.PHONY: cc_fortran_wrappers cc_serial cc_kokkos fortran cuda
+.PHONY: cc_fortran_wrappers cc fortran
 
 default: all
 
-all: cc_fortran_wrappers fortran cc_serial cc_kokkos cuda
+all: cc_fortran_wrappers fortran cc
 
 cc_fortran_wrappers: fortran
 	$(MAKE) -C cc_fortran_wrappers all
 
-cc_serial:
-	$(MAKE) -C cc_serial all
-
-cc_kokkos:
-	$(MAKE) -C cc_kokkos all
+cc:
+	$(MAKE) -C cc all
 
 fortran:
 	$(MAKE) -C fortran all
 
-cuda:
-	$(MAKE) -C cuda all
-
-
 clean:
 	$(MAKE) -C cc clean
 	$(MAKE) -C fortran clean
-	$(MAKE) -C cuda clean
 
 allclean:
-	$(MAKE) -C cc_serial clean
-	$(MAKE) -C cc_kokkos clean
+	$(MAKE) -C cc clean
 	$(MAKE) -C fortran clean
-	$(MAKE) -C cuda clean
 
 
 

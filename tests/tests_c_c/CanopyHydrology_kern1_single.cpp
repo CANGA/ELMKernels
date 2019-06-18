@@ -10,6 +10,7 @@
 #include <iostream>
 #include <iomanip>
 #include <assert.h>
+#include <mpi.h>
 #include "utils.hh"
 #include "readers.hh"
 
@@ -32,6 +33,7 @@ using MatrixForc = MatrixStatic<n_max_times,1>;
 
 int main(int argc, char ** argv)
 {
+  MPI_Init(NULL, NULL);
   // dimensions
   const int n_months = 12;
   const int n_pfts = 17;
@@ -86,4 +88,5 @@ int main(int argc, char ** argv)
   }
 	
   return 0;
+  MPI_Finalize();
 }

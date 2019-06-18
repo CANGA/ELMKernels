@@ -4,7 +4,7 @@ endif
 
 # from Makefile.config
 OBJECT        = ../../src/
-KERNEL_LANG	  = cc_kokkos
+KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
@@ -20,7 +20,8 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_c_legion
+INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_legion_c
+CC_FLAGS= -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
 
@@ -60,9 +61,13 @@ test: $(EXEC_TESTS)
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
+# 	./test_CanopyHydrology_kern1_multiple -lg:spy -logfile spy_multiple%.log
+# 	$(LG_RT_DIR)/../tools/legion_spy.py -dez spy_multiple*.log
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
+# 	./test_CanopyHydrology_module -lg:spy -logfile spy_module%.log
+# 	$(LG_RT_DIR)/../tools/legion_spy.py -dez spy_module*.log
 
 
 sandbox: test_sandbox_domain_template_magic

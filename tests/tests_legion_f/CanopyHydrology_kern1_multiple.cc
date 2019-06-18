@@ -22,7 +22,7 @@
 
 #include "data.hh"
 #include "tasks.hh"
-#include "CanopyHydrology_fort.hh"
+#include "CanopyHydrology.hh"
 
 using namespace Legion;
 

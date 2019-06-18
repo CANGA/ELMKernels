@@ -9,156 +9,14 @@
 #include <iostream>
 #include <iomanip>
 #include <numeric>
+#include <fstream>
 #include <algorithm>
 #include <Kokkos_Core.hpp>
 #include "utils.hh"
 #include "readers.hh"
 #include "landunit_varcon.h"
 #include "column_varcon.h" 
-
-
-namespace ELM {
-KOKKOS_INLINE_FUNCTION void CanopyHydrology_Interception(double dtime,
-        const double& forc_rain,
-        const double& forc_snow,
-        const double& irrig_rate,
-        const int& ltype, const int& ctype,
-        const bool& urbpoi, const bool& do_capsnow,
-        const double& elai, const double& esai,
-        const double& dewmx, const int& frac_veg_nosno,
-        double& h2ocan,
-        int n_irrig_steps_left, //fix it
-        double& qflx_prec_intr,
-        double& qflx_irrig,
-        double& qflx_prec_grnd,
-        double& qflx_snwcp_liq,
-        double& qflx_snwcp_ice,
-        double& qflx_snow_grnd_patch,
-        double& qflx_rain_grnd)
-
- {  
-
-  
-      double  fpi, xrun, h2ocanmx   ;
-      double  qflx_candrip, qflx_through_snow, qflx_through_rain ;
-      double  qflx_prec_grnd_snow;
-      double  qflx_prec_grnd_rain ;
-      double  fracsnow ;
-      double  fracrain , forc_irrig;
-
-
-      if (ltype==istsoil || ltype==istwet || urbpoi || ltype==istcrop) {
-
-         qflx_candrip = 0.0      ;
-         qflx_through_snow = 0.0 ;
-         qflx_through_rain = 0.0 ;
-         qflx_prec_intr = 0.0    ;
-         fracsnow = 0.0          ;
-         fracrain = 0.0          ;
-         forc_irrig = 0.0;
-
-
-         if (ctype != icol_sunwall && ctype != icol_shadewall) {
-            if (frac_veg_nosno == 1 && (forc_rain + forc_snow) > 0.0) {
-
-              
-               fracsnow = forc_snow/(forc_snow + forc_rain);
-               fracrain = forc_rain/(forc_snow + forc_rain);
-
-               
-               h2ocanmx = dewmx * (elai + esai);
-
-               
-               fpi = 0.250*(1.0 - exp(-0.50*(elai + esai)));
-
-              
-               qflx_through_snow = forc_snow * (1.0-fpi);
-               qflx_through_rain = forc_rain * (1.0-fpi);
-
-               
-               qflx_prec_intr = (forc_snow + forc_rain) * fpi;
-               
-
-
-               
-               h2ocan = fmax(0.0, h2ocan + dtime*qflx_prec_intr);
-
-               
-               qflx_candrip = 0.0;
-
-               
-               xrun = (h2ocan - h2ocanmx)/dtime;
-
-               
-               if (xrun > 0.0) {
-                  qflx_candrip = xrun;
-                  h2ocan = h2ocanmx;
-               }
-
-            }
-         }
-
-      else if (ltype==istice || ltype==istice_mec) {
-         
-         h2ocan            = 0.0;
-         qflx_candrip      = 0.0;
-         qflx_through_snow = 0.0;
-         qflx_through_rain = 0.0;
-         qflx_prec_intr    = 0.0;
-         fracsnow          = 0.0;
-         fracrain          = 0.0;
-
-      }
-
-      
-
-      if (ctype != icol_sunwall && ctype != icol_shadewall) {
-         if (frac_veg_nosno == 0) {
-            qflx_prec_grnd_snow = forc_snow;
-            qflx_prec_grnd_rain = forc_rain;  }
-         else{
-            qflx_prec_grnd_snow = qflx_through_snow + (qflx_candrip * fracsnow);
-            qflx_prec_grnd_rain = qflx_through_rain + (qflx_candrip * fracrain);
-          }
-      }   
-      else{
-         qflx_prec_grnd_snow = 0.;
-         qflx_prec_grnd_rain = 0.;
-        }
-
-      
-      if (n_irrig_steps_left > 0) {
-         qflx_irrig         = forc_irrig;
-         n_irrig_steps_left = n_irrig_steps_left - 1; }
-      else{
-         qflx_irrig = 0.0;
-        }
-
-      
-      qflx_prec_grnd_rain = qflx_prec_grnd_rain + qflx_irrig;
-
-      
-
-      qflx_prec_grnd = qflx_prec_grnd_snow + qflx_prec_grnd_rain;
-
-      if (do_capsnow) {
-         qflx_snwcp_liq = qflx_prec_grnd_rain;
-         qflx_snwcp_ice = qflx_prec_grnd_snow;
-
-         qflx_snow_grnd_patch = 0.0;
-         qflx_rain_grnd = 0.0;  }
-      else{
-
-         qflx_snwcp_liq = 0.0;
-         qflx_snwcp_ice = 0.0;
-         qflx_snow_grnd_patch = qflx_prec_grnd_snow   ;      //ice onto ground (mm/s)
-         qflx_rain_grnd     = qflx_prec_grnd_rain      ;   //liquid water onto ground (mm/s)
-        }
-
-    }
-  }
-
-}
+#include "CanopyHydrology_cpp.hh"
 
 namespace ELM {
 namespace Utils {
@@ -195,14 +53,13 @@ int main(int argc, char ** argv)
   const double dewmx = 0.1;
   double dtime = 1800.0;
 
-  
-  Kokkos::initialize( );//argc, argv );
+  Kokkos::initialize( argc, argv );
   {
 
   typedef Kokkos::View<double**>  ViewMatrixType;
-  // typedef Kokkos::Cuda ExecSpace;
-  // typedef Kokkos::Cuda MemSpace;
-  // typedef Kokkos::RangePolicy<ExecSpace> range_policy;
+  //typedef Kokkos::Cuda ExecSpace;
+  //typedef Kokkos::Cuda MemSpace;
+  //typedef Kokkos::RangePolicy<ExecSpace> range_policy;
  
   ViewMatrixType elai( "elai", n_grid_cells, n_pfts );
   ViewMatrixType esai( "esai", n_grid_cells, n_pfts );
@@ -286,17 +143,23 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( qflx_snow_grnd_patch, h_qflx_snow_grnd_patch);
   Kokkos::deep_copy( qflx_rain_grnd, h_qflx_rain_grnd);
   Kokkos::deep_copy( h2o_can, h_h2o_can);
+ 
+ double* end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
 
-  double* end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
-
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
+  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
-  std::cout << std::setprecision(16)
-            << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
-            << "\t" << *min_max.first
-            << "\t" << *min_max.second << std::endl;
+  soln_file << std::setprecision(16)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << "\t" << *min_max.first
+          << "\t" << *min_max.second << std::endl;
 
-  
+  std::cout << std::setprecision(16)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << "\t" << *min_max.first
+          << "\t" << *min_max.second << std::endl;
 
 
 
@@ -340,10 +203,13 @@ int main(int argc, char ** argv)
               << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
+    soln_file << std::setprecision(16)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << "\t" << *min_max.first
+              << "\t" << *min_max.second << std::endl;
 
+  } soln_file.close();
   }
-  }
-  //Kokkos::finalize();
   Kokkos::finalize();
   return 0;
 }

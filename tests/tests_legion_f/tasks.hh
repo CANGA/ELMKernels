@@ -13,14 +13,14 @@
 //   static void preregister(Legion::TaskID new_taskid = AUTO_GENERATE_ID);
 //   static Legion::Future launch(Legion::Context ctx, Legion::Runtime *runtime, ...);
 //   static return_t cpu_execute_task(const Legion::Task *task,
-// 		        const std::vector<Legion::PhysicalRegion> &regions,
-// 		        Legion::Context ctx, Legion::Runtime *runtime);
+//            const std::vector<Legion::PhysicalRegion> &regions,
+//            Legion::Context ctx, Legion::Runtime *runtime);
 // };
 //
 //
 // preregister_task() should call some variant of
-//	LegionRuntime::HighLevel::register_X() or
-//	LegionRuntime::HighLevel::preregister_Y()
+//  LegionRuntime::HighLevel::register_X() or
+//  LegionRuntime::HighLevel::preregister_Y()
 // This function is called exactly once on each task.
 //
 // launch() should take whatever arguments (parameters, future lists,
@@ -55,7 +55,8 @@ enum TaskIDs {
   SUM_OVER_PFTS,
   CANOPY_HYDROLOGY_SNOWWATER,
   CANOPY_HYDROLOGY_FRACH2OS,
-  UTIL_SUM_MIN_MAX_REDUCTION
+  UTIL_SUM_MIN_MAX_REDUCTION,
+  UTIL_SUM_MIN_MAX_REDUCTION1D
 };
 } // namespace
 
@@ -75,6 +76,21 @@ struct SumMinMaxReduction {
   static std::string name;
 };  
 
+//
+// Reduction on a 1D domain, calculates sum, min, and max value of a field.
+//
+// NOTE: need to somehow make this a reduction or something?  Shouldn't be
+// global on the full region!
+struct SumMinMaxReduction1D {
+  Future launch(Context ctx, Runtime *runtime,
+                Data<1>& domain, const std::string& fname);  
+  static std::array<double,3> cpu_execute_task(const Task *task,
+          const std::vector<PhysicalRegion> &regions,
+          Context ctx, Runtime *runtime);
+  static void preregister(TaskID taskid=AUTO_GENERATE_ID);
+  static TaskID taskid;
+  static std::string name;
+};  
 
 //
 // Reads phenology data from netcdf files.

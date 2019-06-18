@@ -1,5 +1,5 @@
 OBJECT        = ../../src/
-KERNEL_LANG	  = cuda
+KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 
 include $(OBJECT)config/Makefile.config

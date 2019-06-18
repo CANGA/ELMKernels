@@ -1,75 +1,83 @@
-CSRCDIR	      =	../../src/cpp/
-KOKKOS_PATH = ${HOME}/Downloads/kokkos
-KOKKOS_DEVICES = "Cuda,OpenMP"
-OBJECT        = ../../src/
+KOKKOS_DEVICES = "Serial"
+EXE_NAME1 = "test_CanopyHydrology_kern1_multiple"
+EXE_NAME1 = "test_CanopyHydrology_module"
+OBJECT  = ../../../src/
+KERNEL_LANG	  = cc_serial
+SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 include $(OBJECT)config/Makefile.config
 
-TESTS = test_CanopyHydrology_kern1_single \
-        test_CanopyHydrology_kern1_multiple 
+SRC1 = CanopyHydrology_kern1_multiple.cpp
+SRC2 = CanopyHydrology_module.cpp
 
-EXEC_TESTS = CanopyHydrology_kern1_single \
-             CanopyHydrology_kern1_multiple
+default: build1 build2
+	echo "Start Build"
+
 
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
-EXE = ${TESTS }.cuda
-KOKKOS_ARCH = "HSW,Pascal60"
-KOKKOS_CUDA_OPTIONS = "enable_lambda,force_uvm"
+#EXE = ${EXE_NAME}.cuda
+KOKKOS_ARCH = "BSW,Pascal60"
+KOKKOS_CUDA_OPTIONS = "enable_lambda"
 else
 CXX = g++
-EXE = ${TESTS }.host
-KOKKOS_ARCH = "HSW"
+#EXE = ${EXE_NAME}.host
+KOKKOS_ARCH = "BSW"
 endif
 
 CXXFLAGS = -g -O0
 LINK = ${CXX}
-LINKFLAGS = -lnetcdf -I../../src/cpp -I../tests_c
+LINKFLAGS = -lnetcdf
 EXTRA_PATH = -I/usr/local/include
 
 DEPFLAGS = -M
 
-OBJ = $(SRC:.cpp=.o)
-LIB =
+OBJ1 =  $(SRC1:.cpp=.o)
+OBJ2 =  $(SRC2:.cpp=.o)
+LIB = -I$(NETCDF_ROOT)/include  -I$(SRCDIR)
 
 include $(KOKKOS_PATH)/Makefile.kokkos
-
-
-
 
 .PHONY: links library test
 
 default: all
 
-all: links library $(TESTS)
+all: links library $(EXE_NAME1) $(EXE_NAME2)
 
-test: $(EXEC_TESTS)
-	python ../compare_to_gold.py $(TESTS)
-
-
-CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
-	./test_CanopyHydrology_kern1_single &> test_CanopyHydrology_kern1_single.stdout
+build1: $(SRC1)
+	python ../../compare_to_gold.py $(EXE_NAME1)
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple &> test_CanopyHydrology_kern1_multiple.stdout
+	./test_CanopyHydrology_kern1_multiple.host > test_CanopyHydrology_kern1_multiple.stdout
 
-test_%: $(OBJ) $(KOKKOS_LINK_DEPENDS) readers.hh utils.hh library
-	$(LINK) $(KOKKOS_LDFLAGS) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE) $(LINKFLAGS) $(EXTRA_PATH)
+build2: $(SRC2)
+	python ../../compare_to_gold.py $(EXE_NAME2)
 
-%.o : %.cpp $(KOKKOS_CPP_DEPENDS) domains.hh readers.hh utils.hh
-	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) $(LINKFLAGS) $(EXTRA_PATH) $(EXTRA_INC) -c $<
+CanopyHydrology_module: test_CanopyHydrology_module
+	./test_CanopyHydrology_module.host > test_CanopyHydrology_module.stdout
 
-clean:
-	@$(ELM_CLEAN)
-	$(RM) test_*
 
-allclean:
-	@$(ELM_CLEAN)
-	$(RM) test_*
-	$(MAKE) -C $(OBJECT) allclean
+sandbox: test_sandbox_domain_template_magic
+	./test_sandbox_domain_template_magic
+
+$(EXE_NAME1): $(OBJ1) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(KOKKOS_LDFLAGS) $(CC_LD_FLAGS) $(OBJ1) $(KOKKOS_LIBS) $(LIB) -o $(EXE_NAME1) $(LINKFLAGS) $(EXTRA_PATH)
+$(EXE_NAME2): $(OBJ2) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(KOKKOS_LDFLAGS) $(CC_LD_FLAGS) $(OBJ2) $(KOKKOS_LIBS) $(LIB) -o $(EXE_NAME2) $(LINKFLAGS) $(EXTRA_PATH)
+
+clean: kokkos-clean
+	rm -f *.o *.cuda *.host test_*
 
 links:
 	@echo "making in links"
-	$(MAKE) -C ../links links
+	$(MAKE) -C ../../links links
 
 library:
-	$(MAKE) -C $(OBJECT) all
+	$(MAKE) -C $(OBJECT) cc_serial
+
+# Compilation rules
+
+%.o:%.cpp $(KOKKOS_CPP_DEPENDS)
+	$(CXX) $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS) $(CXXFLAGS) -I$(SRCDIR) $(EXTRA_PATH) $(EXTRA_INC) -c $<
+
+test: $(EXE_NAME1)
+	./$(EXE_NAME1)

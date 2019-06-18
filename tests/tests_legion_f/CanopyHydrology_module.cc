@@ -4,7 +4,7 @@
 //
 // The first strategy is a 2D Rect IndexSpace
 //
-
+#include <bits/stdc++.h>
 #include <array>
 #include <sstream>
 #include <iterator>
@@ -17,12 +17,13 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
-
+#include <tuple>
+#include <functional>
 #include "legion.h"
 
 #include "data.hh"
 #include "tasks.hh"
-#include "CanopyHydrology_fort.hh"
+#include "CanopyHydrology_cpp.hh"
 
 using namespace Legion;
 
@@ -30,7 +31,7 @@ void top_level_task(const Task *task,
                     const std::vector<PhysicalRegion> &regions,
                     Context ctx, Runtime *runtime)
 {
-  std::cout << "LOG: Executing Top Level Task" << std::endl;
+  //std::cout << "LOG: Executing Top Level Task" << std::endl;
 
   const int n_pfts = 17;
   const int n_times_max = 31 * 24 * 2; // max days per month times hours per
@@ -74,7 +75,7 @@ void top_level_task(const Task *task,
 
   // grid cell x soil/snow column
   auto soil_fs_names = std::vector<std::string>{
-    "swe_old", "h2osoi_liq", "h2osoi_ice", "t_soisno", "frac_iceold","snl", "dz", "z", "zi"};
+    "swe_old", "h2osoi_liq", "h2osoi_ice", "t_soisno", "frac_iceold", "dz", "z", "zi"};
   Data<2> soil("soil", ctx, runtime,
                Point<2>(n_grid_cells, n_levels_soil_col), Point<2>(n_parts,1),
                soil_fs_names);
@@ -97,11 +98,11 @@ void top_level_task(const Task *task,
   // Initialization Phase
   // -----------------------------------------------------------------------------
   // launch task to read phenology
-  std::cout << "LOG: Launching Init Phenology" << std::endl;
+  //std::cout << "LOG: Launching Init Phenology" << std::endl;
   InitPhenology().launch(ctx, runtime, phenology);
 
   // launch task to read forcing
-  std::cout << "LOG: Launching Init Forcing" << std::endl;
+  //std::cout << "LOG: Launching Init Forcing" << std::endl;
   auto forc_future = InitForcing().launch(ctx, runtime, forcing);
   int n_times = forc_future.get_result<int>();
   
@@ -109,15 +110,20 @@ void top_level_task(const Task *task,
   // Run Phase
   // -----------------------------------------------------------------------------
   std::ofstream soln_file;
-  soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
-  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
+  soln_file.open("test_CanopyHydrology_module.soln");
+  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  soln_file << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
+
+  // std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  // std::cout << std::setprecision(16) << 0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << "\t" << 0.0 << std::endl;
 
   // create a color space for indexed launching.  Can just launch of the
   // existing 1D data structure's color_space
+  //auto color_space = Rect<1>(Point<1>(0), Point<1>(n_parts-1));
   auto color_space = surface.color_domain;
   
-  std::vector<Future> futures;
+  std::vector<Future> futures1,futures2,futures3;
+
   for (int i=0; i!=n_times; ++i) {
     // launch interception
 
@@ -133,6 +139,7 @@ void top_level_task(const Task *task,
     // partitioning as the other tasks.
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
             phenology, forcing, flux, i);
+    futures1.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
 
     // NOTE: WRITE ME!
     CanopyHydrology_FracWet().launch(ctx, runtime, color_space,
@@ -141,37 +148,52 @@ void top_level_task(const Task *task,
     // launch integration kernel/task to, for each grid cell, sum over PFTs.
     // NOTE: WRITE ME!  This task should be generic!
     SumOverPFTs().launch(ctx, runtime, color_space,
-                         flux, "qflx_snow_grnd_patch",
-                         surface, "qflx_snow_grnd_col");
+                         flux, surface);
 
     // launch water balance kernel
     // NOTE: WRITE ME!
     CanopyHydrology_SnowWater().launch(ctx, runtime, color_space,
             forcing, soil,surface, i);
+    futures2.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "h2osno"));
 
     // launch fraction of water to surface
     // NOTE: WRITE ME!
     CanopyHydrology_FracH2OSfc().launch(ctx, runtime, color_space, soil,surface);
+    futures3.push_back(SumMinMaxReduction1D().launch(ctx, runtime, surface, "frac_h2osfc"));
 
     // NOTE: Figure out how to evaluate the success of this test!  launch
     // accumulators?  Print something to file?  Can we make
     // SumMinMaxReduction() both an actual reduction and dimension
     // independent?
-    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
-    futures.push_back(SumMinMaxReduction().launch(ctx, runtime, surface, "frac_h2osfc"));
+    
   }
 
   int i = 0;
-  for (auto future : futures) {
-    i++;
+  for(i = 0; i < futures1.size() ; ++i ){
+  //for (auto future : futures1.size() + futures2.siz futures3) {
+   // i++;
     //
     // write out to file
     //  
-    auto sum_min_max = future.get_result<std::array<double,3>>();
-    soln_file << std::setprecision(16) << i << "\t" << sum_min_max[0]
-              << "\t" << sum_min_max[1]
-              << "\t" << sum_min_max[2] << std::endl;
-  }
+    auto sum_min_max1 = futures1[i].get_result<std::array<double,3>>();
+    auto sum_min_max2 = futures2[i].get_result<std::array<double,3>>();
+    auto sum_min_max3 = futures3[i].get_result<std::array<double,3>>();
+    // soln_file << std::setprecision(16) << i << "\t" << sum_min_max1[0]
+    //           << "\t" << sum_min_max1[1]
+    //           << "\t" << sum_min_max1[2] << std::endl;
+
+    soln_file  << std::setprecision(16)
+              << i+1 << "\t" << sum_min_max1[0] << "\t" << sum_min_max1[1]<< "\t" << sum_min_max1[2]
+              << "\t" << sum_min_max2[0] << "\t" << sum_min_max2[1]<< "\t" << sum_min_max2[2]
+              << "\t" << sum_min_max3[0] << "\t" << sum_min_max3[1]<< "\t" << sum_min_max3[2] << std::endl;
+
+    // soln_file << std::setprecision(16)
+    //           << 0 << "\t" << sum_min_max[0] << "\t" << sum_min_max[1]<< "\t" << sum_min_max[2]
+    //           << "\t" << sum_min_max[3] << "\t" << sum_min_max[4]<< "\t" << sum_min_max[5]
+    //           << "\t" << sum_min_max[6] << "\t" << sum_min_max[7]<< "\t" << sum_min_max[8] << std::endl;          
+
+    
+  } soln_file.close();
 }
 
 
@@ -185,15 +207,17 @@ int main(int argc, char **argv)
     registrar.add_constraint(ProcessorConstraint(Processor::LOC_PROC));
     Runtime::preregister_task_variant<top_level_task>(registrar, "top_level");
   }
-
-  InitForcing::preregister();
-  InitPhenology::preregister();
-  SumMinMaxReduction::preregister();
-  SumOverPFTs::preregister();
   CanopyHydrology_Interception::preregister();
+  SumOverPFTs::preregister();
   CanopyHydrology_FracWet::preregister();
   CanopyHydrology_SnowWater::preregister();
   CanopyHydrology_FracH2OSfc::preregister();
+  InitForcing::preregister();
+  InitPhenology::preregister();
+  SumMinMaxReduction::preregister();
+  SumMinMaxReduction1D::preregister();
+  
+  
 
   return Runtime::start(argc, argv);
 }

@@ -14,8 +14,8 @@
 #include "readers.hh"
 
 
-#include "CanopyHydrology.cuh"
-#include "CanopyHydrology_SnowWater_impl.cuh"
+#include "CanopyHydrology.cpp"
+#include "CanopyHydrology_SnowWater_impl.hh"
 
 
 

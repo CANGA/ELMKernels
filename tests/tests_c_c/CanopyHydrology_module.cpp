@@ -11,6 +11,7 @@
 #include <numeric>
 #include <algorithm>
 #include <assert.h>
+#include <mpi.h>
 #include "utils.hh"
 #include "readers.hh"
 
@@ -46,6 +47,7 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_pfts;
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
+  MPI_Init(NULL, NULL);
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -226,4 +228,5 @@ int main(int argc, char ** argv)
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   } // end timestep loop
   return 0;
+  MPI_Finalize();
 }

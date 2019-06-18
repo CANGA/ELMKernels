@@ -19,7 +19,7 @@
 
 #include "utils.hh"
 #include "readers.hh"
-#include "CanopyHydrology_cc.hh"
+#include "CanopyHydrology_cpp.hh"
 #include "legion.h"
 
 using namespace Legion;

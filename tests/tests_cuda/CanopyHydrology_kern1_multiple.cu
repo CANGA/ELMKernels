@@ -13,7 +13,7 @@
 #include "utils.hh"
 #include "readers.hh"
 
-#include "CanopyHydrology.cuh"
+#include "CanopyHydrology.cpp"
 
 
 namespace ELM {

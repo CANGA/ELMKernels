@@ -1,13 +1,14 @@
 Evaluation
 ================
 |		DRIVER		|   KERNEL    |   KERNEL    |
+|===================|=============|=============|
 | PROGRAMMING MODEL | 	FORTRAN   | 	C++    	|
 | ---------------	| :---------: | :---------: |
-| FORTRAN       	| Works       | Works	    |
-| C++   	    	| X	    	  | Works	    |
-| LEGION FORTRAN 	| X	          | X	 	    |
+| FORTRAN       	| Works       |    X	    |
+| C++   	    	| Works    	  | Works	    |
+| LEGION FORTRAN 	| X	          |	   X 	    |
 | LEGION C++  		| Partially   | Works	    |
-| KOKKOS Fortran 	| X 	      |  X 	 		|
+| KOKKOS Fortran 	| X 	      |    X 		|
 | KOKKOS C++ 		| X 		  | Works	    |
 | CUDA 		    	| X 		  | Debugging 	|
 | OpenMP/OpenACC	| N/A 		  | N/A 		|

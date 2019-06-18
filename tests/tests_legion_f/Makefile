@@ -4,6 +4,8 @@ endif
 
 # from Makefile.config
 OBJECT        = ../../src/
+KERNEL_LANG	  = cc_fortran_wrappers
+SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
@@ -18,7 +20,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
-INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I../../src/cpp -I../tests_c_f
+INC_FLAGS	?= -I$(AMANZI_TPLS_DIR)/include -I$(SRCDIR)
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
 

@@ -1,10 +1,10 @@
 OBJECT        = ../../src/
-KERNEL_FOLDER = cc_serial
+KERNEL_FOLDER = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_FOLDER)
-
+MPI           = /usr/lib/x86_64-linux-gnu/openmpi/include
 include $(OBJECT)config/Makefile.config
 
-INC_FLAGS = -I$(NETCDF_ROOT)/include  -I$(SRCDIR)
+INC_FLAGS = -I$(NETCDF_ROOT)/include  -I$(MPI) -I$(SRCDIR)
 
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
@@ -36,7 +36,7 @@ CanopyHydrology_module: test_CanopyHydrology_module
 
 
 test_%: %.cpp.o readers.hh utils.hh library
-	$(CXX) -o $@ $< $(CC_LD_FLAGS)
+	$(MPICXX) -o $@ $< $(CC_LD_FLAGS)
 
 
 clean:
@@ -53,4 +53,4 @@ links:
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) cc_serial
+	$(MAKE) -C $(OBJECT)cc
