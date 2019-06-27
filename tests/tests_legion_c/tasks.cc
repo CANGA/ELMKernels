@@ -3,8 +3,7 @@
 #include <string>
 #include <functional>
 #include "readers.hh"
-#include "CanopyHydrology_cpp.hh"
-#include "CanopyHydrology_SnowWater_impl.hh"
+#include "CanopyHydrology.hh"
 #include "legion.h"
 #include "tasks.hh"
 

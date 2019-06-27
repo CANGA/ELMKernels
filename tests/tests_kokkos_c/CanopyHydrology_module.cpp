@@ -10,11 +10,13 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
+#include <chrono>
 #include <Kokkos_Core.hpp>
 #include "utils.hh"
 #include "readers.hh"
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
+using namespace std::chrono; 
 
 namespace ELM {
 namespace Utils {
@@ -269,7 +271,8 @@ int main(int argc, char ** argv)
             << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
             << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 
-
+   Kokkos::Timer timer;
+   auto start = high_resolution_clock::now();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -374,6 +377,16 @@ int main(int argc, char ** argv)
 
   } // end timestep loop
   soln_file.close();
+
+  double time = timer.seconds();
+  double Gbytes = 1.0e-9 * double( sizeof(double) * ( n_grid_cells + n_grid_cells * n_pfts + n_pfts ) );
+
+  printf( "  n_pfts( %d ) n_grid_cells( %d ) n_times ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
+          n_pfts, n_grid_cells, n_times, Gbytes * 1000, time, Gbytes * n_times / time );
+
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
   }
   Kokkos::finalize();
   return 0;

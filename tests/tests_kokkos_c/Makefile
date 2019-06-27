@@ -40,7 +40,7 @@ default: Serial
 
 # include Kokkos
 include $(KOKKOS_PATH)/Makefile.kokkos
-CXXFLAGS += $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
+# CXXFLAGS += $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
 
 #include ELM
 include $(ELM_BASE)/config/Makefile.config
@@ -75,6 +75,19 @@ Cuda: build2 build3 test1
 	echo "Cuda"
 	echo "Start Build"
 
+Report: 
+	@echo "LINKING"
+	@echo "----------------"
+	@echo "LINK = $(LINK)"
+	@echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)"
+	@echo "OBJ1 = $(OBJ1)"
+	@echo "NETCDF_FLAGS = $(NETCDF_FLAGS)"
+	@echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
+	@echo "EXE = $(EXE1)"
+	@echo "CXXFLAGS = $(CXXFLAGS)"
+	@echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)"
+	@echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)"
+
 build1: links $(EXE1)
 
 $(EXE1): $(KOKKOS_CPP_DEPENDS) $(OBJ1) $(KOKKOS_LINK_DEPENDS)
@@ -91,9 +104,20 @@ $(EXE1): $(KOKKOS_CPP_DEPENDS) $(OBJ1) $(KOKKOS_LINK_DEPENDS)
 	# @echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)"
 	$(LINK) $(OBJ1) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE1)
 
-build2: links $(EXE2)
+build2: links Report $(EXE2)
 
 $(EXE2): $(OBJ2) $(KOKKOS_LINK_DEPENDS)
+	@echo "LINKING"
+	@echo "----------------"
+	@echo "LINK = $(LINK)"
+	@echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)"
+	@echo "OBJ1 = $(OBJ1)"
+	@echo "NETCDF_FLAGS = $(NETCDF_FLAGS)"
+	@echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
+	@echo "EXE = $(EXE1)"
+	@echo "CXXFLAGS = $(CXXFLAGS)"
+	@echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)"
+	@echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)"
 	$(LINK) $(OBJ2) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE2)
 
 build3: links $(EXE3)
@@ -106,15 +130,14 @@ clean:
 	rm -f test_* *.o *.cuda *.host
 
 test : $(SRC1) $(SRC2) $(SRC3)
-	./$(EXE1) > test_CanopyHydrology_kern1_single.stdout
-	./$(EXE2) > test_CanopyHydrology_kern1_multiple.stdout
-	./$(EXE3) > test_CanopyHydrology_module.stdout
+	./$(EXE_NAME1).host > test_CanopyHydrology_kern1_single.stdout
+	./$(EXE_NAME2).host > test_CanopyHydrology_kern1_multiple.stdout
+	./$(EXE_NAME3).host > test_CanopyHydrology_module.stdout
 	python ../compare_to_gold.py $(TESTS)
 
 test1 : $(SRC2) $(SRC3)
-	./$(EXE1) > test_CanopyHydrology_kern1_single.stdout
-	./$(EXE2) > test_CanopyHydrology_kern1_multiple.stdout
-	./$(EXE3) > test_CanopyHydrology_module.stdout
+	./${EXE_NAME2}.cuda > test_CanopyHydrology_kern1_multiple.stdout
+	./${EXE_NAME3}.cuda > test_CanopyHydrology_module.stdout
 	python ../compare_to_gold.py $(TESTS1)
 
 links:

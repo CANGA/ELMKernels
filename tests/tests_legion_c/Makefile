@@ -25,7 +25,7 @@ INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_legion_c
 CC_FLAGS= -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
-
+CC = mpicc
 include $(OBJECT)config/Makefile.config
 
 TESTS = test_CanopyHydrology_kern1_multiple \
@@ -112,7 +112,7 @@ $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 #% : %.o
 
 %.cc.o : %.cc domains.hh readers.hh utils.hh
-	$(CXX) $(CC_FLAGS) $(CPP_FLAGS) $(INC_FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) $(INC_FLAGS) -c $< -o $@
 
 clean :
 	$(ELM_CLEAN)

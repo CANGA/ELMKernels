@@ -8,13 +8,15 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <numeric>
 #include <algorithm>
+#include <chrono>
 #include "utils.hh"
 #include "readers.hh"
 
 #include "CanopyHydrology.hh"
-
+using namespace std::chrono;
 
 
 namespace ELM {
@@ -88,16 +90,18 @@ int main(int argc, char ** argv)
 
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
 
   {
-    std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
+    soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
     auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
   }
-  
+  auto start = high_resolution_clock::now();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -125,11 +129,14 @@ int main(int argc, char ** argv)
     }
 
     auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << t+1 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 
   }
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
 }

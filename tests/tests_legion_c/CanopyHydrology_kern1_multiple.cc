@@ -17,14 +17,15 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
+#include <chrono>
 
 #include "legion.h"
 
 #include "data.hh"
 #include "tasks.hh"
-#include "CanopyHydrology_cpp.hh"
 
 using namespace Legion;
+using namespace std::chrono; 
 
 void top_level_task(const Task *task,
                     const std::vector<PhysicalRegion> &regions,
@@ -91,6 +92,7 @@ void top_level_task(const Task *task,
   
   std::vector<Future> futures;
   std::cout << "LOG: running steps: " << n_times << std::endl;
+  auto start = high_resolution_clock::now();
   for (int i=0; i!=n_times; ++i) {
     // launch interception
     CanopyHydrology_Interception().launch(ctx, runtime, color_space,
@@ -99,6 +101,9 @@ void top_level_task(const Task *task,
     // launch accumulator for h2ocan
     futures.push_back(SumMinMaxReduction().launch(ctx, runtime, flux, "h2ocan"));
   }
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
 
   int i = 0;
   for (auto future : futures) {

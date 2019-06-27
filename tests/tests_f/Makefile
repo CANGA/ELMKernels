@@ -1,10 +1,12 @@
-SRCDIR	      =	../../src/fortran/
-OBJECT        = ../../src/
+ELM_BASE = ../../src
+KERNEL_FOLDER = fortran
+ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
-include $(OBJECT)config/Makefile.config
+FC = gfortran
 
-FC_FLAGS += -I$(SRCDIR) -I$(SRCDIR)$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
+include $(ELM_BASE)/config/Makefile.config
 
+FC_FLAGS += -I$(ELM_ROOT) -I$(ELM_ROOT)/$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
 
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
@@ -45,11 +47,11 @@ clean:
 allclean:
 	@$(ELM_CLEAN)
 	$(RM) test_*
-	$(MAKE) -C $(OBJECT) allclean
+	$(MAKE) -C $(ELM_ROOT) allclean
 
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
 
 library:
-	$(MAKE) -C $(OBJECT) fortran
+	$(MAKE) -C $(ELM_ROOT)

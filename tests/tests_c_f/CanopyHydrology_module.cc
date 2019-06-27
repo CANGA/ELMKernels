@@ -6,15 +6,17 @@
 #include <stdlib.h>
 #include <cstring>
 #include <vector>
+#include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
 #include <algorithm>
+#include <chrono>
 #include "utils.hh"
 #include "readers.hh"
 
 #include "CanopyHydrology.hh"
-
+using namespace std::chrono;
 
 namespace ELM {
 namespace Utils {
@@ -123,9 +125,10 @@ int main(int argc, char ** argv)
 
   auto frac_sno_eff = ELM::Utils::VectorColumn();
   auto frac_sno = ELM::Utils::VectorColumn();
-  
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_module.soln");
   {
-    std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+    soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
     auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
     auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
@@ -135,12 +138,12 @@ int main(int argc, char ** argv)
     auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
     auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
     
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   }
-  
+  auto start = high_resolution_clock::now();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -217,10 +220,13 @@ int main(int argc, char ** argv)
     auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
     auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
                   
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   } // end timestep loop
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
 }

@@ -1,11 +1,11 @@
 OBJECT        = ../../src/
 KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
-NATURE 		  = "__global__"
-
+CUDA_FLAGS += -DNATURE=__global__
+NVCC = nvcc
 include $(OBJECT)config/Makefile.config
 
-INC_FLAGS = -I$(AMANZI_TPLS_DIR)/include -I$(SRCDIR)
+INC_FLAGS ?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_cuda
 
 TESTS = test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
@@ -30,7 +30,7 @@ CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module&> test_CanopyHydrology_module.stdout
 
-test_%: %.cu.o readers.hh utils.hh library
+test_%: %.cu.o readers.hh utils.hh
 	$(NVCC) -o $@ $< $(CUDA_LD_FLAGS)
 
 
@@ -41,11 +41,8 @@ clean:
 allclean:
 	@$(ELM_CLEAN)
 	$(RM) test_*
-	$(MAKE) -C $(OBJECT) allclean
+	$(MAKE) -C $(SRCDIR) allclean
 
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
-
-library:
-	$(MAKE) -C $(OBJECT) all

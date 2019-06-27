@@ -9,13 +9,15 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 #include <assert.h>
 #include <mpi.h>
+#include <chrono>
 #include "utils.hh"
 #include "readers.hh"
 
 #include "CanopyHydrology.hh"
-
+using namespace std::chrono; 
 
 namespace ELM {
 namespace Utils {
@@ -71,8 +73,10 @@ int main(int argc, char ** argv)
   double qflx_snwcp_ice = 0.;
   double qflx_snow_grnd_patch = 0.;
   double qflx_rain_grnd = 0.;
-  
-  std::cout << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
+  auto start = high_resolution_clock::now();
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_single.soln");
+  soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
     double total_precip = forc_rain[itime][0] + forc_snow[itime][0];
@@ -84,9 +88,11 @@ int main(int argc, char ** argv)
             qflx_snwcp_liq, qflx_snwcp_ice,
             qflx_snow_grnd_patch, qflx_rain_grnd);
 		
-    std::cout << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
+    soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
   }
-	
+	auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
   MPI_Finalize();
 }
