@@ -10,6 +10,8 @@
 #include <iomanip>
 #include <numeric>
 #include <algorithm>
+#include <fstream>
+#include <time.h>
 #include "utils.hh"
 #include "readers.hh"
 
@@ -84,15 +86,26 @@ int main(int argc, char ** argv)
 
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
+
+  cudaEvent_t start, stop;
+  float time;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
+
+
   // Wait for GPU to finish before accessing on host
    cudaDeviceSynchronize();
-  std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
+  soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-  std::cout << std::setprecision(16)
+  soln_file << std::setprecision(16)
             << 0 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
             << "\t" << *min_max.first
             << "\t" << *min_max.second << std::endl;
-  
+
+  cudaEventRecord(start, 0);
+
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -120,11 +133,17 @@ int main(int argc, char ** argv)
     }
 
     auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
-    std::cout << std::setprecision(16)
+    soln_file << std::setprecision(16)
               << t+1 << "\t" << std::accumulate(h2o_can.begin(), h2o_can.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 
   }
+    cudaThreadSynchronize();
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    std::cout <<"Time for the kernel: "<< time << std::endl;
+
   return 0;
 }

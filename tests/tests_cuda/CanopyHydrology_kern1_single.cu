@@ -9,7 +9,8 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
-
+#include <fstream>
+#include <time.h>
 #include "utils.hh"
 #include "readers.hh"
 
@@ -69,11 +70,19 @@ int main(int argc, char ** argv)
   double qflx_snwcp_ice = 0.;
   double qflx_snow_grnd_patch = 0.;
   double qflx_rain_grnd = 0.;
+
+  cudaEvent_t start, stop;
+  float time;
+  cudaEventCreate(&start);
+  cudaEventCreate(&stop);
   
   // Wait for GPU to finish before accessing on host
  cudaDeviceSynchronize();
-    
-  std::cout << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
+  std::ofstream soln_file;
+  soln_file.open("test_CanopyHydrology_kern1_single.soln");  
+  soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
+  cudaEventRecord(start, 0);
+
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
     double total_precip = forc_rain[itime][0] + forc_snow[itime][0];
@@ -85,8 +94,14 @@ int main(int argc, char ** argv)
             qflx_snwcp_liq, qflx_snwcp_ice,
             qflx_snow_grnd_patch, qflx_rain_grnd);
 		
-    std::cout << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
+    soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
   }
+    cudaThreadSynchronize();
+    cudaEventRecord(stop, 0);
+    cudaEventSynchronize(stop);
+    cudaEventElapsedTime(&time, start, stop);
+    std::cout <<"Time for the kernel: "<< time << std::endl;
+
   // Free memory
 //    cudaFree(elai);
 //    cudaFree(esai);

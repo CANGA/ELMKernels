@@ -4,6 +4,9 @@
 #ifndef NATURE
 #define NATURE 
 #endif
+#ifndef NATURE1
+#define NATURE1
+#endif
 
 namespace ELM {
 
@@ -37,7 +40,7 @@ NATURE void CanopyHydrology_FracWet(const int& frac_veg_nosno,
 
 
 template<typename Array_d>
-NATURE void CanopyHydrology_SnowWater(const double& dtime,
+NATURE1 void CanopyHydrology_SnowWater(const double& dtime,
         const double& qflx_floodg,
         const int& ltype,
         const int& ctype,

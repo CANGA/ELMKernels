@@ -15,7 +15,7 @@ using std::max ;
 namespace ELM {
 
 template<typename Array_d>
-   NATURE void CanopyHydrology_SnowWater(const double& dtime,
+   NATURE1 void CanopyHydrology_SnowWater(const double& dtime,
     const double& qflx_floodg,
     const int& ltype,
     const int& ctype,
