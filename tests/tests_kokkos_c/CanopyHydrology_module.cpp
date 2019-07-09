@@ -280,12 +280,11 @@ int main(int argc, char ** argv)
   for (size_t t = 0; t != n_times; ++t) {
 
     typedef typename Kokkos::Experimental::MDRangePolicy< Kokkos::Experimental::Rank<2> > MDPolicyType_2D;
-    typedef typename MDPolicyType_2D::member_type  team_member;
-    
+        
     // Construct 2D MDRangePolicy: lower and upper bounds provided, tile dims defaulted
     MDPolicyType_2D mdpolicy_2d( {{0,0}}, {{n_grid_cells,n_pfts}} );
           
-    Kokkos::parallel_for("md2d",mdpolicy_2d,KOKKOS_LAMBDA (const team_member& thread, const size_t& g, const size_t& p) { 
+    Kokkos::parallel_for("md2d",mdpolicy_2d,KOKKOS_LAMBDA (const size_t& g, const size_t& p) { 
                 ELM::CanopyHydrology_Interception(dtime,
                   forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                   ltype, ctype, urbpoi, do_capsnow,
@@ -294,24 +293,38 @@ int main(int argc, char ** argv)
                   qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                   qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                  qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
-    double fwet = 0., fdry = 0.;
-    ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
+
+                double fwet = 0., fdry = 0.;
+                ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry); 
+    });
       
       // Column level operations
       // NOTE: this is effectively an accumulation kernel/task! --etc
-      double* qpatch = &qflx_snow_grnd_patch(n_grid_cells-1, n_pfts-1);
-      double sum = 0 ;    
-      Kokkos::parallel_reduce(TeamThreadRange (thread, 99), 
-      [=] (size_t& g, double& lsum) {
-      lsum += qflx_snow_grnd_patch(g,p);
-      }, sum);
-      qflx_snow_grnd_col(g) = sum ; 
+    typedef Kokkos::TeamPolicy<>              team_policy ;
+    typedef typename team_policy::member_type team_type ;
+    Kokkos::parallel_for (Kokkos::TeamPolicy<> (n_grid_cells, n_pfts),
+                     KOKKOS_LAMBDA (const team_type& team) {
+      
+      double sum = 0;
+      Kokkos::parallel_reduce (Kokkos::TeamThreadRange (team, team.team_size()),
+        [=] (const size_t& p, double& lsum) {
+        lsum += qflx_snow_grnd_patch(team.league_rank(),p);
+        }, sum);
+      qflx_snow_grnd_col(team.league_rank()) = sum ;
+    });
+    // Kokkos::parallel_reduce( Kokkos::RangePolicy<execution_space>(0,n_grid_cells), KOKKOS_LAMBDA (const size_t& g, double& upd) {
+    // upd += qflx_snow_grnd_patch(g,p);
+    // }, sum);
+    // qflx_snow_grnd_col(g) = sum ;
 
          
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
       //
       // local outputs
+
+    Kokkos::parallel_for (n_grid_cells,
+                     KOKKOS_LAMBDA (const size_t& g) {
       int newnode;
       ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
