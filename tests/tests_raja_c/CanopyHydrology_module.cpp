@@ -234,7 +234,18 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
             << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
             << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
 
-
+  using POL = RAJA::KernelPolicy<
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::InitLocalMem<RAJA::cpu_tile_mem, RAJA::ParamList<0, 1>,
+                RAJA::statement::For<0, RAJA::loop_exec,
+                  RAJA::statement::Lambda<0>
+                >,
+                RAJA::statement::For<0, RAJA::loop_exec,
+                  RAJA::statement::Lambda<1>
+                >
+              >
+            >
+          >;
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -244,8 +255,9 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
 
       // PFT level operations
       //for (size_t p = 0; p != n_pfts; ++p) {
-        Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
-      for (size_t p = 0; p != n_pfts; ++p) {
+      RAJA::kernel_param<POL> (RAJA::RangeSegment(0,n_pfts),RAJA::make_tuple(RAJA::RangeSegment(0,n_grid_cells)),
+
+      [=] (size_t g, size_t p) {
         //
         // Calculate interception
         //
@@ -260,7 +272,7 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
                 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
-        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2ocan(g,p), qflx_prec_intr(g));
+        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n"(g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2ocan(g,p), qflx_prec_intr(g));
 
         //
         // Calculate fraction of LAI that is wet vs dry.
@@ -296,9 +308,9 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
-              snow_depth(g), h2osno(g), integrated_snow(g), Kokkos::subview(swe_old, g , Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, g , Kokkos::ALL), Kokkos::subview(h2osoi_ice, g , Kokkos::ALL), Kokkos::subview(t_soisno, g , Kokkos::ALL), Kokkos::subview(frac_iceold, g , Kokkos::ALL),
-              snow_level(g), Kokkos::subview(dz, g , Kokkos::ALL), Kokkos::subview(z, g , Kokkos::ALL), Kokkos::subview(zi, g , Kokkos::ALL), newnode,
+              snow_depth(g), h2osno(g), integrated_snow(g), swe_old(g),
+              h2osoi_liq(g), h2osoi_ice(g), t_soisno(g), frac_iceold(g),
+              snow_level(g), dz(g), z(g), zi(g), newnode,
               qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));
 
       // Calculate Fraction of Water to the Surface?
@@ -310,7 +322,7 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
               h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
               qflx_h2osfc2topsoi(g), frac_h2osfc(g));
       
-    }); // end grid cell loop
+    ); // end grid cell loop
 
     
     // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());

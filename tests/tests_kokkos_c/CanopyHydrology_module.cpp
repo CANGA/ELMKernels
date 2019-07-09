@@ -45,7 +45,9 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
   using ELM::Utils::n_levels_snow;
-  
+  using Kokkos::TeamPolicy;
+  using Kokkos::TeamThreadRange;
+    
   // fixed magic parameters for now
   const int ctype = 1;
   const int ltype = 1;
@@ -277,60 +279,41 @@ int main(int argc, char ** argv)
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
 
-    // grid cell and/or pft loop can be parallelized
-    //for (size_t g = 0; g != n_grid_cells; ++g) {
-
-      // PFT level operations
-      //for (size_t p = 0; p != n_pfts; ++p) {
-        Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
-      for (size_t p = 0; p != n_pfts; ++p) {
-        //
-        // Calculate interception
-        //
-        // NOTE: this currently punts on what to do with the qflx variables!
-        // Surely they should be either accumulated or stored on PFTs as well.
-        // --etc
-         ELM::CanopyHydrology_Interception(dtime,
-                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-                ltype, ctype, urbpoi, do_capsnow,
-                elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
-                h2ocan(g,p), n_irrig_steps_left,
-                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
-        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2ocan(g,p), qflx_prec_intr(g));
-
-        //
-        // Calculate fraction of LAI that is wet vs dry.
-        //
-        // FIXME: this currently punts on what to do with the fwet/fdry variables.
-        // Surely they should be something, as such this is dead code.
-        // By the PFT?
-        // --etc
-        double fwet = 0., fdry = 0.;
-         ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
-      } // end PFT loop
-
-      // Column level operations
+    typedef typename Kokkos::Experimental::MDRangePolicy< Kokkos::Experimental::Rank<2> > MDPolicyType_2D;
+    typedef typename MDPolicyType_2D::member_type  team_member;
+    
+    // Construct 2D MDRangePolicy: lower and upper bounds provided, tile dims defaulted
+    MDPolicyType_2D mdpolicy_2d( {{0,0}}, {{n_grid_cells,n_pfts}} );
+          
+    Kokkos::parallel_for("md2d",mdpolicy_2d,KOKKOS_LAMBDA (const team_member& thread, const size_t& g, const size_t& p) { 
+                ELM::CanopyHydrology_Interception(dtime,
+                  forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+                  ltype, ctype, urbpoi, do_capsnow,
+                  elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+                  h2ocan(g,p), n_irrig_steps_left,
+                  qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+                  qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
+    double fwet = 0., fdry = 0.;
+    ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
       
-
+      // Column level operations
       // NOTE: this is effectively an accumulation kernel/task! --etc
       double* qpatch = &qflx_snow_grnd_patch(n_grid_cells-1, n_pfts-1);
-      // NOTE: this is effectively an accumulation kernel/task! --etc
-      //qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), qpatch+1, 0.);
-      // for (int x = 0; x <n_grid_cells; x++) {
       double sum = 0 ;    
-      for (size_t p = 0; p != n_pfts; ++p) {
-      sum += qflx_snow_grnd_patch(g,p);
-      }
+      Kokkos::parallel_reduce(TeamThreadRange (thread, 99), 
+      [=] (size_t& g, double& lsum) {
+      lsum += qflx_snow_grnd_patch(g,p);
+      }, sum);
       qflx_snow_grnd_col(g) = sum ; 
 
+         
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
       //
       // local outputs
       int newnode;
-       ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+      ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
@@ -338,7 +321,7 @@ int main(int argc, char ** argv)
               Kokkos::subview(h2osoi_liq, g , Kokkos::ALL), Kokkos::subview(h2osoi_ice, g , Kokkos::ALL), Kokkos::subview(t_soisno, g , Kokkos::ALL), Kokkos::subview(frac_iceold, g , Kokkos::ALL),
               snow_level(g), Kokkos::subview(dz, g , Kokkos::ALL), Kokkos::subview(z, g , Kokkos::ALL), Kokkos::subview(zi, g , Kokkos::ALL), newnode,
               qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));
-
+      
       // Calculate Fraction of Water to the Surface?
       //
       // FIXME: Fortran black magic... h2osoi_liq is a vector, but the

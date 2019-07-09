@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <time.h>
+#include <cuda.h>
 #include "utils.hh"
 #include "readers.hh"
 

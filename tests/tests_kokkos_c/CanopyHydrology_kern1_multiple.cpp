@@ -43,6 +43,9 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_pfts;
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
+  using Kokkos::parallel_for;
+  using Kokkos::TeamPolicy;
+  using Kokkos::TeamThreadRange;
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -171,35 +174,44 @@ int main(int argc, char ** argv)
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
 
-    // // grid cell and/or pft loop can be parallelized
-    // Kokkos::parallel_for(range_policy(0,n_grid_cells), KOKKOS_LAMBDA ( size_t g ) {
-    // //for (size_t g = 0; g != n_grid_cells; ++g) {
-    //   //Kokkos::parallel_for(range_policy(0,n_pfts), KOKKOS_LAMBDA ( size_t p ) { 
-    //     for (size_t p = 0; p != n_pfts; ++p) {
-    //     // NOTE: this currently punts on what to do with the qflx variables!
-    //     // Surely they should be either accumulated or stored on PFTs as well.
-    //     // --etc
+    typedef typename Kokkos::Experimental::MDRangePolicy< Kokkos::Experimental::Rank<2> > MDPolicyType_2D;
 
-    // Kokkos::parallel_for("CanopyHydrology_Interception", Kokkos::MDRangePolicy<Kokkos::Rank<2,Kokkos::Iterate::Left>>({0,0},{n_grid_cells,n_pfts}),
-    //    KOKKOS_LAMBDA (size_t g, size_t p) {
-    Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
-      for (size_t p = 0; p != n_pfts; ++p) {
-         ELM::CanopyHydrology_Interception(dtime,
-                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-                ltype, ctype, urbpoi, do_capsnow,
-                elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
-                h2o_can(g,p), n_irrig_steps_left,
-                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+    // Construct 2D MDRangePolicy: lower and upper bounds provided, tile dims defaulted
+    MDPolicyType_2D mdpolicy_2d( {{0,0}}, {{n_grid_cells,n_pfts}} );
 
-                // qflx_prec_intr[g], qflx_irrig[g], qflx_prec_grnd[g],
-                // qflx_snwcp_liq[g], qflx_snwcp_ice[g],
-                // qflx_snow_grnd_patch[g], qflx_rain_grnd[g]);
-        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2o_can(g,p), qflx_prec_intr[g]);
-      //}//)
-      }
-    });
+    // // Execute parallel_for with rank 2 MDRangePolicy
+    // Kokkos::parallel_for( "md2d", mdpolicy_2d, ELM::CanopyHydrology_Interception(dtime,
+    //               forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+    //               ltype, ctype, urbpoi, do_capsnow,
+    //               elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+    //               h2o_can(g,p), n_irrig_steps_left,
+    //               qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+    //               qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+    //              qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); );
+    Kokkos::parallel_for("md2d",mdpolicy_2d,KOKKOS_LAMBDA (const size_t& g, const size_t& p) { 
+                ELM::CanopyHydrology_Interception(dtime,
+                  forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+                  ltype, ctype, urbpoi, do_capsnow,
+                  elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+                  h2o_can(g,p), n_irrig_steps_left,
+                  qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+                  qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); });
+
+        //   parallel_for (TeamPolicy<> (0,n_grid_cells), KOKKOS_LAMBDA (const size_t& g)
+        //   {
+        //   parallel_for (TeamThreadRange (g, n_pfts),
+        //     [=] (size_t p) {
+        //    ELM::CanopyHydrology_Interception(dtime,
+        //           forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+        //           ltype, ctype, urbpoi, do_capsnow,
+        //           elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+        //           h2o_can(g,p), n_irrig_steps_left,
+        //           qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+        //           qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+        //          qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+        //   });
+        // });
 
     auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)

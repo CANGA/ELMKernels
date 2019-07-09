@@ -140,10 +140,34 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   
   // main loop
   // -- the timestep loop cannot/should not be parallelized
-  for (size_t t = 0; t != n_times; ++t) {
-    Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
-      for (size_t p = 0; p != n_pfts; ++p) {
-        ELM::CanopyHydrology_Interception(dtime,
+
+  //
+  // Define the kernel execution policy
+  //
+
+  using POL = RAJA::KernelPolicy<
+            RAJA::statement::For<1, RAJA::loop_exec,
+              RAJA::statement::InitLocalMem<RAJA::cpu_tile_mem, RAJA::ParamList<0, 1>,
+                RAJA::statement::For<0, RAJA::loop_exec,
+                  RAJA::statement::Lambda<0>
+                >,
+                RAJA::statement::For<0, RAJA::loop_exec,
+                  RAJA::statement::Lambda<1>
+                >
+              >
+            >
+          >;
+
+
+  //
+  // Define the kernel
+  //
+
+    for (size_t t = 0; t != n_times; ++t) {
+      RAJA::kernel_param<POL> (RAJA::RangeSegment(0,n_pfts),RAJA::make_tuple(RAJA::RangeSegment(0,n_grid_cells)),
+
+      [=] (size_t g, size_t p) {
+      ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
                 elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
@@ -151,10 +175,11 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
                 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
-
-                
       }
-    });
+    // Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
+    //   for (size_t p = 0; p != n_pfts; ++p) {
+             
+    );
 
     auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
