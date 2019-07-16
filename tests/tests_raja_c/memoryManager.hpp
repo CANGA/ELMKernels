@@ -7,10 +7,10 @@
 #ifndef EXAMPLES_MEMORYMANAGER_HPP
 #define EXAMPLES_MEMORYMANAGER_HPP
 
-#include "RAJA/RAJA.hpp"
+#include "/home/7hp/Downloads/RAJA/include/RAJA/RAJA.hpp"
 
 #if defined(RAJA_ENABLE_CUDA)
-#include "RAJA/policy/cuda/raja_cudaerrchk.hpp"
+#include "/home/7hp/Downloads/RAJA/include/RAJA/policy/cuda/raja_cudaerrchk.hpp"
 #endif
 
 /*

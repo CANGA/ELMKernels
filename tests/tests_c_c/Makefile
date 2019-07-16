@@ -2,9 +2,9 @@ ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
-FC = mpifort
-CXX = mpicxx
-CC = mpicc
+# FC = mpifort
+# CXX = mpicxx
+# CC = mpicc
 
 CXXFLAGS = -std=c++11 -g
 

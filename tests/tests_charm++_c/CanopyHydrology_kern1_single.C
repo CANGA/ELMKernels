@@ -11,12 +11,13 @@
 #include <iomanip>
 #include <fstream>
 #include <assert.h>
-#include <mpi.h>
+// #include <mpi.h>
 #include <chrono>
+#include <stdio.h>
 #include "utils.hh"
 #include "readers.hh"
-
 #include "CanopyHydrology.hh"
+#include "CanopyHydrology_kern1_single.decl.h"
 using namespace std::chrono; 
 
 namespace ELM {
@@ -35,7 +36,7 @@ using MatrixForc = MatrixStatic<n_max_times,1>;
 
 int main(int argc, char ** argv)
 {
-  MPI_Init(NULL, NULL);
+  // MPI_Init(NULL, NULL);
   // dimensions
   const int n_months = 12;
   const int n_pfts = 17;
@@ -94,5 +95,5 @@ int main(int argc, char ** argv)
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
-  MPI_Finalize();
+  // MPI_Finalize();
 }

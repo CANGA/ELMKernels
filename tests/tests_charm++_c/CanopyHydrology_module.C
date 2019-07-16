@@ -12,14 +12,14 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
-#include <mpi.h>
+// #include <mpi.h>
+#include <stdio.h>
 #include <chrono>
 #include "utils.hh"
 #include "readers.hh"
-
-
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
+#include "CanopyHydrology_module.decl.h"
 using namespace std::chrono; 
 
 
@@ -49,7 +49,7 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_pfts;
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
-  MPI_Init(NULL, NULL);
+  // MPI_Init(NULL, NULL);
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -235,5 +235,5 @@ int main(int argc, char ** argv)
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
-  MPI_Finalize();
+  // MPI_Finalize();
 }

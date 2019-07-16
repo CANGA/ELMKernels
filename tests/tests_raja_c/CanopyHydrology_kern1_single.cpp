@@ -15,8 +15,8 @@
 #include <cmath>
 #include <vector>
 #include "memoryManager.hpp"
-#include "RAJA/RAJA.hpp"
-#include "RAJA/util/Timer.hpp"
+#include "/home/7hp/Downloads/RAJA/include/RAJA/RAJA.hpp"
+#include "/home/7hp/Downloads/RAJA/include/RAJA/util/Timer.hpp"
 
 #include "utils.hh"
 #include "readers.hh"

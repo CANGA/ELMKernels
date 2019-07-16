@@ -13,6 +13,8 @@
 #include <fstream>
 #include <time.h>
 #include <cuda.h>
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include "utils.hh"
 #include "readers.hh"
 
@@ -202,7 +204,7 @@ int main(int argc, char ** argv)
       //
       // local outputs
       int newnode;
-      ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+      ELM::CanopyHydrology_SnowWater<<<1, 256>>>(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],

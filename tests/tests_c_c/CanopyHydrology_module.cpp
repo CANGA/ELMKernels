@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
-#include <mpi.h>
+//#include <mpi.h>
 #include <chrono>
 #include "utils.hh"
 #include "readers.hh"
@@ -49,7 +49,13 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_pfts;
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
-  MPI_Init(NULL, NULL);
+  // int myrank, numprocs;
+  // double mytime, maxtime, mintime, avgtime;
+
+  // MPI_Init(&argc,&argv);
+  // MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  // MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  // MPI_Barrier(MPI_COMM_WORLD);
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -150,6 +156,7 @@ int main(int argc, char ** argv)
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   }
   auto start = high_resolution_clock::now();
+  // mytime = MPI_Wtime();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -231,9 +238,20 @@ int main(int argc, char ** argv)
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
   } // end timestep loop
+  // mytime = MPI_Wtime() - mytime;
   auto stop = high_resolution_clock::now();
+  // std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
+
+  // MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
+  // MPI_Reduce(&mytime, &mintime, 1, MPI_DOUBLE, MPI_MIN, 0,MPI_COMM_WORLD);
+  // MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+  // if (myrank == 0) {
+  // avgtime /= numprocs;
+  // std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
+  // }
+
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
-  MPI_Finalize();
+  // MPI_Finalize();
 }

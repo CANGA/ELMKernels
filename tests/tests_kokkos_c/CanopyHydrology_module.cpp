@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
+#include <mpi.h>
 #include <chrono>
 #include <Kokkos_Core.hpp>
 #include "utils.hh"
@@ -67,6 +68,14 @@ int main(int argc, char ** argv)
   const double micro_sigma = 0.1;
   const double min_h2osfc = 1.0e-8;
   const double n_melt = 0.7;
+
+  int myrank, numprocs;
+  double mytime;
+
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  MPI_Barrier(MPI_COMM_WORLD);
   
   Kokkos::initialize( argc, argv );
   {                             
@@ -275,6 +284,7 @@ int main(int argc, char ** argv)
 
    Kokkos::Timer timer;
    auto start = high_resolution_clock::now();
+   mytime = MPI_Wtime();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -380,10 +390,13 @@ int main(int argc, char ** argv)
   printf( "  n_pfts( %d ) n_grid_cells( %d ) n_times ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           n_pfts, n_grid_cells, n_times, Gbytes * 1000, time, Gbytes * n_times / time );
 
+  mytime = MPI_Wtime() - mytime;
   auto stop = high_resolution_clock::now();
+  std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
   }
   Kokkos::finalize();
   return 0;
+  MPI_Finalize();
 }

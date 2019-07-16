@@ -1,6 +1,7 @@
 ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
+MPI_LIB_ROOT = /usr/lib/x86_64-linux-gnu/openmpi
 
 
 KOKKOS_PATH = ${HOME}/Downloads/kokkos
@@ -13,7 +14,9 @@ EXE_NAME2 = "test_CanopyHydrology_kern1_multiple"
 EXE_NAME3 = "test_CanopyHydrology_module"
 KOKKOS_DEVICES = ${myDEVICE}
 
-
+FC = mpifort
+CXX = mpicxx
+CC = mpicc
 # Get the Kokkos Device
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 
@@ -38,12 +41,13 @@ CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION
 
 default: Serial
 
+#include ELM
+include $(ELM_BASE)/config/Makefile.config
+
 # include Kokkos
 include $(KOKKOS_PATH)/Makefile.kokkos
 # CXXFLAGS += $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
 
-#include ELM
-include $(ELM_BASE)/config/Makefile.config
 
 # build the tess
 TESTS = test_CanopyHydrology_kern1_single \
@@ -85,6 +89,7 @@ Report:
 	@echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
 	@echo "EXE = $(EXE1)"
 	@echo "CXXFLAGS = $(CXXFLAGS)"
+	@echo "CXX_LD_FLAGS = $(CXX_LD_FLAGS)"
 	@echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)"
 	@echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)"
 

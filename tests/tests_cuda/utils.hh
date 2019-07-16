@@ -58,7 +58,6 @@ class MatrixStatic {
  private:
   std::array<std::array<T,COL>,ROW> d_;
 };
-  
 
 enum struct Ordering { C, FORTRAN };
 template <typename T=double, Ordering O=Ordering::C>

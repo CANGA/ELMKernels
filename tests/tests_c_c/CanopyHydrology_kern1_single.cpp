@@ -11,7 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <assert.h>
-#include <mpi.h>
+//#include <mpi.h>
 #include <chrono>
 #include "utils.hh"
 #include "readers.hh"
@@ -35,7 +35,13 @@ using MatrixForc = MatrixStatic<n_max_times,1>;
 
 int main(int argc, char ** argv)
 {
-  MPI_Init(NULL, NULL);
+  // int myrank, numprocs;
+  // double mytime, maxtime, mintime, avgtime;
+
+  // MPI_Init(&argc,&argv);
+  // MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  // MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  // MPI_Barrier(MPI_COMM_WORLD);
   // dimensions
   const int n_months = 12;
   const int n_pfts = 17;
@@ -73,10 +79,14 @@ int main(int argc, char ** argv)
   double qflx_snwcp_ice = 0.;
   double qflx_snow_grnd_patch = 0.;
   double qflx_rain_grnd = 0.;
-  auto start = high_resolution_clock::now();
+
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_single.soln");
   soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
+
+  auto start = high_resolution_clock::now();
+  // mytime = MPI_Wtime();
+
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
     double total_precip = forc_rain[itime][0] + forc_snow[itime][0];
@@ -90,9 +100,22 @@ int main(int argc, char ** argv)
 		
     soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
   }
+  // mytime = MPI_Wtime() - mytime;
 	auto stop = high_resolution_clock::now();
+  // std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
+
+  // /*compute max, min, and average timing statistics*/
+  // MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
+  // MPI_Reduce(&mytime, &mintime, 1, MPI_DOUBLE, MPI_MIN, 0,MPI_COMM_WORLD);
+  // MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+  // if (myrank == 0) {
+  // avgtime /= numprocs;
+  // std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
+  // }
+
+
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
   return 0;
-  MPI_Finalize();
+  // MPI_Finalize();
 }

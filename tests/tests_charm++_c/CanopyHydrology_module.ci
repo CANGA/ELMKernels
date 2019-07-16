@@ -1,6 +1,7 @@
 mainmodule CanopyHydrology_module {
-  include "util.hh";
+  include "utils.hh";
   include "readers.hh";
+  include "CanopyHydrology.hh";
 
   mainchare main {
     entry main(CkArgMsg *m);

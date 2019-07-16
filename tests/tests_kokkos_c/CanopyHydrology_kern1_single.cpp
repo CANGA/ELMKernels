@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <numeric>
 #include <fstream>
+#include <mpi.h>
 #include <chrono>
 #include <algorithm>
 #include <Kokkos_Core.hpp>
@@ -52,6 +53,14 @@ int main(int argc, char ** argv)
 
   const double dewmx = 0.1;
   const double dtime = 1800.0;
+
+  int myrank, numprocs;
+  double mytime;
+
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  MPI_Barrier(MPI_COMM_WORLD);
 
   Kokkos::initialize( argc, argv );
   {
@@ -104,6 +113,7 @@ int main(int argc, char ** argv)
   soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr, total_precip_loop" << std::endl;
 
   auto start = high_resolution_clock::now();
+  mytime = MPI_Wtime();
 
   for(size_t itime = 0; itime < n_times; itime += 1) { //Kokkos::parallel_for(n_times, KOKKOS_LAMBDA (const int itime) { 
     // note this call puts all precip as rain for testing
@@ -121,11 +131,14 @@ int main(int argc, char ** argv)
     std::cout << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl; 
   }soln_file.close();
 
+  mytime = MPI_Wtime() - mytime;
   auto stop = high_resolution_clock::now();
+  std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
   
 	}
   Kokkos::finalize();
   return 0;
+  MPI_Finalize();
 }

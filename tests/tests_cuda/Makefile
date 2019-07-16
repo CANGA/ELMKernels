@@ -1,7 +1,7 @@
 OBJECT        = ../../src/
 KERNEL_LANG	  = cc
 SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
-CUDA_FLAGS += -DNATURE=__global__ -DNATURE1=__host__
+CUDA_FLAGS += -DNATURE=__global__
 NVCC = nvcc
 include $(OBJECT)config/Makefile.config
 
