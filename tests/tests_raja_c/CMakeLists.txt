@@ -3,4 +3,4 @@ find_package(RAJA)
 include_directories(${YOUR_DIRECTORY})
 add_executable(test_CanopyHydrology_kern1_single.exe CanopyHydrology_kern1_single.cpp)
 target_link_libraries(test_CanopyHydrology_kern1_single.exe RAJA)
-target_include_directories(test_CanopyHydrology_kern1_single.exe ${RAJA_INCLUDE_DIR}
+target_include_directories(test_CanopyHydrology_kern1_single.exe ${RAJA_INCLUDE_DIR})

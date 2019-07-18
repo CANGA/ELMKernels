@@ -25,7 +25,7 @@ EXE1 = ${EXE_NAME1}.cuda
 EXE2 = ${EXE_NAME2}.cuda
 EXE3 = ${EXE_NAME3}.cuda
 KOKKOS_ARCH = "BSW,Pascal60"
-KOKKOS_CUDA_OPTIONS = "force_uvm,enable_lambda"
+KOKKOS_CUDA_OPTIONS = "enable_lambda"
 
 else
 

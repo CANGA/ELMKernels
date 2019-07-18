@@ -11,7 +11,7 @@
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-#include <mpi.h>
+// #include <mpi.h>
 #include <chrono>
 #include <Kokkos_Core.hpp>
 #include "utils.hh"
@@ -30,8 +30,8 @@ static const int n_max_times = 31 * 24 * 2; // max days per month times hours pe
                                             // day * half hour timestep
 static const int n_grid_cells = 24;
 
-using MatrixState = MatrixStatic<n_grid_cells, n_pfts>;
-using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
+// using MatrixState = MatrixStatic<n_grid_cells, n_pfts>;
+// using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
 
 
 } // namespace
@@ -59,13 +59,13 @@ int main(int argc, char ** argv)
   const double dewmx = 0.1;
   double dtime = 1800.0;
 
-  int myrank, numprocs;
-  double mytime;
+  // int myrank, numprocs;
+  // double mytime;
 
-  MPI_Init(&argc,&argv);
-  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-  MPI_Barrier(MPI_COMM_WORLD);
+  // MPI_Init(&argc,&argv);
+  // MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  // MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  // MPI_Barrier(MPI_COMM_WORLD);
 
   Kokkos::initialize( argc, argv );
   {
@@ -147,16 +147,16 @@ int main(int argc, char ** argv)
   Kokkos::deep_copy( esai, h_esai);
   Kokkos::deep_copy( forc_rain, h_forc_rain);
   Kokkos::deep_copy( forc_snow, h_forc_snow);
-  Kokkos::deep_copy( forc_irrig, h_forc_irrig);
+  //Kokkos::deep_copy( forc_irrig, h_forc_irrig);
   Kokkos::deep_copy( forc_air_temp, h_forc_air_temp);
-  Kokkos::deep_copy( qflx_prec_intr, h_qflx_prec_intr);
-  Kokkos::deep_copy( qflx_irrig, h_qflx_irrig);
-  Kokkos::deep_copy( qflx_prec_grnd, h_qflx_prec_grnd);
-  Kokkos::deep_copy( qflx_snwcp_liq, h_qflx_snwcp_liq);
-  Kokkos::deep_copy( qflx_snwcp_ice, h_qflx_snwcp_ice);
-  Kokkos::deep_copy( qflx_snow_grnd_patch, h_qflx_snow_grnd_patch);
-  Kokkos::deep_copy( qflx_rain_grnd, h_qflx_rain_grnd);
-  Kokkos::deep_copy( h2o_can, h_h2o_can);
+  //Kokkos::deep_copy( qflx_prec_intr, h_qflx_prec_intr);
+  // Kokkos::deep_copy( qflx_irrig, h_qflx_irrig);
+  // Kokkos::deep_copy( qflx_prec_grnd, h_qflx_prec_grnd);
+  // Kokkos::deep_copy( qflx_snwcp_liq, h_qflx_snwcp_liq);
+  // Kokkos::deep_copy( qflx_snwcp_ice, h_qflx_snwcp_ice);
+  // Kokkos::deep_copy( qflx_snow_grnd_patch, h_qflx_snow_grnd_patch);
+  // Kokkos::deep_copy( qflx_rain_grnd, h_qflx_rain_grnd);
+  // Kokkos::deep_copy( h2o_can, h_h2o_can);
  
  double* end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
 
@@ -179,7 +179,7 @@ int main(int argc, char ** argv)
 
   Kokkos::Timer timer;
   auto start = high_resolution_clock::now();
-  mytime = MPI_Wtime();
+  // mytime = MPI_Wtime();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -223,6 +223,15 @@ int main(int argc, char ** argv)
         //   });
         // });
 
+  Kokkos::deep_copy( h_qflx_irrig, qflx_irrig);
+  Kokkos::deep_copy( h_qflx_prec_intr, qflx_prec_intr);
+  Kokkos::deep_copy( h_qflx_prec_grnd, qflx_prec_grnd);
+  Kokkos::deep_copy( h_qflx_snwcp_liq, qflx_snwcp_liq);
+  Kokkos::deep_copy( h_qflx_snwcp_ice, qflx_snwcp_ice);
+  Kokkos::deep_copy( h_qflx_snow_grnd_patch, qflx_snow_grnd_patch);
+  Kokkos::deep_copy( h_qflx_rain_grnd, qflx_rain_grnd);
+  Kokkos::deep_copy( h_h2o_can, h2o_can);
+
     auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
               << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
@@ -235,18 +244,20 @@ int main(int argc, char ** argv)
 
   } soln_file.close();
 
+  
+
   double time = timer.seconds();
   double Gbytes = 1.0e-9 * double( sizeof(double) * ( n_grid_cells + n_grid_cells * n_pfts + n_pfts ) );
 
   printf( "  n_pfts( %d ) n_grid_cells( %d ) n_times ( %d ) problem( %g MB ) time( %g s ) bandwidth( %g GB/s )\n",
           n_pfts, n_grid_cells, n_times, Gbytes * 1000, time, Gbytes * n_times / time );
-  mytime = MPI_Wtime() - mytime;
+  // mytime = MPI_Wtime() - mytime;
   auto stop = high_resolution_clock::now();
-  std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
+  // std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
   }
   Kokkos::finalize();
   return 0;
-  MPI_Finalize();
+  // MPI_Finalize();
 }

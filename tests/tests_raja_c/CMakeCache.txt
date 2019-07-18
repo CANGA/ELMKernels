@@ -188,7 +188,7 @@ Project_BINARY_DIR:STATIC=/home/7hp/Downloads/elm_kernels/tests/tests_raja_c
 Project_SOURCE_DIR:STATIC=/home/7hp/Downloads/elm_kernels/tests/tests_raja_c
 
 //No help, variable specified on the command line.
-RAJA_DIR:UNINITIALIZED=/home/7hp/Downloads/RAJA/build/share/raja/cmake/
+RAJA_DIR:UNINITIALIZED=/home/7hp/Downloads/RAJA/build/share/raja/cmake
 
 
 ########################
