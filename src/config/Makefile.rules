@@ -1,0 +1,42 @@
+# compile flags
+FCFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
+CXXFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
+
+# linking flags
+FC_LD_FLAGS += $(NETCDF_FLAGS)
+CXX_LD_FLAGS += $(NETCDF_FLAGS)
+CUDA_LD_FLAGS = -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -lcublas
+
+#
+# rules
+#
+.PHONY: all
+.PRECIOUS: %.cc.o %.F90.o %.cpp.o %.cu.o
+.SUFFIXES: .cc.o .F90.o .cpp.o .cu.o .cc .F90 .cpp .cu
+
+%.F90.o: %.F90
+	$(FC) $(FCFLAGS) -c $< -o $@ 
+%.cpp.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(KOKKOS_CXXFLAGS) $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS) -c $< -o $@ #-I$(MPI_LIB_ROOT)/include
+%.cu.o: %.cu
+	$(NVCC) $(CUDA_FLAGS) -I$(MPI_LIB_ROOT)/include $(INC_FLAGS) -c $< -o $@
+
+SHELL         = /bin/sh
+
+LIB_SUFFIX=.a
+
+M4	      =	
+RM            = rm -fr
+CP            = cp
+XARGS	      = 
+AR	      = ar
+
+######################################################################
+# Rules used in all directories.
+######################################################################
+
+ELM_CLEAN=$(RM) -f *.o *.ii *.int.c *.log *.log.* stamp-* core core.* stats -r ti_files ii_files *.mod *.a
+
+
+
+#endif

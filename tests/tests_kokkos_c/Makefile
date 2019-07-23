@@ -1,12 +1,6 @@
 ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
-MPI_LIB_ROOT = /usr/lib/x86_64-linux-gnu/openmpi
-
-
-KOKKOS_PATH = ${HOME}/Downloads/kokkos
-#KOKKOS_PATH = /Users/uec/codes/ats/amanzi-tpls/build-dev-tpetra/trilinos/trilinos-12-14-1_master-source/packages/kokkos
-
 
 KOKKOS_DEBUG = "yes"
 EXE_NAME1 = "test_CanopyHydrology_kern1_single"
@@ -14,9 +8,6 @@ EXE_NAME2 = "test_CanopyHydrology_kern1_multiple"
 EXE_NAME3 = "test_CanopyHydrology_module"
 KOKKOS_DEVICES = ${myDEVICE}
 
-FC = mpifort
-CXX = mpicxx
-CC = mpicc
 # Get the Kokkos Device
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 
@@ -36,20 +27,21 @@ KOKKOS_ARCH = "BSW"
 
 endif
 
-# Set the Kernel programming model
+include $(ELM_BASE)/config/Makefile.config
+
+FC = mpifort
+CXX = mpicxx
+CC = mpicc
 CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION 
+
+include $(ELM_BASE)/config/Makefile.rules
 
 default: Serial
 
-#include ELM
-include $(ELM_BASE)/config/Makefile.config
-
 # include Kokkos
 include $(KOKKOS_PATH)/Makefile.kokkos
-# CXXFLAGS += $(KOKKOS_CPPFLAGS) $(KOKKOS_CXXFLAGS)
 
-
-# build the tess
+# build the tests
 TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module

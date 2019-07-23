@@ -3,30 +3,30 @@ OBJECT        = .
 
 .PHONY: tests_c_c tests_legion_c tests_kokkos_c tests_c_f tests_f tests_legion_f tests_cuda
 
-default: all
+default: test
 
-all: tests_c_c tests_legion_c tests_kokkos_c tests_c_f tests_f tests_legion_f tests_cuda
+test: tests_c_c tests_legion_c tests_kokkos_c tests_c_f tests_f tests_legion_f tests_cuda
 
 tests_c_c:
-	$(MAKE) -C tests_c_c all
+	$(MAKE) -C tests_c_c test
 
 tests_cuda:
-	$(MAKE) -C tests_cuda all
+	$(MAKE) -C tests_cuda test
 
 tests_legion_c:
-	$(MAKE) -C tests_legion_c all
+	$(MAKE) -C tests_legion_c test
 
 tests_kokkos_c:
-	$(MAKE) -C tests_kokkos_c all
+	$(MAKE) -C tests_kokkos_c test
 
 tests_c_f:
-	$(MAKE) -C tests_c_f all
+	$(MAKE) -C tests_c_f test
 
 tests_f:
-	$(MAKE) -C tests_f all
+	$(MAKE) -C tests_f test
 
 tests_legion_f:
-	$(MAKE) -C tests_legion_f all
+	$(MAKE) -C tests_legion_f test
 
 clean:
 	$(MAKE) -C tests_c_c clean
