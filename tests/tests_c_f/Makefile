@@ -3,6 +3,7 @@ CSRCDIR	      =	../../src/cc_fortran_wrappers/
 OBJECT        = ../../src/
 NATURE		  =
 include $(OBJECT)config/Makefile.config
+include $(OBJECT)config/Makefile.rules
 
 
 INC_FLAGS = -I$(NETCDF_ROOT)/include -I$(CSRCDIR) -I../tests_c

@@ -156,6 +156,6 @@ int main(int argc, char ** argv)
 
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
-  return 0;
   // MPI_Finalize();
+  return 0;
 }

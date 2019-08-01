@@ -2,8 +2,9 @@ ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
+CXXFLAGS = -std=c++11 -g
+
 include $(ELM_BASE)/config/Makefile.config
-CXX = $(MPICXX)
 include $(ELM_BASE)/config/Makefile.rules
 
 TESTS = test_CanopyHydrology_kern1_single \
@@ -36,7 +37,7 @@ CanopyHydrology_module: test_CanopyHydrology_module
 
 
 test_%: %.cpp.o readers.hh utils.hh
-	$(CXX) -o $@ $< $(CXXFLAGS)
+	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
 
 clean:

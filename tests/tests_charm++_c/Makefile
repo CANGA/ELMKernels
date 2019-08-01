@@ -5,6 +5,7 @@ KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
 include $(ELM_BASE)/config/Makefile.config
+include $(ELM_BASE)/config/Makefile.rules
 
 TESTS = test_CanopyHydrology_kern1_single \
          test_CanopyHydrology_kern1_multiple \

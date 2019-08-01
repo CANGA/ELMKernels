@@ -5,6 +5,7 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 FC = gfortran
 
 include $(ELM_BASE)/config/Makefile.config
+include $(ELM_BASE)/config/Makefile.rules
 
 FC_FLAGS += -I$(ELM_ROOT) -I$(ELM_ROOT)/$(ELM_UTILS_DIR) -I$(NETCDF_ROOT)/include
 

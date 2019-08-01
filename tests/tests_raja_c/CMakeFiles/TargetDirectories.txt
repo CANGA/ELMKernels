@@ -1,3 +1,0 @@
-/home/7hp/Downloads/elm_kernels/tests/tests_raja_c/CMakeFiles/rebuild_cache.dir
-/home/7hp/Downloads/elm_kernels/tests/tests_raja_c/CMakeFiles/test_CanopyHydrology_kern1_single.exe.dir
-/home/7hp/Downloads/elm_kernels/tests/tests_raja_c/CMakeFiles/edit_cache.dir

@@ -4,6 +4,7 @@ SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
 CUDA_FLAGS += -DNATURE=__global__
 NVCC = nvcc
 include $(OBJECT)config/Makefile.config
+include $(OBJECT)config/Makefile.rules
 
 INC_FLAGS ?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_cuda
 

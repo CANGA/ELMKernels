@@ -1,21 +1,16 @@
-#include <netcdf.h>
 #include <array>
 #include <sstream>
 #include <iterator>
 #include <exception>
 #include <string>
+#include <stdlib.h>
+#include <cstring>
 #include <vector>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
 #include <fstream>
 #include <algorithm>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include <vector>
-#include <stddef.h>
-#include <stdio.h>
 #include "memoryManager.hpp"
 #include "RAJA/RAJA.hpp"
 #include "RAJA/util/Timer.hpp"
@@ -59,26 +54,27 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
 
   // ELM::Utils::MatrixState elai;
   // ELM::Utils::MatrixState esai;
-  double* elai = new double [n_months * n_pfts];
-  double* esai = new double [n_months * n_pfts];
+  double* elai = memoryManager::allocate<double>(n_months * n_pfts);
+  double* esai = memoryManager::allocate<double>(n_months * n_pfts);
 
   const int DIM = 2;
   RAJA::View<double, RAJA::Layout<DIM> > h_elai( elai, n_months, n_pfts );
   RAJA::View<double, RAJA::Layout<DIM> > h_esai( esai, n_months, n_pfts );
-  ELM::Utils::read_phenology("../../elm_kernels/tests/links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
+  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
     
 
   // forcing state
   // ELM::Utils::MatrixForc forc_rain;
   // ELM::Utils::MatrixForc forc_snow;
   // ELM::Utils::MatrixForc forc_air_temp;
-  double* forc_rain = new double [n_max_times*1];
-  double* forc_snow = new double [n_max_times*1];
-  double* forc_air_temp = new double [n_max_times*1];
+  double* forc_rain = memoryManager::allocate<double>( n_max_times * 1 );
+  double* forc_snow = memoryManager::allocate<double>( n_max_times * 1 );
+  double* forc_air_temp = memoryManager::allocate<double>( n_max_times * 1 );
+
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_rain( forc_rain, n_max_times,1 );
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_snow( forc_snow, n_max_times,1 );
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_air_temp( forc_air_temp, n_max_times,1 );
-  const int n_times = ELM::Utils::read_forcing("../../elm_kernels/tests/links/forcing", n_max_times, 6, 1, h_forc_rain, h_forc_snow, h_forc_air_temp);
+  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 6, 1, h_forc_rain, h_forc_snow, h_forc_air_temp);
 
   
 
@@ -97,10 +93,10 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   soln_file.open("test_CanopyHydrology_kern1_single.soln");
   std::cout << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr, total_precip_loop" << std::endl;
   soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr, total_precip_loop" << std::endl;
-  for(size_t itime = 0; itime < n_times; itime += 1) { //Kokkos::parallel_for(n_times, KOKKOS_LAMBDA (const int itime) { 
+  for(size_t itime = 0; itime < n_times; itime += 1) { 
     // note this call puts all precip as rain for testing
       
-    total_precip = forc_rain(itime,0) + forc_snow(itime,0); 
+    total_precip = h_forc_rain(itime,0) + h_forc_snow(itime,0); 
     ELM::CanopyHydrology_Interception(dtime, total_precip, 0., 0.,
             ltype, ctype, urbpoi, do_capsnow,
             h_elai(5,7), h_esai(5,7), dewmx, frac_veg_nosno,
@@ -112,6 +108,7 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
     soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl; 
     std::cout << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl; 
   }soln_file.close();
+
 	memoryManager::deallocate(elai);
   memoryManager::deallocate(esai);
   memoryManager::deallocate(forc_rain);

@@ -16,8 +16,6 @@
 #include "RAJA/util/Timer.hpp"
 #include "utils.hh"
 #include "readers.hh"
-#include "landunit_varcon.h"
-#include "column_varcon.h" 
 #include "CanopyHydrology.hh"
 
 namespace ELM {
@@ -59,8 +57,8 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   // phenology state
   // ELM::Utils::MatrixState elai;
   // ELM::Utils::MatrixState esai;
-  double* elai = new double [n_months * n_pfts];
-  double* esai = new double [n_months * n_pfts];
+  double* elai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
+  double* esai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
 
   const int DIM = 2;
   RAJA::View<double, RAJA::Layout<DIM> > h_elai( elai, n_months, n_pfts );
@@ -73,14 +71,17 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   // ELM::Utils::MatrixForc forc_snow;
   // ELM::Utils::MatrixForc forc_air_temp;
 
-  double* forc_rain = new double [ n_max_times*n_grid_cells ];
-  double* forc_snow = new double [ n_max_times*n_grid_cells ];
-  double* forc_air_temp = new double [ n_max_times*n_grid_cells ];
+  double* forc_rain = memoryManager::allocate<double>( n_max_times * n_grid_cells );
+  double* forc_snow = memoryManager::allocate<double>( n_max_times * n_grid_cells );
+  double* forc_air_temp = memoryManager::allocate<double>( n_max_times * n_grid_cells );
+
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_rain( forc_rain,n_max_times,n_grid_cells );
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_snow(forc_snow,n_max_times,n_grid_cells);
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_air_temp( forc_air_temp,n_max_times,n_grid_cells );
+
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
-  double* forc_irrig = new double [ n_max_times*n_grid_cells ];
+  
+  double* forc_irrig = memoryManager::allocate<double>( n_max_times*n_grid_cells );
   RAJA::View<double, RAJA::Layout<DIM> > h_forc_irrig(forc_irrig,n_max_times,n_grid_cells );
   //ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
   
@@ -99,13 +100,14 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   // auto qflx_snwcp_ice = ELM::Utils::MatrixState();
   // auto qflx_snow_grnd_patch = ELM::Utils::MatrixState();
   // auto qflx_rain_grnd = ELM::Utils::MatrixState();
-  double* qflx_prec_intr= new double [n_grid_cells*n_pfts];
-  double* qflx_irrig= new double [n_grid_cells*n_pfts];
-  double* qflx_prec_grnd= new double [n_grid_cells*n_pfts];
-  double* qflx_snwcp_liq= new double [n_grid_cells*n_pfts];
-  double* qflx_snwcp_ice = new double [n_grid_cells*n_pfts];
-  double* qflx_snow_grnd_patch= new double [n_grid_cells*n_pfts];
-  double* qflx_rain_grnd= new double [qflx_rain_grnd, n_grid_cells, n_pfts  ];
+  double* qflx_prec_intr= memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_irrig= memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_prec_grnd= memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_snwcp_liq= memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_snwcp_ice = memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_snow_grnd_patch= memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* qflx_rain_grnd= memoryManager::allocate<double>(n_grid_cells*n_pfts  );
+
   RAJA::View<double, RAJA::Layout<DIM> > h_qflx_prec_intr(qflx_prec_intr, n_grid_cells, n_pfts );
   RAJA::View<double, RAJA::Layout<DIM> > h_qflx_irrig(qflx_irrig, n_grid_cells, n_pfts);
   RAJA::View<double, RAJA::Layout<DIM> > h_qflx_prec_grnd(qflx_prec_grnd, n_grid_cells, n_pfts);
@@ -115,23 +117,26 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   RAJA::View<double, RAJA::Layout<DIM> > h_qflx_rain_grnd(  qflx_rain_grnd, n_grid_cells, n_pfts  );
 
   // output state by the pft
-  double* h2o_can= new double [n_grid_cells*n_pfts];
-  //auto h2o_can = ELM::Utils::MatrixState(); 
+  double* h2o_can= NULL;
+  h2o_can = memoryManager::allocate<double>(n_grid_cells*n_pfts);
+ 
+   //auto h2o_can = ELM::Utils::MatrixState(); 
   RAJA::View<double, RAJA::Layout<DIM> > h_h2o_can( h2o_can,n_grid_cells,n_pfts );
-  double* end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
+  double* end = NULL;
+  end = &h_h2o_can(n_grid_cells, n_pfts) ;
 
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
+  auto min_max = std::minmax_element(&h_h2o_can(0,0), end);//h2o_can1.begin(), h2o_can1.end());
   soln_file << std::setprecision(16)
-          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
           << "\t" << *min_max.first
           << "\t" << *min_max.second << std::endl;
 
   std::cout << std::setprecision(16)
-          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
           << "\t" << *min_max.first
           << "\t" << *min_max.second << std::endl;
 
@@ -145,49 +150,48 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   // Define the kernel execution policy
   //
 
-  using POL = RAJA::KernelPolicy<
-            RAJA::statement::For<1, RAJA::loop_exec,
-              RAJA::statement::InitLocalMem<RAJA::cpu_tile_mem, RAJA::ParamList<0, 1>,
-                RAJA::statement::For<0, RAJA::loop_exec,
-                  RAJA::statement::Lambda<0>
-                >,
-                RAJA::statement::For<0, RAJA::loop_exec,
-                  RAJA::statement::Lambda<1>
-                >
-              >
-            >
-          >;
-
 
   //
   // Define the kernel
   //
 
     for (size_t t = 0; t != n_times; ++t) {
-      RAJA::kernel_param<POL> (RAJA::RangeSegment(0,n_pfts),RAJA::make_tuple(RAJA::RangeSegment(0,n_grid_cells)),
 
-      [=] (size_t g, size_t p) {
-      ELM::CanopyHydrology_Interception(dtime,
-                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-                ltype, ctype, urbpoi, do_capsnow,
-                elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
-                h2o_can(g,p), n_irrig_steps_left,
-                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+
+    // using EXEC_POL1 =
+    // RAJA::KernelPolicy<
+    //   RAJA::statement::For<0, RAJA::omp_parallel_for_exec,  // row
+    //     RAJA::statement::For<0, RAJA::loop_exec,            // col
+    //       RAJA::statement::Lambda<0>
+    //     >
+    //   >
+    // >;
+
+    //   RAJA::kernel<EXEC_POL1>(RAJA::make_tuple(n_grid_cells,n_pfts),
+    //   [=] (const size_t& g, const size_t& p) {
+      for (size_t g = 0; g != n_grid_cells; ++g) {
+        for (size_t p = 0; p != n_pfts; ++p) {
+        // RAJA::forall<RAJA::loop_exec>( n_grid_cells, [=](size_t g) {
+
+        //   RAJA::forall<RAJA::loop_exec>( n_pfts, [=](size_t p) {
+          ELM::CanopyHydrology_Interception(dtime,
+                    h_forc_rain(t,g), h_forc_snow(t,g), h_forc_irrig(t,g),
+                    ltype, ctype, urbpoi, do_capsnow,
+                    h_elai(g,p), h_esai(g,p), dewmx, frac_veg_nosno,
+                    h_h2o_can(g,p), n_irrig_steps_left,
+                    h_qflx_prec_intr(g,p), h_qflx_irrig(g,p), h_qflx_prec_grnd(g,p),
+                    h_qflx_snwcp_liq(g,p), h_qflx_snwcp_ice(g,p),
+                    h_qflx_snow_grnd_patch(g,p), h_qflx_rain_grnd(g,p));
+        }
       }
-    // Kokkos::parallel_for("n_grid_cells", n_grid_cells, KOKKOS_LAMBDA (const size_t& g) {
-    //   for (size_t p = 0; p != n_pfts; ++p) {
-             
-    );
-
-    auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
+      //});
+    auto min_max = std::minmax_element(&h_h2o_can(0,0), end);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
     soln_file << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 

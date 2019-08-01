@@ -1,7 +1,12 @@
-ELM_BASE = ../../src
-KERNEL_FOLDER = cc
-ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
+ifndef LG_RT_DIR
+$(error LG_RT_DIR variable is not defined, aborting build)
+endif
 
+# from Makefile.config
+OBJECT        = ../../src/
+KERNEL_LANG	  = cc
+SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
+NATURE		=
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
 OUTPUT_LEVEL    ?= LEVEL_DEBUG	# Compile time logging level
@@ -11,27 +16,19 @@ USE_GASNET      ?= 0		# Include GASNet support (requires GASNet)
 USE_HDF         ?= 0		# Include HDF5 support (requires HDF5)
 ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 
-# include the user's config
-include $(ELM_BASE)/config/Makefile.config
+# Put the binary file name here
 
-# legion variables
+# You can modify these variables, some will be appended to by the runtime makefile
+GEN_SRC		?= tasks.cc
+
+INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_legion_c
 CC_FLAGS= -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
+#CC = mpicc
 
-# note: INC_FLAGS is defined by legion
-CXXFLAGS += $(NETCDF_INC_FLAGS) $(INC_FLAGS)
-
-CXX_LD_FLAGS += $(NETCDF_FLAGS)
-
-#
-# Load Legion logic, but not rules
-#
-NO_BUILD_RULES = 1
-include $(LG_RT_DIR)/runtime.mk
-
-# now include our rules
-include $(ELM_BASE)/config/Makefile.rules
+include $(OBJECT)config/Makefile.config
+include $(OBJECT)config/Makefile.rules
 
 TESTS = test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
@@ -40,15 +37,26 @@ TESTS = test_CanopyHydrology_kern1_multiple \
 EXEC_TESTS = CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
 
+
+
+
+#
+# Load Legion logic, but not rules
+#
+NO_BUILD_RULES = 1
+include $(LG_RT_DIR)/runtime.mk
+
+
 #
 # Legion rules
 #
-.PHONY: links test
+.PHONY: links library test
 
 default: all
+	echo "GEN OBJS = $(GEN_OBJS)"
 
 
-all: links $(TESTS)
+all: links library $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
@@ -69,9 +77,9 @@ sandbox: test_sandbox_domain_template_magic
 	./test_sandbox_domain_template_magic
 
 # If we're using CUDA we have to link with nvcc
-test_%: %.cpp.o tasks.cpp.o $(SLIB_LEGION) $(SLIB_REALM)
+test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
 	@echo "---> Linking objects into one binary: $()"
-	$(CXX) -o $@ $< tasks.cpp.o $(CXX_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
+	$(CXX) -o $@ $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
 
 $(SLIB_LEGION) : $(LEGION_OBJS) $(MAPPER_OBJS)
 	rm -f $@
@@ -81,19 +89,32 @@ $(SLIB_REALM) : $(REALM_OBJS)
 	rm -f $@
 	$(AR) rc $@ $^
 
-$(GEN_OBJS) : %.cpp.o : %.cpp
+$(GEN_OBJS) : %.cc.o : %.cc
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(CPP_FLAGS) $(INC_FLAGS)
 
 $(ASM_OBJS) : %.S.o : %.S
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
 
 $(REALM_OBJS) : %.cc.o : %.cc
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
 
 $(LEGION_OBJS) : %.cc.o : %.cc
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
 
 $(MAPPER_OBJS) : %.cc.o : %.cc
+	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
 
 $(GEN_GPU_OBJS) : %.cu.o : %.cu
+	$(NVCC) -o $@ -c $< $(NVCC_FLAGS) $(INC_FLAGS)
 
 $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
+	$(NVCC) -o $@ -c $< $(NVCC_FLAGS) $(INC_FLAGS)
+
+# disable gmake's default rule for building % from %.o
+#% : %.o
+
+%.cc.o : %.cc domains.hh readers.hh utils.hh
+	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) $(INC_FLAGS) -c $< -o $@
 
 clean :
 	$(ELM_CLEAN)
@@ -104,8 +125,8 @@ allclean : clean
 	$(RM) -f $(SLIB_LEGION) $(SLIB_REALM) $(GEN_OBJS) $(GEN_GPU_OBJS) $(REALM_OBJS) $(LEGION_OBJS) $(GPU_RUNTIME_OBJS) $(MAPPER_OBJS) $(ASM_OBJS)
 
 ifeq ($(strip $(USE_LLVM)),1)
-llvmjit_internal.cpp.o : CC_FLAGS += $(LLVM_CXXFLAGS)
-%/llvmjit_internal.cpp.o : CC_FLAGS += $(LLVM_CXXFLAGS)
+llvmjit_internal.cc.o : CC_FLAGS += $(LLVM_CXXFLAGS)
+%/llvmjit_internal.cc.o : CC_FLAGS += $(LLVM_CXXFLAGS)
 endif
 
 
@@ -117,4 +138,3 @@ links:
 
 library:
 	$(MAKE) -C $(OBJECT) all
-

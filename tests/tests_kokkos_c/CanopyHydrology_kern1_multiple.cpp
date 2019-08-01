@@ -258,6 +258,7 @@ int main(int argc, char ** argv)
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
   }
   Kokkos::finalize();
-  return 0;
   // MPI_Finalize();
+  return 0;
+  
 }

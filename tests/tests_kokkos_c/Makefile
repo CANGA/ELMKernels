@@ -28,16 +28,14 @@ KOKKOS_ARCH = "BSW"
 endif
 
 include $(ELM_BASE)/config/Makefile.config
-
-FC = mpifort
-CXX = mpicxx
-CC = mpicc
-CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION 
-
 include $(ELM_BASE)/config/Makefile.rules
 
-default: Serial
+# FC = mpifort
+# CXX = mpicxx
+# CC = mpicc
+CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION 
 
+default: Serial
 # include Kokkos
 include $(KOKKOS_PATH)/Makefile.kokkos
 
