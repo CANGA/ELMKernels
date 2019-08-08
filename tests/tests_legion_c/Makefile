@@ -3,10 +3,11 @@ $(error LG_RT_DIR variable is not defined, aborting build)
 endif
 
 # from Makefile.config
-OBJECT        = ../../src/
-KERNEL_LANG	  = cc
-SRCDIR	      =	$(OBJECT)$(KERNEL_LANG)
+ELM_BASE        = ../../src
+KERNEL_FOLDER = cc
+ELM_ROOT	= $(ELM_BASE)/$(KERNEL_FOLDER)
 NATURE		=
+
 # Flags for directing the runtime makefile what to include
 DEBUG           ?= 1		# Include debugging symbols
 OUTPUT_LEVEL    ?= LEVEL_DEBUG	# Compile time logging level
@@ -21,14 +22,14 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	?= -I$(NETCDF_ROOT)/include -I$(SRCDIR) -I../tests_legion_c
+INC_FLAGS	?= $(NETCDF_INC_FLAGS) -I$(ELM_ROOT)
 CC_FLAGS= -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
 #CC = mpicc
 
-include $(OBJECT)config/Makefile.config
-include $(OBJECT)config/Makefile.rules
+include $(ELM_BASE)/config/Makefile.config
+include $(ELM_BASE)/config/Makefile.rules
 
 TESTS = test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
@@ -56,11 +57,10 @@ default: all
 	echo "GEN OBJS = $(GEN_OBJS)"
 
 
-all: links library $(TESTS)
+all: $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
-
 
 CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
@@ -90,31 +90,31 @@ $(SLIB_REALM) : $(REALM_OBJS)
 	$(AR) rc $@ $^
 
 $(GEN_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(CPP_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(CPP_FLAGS) $(INC_FLAGS)
 
 $(ASM_OBJS) : %.S.o : %.S
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
 
 $(REALM_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
 
 $(LEGION_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
 
 $(MAPPER_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CC_FLAGS) $(INC_FLAGS)
+	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
 
 $(GEN_GPU_OBJS) : %.cu.o : %.cu
-	$(NVCC) -o $@ -c $< $(NVCC_FLAGS) $(INC_FLAGS)
+	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
 
 $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
-	$(NVCC) -o $@ -c $< $(NVCC_FLAGS) $(INC_FLAGS)
+	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
 
 # disable gmake's default rule for building % from %.o
 #% : %.o
 
 %.cc.o : %.cc domains.hh readers.hh utils.hh
-	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) $(INC_FLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) -c $< -o $@
 
 clean :
 	$(ELM_CLEAN)
@@ -125,8 +125,8 @@ allclean : clean
 	$(RM) -f $(SLIB_LEGION) $(SLIB_REALM) $(GEN_OBJS) $(GEN_GPU_OBJS) $(REALM_OBJS) $(LEGION_OBJS) $(GPU_RUNTIME_OBJS) $(MAPPER_OBJS) $(ASM_OBJS)
 
 ifeq ($(strip $(USE_LLVM)),1)
-llvmjit_internal.cc.o : CC_FLAGS += $(LLVM_CXXFLAGS)
-%/llvmjit_internal.cc.o : CC_FLAGS += $(LLVM_CXXFLAGS)
+llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
+%/llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
 endif
 
 
@@ -136,5 +136,3 @@ links:
 	$(MAKE) -C ../links links
 
 
-library:
-	$(MAKE) -C $(OBJECT) all

@@ -3,12 +3,12 @@ FCFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
 CXXFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
 
 # linking flags
-CC_LD_FLAGS += -L$(SRCDIR) -lelm -L$(NETCDF_ROOT) -lnetcdf -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(FC_LIB_ROOT) -lgfortran
-#CC_LD_FLAGS += -L$(SRCDIR) -lelm -L$(NETCDF_ROOT) -lnetcdf -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(MPI_LIB_ROOT)/lib -L$(FC_LIB_ROOT) -lgfortran
-FC_LD_FLAGS += -L$(ELM_ROOT) -lelm -L$(NETCDF_ROOT) -lnetcdff
-CXX_LD_FLAGS += -L$(ELM_ROOT) -lelm -L$(NETCDF_ROOT) -lnetcdf
-#CXX_LD_FLAGS += -L$(ELM_ROOT) -lelm -L$(NETCDF_ROOT) -lnetcdf -I$(MPI_LIB_ROOT)/include -L$(MPI_LIB_ROOT)/lib -lmpi
-CUDA_LD_FLAGS = -L$(SRCDIR) -lelm -L$(NETCDF_ROOT) -lnetcdf -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -lcublas
+CC_LD_FLAGS += $(NETCDF_FLAGS) -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(FC_LIB_ROOT) -lgfortran
+#CC_LD_FLAGS += $(NETCDF_FLAGS) -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(MPI_LIB_ROOT)/lib -L$(FC_LIB_ROOT) -lgfortran
+FC_LD_FLAGS +=  $(NETCDF_FLAGS)f
+CXX_LD_FLAGS +=  $(NETCDF_FLAGS)
+#CXX_LD_FLAGS +=  $(NETCDF_FLAGS) -I$(MPI_LIB_ROOT)/include -L$(MPI_LIB_ROOT)/lib -lmpi
+CUDA_LD_FLAGS = $(NETCDF_FLAGS) -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -lcublas
 
 #
 # rules

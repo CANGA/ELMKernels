@@ -4,7 +4,7 @@
 //
 // The first strategy is a 2D Rect IndexSpace
 //
-#include <bits/stdc++.h>
+
 #include <array>
 #include <sstream>
 #include <iterator>
