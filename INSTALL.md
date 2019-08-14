@@ -7,26 +7,11 @@ All builds occur in-source.
 
 First, edit the file: ```src/config/Makefile.config```
 
-Then, making the library should simply require a:
+Then, various program model mini-apps can be built, e.g.:
 
 ```
-cd src
-make
-```
-
-Or alternatively build a C++ or Fortran test via:
-
-```
-cd tests_c
+cd tests_c_c
 make all test
 ```
 
-or
-
-```
-cd tests
-make all test
-```
-
-respectively.
 
