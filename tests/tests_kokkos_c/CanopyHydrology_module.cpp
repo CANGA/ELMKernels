@@ -29,12 +29,6 @@ static const int n_max_times = 31 * 24 * 2; // max days per month times hours pe
 static const int n_grid_cells = 24;
 static const int n_levels_snow = 5;
 
-// using MatrixStatePFT = MatrixStatic<n_grid_cells, n_pfts>;
-// using MatrixStateSoilColumn = MatrixStatic<n_grid_cells, n_levels_snow>;
-// using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
-// using VectorColumn = VectorStatic<n_grid_cells>;
-// using VectorColumnInt = VectorStatic<n_grid_cells,int>;
-
 } // namespace
 } // namespace
 
@@ -84,8 +78,7 @@ int main(int argc, char ** argv)
   typedef Kokkos::View<double**>  ViewMatrixType;
   typedef Kokkos::View<int**>  ViewMatrixType1;
   typedef Kokkos::View<int*>   ViewVectorType1;
-  // ELM::Utils::MatrixState elai;
-  // ELM::Utils::MatrixState esai;
+
   ViewMatrixType elai( "elai", n_grid_cells, n_pfts );
   ViewMatrixType esai( "esai", n_grid_cells, n_pfts );
   ViewMatrixType::HostMirror h_elai = Kokkos::create_mirror_view( elai );
@@ -101,7 +94,7 @@ int main(int argc, char ** argv)
   ViewMatrixType::HostMirror h_forc_snow = Kokkos::create_mirror_view( forc_snow );
   ViewMatrixType::HostMirror h_forc_air_temp = Kokkos::create_mirror_view( forc_air_temp );
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
-  //ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
+  
   ViewMatrixType forc_irrig( "forc_irrig", n_max_times,n_grid_cells );
   ViewMatrixType::HostMirror h_forc_irrig = Kokkos::create_mirror_view( forc_irrig );
   double qflx_floodg = 0.0;
@@ -111,9 +104,7 @@ int main(int argc, char ** argv)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // // need them to be for these kernels. --etc
-  // auto z = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto zi = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto dz = ELM::Utils::MatrixStateSoilColumn(0.);
+
   ViewMatrixType z( "z", n_grid_cells, n_levels_snow );
   ViewMatrixType zi( "zi", n_grid_cells, n_levels_snow );
   ViewMatrixType dz( "dz", n_grid_cells, n_levels_snow );
@@ -122,12 +113,7 @@ int main(int argc, char ** argv)
   ViewMatrixType::HostMirror h_dz = Kokkos::create_mirror_view( dz );
 
   // state variables that require ICs and evolve (in/out)
-  // auto h2ocan = ELM::Utils::MatrixStatePFT(0.);
-  // auto swe_old = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto t_soisno = ELM::Utils::MatrixStateSoilColumn(0.);
-  // auto frac_iceold = ELM::Utils::MatrixStateSoilColumn(0.);
+ 
   ViewMatrixType h2ocan( "h2ocan", n_grid_cells, n_pfts );
   ViewMatrixType swe_old( "swe_old", n_grid_cells, n_levels_snow );
   ViewMatrixType h2osoi_liq( "h2osoi_liq", n_grid_cells, n_levels_snow );
@@ -141,10 +127,7 @@ int main(int argc, char ** argv)
   ViewMatrixType::HostMirror h_t_soisno = Kokkos::create_mirror_view( t_soisno );
   ViewMatrixType::HostMirror h_frac_iceold = Kokkos::create_mirror_view( frac_iceold );
 
-  // auto t_grnd = ELM::Utils::VectorColumn(0.);
-  // auto h2osno = ELM::Utils::VectorColumn(0.);
-  // auto snow_depth = ELM::Utils::VectorColumn(0.);
-  // auto snl = ELM::Utils::VectorColumnInt(0.); // note this tracks the snow_depth
+  
   ViewVectorType t_grnd( "t_grnd", n_grid_cells );
   ViewVectorType h2osno( "h2osno", n_grid_cells );
   ViewVectorType snow_depth( "snow_depth", n_grid_cells );
@@ -163,13 +146,7 @@ int main(int argc, char ** argv)
 
   
   // output fluxes by pft
-  // auto qflx_prec_intr = ELM::Utils::MatrixStatePFT();
-  // auto qflx_irrig = ELM::Utils::MatrixStatePFT();
-  // auto qflx_prec_grnd = ELM::Utils::MatrixStatePFT();
-  // auto qflx_snwcp_liq = ELM::Utils::MatrixStatePFT();
-  // auto qflx_snwcp_ice = ELM::Utils::MatrixStatePFT();
-  // auto qflx_snow_grnd_patch = ELM::Utils::MatrixStatePFT();
-  // auto qflx_rain_grnd = ELM::Utils::MatrixStatePFT();
+
   ViewMatrixType qflx_prec_intr( "qflx_prec_intr", n_grid_cells, n_pfts );
   ViewMatrixType qflx_irrig( "qflx_irrig", n_grid_cells, n_pfts  );
   ViewMatrixType qflx_prec_grnd( "qflx_prec_grnd", n_grid_cells, n_pfts  );
@@ -187,15 +164,12 @@ int main(int argc, char ** argv)
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  //auto integrated_snow = ELM::Utils::VectorColumn(0.);
+  
   ViewVectorType integrated_snow( "integrated_snow", n_grid_cells );
   ViewVectorType::HostMirror h_integrated_snow = Kokkos::create_mirror_view(  integrated_snow);
   
   // output fluxes, state by the column
-  // auto qflx_snow_grnd_col = ELM::Utils::VectorColumn();
-  // auto qflx_snow_h2osfc = ELM::Utils::VectorColumn();
-  // auto qflx_h2osfc2topsoi = ELM::Utils::VectorColumn();
-  // auto qflx_floodc = ELM::Utils::VectorColumn();
+
   ViewVectorType qflx_snow_grnd_col( "qflx_snow_grnd_col", n_grid_cells );
   ViewVectorType qflx_snow_h2osfc( "qflx_snow_h2osfc", n_grid_cells );
   ViewVectorType qflx_h2osfc2topsoi( "qflx_h2osfc2topsoi", n_grid_cells );
@@ -205,21 +179,13 @@ int main(int argc, char ** argv)
   ViewVectorType::HostMirror h_qflx_h2osfc2topsoi = Kokkos::create_mirror_view(  qflx_h2osfc2topsoi);
   ViewVectorType::HostMirror h_qflx_floodc = Kokkos::create_mirror_view( qflx_floodc);
 
-  // auto frac_sno_eff = ELM::Utils::VectorColumn();
-  // auto frac_sno = ELM::Utils::VectorColumn();
+  
   ViewVectorType frac_sno_eff( "frac_sno_eff", n_grid_cells );
   ViewVectorType frac_sno( "frac_sno", n_grid_cells );
   ViewVectorType::HostMirror h_frac_sno_eff = Kokkos::create_mirror_view(  frac_sno_eff);
   ViewVectorType::HostMirror h_frac_sno = Kokkos::create_mirror_view( frac_sno);
   
 
-  // std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-  // std::cout << std::setprecision(16)
-  //           << 0 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-  //           << "\t" << *min_max.first
-  //           << "\t" << *min_max.second << std::endl;
-  
   Kokkos::deep_copy( elai, h_elai);
   Kokkos::deep_copy( esai, h_esai);
   Kokkos::deep_copy( forc_rain, h_forc_rain);
@@ -264,21 +230,7 @@ int main(int argc, char ** argv)
         
     // Construct 2D MDRangePolicy: lower and upper bounds provided, tile dims defaulted
     MDPolicyType_2D mdpolicy_2d( {{0,0}}, {{n_grid_cells,n_pfts}} );
-          
-    // Kokkos::parallel_for("md2d",mdpolicy_2d,KOKKOS_LAMBDA (const size_t& g, const size_t& p) { 
-    //             ELM::CanopyHydrology_Interception(dtime,
-    //               forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-    //               ltype, ctype, urbpoi, do_capsnow,
-    //               elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
-    //               h2ocan(g,p), n_irrig_steps_left,
-    //               qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-    //               qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-    //              qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
-
-    //             double fwet = 0., fdry = 0.;
-    //             ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry); 
-    // });
-      
+  
       // Column level operations
       // NOTE: this is effectively an accumulation kernel/task! --etc
     typedef Kokkos::TeamPolicy<>              team_policy ;
@@ -325,46 +277,11 @@ int main(int argc, char ** argv)
               h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
               qflx_h2osfc2topsoi(g), frac_h2osfc(g));
     });
-    // Kokkos::parallel_reduce( Kokkos::RangePolicy<execution_space>(0,n_grid_cells), KOKKOS_LAMBDA (const size_t& g, double& upd) {
-    // upd += qflx_snow_grnd_patch(g,p);
-    // }, sum);
-    // qflx_snow_grnd_col(g) = sum ;
-
          
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
       //
       // local outputs
-
-    // Kokkos::parallel_for (n_grid_cells,
-    //                  KOKKOS_LAMBDA (const size_t& g) {
-    //   int newnode;
-    //   ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
-    //           ltype, ctype, urbpoi, do_capsnow, oldfflag,
-    //           forc_air_temp(t,g), t_grnd(g),
-    //           qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
-    //           snow_depth(g), h2osno(g), integrated_snow(g), Kokkos::subview(swe_old, g , Kokkos::ALL),
-    //           Kokkos::subview(h2osoi_liq, g , Kokkos::ALL), Kokkos::subview(h2osoi_ice, g , Kokkos::ALL), Kokkos::subview(t_soisno, g , Kokkos::ALL), Kokkos::subview(frac_iceold, g , Kokkos::ALL),
-    //           snow_level(g), Kokkos::subview(dz, g , Kokkos::ALL), Kokkos::subview(z, g , Kokkos::ALL), Kokkos::subview(zi, g , Kokkos::ALL), newnode,
-    //           qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));
-      
-    //   // Calculate Fraction of Water to the Surface?
-    //   //
-    //   // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
-    //   // interface specifies a single double.  For now passing the 0th
-    //   // entry. --etc
-    //    ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
-    //           h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
-    //           qflx_h2osfc2topsoi(g), frac_h2osfc(g));
-      
-    // }); // end grid cell loop
-
-    
-    // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-    // std::cout << std::setprecision(16)
-    //           << t+1 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-    //           << "\t" << *min_max.first
-    //           << "\t" << *min_max.second << std::endl;
 
   Kokkos::deep_copy( h_qflx_irrig, qflx_irrig);
   Kokkos::deep_copy( h_qflx_prec_intr, qflx_prec_intr);

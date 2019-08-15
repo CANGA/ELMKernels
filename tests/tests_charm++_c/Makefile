@@ -15,12 +15,11 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
              CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
 
-
 .PHONY: links library test
 
 default: all
 
-all: links library $(TESTS)
+all: logo links library $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
@@ -78,4 +77,6 @@ allclean: clean
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
+
+include $(ELM_BASE)/config/Makefile.logo
 

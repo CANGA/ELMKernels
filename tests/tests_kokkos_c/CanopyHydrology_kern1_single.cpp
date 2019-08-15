@@ -67,8 +67,7 @@ int main(int argc, char ** argv)
 
   // phenology state
   typedef Kokkos::View<double**>  ViewMatrixType;
-  // ELM::Utils::MatrixState elai;
-  // ELM::Utils::MatrixState esai;
+ 
   ViewMatrixType elai( "elai", n_months, n_pfts );
   ViewMatrixType esai( "esai", n_months, n_pfts );
   ViewMatrixType::HostMirror h_elai = Kokkos::create_mirror_view( elai );
@@ -77,9 +76,7 @@ int main(int argc, char ** argv)
     
 
   // forcing state
-  // ELM::Utils::MatrixForc forc_rain;
-  // ELM::Utils::MatrixForc forc_snow;
-  // ELM::Utils::MatrixForc forc_air_temp;
+
   ViewMatrixType forc_rain( "forc_rain", n_max_times,1 );
   ViewMatrixType forc_snow( "forc_snow", n_max_times,1 );
   ViewMatrixType forc_air_temp( "forc_air_temp", n_max_times,1 );

@@ -3,6 +3,10 @@
 #ifndef ELM_KERNEL_TEST_UTILS_HH_
 #define ELM_KERNEL_TEST_UTILS_HH_
 
+#include <iostream>
+#include <memory>
+#include <type_traits>
+
 namespace ELM {
 namespace Utils {
 
@@ -10,56 +14,83 @@ namespace Utils {
 template<size_t N, typename T=double>
 class VectorStatic {
  public:
-  VectorStatic() {}
-  VectorStatic(T t) { *this = t; }
+  VectorStatic() :
+      do_(std::shared_ptr<std::array<T,N>>(new std::array<T,N>())) {
+    d_ = do_.get();
+  }
+  
+  VectorStatic(T t) :
+      VectorStatic()
+  { *this = t; }
+
+  VectorStatic(const std::shared_ptr<std::array<T,N> >& d) :
+      do_(d) {
+    d_ = do_.get();
+  }
+  VectorStatic(std::array<T,N>* d) :
+      do_(nullptr),
+      d_(d)
+  {}
+
   VectorStatic(const VectorStatic<N,T>& other) = default;
 
-  T& operator()(size_t i) { assert(0 <= i && i < N); return d_[i]; }
-  const T& operator()(size_t i) const { assert(0 <= i && i < N); return d_[i]; }
+  T& operator()(size_t i) { assert(0 <= i && i < N); return (*d_)[i]; }
+  const T& operator()(size_t i) const { assert(0 <= i && i < N); return (*d_)[i]; }
 
-  T& operator[](size_t i) { assert(0 <= i && i < N); return d_[i]; }
-  const T& operator[](size_t i) const { assert(0 <= i && i < N); return d_[i]; }
+  T& operator[](size_t i) { assert(0 <= i && i < N); return (*d_)[i]; }
+  const T& operator[](size_t i) const { assert(0 <= i && i < N); return (*d_)[i]; }
   
   void operator=(T t) {
     for (size_t i=0; i!=N; ++i) {
-      d_[i] = t;
+      (*d_)[i] = t;
     }
   }
 
-  double const * begin() const { return d_.begin(); }
-  double const * end() const { return d_.end(); }
+  double const * begin() const { return &((*d_)[0]); }
+  double const * end() const { return &((*d_)[N]); }
   
  private:
-  std::array<T,N> d_;
+
+  std::array<T,N>* d_;
+  std::shared_ptr< std::array<T,N> > do_;
 };
-  
+
+
 
 template<size_t ROW, size_t COL, typename T=double>
 class MatrixStatic {
+  using Data_t = std::array<std::array<T,COL>, ROW>;
+  
  public:
-  MatrixStatic() {}
-  MatrixStatic(T t) { *this = t; }
+  MatrixStatic() :
+      d_(std::shared_ptr<Data_t>(new Data_t())) {}
+
+
+  MatrixStatic(T t) :
+      MatrixStatic() 
+  { *this = t; }
+  
   MatrixStatic(const MatrixStatic<ROW,COL,T>& other) = default;
   
-  T& operator()(size_t i, size_t j) { assert(0 <= i && i < ROW && 0 <= j && j < COL); return d_[i][j]; }
-  const T& operator()(size_t i, size_t j) const { assert(0 <= i && i < ROW && 0 <= j && j < COL); return d_[i][j]; }
+  T& operator()(size_t i, size_t j) { assert(0 <= i && i < ROW && 0 <= j && j < COL); return (*d_)[i][j]; }
+  const T& operator()(size_t i, size_t j) const { assert(0 <= i && i < ROW && 0 <= j && j < COL); return (*d_)[i][j]; }
 
-  VectorStatic<COL,T>& operator[](size_t i) { assert(0 <= i && i < ROW); return d_[i]; }
-  const VectorStatic<COL,T>& operator[](size_t i) const { assert(0 <= i && i < ROW); return d_[i]; }
+  VectorStatic<COL,T> operator[](size_t i) { assert(0 <= i && i < ROW); return &((*d_)[i]); }
+  const VectorStatic<COL,T> operator[](size_t i) const { assert(0 <= i && i < ROW); return &((*d_)[i]); }
 
   void operator=(T t) {
     for (size_t i=0; i!=ROW; ++i) {
       for (size_t j=0; j!=COL; ++j) {
-        d_[i][j] = t;
+        (*d_)[i][j] = t;
       }
     }
   }
 
-  double const * begin() const { return &d_[0][0]; }
-  double const * end() const { return &d_[ROW-1][COL-1] +1; }
+  double const * begin() const { return &(*d_)[0][0]; }
+  double const * end() const { return &(*d_)[ROW-1][COL-1] +1; }
   
  private:
-  std::array<VectorStatic<COL,T>,ROW> d_;
+  std::shared_ptr<Data_t> d_;
 };
   
 
