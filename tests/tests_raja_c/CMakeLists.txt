@@ -7,6 +7,44 @@ set(ELM_ROOT "/home/7hp/Downloads/elm_kernels/src/cc/")
 set (NETCDF "/usr/local")
 set(CMAKE_MODULE_PATH $RAJA_DIR)
 
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(ColourReset "${Esc}[m")
+  set(Red         "${Esc}[31m")
+  set(Green       "${Esc}[32m")
+  set(Yellow      "${Esc}[33m")
+  set(Blue        "${Esc}[34m")
+  set(Magenta     "${Esc}[35m")
+  set(Cyan        "${Esc}[36m")
+endif()
+
+message(" ")
+message(" ${Blue}EeeeeeeeeeeeeeE  LLlL            Mm                        Mm       Kk           kk                                                          LllL${ColourReset}")
+message(" ${Blue}EeeeeeeeeeeeeeE  LLlL            Mm Mm                  Mm Mm       Kk         kk                                                            LllL${ColourReset}")
+message(" ${Blue}Eee              LLlL            Mm   Mm              Mm   Mm       Kk       kk                                                              LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm     Mm          Mm     Mm       Kk     kk                                                                LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm       Mm      Mm       Mm       Kk    kk                                                                 LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm         Mm  Mm         Mm       Kk  kk                 eeeeeeeee  RrRrRrRrRr  Nnn         Nn  eeeeeeeee  LllL${ColourReset}")
+message(" ${Blue}EeeeeeeeE        LllL            Mm           Mm           Mm       Kk kk kk               eeeeeeeee  Rr      Rr  Nn nn       Nn  eeeeeeeee  LllL${ColourReset}")
+message(" ${Blue}EeeeeeeeE        LllL            Mm                        Mm       Kkk     kk             eeee       Rr      Rr  Nn  nn      Nn  eeee       LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm                        Mm       Kk        kk           eeeeeeee   RrRrRrRrRr  Nn   nn     Nn  eeeeeeee   LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm                        Mm       Kk          kk         eeeeeeee   RrR         Nn    nn    Nn  eeeeeeee   LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm                        Mm       Kk            kk       eeee       Rr Rr       Nn     nn   Nn  eeee       LllL${ColourReset}")
+message(" ${Blue}Eee              LllL            Mm                        Mm       Kk              kk     eeee       Rr   Rr     Nn      nn  Nn  eeee       LllL${ColourReset}")
+message(" ${Blue}EeeeeeeeeeeeeeE  LllllllllllLllL Mm                        Mm       Kk                kk   eeeeeeeee  Rr     Rr   Nn       nn Nn  eeeeeeeee  LlllllllLllL${ColourReset}")
+message(" ${Blue}EeeeeeeeeeeeeeE  LllllllllllLllL Mm                        Mm       Kk                  kk eeeeeeeee  Rr       Rr Nn        nnNn  eeeeeeeee  LlllllllLllL${ColourReset}")
+message(" ")
+message(" ")
+message("     ${Green} Copyright 2019, UT Battelle / Oak Ridge National Laboratory ${ColourReset}")
+message(" ")
+message(" ${Magenta} Collaboration ${ColourReset}")
+message("     ${Cyan}Oak Ridge Leadership Computing Facility ${ColourReset}")
+message("     ${Cyan}United States Department of Energy ${ColourReset}")
+message("     ${Cyan}The Energy Exascale Earth System Model (E3SM) Project ${ColourReset}")
+message("     ${Cyan}Coupling Approaches for Next-Generation Architectures (CANGA) - Scientific Discovery through Advanced Computing (SciDAC) ${ColourReset}")
+message(" ")
+message("${Yellow} Contact ${ColourReset} ${Red}coonet@ornl.gov , pillaihk@ornl.gov ${ColourReset}")
+
 install(FILES
     ${RAJA_INCLUDE_DIR}/RAJA/config.hpp
     ${RAJA_INCLUDE_DIR}/RAJA/module.modulemap
@@ -25,6 +63,7 @@ include_directories(
     /home/7hp/Downloads/elm_kernels/src/cc/
     /usr/local/include
     )
+
 add_executable(
   test_CanopyHydrology_kern1_multiple
   CanopyHydrology_kern1_multiple.cpp)

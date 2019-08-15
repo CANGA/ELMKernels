@@ -3,6 +3,10 @@
 #ifndef ELM_KERNEL_TEST_UTILS_HH_
 #define ELM_KERNEL_TEST_UTILS_HH_
 
+#include <iostream>
+#include <memory>
+#include <type_traits>
+
 namespace ELM {
 namespace Utils {
 

@@ -38,22 +38,18 @@ TESTS = test_CanopyHydrology_kern1_multiple \
 EXEC_TESTS = CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
 
-
-
-
 #
 # Load Legion logic, but not rules
 #
 NO_BUILD_RULES = 1
 include $(LG_RT_DIR)/runtime.mk
 
-
 #
 # Legion rules
 #
 .PHONY: links library test
 
-default: all
+default: logo all
 	echo "GEN OBJS = $(GEN_OBJS)"
 
 
@@ -129,7 +125,7 @@ llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
 %/llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
 endif
 
-
+include $(ELM_BASE)/config/Makefile.logo
 
 links:
 	@echo "making in links"

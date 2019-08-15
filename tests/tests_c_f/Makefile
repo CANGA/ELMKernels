@@ -21,7 +21,7 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
 
 .PHONY: links library test
 
-default: all
+default: logo all
 
 all: library $(TESTS)
 
@@ -57,3 +57,5 @@ links:
 
 library:
 	$(MAKE) -C $(OBJECT) cc_fortran_wrappers 
+
+include $(OBJECT)config/Makefile.logo

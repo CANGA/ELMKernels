@@ -57,15 +57,17 @@ OBJ1 =  $(SRC1:.cpp=.cpp.o)
 OBJ2 =  $(SRC2:.cpp=.cpp.o)
 OBJ3 =  $(SRC3:.cpp=.cpp.o)	
 
-.PHONY: links Serial OpenMP Cuda
+include $(ELM_BASE)/config/Makefile.logo
 
-Serial: build1 build2 build3 test
+.PHONY: logo links Serial OpenMP Cuda
+
+Serial: logo build1 build2 build3 test
 	echo "Serial"
 	echo "Start Build"
-OpenMP: build1 build2 build3 test
+OpenMP: logo build1 build2 build3 test
 	echo "OpenMP"
 	echo "Start Build"
-Cuda: build2 build3 test1
+Cuda: logo build2 build3 test1
 	echo "Cuda"
 	echo "Start Build"
 

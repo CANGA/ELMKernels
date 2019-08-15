@@ -4,6 +4,7 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
 CXXFLAGS = -std=c++11 -g
 
+
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
@@ -15,12 +16,13 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
              CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
 
-
 .PHONY: links library test
 
 default: all
 
-all: links library $(TESTS)
+include $(ELM_BASE)/config/Makefile.logo
+
+all: logo links library $(TESTS)
 
 test: $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
@@ -48,4 +50,3 @@ allclean: clean
 links:
 	@echo "making in links"
 	$(MAKE) -C ../links links
-
