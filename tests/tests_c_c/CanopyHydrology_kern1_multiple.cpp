@@ -12,8 +12,10 @@
 #include <fstream>
 #include <algorithm>
 #include <assert.h>
-//#include <mpi.h>
 #include <chrono>
+#ifdef MPICOMP
+  #include <mpi.h>
+#endif
 #include "utils.hh"
 #include "readers.hh"
 
@@ -43,13 +45,16 @@ int main(int argc, char ** argv)
   using ELM::Utils::n_pfts;
   using ELM::Utils::n_grid_cells;
   using ELM::Utils::n_max_times;
-  // int myrank, numprocs;
-  // double mytime, maxtime, mintime, avgtime;
 
-  // MPI_Init(&argc,&argv);
-  // MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-  // MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-  // MPI_Barrier(MPI_COMM_WORLD);
+#ifdef MPICOMP
+  int myrank, numprocs;
+  double mytime, maxtime, mintime, avgtime;
+
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -95,6 +100,8 @@ int main(int argc, char ** argv)
 
   // output state by the pft
   auto h2o_can = ELM::Utils::MatrixState(); h2o_can = 0.;
+
+#ifdef TRACE
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
 
@@ -106,8 +113,13 @@ int main(int argc, char ** argv)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
   }
+#endif
+
+
   auto start = high_resolution_clock::now();
-  // mytime = MPI_Wtime();
+  #ifdef MPICOMP
+    mytime = MPI_Wtime();
+  #endif
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -133,7 +145,8 @@ int main(int argc, char ** argv)
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2o_can(g,p), qflx_prec_intr[g]);
       }
     }
-
+    
+    #ifdef TRACE
     {
       auto min_max = std::minmax_element(h2o_can.begin(), h2o_can.end());
       soln_file << std::setprecision(16)
@@ -141,21 +154,26 @@ int main(int argc, char ** argv)
                 << "\t" << *min_max.first
                 << "\t" << *min_max.second << std::endl;
     }
+    #endif
   }
-  // mytime = MPI_Wtime() - mytime;
   auto stop = high_resolution_clock::now();
-//   std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
 
-// MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
-// MPI_Reduce(&mytime, &mintime, 1, MPI_DOUBLE, MPI_MIN, 0,MPI_COMM_WORLD);
-// MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
-// if (myrank == 0) {
-//   avgtime /= numprocs;
-//   std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
-// }
+#ifdef MPICOMP
+  mytime = MPI_Wtime() - mytime;
+  std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
+
+  MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
+  MPI_Reduce(&mytime, &mintime, 1, MPI_DOUBLE, MPI_MIN, 0,MPI_COMM_WORLD);
+  MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+  if (myrank == 0) {
+  avgtime /= numprocs;
+  std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
+  }
+MPI_Finalize();
+#endif
 
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
-  // MPI_Finalize();
+  
   return 0;
 }

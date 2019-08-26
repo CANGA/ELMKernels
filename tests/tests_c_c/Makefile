@@ -2,9 +2,6 @@ ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
-CXXFLAGS = -std=c++11 -g
-
-
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
@@ -12,21 +9,24 @@ TESTS = test_CanopyHydrology_kern1_single \
         test_CanopyHydrology_kern1_multiple \
         test_CanopyHydrology_module
 
+TEST1 = mpi_CanopyHydrology_kern1_single \
+        mpi_CanopyHydrology_kern1_multiple \
+        mpi_CanopyHydrology_module
+
 EXEC_TESTS = CanopyHydrology_kern1_single \
              CanopyHydrology_kern1_multiple \
              CanopyHydrology_module
 
-.PHONY: links library test
+.PHONY: links library test compute
 
-default: all
+#default: all
 
 include $(ELM_BASE)/config/Makefile.logo
 
-all: logo links library $(TESTS)
+#all: logo links library $(TESTS) 
 
-test: $(EXEC_TESTS)
+test: logo links library $(TESTS) $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
-
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 	./test_CanopyHydrology_kern1_single > test_CanopyHydrology_kern1_single.stdout
@@ -38,12 +38,17 @@ CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
-test_%: %.cpp.o readers.hh utils.hh
-	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
+test_%: %.cpp.o readers.hh utils.hh 
+	$(CXX) -DTRACE -o $@ $< $(NETCDF_FLAGS)
+
+compute: logo links library $(TEST1)
+
+mpi_%: %.cpp.o readers.hh utils.hh
+	$(MPICXX) -DMPICOMP -o $@ $< $(NETCDF_FLAGS) $(MPI_INC_FLAGS) -L$(MPI_LIB_ROOT)/lib -lmpi
 
 clean:
-	$(RM) test_* *.o 
+	$(RM) test_* mpi_* *.o 
 
 allclean: clean
 
