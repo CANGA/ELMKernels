@@ -29,12 +29,6 @@ static const int n_max_times = 31 * 24 * 2; // max days per month times hours pe
 static const int n_grid_cells = 24;
 static const int n_levels_snow = 5;
 
-using MatrixStatePFT = MatrixStatic<n_grid_cells, n_pfts>;
-using MatrixStateSoilColumn = MatrixStatic<n_grid_cells, n_levels_snow>;
-using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
-using VectorColumn = VectorStatic<n_grid_cells>;
-using VectorColumnInt = VectorStatic<n_grid_cells,int>;
-
 } // namespace
 } // namespace
 
@@ -67,6 +61,9 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   const double min_h2osfc = 1.0e-8;
   const double n_melt = 0.7;
   
+  RAJA::RangeSegment row_range(0, n_grid_cells);
+  RAJA::RangeSegment col_range(0, n_pfts);
+  RAJA::RangeSegment snow_range(0, n_levels_snow);
                             
   // phenology input
   // ELM::Utils::MatrixState elai;
@@ -75,11 +72,11 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   double* elai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
   double* esai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
 
-  const int DIM2 = 2;
-  const int DIM1 = 1;
+  const int DIM = 2;
+  //const int DIM1 = 1;
 
-  RAJA::View<double, RAJA::Layout<DIM2> > h_elai( elai, n_grid_cells, n_pfts );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_esai( esai, n_grid_cells, n_pfts );
+  RAJA::View<double, RAJA::Layout<DIM> > h_elai( elai, n_grid_cells, n_pfts );
+  RAJA::View<double, RAJA::Layout<DIM> > h_esai( esai, n_grid_cells, n_pfts );
 
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, h_elai, h_esai);
@@ -89,15 +86,14 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   double* forc_snow = memoryManager::allocate<double>( n_max_times * n_grid_cells );
   double* forc_air_temp = memoryManager::allocate<double>( n_max_times * n_grid_cells );
 
-  RAJA::View<double, RAJA::Layout<DIM2> > h_forc_rain( forc_rain, n_max_times,n_grid_cells );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_forc_snow( forc_snow, n_max_times,n_grid_cells );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_forc_air_temp( forc_air_temp, n_max_times,n_grid_cells );
+  RAJA::View<double, RAJA::Layout<DIM> > h_forc_rain( forc_rain, n_max_times,n_grid_cells );
+  RAJA::View<double, RAJA::Layout<DIM> > h_forc_snow( forc_snow, n_max_times,n_grid_cells );
+  RAJA::View<double, RAJA::Layout<DIM> > h_forc_air_temp( forc_air_temp, n_max_times,n_grid_cells );
 
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
-  //ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
-
+  
   double* forc_irrig = memoryManager::allocate<double>( n_max_times*n_grid_cells );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_forc_irrig( forc_irrig, n_max_times,n_grid_cells );
+  RAJA::View<double, RAJA::Layout<DIM> > h_forc_irrig( forc_irrig, n_max_times,n_grid_cells );
   double qflx_floodg = 0.0;
 
   
@@ -105,68 +101,57 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // // need them to be for these kernels. --etc
-  // double* z = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* zi = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* dz = ELM::Utils::MatrixStateSoilColumn(0.);
-  double** z = new double* [n_grid_cells*n_levels_snow ];
-  double* zi= new double [n_grid_cells*n_levels_snow ];
-  double* dz= new double [n_grid_cells*n_levels_snow ];
+  
+  double* z = memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* zi= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* dz= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
 
-  RAJA::View<double*, RAJA::Layout<DIM2> > h_z( z, n_grid_cells, n_levels_snow );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_zi( zi, n_grid_cells, n_levels_snow );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_dz( dz, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_z( z, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_zi( zi, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_dz( dz, n_grid_cells, n_levels_snow );
 
   // state variables that require ICs and evolve (in/out)
-  // double* h2ocan = ELM::Utils::MatrixStatePFT(0.);
-  // double* swe_old = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* t_soisno = ELM::Utils::MatrixStateSoilColumn(0.);
-  // double* frac_iceold = ELM::Utils::MatrixStateSoilColumn(0.);
-  double* h2ocan= new double [ n_grid_cells*n_pfts ];
-  double* swe_old= new double [n_grid_cells*n_levels_snow ];
-  double* h2osoi_liq= new double [n_grid_cells*n_levels_snow ];
-  double* h2osoi_ice= new double [n_grid_cells*n_levels_snow ];
-  double* t_soisno= new double [n_grid_cells*n_levels_snow ];
-  double* frac_iceold= new double [n_grid_cells*n_levels_snow ];
+  
+  double* h2ocan= memoryManager::allocate<double>( n_grid_cells*n_pfts );
+  std::memset(h2ocan, 0, n_grid_cells*n_pfts * sizeof(double));
+  double* swe_old= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* h2osoi_liq= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* h2osoi_ice= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* t_soisno= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
+  double* frac_iceold= memoryManager::allocate<double>(n_grid_cells*n_levels_snow );
 
-  RAJA::View<double, RAJA::Layout<DIM2> > h_h2ocan( h2ocan, n_grid_cells, n_pfts );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_swe_old( swe_old, n_grid_cells, n_levels_snow );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_h2osoi_liq( h2osoi_liq, n_grid_cells, n_levels_snow );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_h2osoi_ice( h2osoi_ice, n_grid_cells, n_pfts );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_t_soisno( t_soisno, n_grid_cells, n_levels_snow );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_frac_iceold( frac_iceold, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_h2ocan( h2ocan, n_grid_cells, n_pfts );
+  RAJA::View<double, RAJA::Layout<DIM> > h_swe_old( swe_old, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_h2osoi_liq( h2osoi_liq, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_h2osoi_ice( h2osoi_ice, n_grid_cells, n_levels_snow  );
+  RAJA::View<double, RAJA::Layout<DIM> > h_t_soisno( t_soisno, n_grid_cells, n_levels_snow );
+  RAJA::View<double, RAJA::Layout<DIM> > h_frac_iceold( frac_iceold, n_grid_cells, n_levels_snow );
 
-  // double* t_grnd = ELM::Utils::VectorColumn(0.);
-  // double* h2osno = ELM::Utils::VectorColumn(0.);
-  // double* snow_depth = ELM::Utils::VectorColumn(0.);
-  // double* snl = ELM::Utils::VectorColumnInt(0.); // note this tracks the snow_depth
+  
   double* t_grnd= memoryManager::allocate<double>(n_grid_cells );
   double* h2osno= memoryManager::allocate<double>(n_grid_cells );
+  std::memset(h2osno, 0, n_grid_cells* sizeof(double));
   double* snow_depth= memoryManager::allocate<double>(n_grid_cells );
   int* snow_level= memoryManager::allocate<int>(n_grid_cells );
 
-  RAJA::View<double, RAJA::Layout<DIM1> > h_t_grnd(  t_grnd,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_h2osno( h2osno,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_snow_depth(  snow_depth,n_grid_cells);
-  RAJA::View<int, RAJA::Layout<DIM1> > h_snow_level( snow_level,n_grid_cells);
+  //RAJA::Layout<1> layout = RAJA::make_offset_layout<1>({{0}}, {{n_grid_cells}});
+  const RAJA::Layout<1> layout(n_grid_cells);
 
-  // double* h2osfc = ELM::Utils::VectorColumn(0.);
-  // double* frac_h2osfc = ELM::Utils::VectorColumn(0.);
+  RAJA::View<double, RAJA::Layout<1> > h_t_grnd(  t_grnd,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_h2osno( h2osno,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_snow_depth(  snow_depth,layout);
+  RAJA::View<int, RAJA::Layout<1> > h_snow_level( snow_level,layout);
+
+  
   double* h2osfc= memoryManager::allocate<double>(n_grid_cells );
   double* frac_h2osfc= memoryManager::allocate<double>(n_grid_cells );
-  RAJA::View<double, RAJA::Layout<DIM1> > h_h2osfc(  h2osfc);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_frac_h2osfc( frac_h2osfc);
+  std::memset(frac_h2osfc, 0, n_grid_cells* sizeof(double));
+  RAJA::View<double, RAJA::Layout<1> > h_h2osfc(  h2osfc,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_frac_h2osfc( frac_h2osfc,layout);
 
   
   // output fluxes by pft
-  // double* qflx_prec_intr = ELM::Utils::MatrixStatePFT();
-  // double* qflx_irrig = ELM::Utils::MatrixStatePFT();
-  // double* qflx_prec_grnd = ELM::Utils::MatrixStatePFT();
-  // double* qflx_snwcp_liq = ELM::Utils::MatrixStatePFT();
-  // double* qflx_snwcp_ice = ELM::Utils::MatrixStatePFT();
-  // double* qflx_snow_grnd_patch = ELM::Utils::MatrixStatePFT();
-  // double* qflx_rain_grnd = ELM::Utils::MatrixStatePFT();
+  
   double* qflx_prec_intr= memoryManager::allocate<double>( n_grid_cells*n_pfts );
   double* qflx_irrig= memoryManager::allocate<double>( n_grid_cells*n_pfts );
   double* qflx_prec_grnd= memoryManager::allocate<double>( n_grid_cells*n_pfts );;
@@ -175,56 +160,47 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   double* qflx_snow_grnd_patch= memoryManager::allocate<double>( n_grid_cells*n_pfts );
   double* qflx_rain_grnd= memoryManager::allocate<double>( n_grid_cells*n_pfts );
 
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_prec_intr( qflx_prec_intr, n_grid_cells, n_pfts);
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_irrig( qflx_irrig, n_grid_cells, n_pfts);
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_prec_grnd( qflx_prec_grnd, n_grid_cells, n_pfts);
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_snwcp_liq(  qflx_snwcp_liq, n_grid_cells, n_pfts);
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_snwcp_ice( qflx_snwcp_ice, n_grid_cells, n_pfts  );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_snow_grnd_patch( qflx_snow_grnd_patch, n_grid_cells, n_pfts );
-  RAJA::View<double, RAJA::Layout<DIM2> > h_qflx_rain_grnd(  qflx_rain_grnd, n_grid_cells, n_pfts  );
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_prec_intr( qflx_prec_intr, n_grid_cells, n_pfts);
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_irrig( qflx_irrig, n_grid_cells, n_pfts);
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_prec_grnd( qflx_prec_grnd, n_grid_cells, n_pfts);
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_snwcp_liq(  qflx_snwcp_liq, n_grid_cells, n_pfts);
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_snwcp_ice( qflx_snwcp_ice, n_grid_cells, n_pfts  );
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_snow_grnd_patch( qflx_snow_grnd_patch, n_grid_cells, n_pfts );
+  RAJA::View<double, RAJA::Layout<DIM> > h_qflx_rain_grnd(  qflx_rain_grnd, n_grid_cells, n_pfts  );
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  //double* integrated_snow = ELM::Utils::VectorColumn(0.);
+  
   double* integrated_snow= memoryManager::allocate<double>(n_grid_cells );
-  RAJA::View<double, RAJA::Layout<DIM1> > h_integrated_snow(integrated_snow,n_grid_cells);
+  RAJA::View<double, RAJA::Layout<1> > h_integrated_snow(integrated_snow,layout);
   
   // output fluxes, state by the column
-  // double* qflx_snow_grnd_col = ELM::Utils::VectorColumn();
-  // double* qflx_snow_h2osfc = ELM::Utils::VectorColumn();
-  // double* qflx_h2osfc2topsoi = ELM::Utils::VectorColumn();
-  // double* qflx_floodc = ELM::Utils::VectorColumn();
+  
   double* qflx_snow_grnd_col= memoryManager::allocate<double>(n_grid_cells );
   double* qflx_snow_h2osfc= memoryManager::allocate<double>(n_grid_cells );
   double* qflx_h2osfc2topsoi= memoryManager::allocate<double>(n_grid_cells );
   double* qflx_floodc= memoryManager::allocate<double>(n_grid_cells );
 
-  RAJA::View<double, RAJA::Layout<DIM1> > h_qflx_snow_grnd_col(  qflx_snow_grnd_col,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_qflx_snow_h2osfc( qflx_snow_h2osfc,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_qflx_h2osfc2topsoi(  qflx_h2osfc2topsoi,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_qflx_floodc( qflx_floodc,n_grid_cells);
+  RAJA::View<double, RAJA::Layout<1> > h_qflx_snow_grnd_col(  qflx_snow_grnd_col,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_qflx_snow_h2osfc( qflx_snow_h2osfc,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_qflx_h2osfc2topsoi(  qflx_h2osfc2topsoi,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_qflx_floodc( qflx_floodc,layout);
 
-  // double* frac_sno_eff = ELM::Utils::VectorColumn();
-  // double* frac_sno = ELM::Utils::VectorColumn();
+  
   double* frac_sno_eff= memoryManager::allocate<double>(n_grid_cells );
   double* frac_sno= memoryManager::allocate<double>(n_grid_cells );
 
-  RAJA::View<double, RAJA::Layout<DIM1> > h_frac_sno_eff(  frac_sno_eff,n_grid_cells);
-  RAJA::View<double, RAJA::Layout<DIM1> > h_frac_sno( frac_sno,n_grid_cells);
-  
-
-  // std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-  // std::cout << std::setprecision(16)
-  //           << 0 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-  //           << "\t" << *min_max.first
-  //           << "\t" << *min_max.second << std::endl;
+  RAJA::View<double, RAJA::Layout<1> > h_frac_sno_eff(  frac_sno_eff,layout);
+  RAJA::View<double, RAJA::Layout<1> > h_frac_sno( frac_sno,layout);
   
 
 
-  double* end1 = &h_h2ocan(n_grid_cells-1, n_pfts-1) ;
-  double* end2 = &h_h2osno(n_grid_cells-1) ;
-  double* end3 = &h_frac_h2osfc(n_grid_cells-1) ;
+  double* end1 = NULL;
+  end1 = &h_h2ocan(n_grid_cells-1, n_pfts-1) ;
+  double* end2 = NULL;
+  end2 = &h_h2osno(n_grid_cells-1) ;
+  double* end3 = NULL;
+  end3 = &h_frac_h2osfc(n_grid_cells-1) ;
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_module.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
@@ -265,10 +241,15 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   for (size_t t = 0; t != n_times; ++t) {
 
     // grid cell and/or pft loop can be parallelized
-    for (size_t g = 0; g != n_grid_cells; ++g) {
+    // for (size_t g = 0; g != n_grid_cells; ++g) {
 
-      // PFT level operations
-      for (size_t p = 0; p != n_pfts; ++p) {
+    //   // PFT level operations
+    using REDUCE_POL1 = RAJA::seq_reduce;
+    RAJA::ReduceSum<REDUCE_POL1, int> seq_sum(0);
+
+    RAJA::forall<RAJA::loop_exec>( row_range, [=](int g) {
+    RAJA::forall<RAJA::loop_exec>( col_range, [=](int p) {
+    //   for (size_t p = 0; p != n_pfts; ++p) {
       // RAJA::kernel_param<POL> (RAJA::RangeSegment(0,n_pfts),RAJA::make_tuple(RAJA::RangeSegment(0,n_grid_cells)),
 
       // [=] (size_t g, size_t p) {
@@ -297,21 +278,13 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
         // --etc
         double fwet = 0., fdry = 0.;
         ELM::CanopyHydrology_FracWet(frac_veg_nosno, h_h2ocan(g,p), h_elai(g,p), h_esai(g,p), dewmx, fwet, fdry);
-      } // end PFT loop
 
+        seq_sum += h_qflx_snow_grnd_patch(g,p); 
+      }); // end PFT loop
       // Column level operations
-      
 
       // NOTE: this is effectively an accumulation kernel/task! --etc
-      double* qpatch = &h_qflx_snow_grnd_patch(n_grid_cells-1, n_pfts-1);
-      // NOTE: this is effectively an accumulation kernel/task! --etc
-      //qflx_snow_grnd_col(g) = std::accumulate(&qflx_snow_grnd_patch(0,0), qpatch+1, 0.);
-      // for (int x = 0; x <n_grid_cells; x++) {
-      double sum = 0 ;    
-      for (size_t p = 0; p != n_pfts; ++p) {
-      sum += h_qflx_snow_grnd_patch(g,p);
-      }
-      h_qflx_snow_grnd_col(g) = sum ; 
+      h_qflx_snow_grnd_col(g) = seq_sum ; 
 
       // Calculate ?water balance? on the snow column, adding throughfall,
       // removing melt, etc.
@@ -322,9 +295,9 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
               h_forc_air_temp(t,g), h_t_grnd(g),
               h_qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, h_frac_h2osfc(g),
-              h_snow_depth(g), h_h2osno(g), h_integrated_snow(g), h_swe_old(g),
-              h_h2osoi_liq(g), h_h2osoi_ice(g), h_t_soisno(g), h_frac_iceold(g),
-              h_snow_level(g), h_dz(g), h_z(g), h_zi(g), newnode,
+              h_snow_depth(g), h_h2osno(g), h_integrated_snow(g), &h_swe_old(g*n_levels_snow,0),
+              &h_h2osoi_liq(g*n_levels_snow,0), &h_h2osoi_ice(g*n_levels_snow,0), &h_t_soisno(g*n_levels_snow,0), &h_frac_iceold(g*n_levels_snow,0),
+              h_snow_level(g), &h_dz(g*n_levels_snow,0), &h_z(g*n_levels_snow,0), &h_zi(g*n_levels_snow,0), newnode,
               h_qflx_floodc(g), h_qflx_snow_h2osfc(g), h_frac_sno_eff(g), h_frac_sno(g));
 
       // Calculate Fraction of Water to the Surface?
@@ -336,14 +309,9 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
               h_h2osno(g), h_h2osfc(g), h_h2osoi_liq(g,0), h_frac_sno(g), h_frac_sno_eff(g),
               h_qflx_h2osfc2topsoi(g), h_frac_h2osfc(g));
       
-    } // end grid cell loop
+    }); // end grid cell loop
 
     
-    // auto min_max = std::minmax_element(h2ocan.begin(), h2ocan.end());
-    // std::cout << std::setprecision(16)
-    //           << t+1 << "\t" << std::accumulate(h2ocan.begin(), h2ocan.end(), 0.)
-    //           << "\t" << *min_max.first
-    //           << "\t" << *min_max.second << std::endl;
     auto min_max_water = std::minmax_element(&h_h2ocan(0,0), end1+1);
     auto sum_water = std::accumulate(&h_h2ocan(0,0), end1+1, 0.);
 

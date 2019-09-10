@@ -76,11 +76,11 @@ add_executable(
 target_link_libraries(test_CanopyHydrology_kern1_single -L/usr/local/lib -lnetcdf)
 target_include_directories(test_CanopyHydrology_kern1_single PUBLIC ${RAJA_INCLUDE_DIR})
 
-#add_executable(
-#  test_CanopyHydrology_module
-#  CanopyHydrology_module.cpp)
-#target_link_libraries(test_CanopyHydrology_module -L/usr/local/lib -lnetcdf)
-#target_include_directories(test_CanopyHydrology_module PUBLIC ${RAJA_INCLUDE_DIR} $(ELM_ROOT))
+add_executable(
+  test_CanopyHydrology_module
+  CanopyHydrology_module.cpp)
+target_link_libraries(test_CanopyHydrology_module -L/usr/local/lib -lnetcdf)
+target_include_directories(test_CanopyHydrology_module PUBLIC ${RAJA_INCLUDE_DIR} $(ELM_ROOT))
 
 execute_process(
   COMMAND ./test_CanopyHydrology_kern1_single
@@ -92,12 +92,21 @@ execute_process(
   OUTPUT_FILE "test_CanopyHydrology_kern1_multiple.stdout"
 )
 
-enable_testing()
-add_test(NAME RAJAtest
-  COMMAND python ../compare_to_gold.py test_CanopyHydrology_kern1_single test_CanopyHydrology_kern1_multiple
+execute_process(
+  COMMAND ./test_CanopyHydrology_module
+  OUTPUT_FILE "test_CanopyHydrology_module.stdout"
 )
 
-add_custom_target(cleanall
-  COMMAND rm -r CMakeFiles/ Testing/ 
-  COMMAND rm test_* CMakeCache.txt cmake_* CTestTestfile.cmake Makefile
+enable_testing()
+add_test(NAME RAJAtest
+  COMMAND python ../compare_to_gold.py test_CanopyHydrology_kern1_single test_CanopyHydrology_kern1_multiple test_CanopyHydrology_module
+)
+
+#add_custom_target(cleanall
+#  COMMAND rm -r CMakeFiles/ Testing/ 
+#  COMMAND rm test_* CMakeCache.txt cmake_* CTestTestfile.cmake Makefile
+#)
+
+add_custom_target(cln
+  COMMAND rm test_* *.soln *.stdout
 )

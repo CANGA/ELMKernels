@@ -52,11 +52,11 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
 
   const double dewmx = 0.1;
   double dtime = 1800.0;
-
+  RAJA::RangeSegment row_range(0, n_grid_cells);
+  RAJA::RangeSegment col_range(0, n_pfts);
  
   // phenology state
-  // ELM::Utils::MatrixState elai;
-  // ELM::Utils::MatrixState esai;
+ 
   double* elai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
   double* esai = memoryManager::allocate<double>(n_grid_cells * n_pfts);
 
@@ -67,10 +67,7 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, h_elai, h_esai);
 
   // forcing state
-  // ELM::Utils::MatrixForc forc_rain;
-  // ELM::Utils::MatrixForc forc_snow;
-  // ELM::Utils::MatrixForc forc_air_temp;
-
+ 
   double* forc_rain = memoryManager::allocate<double>( n_max_times * n_grid_cells );
   double* forc_snow = memoryManager::allocate<double>( n_max_times * n_grid_cells );
   double* forc_air_temp = memoryManager::allocate<double>( n_max_times * n_grid_cells );
@@ -86,20 +83,7 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   //ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
   
   // output state by the grid cell
-  // auto qflx_prec_intr = std::array<double,n_grid_cells>();
-  // auto qflx_irrig = std::array<double,n_grid_cells>();
-  // auto qflx_prec_grnd = std::array<double,n_grid_cells>();
-  // auto qflx_snwcp_liq = std::array<double,n_grid_cells>();
-  // auto qflx_snwcp_ice = std::array<double,n_grid_cells>();
-  // auto qflx_snow_grnd_patch = std::array<double,n_grid_cells>();
-  // auto qflx_rain_grnd = std::array<double,n_grid_cells>();
-  // auto qflx_prec_intr = ELM::Utils::MatrixState();
-  // auto qflx_irrig = ELM::Utils::MatrixState();
-  // auto qflx_prec_grnd = ELM::Utils::MatrixState();
-  // auto qflx_snwcp_liq = ELM::Utils::MatrixState();
-  // auto qflx_snwcp_ice = ELM::Utils::MatrixState();
-  // auto qflx_snow_grnd_patch = ELM::Utils::MatrixState();
-  // auto qflx_rain_grnd = ELM::Utils::MatrixState();
+  
   double* qflx_prec_intr= memoryManager::allocate<double>(n_grid_cells*n_pfts);
   double* qflx_irrig= memoryManager::allocate<double>(n_grid_cells*n_pfts);
   double* qflx_prec_grnd= memoryManager::allocate<double>(n_grid_cells*n_pfts);
@@ -117,26 +101,28 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
   RAJA::View<double, RAJA::Layout<DIM> > h_qflx_rain_grnd(  qflx_rain_grnd, n_grid_cells, n_pfts  );
 
   // output state by the pft
-  double* h2o_can= NULL;
-  h2o_can = memoryManager::allocate<double>(n_grid_cells*n_pfts);
+  double* h2o_can= memoryManager::allocate<double>(n_grid_cells*n_pfts);
  
    //auto h2o_can = ELM::Utils::MatrixState(); 
   RAJA::View<double, RAJA::Layout<DIM> > h_h2o_can( h2o_can,n_grid_cells,n_pfts );
+  std::memset(h2o_can, 0, n_grid_cells*n_pfts * sizeof(double));
   double* end = NULL;
-  end = &h_h2o_can(n_grid_cells, n_pfts) ;
+  end = &h_h2o_can(n_grid_cells-1, n_pfts-1) ;
 
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_multiple.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
   std::cout << "Time\t Total Canopy Water\t Min Water\t Max Water" << std::endl;
-  auto min_max = std::minmax_element(&h_h2o_can(0,0), end);//h2o_can1.begin(), h2o_can1.end());
+  std::cout << " check " << n_grid_cells*n_pfts << std::endl ;
+  std::cout << "Size " << end+1 - &h_h2o_can(0,0) << std::endl ;
+  auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
   soln_file << std::setprecision(16)
-          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
           << "\t" << *min_max.first
           << "\t" << *min_max.second << std::endl;
 
   std::cout << std::setprecision(16)
-          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
+          << 0 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.) //h2o_can1.begin(), h2o_can1.end(), 0.)
           << "\t" << *min_max.first
           << "\t" << *min_max.second << std::endl;
 
@@ -169,11 +155,11 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
 
     //   RAJA::kernel<EXEC_POL1>(RAJA::make_tuple(n_grid_cells,n_pfts),
     //   [=] (const size_t& g, const size_t& p) {
-      for (size_t g = 0; g != n_grid_cells; ++g) {
-        for (size_t p = 0; p != n_pfts; ++p) {
-        // RAJA::forall<RAJA::loop_exec>( n_grid_cells, [=](size_t g) {
+      // for (size_t g = 0; g != n_grid_cells; ++g) {
+      //   for (size_t p = 0; p != n_pfts; ++p) {
+        RAJA::forall<RAJA::loop_exec>( row_range, [=](int g) {
 
-        //   RAJA::forall<RAJA::loop_exec>( n_pfts, [=](size_t p) {
+          RAJA::forall<RAJA::loop_exec>( col_range, [=](int p) {
           ELM::CanopyHydrology_Interception(dtime,
                     h_forc_rain(t,g), h_forc_snow(t,g), h_forc_irrig(t,g),
                     ltype, ctype, urbpoi, do_capsnow,
@@ -182,16 +168,16 @@ int main(int RAJA_UNUSED_ARG(argc), char **RAJA_UNUSED_ARG(argv[]))
                     h_qflx_prec_intr(g,p), h_qflx_irrig(g,p), h_qflx_prec_grnd(g,p),
                     h_qflx_snwcp_liq(g,p), h_qflx_snwcp_ice(g,p),
                     h_qflx_snow_grnd_patch(g,p), h_qflx_rain_grnd(g,p));
-        }
-      }
-      //});
-    auto min_max = std::minmax_element(&h_h2o_can(0,0), end);//h2o_can1.begin(), h2o_can1.end());
+        });
+      //}
+      });
+    auto min_max = std::minmax_element(&h_h2o_can(0,0), end+1);//h2o_can1.begin(), h2o_can1.end());
     std::cout << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
     soln_file << std::setprecision(16)
-              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
+              << t+1 << "\t" << std::accumulate(&h_h2o_can(0,0), end+1, 0.)//h2o_can1.begin(), h2o_can1.end(), 0.)
               << "\t" << *min_max.first
               << "\t" << *min_max.second << std::endl;
 
