@@ -42,6 +42,12 @@ static const int n_max_times = 31 * 24 * 2; // max days per month times hours pe
 static const int n_grid_cells = 24;
 static const int n_levels_snow = 5;
 
+using MatrixStatePFT = MatrixStatic<n_grid_cells, n_pfts>;
+using MatrixStateSoilColumn = MatrixStatic<n_grid_cells, n_levels_snow>;
+using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
+using VectorColumn = VectorStatic<n_grid_cells>;
+using VectorColumnInt = VectorStatic<n_grid_cells,int>;
+
 } // namespace
 } // namespace
 
@@ -82,17 +88,17 @@ int main(int argc, char ** argv)
   const double n_melt = 0.7;
                                
   // phenology input
-  double* elai = new double[n_grid_cells * n_pfts];
-  double* esai = new double[n_grid_cells * n_pfts];
+  ELM::Utils::MatrixStatePFT elai;
+  ELM::Utils::MatrixStatePFT esai;
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
   // forcing input
-  double* forc_rain = new double[ n_max_times * n_grid_cells ];
-  double* forc_snow = new double[ n_max_times * n_grid_cells ];
-  double* forc_air_temp = new double[ n_max_times * n_grid_cells ];
+  ELM::Utils::MatrixForc forc_rain;
+  ELM::Utils::MatrixForc forc_snow;
+  ELM::Utils::MatrixForc forc_air_temp;
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
-  double* forc_irrig = new double[ n_max_times * n_grid_cells ];
+  ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
   double qflx_floodg = 0.0;
 
   
@@ -100,63 +106,59 @@ int main(int argc, char ** argv)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // need them to be for these kernels. --etc
-  auto z = new double[n_grid_cells*n_levels_snow];
-  auto zi = new double[n_grid_cells*n_levels_snow];
-  auto dz = new double[n_grid_cells*n_levels_snow];
+  auto z = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto zi = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto dz = ELM::Utils::MatrixStateSoilColumn(0.);
 
   // state variables that require ICs and evolve (in/out)
-  double* h2ocan = new double[n_grid_cells * n_pfts]; 
-  double* swe_old = new double[n_grid_cells*n_levels_snow];
-  double* h2osoi_liq = new double[n_grid_cells*n_levels_snow];
-  double* h2osoi_ice = new double[n_grid_cells*n_levels_snow];
-  double* t_soisno = new double[n_grid_cells*n_levels_snow];
-  double* frac_iceold = new double[n_grid_cells*n_levels_snow];
-  double* t_grnd = new double[n_grid_cells];
-  double* h2osno = new double[n_grid_cells]; 
-  double* snow_depth = new double[n_grid_cells];
-  int* snow_level = new int[n_grid_cells]; // note this tracks the snow_depth
+  auto h2ocan = ELM::Utils::MatrixStatePFT(); h2ocan = 0.;
+  auto swe_old = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto t_soisno = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto frac_iceold = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto t_grnd = ELM::Utils::VectorColumn(0.);
+  auto h2osno = ELM::Utils::VectorColumn(0.); h2osno = 0.;
+  auto snow_depth = ELM::Utils::VectorColumn(0.);
+  auto snow_level = ELM::Utils::VectorColumnInt(0.); // note this tracks the snow_depth
 
-  double* h2osfc = new double[n_grid_cells];
-  double* frac_h2osfc = new double[n_grid_cells]; 
+  auto h2osfc = ELM::Utils::VectorColumn(0.);
+  auto frac_h2osfc = ELM::Utils::VectorColumn(0.); frac_h2osfc = 0.; 
 
   
   // output fluxes by pft
-  double* qflx_prec_intr = new double[n_grid_cells * n_pfts];
-  double* qflx_irrig = new double[n_grid_cells * n_pfts];
-  double* qflx_prec_grnd = new double[n_grid_cells * n_pfts];
-  double* qflx_snwcp_liq = new double[n_grid_cells * n_pfts];
-  double* qflx_snwcp_ice = new double[n_grid_cells * n_pfts];
-  double* qflx_snow_grnd_patch = new double[n_grid_cells * n_pfts];
-  double* qflx_rain_grnd = new double[n_grid_cells * n_pfts];
+  auto qflx_prec_intr = ELM::Utils::MatrixStatePFT();
+  auto qflx_irrig = ELM::Utils::MatrixStatePFT();
+  auto qflx_prec_grnd = ELM::Utils::MatrixStatePFT();
+  auto qflx_snwcp_liq = ELM::Utils::MatrixStatePFT();
+  auto qflx_snwcp_ice = ELM::Utils::MatrixStatePFT();
+  auto qflx_snow_grnd_patch = ELM::Utils::MatrixStatePFT();
+  auto qflx_rain_grnd = ELM::Utils::MatrixStatePFT();
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  double* integrated_snow = new double[n_grid_cells];
+  auto integrated_snow = ELM::Utils::VectorColumn(0.);
   
   // output fluxes, state by the column
-  double* qflx_snow_grnd_col = new double[n_grid_cells];
-  double* qflx_snow_h2osfc = new double[n_grid_cells];
-  double* qflx_h2osfc2topsoi = new double[n_grid_cells];
-  double* qflx_floodc = new double[n_grid_cells];
+  auto qflx_snow_grnd_col = ELM::Utils::VectorColumn();
+  auto qflx_snow_h2osfc = ELM::Utils::VectorColumn();
+  auto qflx_h2osfc2topsoi = ELM::Utils::VectorColumn();
+  auto qflx_floodc = ELM::Utils::VectorColumn();
 
-  double* frac_sno_eff = new double[n_grid_cells];
-  double* frac_sno = new double[n_grid_cells];
-
-  double* end = &h2ocan[n_grid_cells, n_pfts] ;
-  double* end2 = &h2osno[n_grid_cells-1] ;
-  double* end3 = &frac_h2osfc[n_grid_cells-1] ;
+  auto frac_sno_eff = ELM::Utils::VectorColumn();
+  auto frac_sno = ELM::Utils::VectorColumn();
 
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_module.soln");
   soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
-  auto min_max_water = std::minmax_element(&h2ocan[0,0], end+1);
-  auto sum_water = std::accumulate(&h2ocan[0,0], end+1, 0.);
+  auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
+  auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
-  auto min_max_snow = std::minmax_element(&h2osno[0], end2+1);
-  auto sum_snow = std::accumulate(&h2osno[0], end2+1, 0.);
+  auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
+  auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
 
-  auto min_max_frac_sfc = std::minmax_element(&frac_h2osfc[0], end3+1);
-  auto avg_frac_sfc = std::accumulate(&frac_h2osfc[0], end3+1, 0.) / (end3+1 - &frac_h2osfc[0]);
+  auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
+  auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
   
   soln_file << std::setprecision(16)
             << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
@@ -168,12 +170,12 @@ int main(int argc, char ** argv)
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
 
-    // grid cell and/or pft loop can be parallelized
-    for (size_t g = 0; g != n_grid_cells; ++g) {
-      double sum;
-
-      // PFT level operations
-      for (size_t p = 0; p != n_pfts; ++p) {
+    hpx::parallel::for_loop(hpx::parallel::execution::par.with(
+                                hpx::parallel::execution::static_chunk_size()),
+                            0, n_grid_cells, [&](const size_t g) {
+      hpx::parallel::for_loop(hpx::parallel::execution::par.with(
+                                hpx::parallel::execution::static_chunk_size()),
+                            0, n_pfts, [&](const size_t p) {
         //
         // Calculate interception
         //
@@ -181,13 +183,13 @@ int main(int argc, char ** argv)
         // Surely they should be either accumulated or stored on PFTs as well.
         // --etc
         ELM::CanopyHydrology_Interception(dtime,
-                forc_rain[t,g], forc_snow[t,g], forc_irrig[t,g],
+                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
-                elai[g,p], esai[g,p], dewmx, frac_veg_nosno,
-                h2ocan[g,p], n_irrig_steps_left,
-                qflx_prec_intr[g,p], qflx_irrig[g,p], qflx_prec_grnd[g,p],
-                qflx_snwcp_liq[g,p], qflx_snwcp_ice[g,p],
-                qflx_snow_grnd_patch[g,p], qflx_rain_grnd[g,p]);
+                elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+                h2ocan(g,p), n_irrig_steps_left,
+                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
         //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain[t,g], forc_snow[t,g], elai[g,p], esai[g,p], h2ocan[g,p], qflx_prec_intr[g]);
 
         //
@@ -198,13 +200,12 @@ int main(int argc, char ** argv)
         // By the PFT?
         // --etc
         double fwet = 0., fdry = 0.;
-        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan[g,p], elai[g,p], esai[g,p], dewmx, fwet, fdry);
+        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
 
-        sum += qflx_snow_grnd_patch[g,p];
-      } // end PFT loop
+      }); // end PFT loop
 
-      qflx_snow_grnd_col[g] = sum ;
-
+      qflx_snow_grnd_col[g] = std::accumulate(qflx_snow_grnd_patch[g].begin(),
+              qflx_snow_grnd_patch[g].end(), 0.);
       // Column level operations
 
       // NOTE: this is effectively an accumulation kernel/task! --etc
@@ -217,7 +218,7 @@ int main(int argc, char ** argv)
       int newnode;
       ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
               ltype, ctype, urbpoi, do_capsnow, oldfflag,
-              forc_air_temp[t,g], t_grnd[g],
+              forc_air_temp(t,g), t_grnd(g),
               qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],
               snow_depth[g], h2osno[g], integrated_snow[g], swe_old[g],
               h2osoi_liq[g], h2osoi_ice[g], t_soisno[g], frac_iceold[g],
@@ -230,19 +231,19 @@ int main(int argc, char ** argv)
       // interface specifies a single double.  For now passing the 0th
       // entry. --etc
       ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
-              h2osno[g], h2osfc[g], h2osoi_liq[g,0], frac_sno[g], frac_sno_eff[g],
+              h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_sno_eff[g],
               qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
       
-    } // end grid cell loop
+    }); // end grid cell loop
 
-    auto min_max_water = std::minmax_element(&h2ocan[0,0], end+1);
-    auto sum_water = std::accumulate(&h2ocan[0,0], end+1, 0.);
+    auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
+    auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
-    auto min_max_snow = std::minmax_element(&h2osno[0], end2+1);
-    auto sum_snow = std::accumulate(&h2osno[0], end2+1, 0.);
+    auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
+    auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
 
-    auto min_max_frac_sfc = std::minmax_element(&frac_h2osfc[0], end3+1);
-    auto avg_frac_sfc = std::accumulate(&frac_h2osfc[0], end3+1, 0.) / (end3+1 - &frac_h2osfc[0]);
+    auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
+    auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
                   
     soln_file << std::setprecision(16)
               << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second

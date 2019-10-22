@@ -1,6 +1,3 @@
-#include <hpx/hpx_main.hpp>
-#include <hpx/include/iostreams.hpp>
-#include <hpx/include/parallel_for_loop.hpp>
 #include <netcdf.h>
 #include <cmath>
 #include <cstdio>
@@ -22,6 +19,9 @@
 #include <fstream>
 #include <assert.h>
 //#include <mpi.h>
+#include <hpx/hpx_main.hpp>
+#include <hpx/include/iostreams.hpp>
+#include <hpx/include/parallel_for_loop.hpp>
 #include <chrono>
 #include "utils.hh"
 #include "readers.hh"
@@ -33,10 +33,10 @@ namespace Utils {
 
 static const int n_months = 12;
 static const int n_pfts = 17;
-
+using MatrixState = MatrixStatic<n_months, n_pfts>;
 static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
                                             // day * half hour timestep
-
+using MatrixForc = MatrixStatic<n_max_times,1>;
 } // namespace
 } // namespace
 
@@ -54,7 +54,6 @@ int main(int argc, char ** argv)
   const int n_pfts = 17;
   const int n_max_times = 31 * 24 * 2; // max days per month times hours per
                                        // day * half hour timestep	
-
   // fixed magic parameters for now
   const int ctype = 1;
   const int ltype = 1;
@@ -68,14 +67,14 @@ int main(int argc, char ** argv)
   const double dtime = 1800.0;
 
   // phenology state
-  double* elai = new double[n_months * n_pfts];
-  double* esai = new double[n_months * n_pfts];
+  ELM::Utils::MatrixState elai;
+  ELM::Utils::MatrixState esai;
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
 
   // forcing state
-  double* forc_rain = new double[ n_max_times * 1 ];
-  double* forc_snow = new double[ n_max_times * 1 ];
-  double* forc_air_temp = new double[ n_max_times * 1 ];
+  ELM::Utils::MatrixForc forc_rain;
+  ELM::Utils::MatrixForc forc_snow;
+  ELM::Utils::MatrixForc forc_air_temp;
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 6, 1, forc_rain, forc_snow, forc_air_temp);
 
   double h2ocan = 0.0;
@@ -96,10 +95,10 @@ int main(int argc, char ** argv)
 
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
-    double total_precip = forc_rain[itime,0] + forc_snow[itime,0];
+    double total_precip = forc_rain[itime][0] + forc_snow[itime][0];
     ELM::CanopyHydrology_Interception(dtime, total_precip, 0., irrig_rate,
             ltype, ctype, urbpoi, do_capsnow,
-            elai[5,7], esai[5,7], dewmx, frac_veg_nosno,
+            elai[5][7], esai[5][7], dewmx, frac_veg_nosno,
             h2ocan, n_irrig_steps_left,
             qflx_prec_intr, qflx_irrig, qflx_prec_grnd,
             qflx_snwcp_liq, qflx_snwcp_ice,
@@ -109,7 +108,7 @@ int main(int argc, char ** argv)
   }
   // mytime = MPI_Wtime() - mytime;
 	auto stop = high_resolution_clock::now();
-  // std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
+  // hpx::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << hpx::endl;
 
   // /*compute max, min, and average timing statistics*/
   // MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
@@ -117,7 +116,7 @@ int main(int argc, char ** argv)
   // MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
   // if (myrank == 0) {
   // avgtime /= numprocs;
-  // std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
+  // hpx::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << hpx::endl;
   // }
 
 

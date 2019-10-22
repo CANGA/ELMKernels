@@ -63,14 +63,16 @@ include_directories(
     /home/7hp/Downloads/elm_kernels/src/cc/
     /usr/local/include
     )
+link_directories(${HPX_LIBRARY_DIR})
+
+add_compile_options(-std=c++11)
 
 add_hpx_executable(test_CanopyHydrology_kern1_multiple
     ESSENTIAL
     SOURCES CanopyHydrology_kern1_multiple.cpp
     LINK_FLAGS "-I/usr/local/include -I/home/7hp/Downloads/elm_kernels/src/cc/"
-    COMPONENT_DEPENDENCIES iostreams init 
-    DEPENDENCIES -L/usr/local/lib -lnetcdf)
-
+    COMPONENT_DEPENDENCIES iostreams init
+    DEPENDENCIES -g -L/usr/local/lib -lnetcdf)
 
 add_hpx_executable(test_CanopyHydrology_kern1_single
     ESSENTIAL
@@ -93,17 +95,22 @@ add_hpx_executable(test_CanopyHydrology_module
 #  OUTPUT_FILE "test_CanopyHydrology_kern1_single.stdout"
 #)
 
-#execute_process(
-#  COMMAND ./test_CanopyHydrology_kern1_multiple
-#  OUTPUT_FILE "test_CanopyHydrology_kern1_multiple.stdout"
-#)
+execute_process(
+  COMMAND ./test_CanopyHydrology_kern1_multiple
+  OUTPUT_FILE "test_CanopyHydrology_kern1_multiple.stdout"
+)
 
-#enable_testing()
-#add_test(NAME HPXtest
-#  COMMAND python ../compare_to_gold.py test_CanopyHydrology_kern1_single test_CanopyHydrology_kern1_multiple
-#)
+execute_process(
+  COMMAND ./test_CanopyHydrology_module
+  OUTPUT_FILE "test_CanopyHydrology_module.stdout"
+)
+
+enable_testing()
+add_test(NAME HPXtest
+  COMMAND python ../compare_to_gold.py test_CanopyHydrology_kern1_multiple test_CanopyHydrology_module
+)
 
 add_custom_target(cleanall
   COMMAND rm -r CMakeFiles/ Testing/ 
-  COMMAND rm test_* CMakeCache.txt cmake_* CTestTestfile.cmake Makefile
+  COMMAND rm test_* CMakeCache.txt cmake_* CTestTestfile.cmake Makefile *.soln *.stdout
 )
