@@ -28,12 +28,16 @@ using namespace std::chrono;
 namespace ELM {
 namespace Utils {
 
-static const int n_months = 12;
 static const int n_pfts = 17;
-static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
-                                            // day * half hour timestep
-static const int n_grid_cells = 24;
+static const int n_max_times = 365 * 8; // 3-hourly timesteps for a year
+static const int global_n_grid_cells = 360 * 720;
+static const int n_x_grid_cells = 180;
+static const int n_y_grid_cells = 240;
+static const int n_grid_cells = 240 * 180;
 static const int n_levels_snow = 5;
+static const int NUM_PROCS = 6;
+static const int NUM_PROCS_X = 2;
+static const int NUM_PROCS_Y = 3;
 
 using MatrixStatePFT = MatrixStatic<n_grid_cells, n_pfts>;
 using MatrixStateSoilColumn = MatrixStatic<n_grid_cells, n_levels_snow>;
@@ -58,6 +62,7 @@ int main(int argc, char ** argv)
     MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
     MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
     MPI_Barrier(MPI_COMM_WORLD);
+    assert(NUMPROCS == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
   #endif
   
   // fixed magic parameters for now
