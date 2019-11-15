@@ -24,32 +24,14 @@
 #include "CanopyHydrology_SnowWater_impl.hh"
 using namespace std::chrono; 
 
-
-namespace ELM {
-namespace Utils {
-
-static const int n_pfts = 17;
-static const int n_max_times = 365 * 8; // 3-hourly timesteps for a year
-static const int global_n_grid_cells = 360 * 720;
-static const int n_x_grid_cells = 180;
-static const int n_y_grid_cells = 240;
-static const int n_grid_cells = 240 * 180;
-static const int n_levels_snow = 5;
-static const int NUM_PROCS = 6;
-static const int NUM_PROCS_X = 2;
-static const int NUM_PROCS_Y = 3;
-
-
-} // namespace
-} // namespace
-
-
 int main(int argc, char ** argv)
 {
-  using ELM::Utils::n_months;
-  using ELM::Utils::n_pfts;
-  using ELM::Utils::n_grid_cells;
-  using ELM::Utils::n_max_times;
+  std::size_t n_months = 12;
+  std::size_t n_pfts = 17;
+  std::size_t n_grid_cells = 24;
+  std::size_t n_max_times = 31 * 24 * 2;
+  std::size_t n_levels_snow = 5;
+
   #ifdef MPICOMP
     int myrank, numprocs;
     double mytime, maxtime, mintime, avgtime;

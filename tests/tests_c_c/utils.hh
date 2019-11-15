@@ -12,83 +12,86 @@ namespace Utils {
 
 
 template<typename T=double>
-class VectorStatic {
+class Vector {
  public:
-  VectorStatic(std::size_t N) :
-      do_(std::shared_ptr<T>(new T[N])),
-      N_(N) {
+  Vector(std::size_t N) :
+      N_(N),
+      do_(std::shared_ptr<T>(new T[N], std::default_delete<T[]>()))
+  {
     d_ = do_.get();
   }
   
-  VectorStatic(std::size_t N, T t) :
-      VectorStatic(N)
+  Vector(std::size_t N, T t) :
+      Vector(N)
   { *this = t; }
 
-  VectorStatic(std::size_t N, T* d) :
+  Vector(std::size_t N, T* d) :
+      N_(N),
       do_(nullptr),
-      d_(d),
-      N_(N)
+      d_(d)
   {}
 
-  VectorStatic(const VectorStatic& other) = default;
+  Vector(const Vector& other) = default;
 
-  T& operator()(size_t i) { assert(0 <= i && i < N); return (*d_)[i]; }
-  const T& operator()(size_t i) const { assert(0 <= i && i < N); return (*d_)[i]; }
+  T& operator()(size_t i) { assert(0 <= i && i < N_); return d_[i]; }
+  const T& operator()(size_t i) const { assert(0 <= i && i < N_); return d_[i]; }
 
-  T& operator[](size_t i) { assert(0 <= i && i < N); return (*d_)[i]; }
-  const T& operator[](size_t i) const { assert(0 <= i && i < N); return (*d_)[i]; }
+  T& operator[](size_t i) { assert(0 <= i && i < N_); return d_[i]; }
+  const T& operator[](size_t i) const { assert(0 <= i && i < N_); return d_[i]; }
   
   void operator=(T t) {
     for (size_t i=0; i!=N_; ++i) {
-      (*d_)[i] = t;
+      d_[i] = t;
     }
   }
 
-  double const * begin() const { return &((*d_)[0]); }
-  double const * end() const { return &((*d_)[N]); }
+  double const * begin() const { return &(d_[0]); }
+  double const * end() const { return &(d_[N_]); }
   std::size_t size() const { return N_; }
   
  private:
   const std::size_t N_;
-  T[] d_;
-  std::shared_ptr<T[]> do_;
+  std::shared_ptr<T> do_;
+  T* d_;
 };
 
 
 
 template<typename T=double>
-class MatrixStatic {
+class Matrix {
  public:
-  MatrixStatic(std::size_t M, std::size_t N) :
-      d_(std::shared_ptr<T>(new T[N*M])),
+  Matrix(std::size_t M, std::size_t N) :
       M_(M),
       N_(N),
-      NM_(N*M)
+      NM_(N*M),
+      d_(std::shared_ptr<T>(new T[N*M], std::default_delete<T[]>()))
   {}
 
-  MatrixStatic(std::size_t M, std::size_t N, T t) :
-      MatrixStatic(M,N) 
+  Matrix(std::size_t M, std::size_t N, T t) :
+      Matrix(M,N) 
   { *this = t; }
   
-  MatrixStatic(const MatrixStatic& other) = default;
+  Matrix(const Matrix& other) = default;
   
-  T& operator()(size_t i, size_t j) { assert(0 <= i && i < M_ && 0 <= j && j < N_); return (*d_)[j+i*N_]; }
-  const T& operator()(size_t i, size_t j) const { assert(0 <= i && i < M_ && 0 <= j && j < N_); return (*d_)[j+i*N_]; }
+  T& operator()(size_t i, size_t j) { assert(0 <= i && i < M_ && 0 <= j && j < N_); return d_.get()[j+i*N_]; }
+  const T& operator()(size_t i, size_t j) const { assert(0 <= i && i < M_ && 0 <= j && j < N_); return d_.get()[j+i*N_]; }
 
-  VectorStatic<T> operator[](size_t i) { assert(0 <= i && i < M_); return VectorStatic<T>(N_, &(*d_)[i*N_]); }
-  const VectorStatic<COL,T> operator[](size_t i) const { assert(0 <= i && i < M_); return VectorStatic<T>(N_, &(*d_)[i*N_]); }
+  Vector<T> operator[](size_t i) { assert(0 <= i && i < M_); return Vector<T>(N_, &d_.get()[i*N_]); }
+  const Vector<T> operator[](size_t i) const { assert(0 <= i && i < M_); return Vector<T>(N_, &d_.get()[i*N_]); }
 
   void operator=(T t) {
     for (std::size_t i=0; i!=NM_; ++i) {
-      (*d_)[i] = t;
+      d_.get()[i] = t;
     }
   }
 
-  double const * begin() const { return &(*d_)[0]; }
-  double const * end() const { return &(*d_)[M_-1][N_-1] +1; }
+  double const * begin() const { return &d_.get()[0]; }
+  double const * end() const { return &d_.get()[M_-1][N_-1] +1; }
   
  private:
-  std::shared_ptr<T[]> d_;
+  std::size_t M_, N_, NM_;
+  
+  std::shared_ptr<T> d_;
 };
   
   
