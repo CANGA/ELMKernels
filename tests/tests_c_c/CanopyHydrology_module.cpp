@@ -39,11 +39,6 @@ static const int NUM_PROCS = 6;
 static const int NUM_PROCS_X = 2;
 static const int NUM_PROCS_Y = 3;
 
-using MatrixStatePFT = MatrixStatic<n_grid_cells, n_pfts>;
-using MatrixStateSoilColumn = MatrixStatic<n_grid_cells, n_levels_snow>;
-using MatrixForc = MatrixStatic<n_max_times,n_grid_cells>;
-using VectorColumn = VectorStatic<n_grid_cells>;
-using VectorColumnInt = VectorStatic<n_grid_cells,int>;
 
 } // namespace
 } // namespace
@@ -86,17 +81,17 @@ int main(int argc, char ** argv)
   const double n_melt = 0.7;
                                
   // phenology input
-  ELM::Utils::MatrixStatePFT elai;
-  ELM::Utils::MatrixStatePFT esai;
+  ELM::Utils::Matrix<double> elai(n_grid_cells, n_pfts);
+  ELM::Utils::Matrix<double> esai(n_grid_cells, n_pfts);
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
   // forcing input
-  ELM::Utils::MatrixForc forc_rain;
-  ELM::Utils::MatrixForc forc_snow;
-  ELM::Utils::MatrixForc forc_air_temp;
+  ELM::Utils::Matrix<double> forc_rain(n_max_times, n_grid_cells);
+  ELM::Utils::Matrix<double> forc_snow(n_max_times, n_grid_cells);
+  ELM::Utils::Matrix<double> forc_air_temp(n_max_times, n_grid_cells);
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
-  ELM::Utils::MatrixForc forc_irrig; forc_irrig = 0.;
+  ELM::Utils::Matrix<double> forc_irrig(n_max_times, n_grid_cells, 0.);
   double qflx_floodg = 0.0;
 
   
@@ -104,47 +99,47 @@ int main(int argc, char ** argv)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // need them to be for these kernels. --etc
-  auto z = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto zi = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto dz = ELM::Utils::MatrixStateSoilColumn(0.);
+  auto z = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto zi = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto dz = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
 
   // state variables that require ICs and evolve (in/out)
-  auto h2ocan = ELM::Utils::MatrixStatePFT(); h2ocan = 0.;
-  auto swe_old = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto h2osoi_liq = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto h2osoi_ice = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto t_soisno = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto frac_iceold = ELM::Utils::MatrixStateSoilColumn(0.);
-  auto t_grnd = ELM::Utils::VectorColumn(0.);
-  auto h2osno = ELM::Utils::VectorColumn(0.); h2osno = 0.;
-  auto snow_depth = ELM::Utils::VectorColumn(0.);
-  auto snow_level = ELM::Utils::VectorColumnInt(0.); // note this tracks the snow_depth
+  auto h2ocan = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto swe_old = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto h2osoi_liq = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto h2osoi_ice = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto t_soisno = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto frac_iceold = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto t_grnd = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto h2osno = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto snow_depth = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto snow_level = ELM::Utils::Vector<int>(n_grid_cells, 0); // note this tracks the snow_depth
 
-  auto h2osfc = ELM::Utils::VectorColumn(0.);
-  auto frac_h2osfc = ELM::Utils::VectorColumn(0.); frac_h2osfc = 0.;
+  auto h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto frac_h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
 
   
   // output fluxes by pft
-  auto qflx_prec_intr = ELM::Utils::MatrixStatePFT();
-  auto qflx_irrig = ELM::Utils::MatrixStatePFT();
-  auto qflx_prec_grnd = ELM::Utils::MatrixStatePFT();
-  auto qflx_snwcp_liq = ELM::Utils::MatrixStatePFT();
-  auto qflx_snwcp_ice = ELM::Utils::MatrixStatePFT();
-  auto qflx_snow_grnd_patch = ELM::Utils::MatrixStatePFT();
-  auto qflx_rain_grnd = ELM::Utils::MatrixStatePFT();
+  auto qflx_prec_intr = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_irrig = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_prec_grnd = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snwcp_liq = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snwcp_ice = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snow_grnd_patch = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_rain_grnd = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  auto integrated_snow = ELM::Utils::VectorColumn(0.);
+  auto integrated_snow = ELM::Utils::Vector<double>(n_grid_cells, 0.);
   
   // output fluxes, state by the column
-  auto qflx_snow_grnd_col = ELM::Utils::VectorColumn();
-  auto qflx_snow_h2osfc = ELM::Utils::VectorColumn();
-  auto qflx_h2osfc2topsoi = ELM::Utils::VectorColumn();
-  auto qflx_floodc = ELM::Utils::VectorColumn();
+  auto qflx_snow_grnd_col = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto qflx_snow_h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto qflx_h2osfc2topsoi = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto qflx_floodc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
 
-  auto frac_sno_eff = ELM::Utils::VectorColumn();
-  auto frac_sno = ELM::Utils::VectorColumn();
+  auto frac_sno_eff = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto frac_sno = ELM::Utils::Vector<double>(n_grid_cells, 0.);
   #ifdef TRACE
     std::ofstream soln_file;
     soln_file.open("test_CanopyHydrology_module.soln");
