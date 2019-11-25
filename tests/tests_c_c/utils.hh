@@ -40,13 +40,15 @@ class Vector {
   const T& operator[](size_t i) const { assert(0 <= i && i < N_); return d_[i]; }
   
   void operator=(T t) {
-    for (size_t i=0; i!=N_; ++i) {
-      d_[i] = t;
+    for (auto& d : *this) {
+      d = t;
     }
   }
 
-  double const * begin() const { return &(d_[0]); }
-  double const * end() const { return &(d_[N_]); }
+  T const * begin() const { return &(d_[0]); }
+  T const * end() const { return &(d_[N_]); }
+  T * begin() { return d_; }
+  T * end() { return &(d_[N_]); }
   std::size_t size() const { return N_; }
   
  private:
@@ -80,17 +82,18 @@ class Matrix {
   const Vector<T> operator[](size_t i) const { assert(0 <= i && i < M_); return Vector<T>(N_, &d_.get()[i*N_]); }
 
   void operator=(T t) {
-    for (std::size_t i=0; i!=NM_; ++i) {
-      d_.get()[i] = t;
+    for (auto& d : *this) {
+      d = t;
     }
   }
 
-  double const * begin() const { return &d_.get()[0]; }
-  double const * end() const { return &d_.get()[M_-1][N_-1] +1; }
+  T const * begin() const { return &(d_.get()[0]); }
+  T const * end() const { return &(d_.get()[NM_]); }
+  T * begin() { return &(d_.get()[0]); }
+  T * end() { return &(d_.get()[NM_]); }
   
  private:
   std::size_t M_, N_, NM_;
-  
   std::shared_ptr<T> d_;
 };
   

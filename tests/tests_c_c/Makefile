@@ -19,14 +19,16 @@ EXEC_TESTS = CanopyHydrology_kern1_single \
 
 .PHONY: links library test compute
 
-#default: all
+default: test
 
 include $(ELM_BASE)/config/Makefile.logo
 
-#all: logo links library $(TESTS) 
 
-test: logo links library $(TESTS) $(EXEC_TESTS)
+test: debug logo links library $(TESTS) $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
+
+debug:
+	$(eval CXXFLAGS += -DDEBUG)
 
 CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
 	./test_CanopyHydrology_kern1_single > test_CanopyHydrology_kern1_single.stdout
@@ -37,10 +39,8 @@ CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
-
-
 test_%: %.cpp.o readers.hh utils.hh 
-	$(CXX) -DTRACE -o $@ $< $(NETCDF_FLAGS)
+	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
 compute: logo links library $(TEST1)
 

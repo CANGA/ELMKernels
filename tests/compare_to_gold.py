@@ -11,7 +11,6 @@ Error codes:
 ----------------------------------------------------------
 
 """
-from colorama import init 
 from termcolor import colored 
 import argparse
 import numpy as np
@@ -25,7 +24,7 @@ def run_comparison(testname, full_message=False):
     try:
         gold = np.loadtxt(fname_gold, skiprows=1)
     except IOError:
-        print 'ERROR: cannot find gold file "%s", bad testname?'%fname_gold
+        print('ERROR: cannot find gold file "%s", bad testname?'%fname_gold)
         return colored('Error in the gold file ', 'magenta')
 
     # get my file
@@ -37,7 +36,7 @@ def run_comparison(testname, full_message=False):
         try:
             mine = np.loadtxt(fname_mine, skiprows=1)
         except IOError:
-            print 'ERROR: cannot find my file "%s", failed test run?'%fname_mine
+            print('ERROR: cannot find my file "%s", failed test run?'%fname_mine)
             return colored('Error in my file ', 'cyan')
         
     # compare
@@ -45,8 +44,8 @@ def run_comparison(testname, full_message=False):
         close = np.allclose(gold, mine)
     except ValueError as err:
         if full_message:
-            print ''
-            print 'Test: "%s" FAILED with error: "%r"'%(testname, err)
+            print('')
+            print('Test: "%s" FAILED with error: "%r"'%(testname, err))
         return colored('Error in my file size ','yellow')
 
     if close:
@@ -64,11 +63,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     results = []
-    print 'Comparing tests:',
+    print('Comparing tests:')
     for test in args.testnames:
         try:
             results.append(run_comparison(test, args.verbose))
         except Exception as err:
-            print err
+            print(err)
             results.append('N/A ')
-    print ''.join(results)
+    print(''.join(results))

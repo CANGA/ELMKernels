@@ -32,15 +32,15 @@ int main(int argc, char ** argv)
   std::size_t n_max_times = 31 * 24 * 2;
   std::size_t n_levels_snow = 5;
 
-  #ifdef MPICOMP
-    int myrank, numprocs;
-    double mytime, maxtime, mintime, avgtime;
-    MPI_Init(&argc,&argv);
-    MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-    MPI_Barrier(MPI_COMM_WORLD);
-    assert(NUMPROCS == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
-  #endif
+#ifdef MPICOMP
+  int myrank, numprocs;
+  double mytime, maxtime, mintime, avgtime;
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  MPI_Barrier(MPI_COMM_WORLD);
+  assert(NUMPROCS == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
+#endif
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -122,7 +122,7 @@ int main(int argc, char ** argv)
 
   auto frac_sno_eff = ELM::Utils::Vector<double>(n_grid_cells, 0.);
   auto frac_sno = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  #ifdef TRACE
+#ifdef DEBUG
     std::ofstream soln_file;
     soln_file.open("test_CanopyHydrology_module.soln");
     {
@@ -141,11 +141,11 @@ int main(int argc, char ** argv)
                 << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
                 << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
     }
-  #endif
+#endif
   auto start = high_resolution_clock::now();
-  #ifdef MPICOMP
+#ifdef MPICOMP
     mytime = MPI_Wtime();
-  #endif
+#endif
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -212,7 +212,7 @@ int main(int argc, char ** argv)
               qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
       
     } // end grid cell loop
-    #ifdef TRACE
+#ifdef DEBUG
     auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
     auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
 
@@ -226,10 +226,11 @@ int main(int argc, char ** argv)
               << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
               << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
               << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
-    #endif
+#endif
   } // end timestep loop
   auto stop = high_resolution_clock::now();
-  #ifdef MPICOMP
+
+#ifdef MPICOMP
   mytime = MPI_Wtime() - mytime;
   std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
 
@@ -241,7 +242,7 @@ int main(int argc, char ** argv)
   std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
   }
   MPI_Finalize();
-  #endif
+#endif
 
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;

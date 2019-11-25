@@ -24,21 +24,16 @@ using namespace std::chrono;
 namespace ELM {
 namespace Utils {
 
-static const int n_months = 12;
-static const int n_pfts = 17;
-using MatrixState = MatrixStatic<n_months, n_pfts>;
-
-static const int n_max_times = 31 * 24 * 2; // max days per month times hours per
-                                            // day * half hour timestep
-using MatrixForc = MatrixStatic<n_max_times,1>;
 
 } // namespace
 } // namespace
 
 int main(int argc, char ** argv)
 {
-
-
+  const int n_months = 12;
+  const int n_pfts = 17;
+  const int n_max_times = 31 * 24 * 2; // max days per month times hours per
+                                            // day * half hour timestep
 #ifdef MPICOMP
   int myrank, numprocs;
   double mytime, maxtime, mintime, avgtime;
@@ -47,11 +42,6 @@ int main(int argc, char ** argv)
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
-  // dimensions
-  const int n_months = 12;
-  const int n_pfts = 17;
-  const int n_max_times = 31 * 24 * 2; // max days per month times hours per
-                                       // day * half hour timestep	
 
   // fixed magic parameters for now
   const int ctype = 1;
@@ -66,14 +56,14 @@ int main(int argc, char ** argv)
   const double dtime = 1800.0;
 
   // phenology state
-  ELM::Utils::MatrixState elai;
-  ELM::Utils::MatrixState esai;
+  ELM::Utils::Matrix<double> elai(n_months, n_pfts);
+  ELM::Utils::Matrix<double> esai(n_months, n_pfts);
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
 
   // forcing state
-  ELM::Utils::MatrixForc forc_rain;
-  ELM::Utils::MatrixForc forc_snow;
-  ELM::Utils::MatrixForc forc_air_temp;
+  ELM::Utils::Matrix<double> forc_rain(n_max_times, 1);
+  ELM::Utils::Matrix<double> forc_snow(n_max_times, 1);
+  ELM::Utils::Matrix<double> forc_air_temp(n_max_times, 1);
   const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 6, 1, forc_rain, forc_snow, forc_air_temp);
 
   double h2ocan = 0.0;
@@ -85,16 +75,16 @@ int main(int argc, char ** argv)
   double qflx_snow_grnd_patch = 0.;
   double qflx_rain_grnd = 0.;
 
-#ifdef TRACE
+#ifdef DEBUG
   std::ofstream soln_file;
   soln_file.open("test_CanopyHydrology_kern1_single.soln");
   soln_file << "Timestep, forc_rain, h2ocan, qflx_prec_grnd, qflx_prec_intr" << std::endl;
 #endif
 
   auto start = high_resolution_clock::now();
-  #ifdef MPICOMP
+#ifdef MPICOMP
   mytime = MPI_Wtime();
-  #endif
+#endif
 
   for(size_t itime = 0; itime < n_times; itime += 1) {
     // note this call puts all precip as rain for testing
@@ -106,9 +96,9 @@ int main(int argc, char ** argv)
             qflx_prec_intr, qflx_irrig, qflx_prec_grnd,
             qflx_snwcp_liq, qflx_snwcp_ice,
             qflx_snow_grnd_patch, qflx_rain_grnd);
-	#ifdef TRACE	
+#ifdef DEBUG
     soln_file << std::setprecision(16) << itime+1 << "\t" << total_precip << "\t" << h2ocan<< "\t" << qflx_prec_grnd << "\t" << qflx_prec_intr << std::endl;
-  #endif
+#endif
 
   }
   
