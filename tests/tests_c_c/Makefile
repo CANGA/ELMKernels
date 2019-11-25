@@ -5,17 +5,11 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
-TESTS = test_CanopyHydrology_kern1_single \
-        test_CanopyHydrology_kern1_multiple \
-        test_CanopyHydrology_module
+TESTS = test_CanopyHydrology_module
 
-TEST1 = mpi_CanopyHydrology_kern1_single \
-        mpi_CanopyHydrology_kern1_multiple \
-        mpi_CanopyHydrology_module
+TEST1 = mpi_CanopyHydrology_module
 
-EXEC_TESTS = CanopyHydrology_kern1_single \
-             CanopyHydrology_kern1_multiple \
-             CanopyHydrology_module
+EXEC_TESTS = CanopyHydrology_module
 
 .PHONY: links library test compute
 
@@ -29,12 +23,6 @@ test: debug logo links library $(TESTS) $(EXEC_TESTS)
 
 debug:
 	$(eval CXXFLAGS += -DDEBUG)
-
-CanopyHydrology_kern1_single: test_CanopyHydrology_kern1_single
-	./test_CanopyHydrology_kern1_single > test_CanopyHydrology_kern1_single.stdout
-
-CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout

@@ -12,9 +12,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <fstream>
-#ifdef MPICOMP
-  #include <mpi.h>
-#endif
+#include <mpi.h>
 #include <chrono>
 #include "utils.hh"
 #include "readers.hh"
@@ -26,21 +24,27 @@ using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
+  // NOTE: _global indicates values that are across all ranks.  The absence of
+  // global means the variable is spatially local.
+  std::size_t n_times = 365 * 8; // 1 year times 3-hourly timestep
   std::size_t n_months = 12;
-  std::size_t n_pfts = 17;
-  std::size_t n_grid_cells = 24;
-  std::size_t n_max_times = 31 * 24 * 2;
-  std::size_t n_levels_snow = 5;
+  std::size_t nx_global = 360;
+  std::size_t ny_global = 180;
 
-#ifdef MPICOMP
+  std::size_t nx_ranks = 3;
+  std::size_t ny_ranks = 2;
+
+  std::size_t nx = nx_global / nx_ranks; // assumes exact
+  std::size_t ny = ny_global / ny_ranks; // assumes exact
+  std::size_t n_grid_cells = nx * ny;
+
   int myrank, numprocs;
   double mytime, maxtime, mintime, avgtime;
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
-  assert(NUMPROCS == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
-#endif
+  assert(nx_ranks * ny_ranks == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
   
   // fixed magic parameters for now
   const int ctype = 1;
@@ -63,65 +67,69 @@ int main(int argc, char ** argv)
   const double n_melt = 0.7;
                                
   // phenology input
-  ELM::Utils::Matrix<double> elai(n_grid_cells, n_pfts);
-  ELM::Utils::Matrix<double> esai(n_grid_cells, n_pfts);
+  ELM::Utils::Array<3,double> elai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
+  ELM::Utils::Array<3,double> esai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
+
+  // NOTE: fix me.  This can probably be done in a single read call now?
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
   // forcing input
-  ELM::Utils::Matrix<double> forc_rain(n_max_times, n_grid_cells);
-  ELM::Utils::Matrix<double> forc_snow(n_max_times, n_grid_cells);
-  ELM::Utils::Matrix<double> forc_air_temp(n_max_times, n_grid_cells);
-  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
-  ELM::Utils::Matrix<double> forc_irrig(n_max_times, n_grid_cells, 0.);
+  ELM::Utils::Array<2,double> forc_rain(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+  ELM::Utils::Array<2,double> forc_snow(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+  ELM::Utils::Array<2,double> forc_air_temp(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+  ELM::Utils::Array<2,double> forc_irrig(n_times, n_grid_cells, 0.);
   double qflx_floodg = 0.0;
+
+  // parallel NETCDF read fix me...
+  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_times, 0, n_grid_cells, forc_rain, forc_snow, forc_air_temp);
 
   
   // mesh input (though can also change as snow layers evolve)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // need them to be for these kernels. --etc
-  auto z = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto zi = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto dz = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
+  auto z = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto zi = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto dz = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
 
   // state variables that require ICs and evolve (in/out)
-  auto h2ocan = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto swe_old = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto h2osoi_liq = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto h2osoi_ice = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto t_soisno = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto frac_iceold = ELM::Utils::Matrix<double>(n_grid_cells, n_levels_snow, 0.);
-  auto t_grnd = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto h2osno = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto snow_depth = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto snow_level = ELM::Utils::Vector<int>(n_grid_cells, 0); // note this tracks the snow_depth
+  auto h2ocan = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto swe_old = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto h2osoi_liq = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto h2osoi_ice = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto t_soisno = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto frac_iceold = ELM::Utils::Array<2,double>(n_grid_cells, n_levels_snow, 0.);
+  auto t_grnd = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto h2osno = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto snow_depth = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto snow_level = ELM::Utils::Array<1,int>(n_grid_cells, 0); // note this tracks the snow_depth
 
-  auto h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto frac_h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto h2osfc = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto frac_h2osfc = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
 
   
   // output fluxes by pft
-  auto qflx_prec_intr = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_irrig = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_prec_grnd = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_snwcp_liq = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_snwcp_ice = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_snow_grnd_patch = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
-  auto qflx_rain_grnd = ELM::Utils::Matrix<double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_prec_intr = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_irrig = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_prec_grnd = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snwcp_liq = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snwcp_ice = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_snow_grnd_patch = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
+  auto qflx_rain_grnd = ELM::Utils::Array<2,double>(n_grid_cells, n_pfts, 0.);
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  auto integrated_snow = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto integrated_snow = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
   
   // output fluxes, state by the column
-  auto qflx_snow_grnd_col = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto qflx_snow_h2osfc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto qflx_h2osfc2topsoi = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto qflx_floodc = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto qflx_snow_grnd_col = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto qflx_snow_h2osfc = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto qflx_h2osfc2topsoi = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto qflx_floodc = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
 
-  auto frac_sno_eff = ELM::Utils::Vector<double>(n_grid_cells, 0.);
-  auto frac_sno = ELM::Utils::Vector<double>(n_grid_cells, 0.);
+  auto frac_sno_eff = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
+  auto frac_sno = ELM::Utils::Array<1,double>(n_grid_cells, 0.);
 #ifdef DEBUG
     std::ofstream soln_file;
     soln_file.open("test_CanopyHydrology_module.soln");
@@ -143,12 +151,12 @@ int main(int argc, char ** argv)
     }
 #endif
   auto start = high_resolution_clock::now();
-#ifdef MPICOMP
-    mytime = MPI_Wtime();
-#endif
+  mytime = MPI_Wtime();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
+    // NOTE (etc): check me... is this correct/reasonable?
+    int i_month = (int) std::floor((double) t / (365.0 * 8 / 12));
 
     // grid cell and/or pft loop can be parallelized
     for (size_t g = 0; g != n_grid_cells; ++g) {
@@ -164,12 +172,12 @@ int main(int argc, char ** argv)
         ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
-                elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+                elai(g,p,i_month), esai(g,p,i_month), dewmx, frac_veg_nosno,
                 h2ocan(g,p), n_irrig_steps_left,
                 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
-        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p), esai(g,p), h2ocan(g,p), qflx_prec_intr[g]);
+        //printf("%i %i %16.8g %16.8g %16.8g %16.8g %16.8g %16.8g\n", g, p, forc_rain(t,g), forc_snow(t,g), elai(g,p,i_month), esai(g,p,i_month), h2ocan(g,p), qflx_prec_intr[g]);
 
         //
         // Calculate fraction of LAI that is wet vs dry.
@@ -179,7 +187,7 @@ int main(int argc, char ** argv)
         // By the PFT?
         // --etc
         double fwet = 0., fdry = 0.;
-        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
+        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p,i_month), esai(g,p,i_month), dewmx, fwet, fdry);
       } // end PFT loop
 
       // Column level operations
@@ -230,7 +238,6 @@ int main(int argc, char ** argv)
   } // end timestep loop
   auto stop = high_resolution_clock::now();
 
-#ifdef MPICOMP
   mytime = MPI_Wtime() - mytime;
   std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
 
@@ -242,7 +249,6 @@ int main(int argc, char ** argv)
   std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
   }
   MPI_Finalize();
-#endif
 
   auto duration = duration_cast<microseconds>(stop - start); 
   std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
