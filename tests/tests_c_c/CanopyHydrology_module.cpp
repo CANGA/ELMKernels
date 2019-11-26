@@ -38,6 +38,7 @@ int main(int argc, char ** argv)
   std::size_t ny = ny_global / ny_ranks; // assumes exact
   std::size_t n_grid_cells = nx * ny;
 
+  // MPI_Init, etc
   int myrank, numprocs;
   double mytime, maxtime, mintime, avgtime;
   MPI_Init(&argc,&argv);
@@ -66,7 +67,11 @@ int main(int argc, char ** argv)
   const double min_h2osfc = 1.0e-8;
   const double n_melt = 0.7;
                                
-  // phenology input
+  // phenology input // NOTE: 3D or 4D with NX x NY?
+  //
+  // NOTE: 3D or 4D with NX x NY?  I would prefer 3D, which would allow us to
+  // do what the real code does, which is compressing out the ocean cells and
+  // partitioning in 1D. --etc
   ELM::Utils::Array<3,double> elai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
   ELM::Utils::Array<3,double> esai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
 
@@ -75,6 +80,10 @@ int main(int argc, char ** argv)
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
   // forcing input
+  //
+  // NOTE: 2D or 3D with NX x NY?  I would prefer 2D, which would allow us to
+  // do what the real code does, which is compressing out the ocean cells and
+  // partitioning in 1D. --etc
   ELM::Utils::Array<2,double> forc_rain(n_times, n_grid_cells); // NOTE (etc): order uncertain?
   ELM::Utils::Array<2,double> forc_snow(n_times, n_grid_cells); // NOTE (etc): order uncertain?
   ELM::Utils::Array<2,double> forc_air_temp(n_times, n_grid_cells); // NOTE (etc): order uncertain?
