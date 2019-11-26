@@ -26,17 +26,17 @@ int main(int argc, char ** argv)
 {
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
-  std::size_t n_times = 365 * 8; // 1 year times 3-hourly timestep
+  std::size_t start_year = 2014;
+  std::size_t start_month = 1;
   std::size_t n_months = 12;
-  std::size_t nx_global = 360;
-  std::size_t ny_global = 180;
+
+  std::size_t n_times = 31 * 8; // 1 month times 3-hourly timestep (to be computed in read_dimensions)
 
   std::size_t nx_ranks = 3;
   std::size_t ny_ranks = 2;
 
-  std::size_t nx = nx_global / nx_ranks; // assumes exact
-  std::size_t ny = ny_global / ny_ranks; // assumes exact
-  std::size_t n_grid_cells = nx * ny;
+  std::size_t nx_global; //assigned in read_dimensions
+  std::size_t ny_global; //assigned in read_dimensions
 
   // MPI_Init, etc
   int myrank, numprocs;
@@ -72,10 +72,37 @@ int main(int argc, char ** argv)
   // NOTE: 3D or 4D with NX x NY?  I would prefer 3D, which would allow us to
   // do what the real code does, which is compressing out the ocean cells and
   // partitioning in 1D. --etc
-  ELM::Utils::Array<3,double> elai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
-  ELM::Utils::Array<3,double> esai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
+
+	// we are doing 3D: time x ngrid_cells x npfts
+
+  // I have to modify read_dimensions subroutine to compute the correct n_times value
+  ELM::Utils::read_dimensions("dir", n_months, n_years, start_year, nx_glob, ny_glob, n_times);
+
+
+	//Get my beginning and ending global indices
+   std::size_t px = myrank % nx_ranks;
+   std::size_t py = myrank / nx_ranks;
+
+   std::size_t i_beg;
+   std::size_t j_beg;
+
+	double nper = ((double) nx_glob)/nx_ranks;
+   std::size_t i_beg = (long) round( nper* px    );
+	std::size_t i_end = (long) round( nper*(px+1) )-1;
+   nper = ((double) ny_glob)/ny_ranks;
+   std::size_t j_beg = (long) round( nper* py    );
+   std::size_t j_end = (long) round( nper*(py+1) )-1; 
+
+	std::size_t nx = i_end - i_beg + 1;
+	std::size_t ny = j_end - j_beg + 1;
+	std::size_t n_grid_cells = nx * ny;
+
+
+  ELM::Utils::Array<3,double> elai(ntimes, n_grid_cells, n_pfts); // NOTE (etc): order uncertain? time first as discussed. I change it
+  ELM::Utils::Array<3,double> esai(ntimes, n_grid_cells, n_pfts); // NOTE (etc): order uncertain? time first as discussed. I change it
 
   // NOTE: fix me.  This can probably be done in a single read call now?
+  // I have to write the new read_phenology
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
@@ -83,7 +110,7 @@ int main(int argc, char ** argv)
   //
   // NOTE: 2D or 3D with NX x NY?  I would prefer 2D, which would allow us to
   // do what the real code does, which is compressing out the ocean cells and
-  // partitioning in 1D. --etc
+  // partitioning in 1D. --etc 
   ELM::Utils::Array<2,double> forc_rain(n_times, n_grid_cells); // NOTE (etc): order uncertain?
   ELM::Utils::Array<2,double> forc_snow(n_times, n_grid_cells); // NOTE (etc): order uncertain?
   ELM::Utils::Array<2,double> forc_air_temp(n_times, n_grid_cells); // NOTE (etc): order uncertain?
