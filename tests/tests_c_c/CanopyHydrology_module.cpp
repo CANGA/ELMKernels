@@ -14,8 +14,10 @@
 #include <fstream>
 #include <mpi.h>
 #include <chrono>
+
 #include "utils.hh"
-#include "readers.hh"
+#include "array.hh"
+#include "readers_decl.hh"
 
 
 #include "CanopyHydrology.hh"
@@ -24,8 +26,27 @@ using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
+  // MPI_Init, etc
+  int myrank, numprocs;
+  double mytime, maxtime, mintime, avgtime;
+  MPI_Init(&argc,&argv);
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // get ranks in x, y
+  std::size_t nx_procs, ny_procs;
+  std::tie(nx_procs, ny_procs) =
+      ELM::Utils::get_domain_decomposition(num_procs, argc, argv);
+
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
+  std::string phenology_filename("phenology.nc");
+  std::size_t nx_global, ny_global;
+  std::tie(nx_global, ny_global) = ELM::IO::get_num_grid_cells(phenology_filename);
+  std::size_t n
+
+
   std::size_t n_times = 365 * 8; // 1 year times 3-hourly timestep
   std::size_t n_months = 12;
   std::size_t nx_global = 360;
@@ -38,15 +59,6 @@ int main(int argc, char ** argv)
   std::size_t ny = ny_global / ny_ranks; // assumes exact
   std::size_t n_grid_cells = nx * ny;
 
-  // MPI_Init, etc
-  int myrank, numprocs;
-  double mytime, maxtime, mintime, avgtime;
-  MPI_Init(&argc,&argv);
-  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
-  MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
-  MPI_Barrier(MPI_COMM_WORLD);
-  assert(nx_ranks * ny_ranks == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
-  
   // fixed magic parameters for now
   const int ctype = 1;
   const int ltype = 1;
@@ -76,6 +88,10 @@ int main(int argc, char ** argv)
   ELM::Utils::Array<3,double> esai(n_grid_cells, n_pfts, n_months); // NOTE (etc): order uncertain?
 
   // NOTE: fix me.  This can probably be done in a single read call now?
+  {
+    // create a 4D data structure with X,Y in 2D for use by reader
+    ELM::Utils::Array<4,double> elai4 = ELM::Utils::reshape(elai,
+            std::array<4,std::size_t>{
   ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, elai, esai);
   ELM::Utils::read_phenology("../links/surfacedataBRW.nc", n_months, n_pfts, n_months, elai, esai);
 
