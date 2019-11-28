@@ -49,6 +49,9 @@ LINK = ${CXX}
 OBJ3 =  $(SRC3:.cc=.cc.o)	
 OBJ4 =  $(SRC4:.cc=.cc.o)
 
+VPATH = ../utils
+
+
 include $(ELM_BASE)/config/Makefile.logo
 
 .PHONY: logo links Serial OpenMP Cuda
@@ -79,12 +82,12 @@ Report:
 
 build3: links $(EXE3)
 
-$(EXE3): $(OBJ3) $(KOKKOS_LINK_DEPENDS)
+$(EXE3): $(OBJ3) $(KOKKOS_LINK_DEPENDS) utils.hh array.hh readers.hh #readers.cc.o
 	$(LINK) $(OBJ3) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE3)
 
 build4: links $(EXE4)
 
-$(EXE4): $(OBJ4) $(KOKKOS_LINK_DEPENDS)
+$(EXE4): $(OBJ4) $(KOKKOS_LINK_DEPENDS) utils.hh array.hh readers.hh #readers.cc.o
 	$(LINK) $(OBJ4) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE4)
 
 clean:

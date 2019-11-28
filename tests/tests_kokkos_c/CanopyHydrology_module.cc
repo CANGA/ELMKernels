@@ -26,11 +26,10 @@ using namespace std::chrono;
 int main(int argc, char ** argv)
 {
   // MPI_Init, etc
-  int myrank, numprocs;
-  double mytime, maxtime, mintime, avgtime;
   MPI_Init(&argc,&argv);
   Kokkos::initialize( argc, argv);
-  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  int myrank, n_procs;
+  MPI_Comm_size(MPI_COMM_WORLD,&n_procs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
 
@@ -106,6 +105,9 @@ int main(int argc, char ** argv)
   } // destroys host views, 3D arrays
   
   // allocate storage and initialize forcing input data
+  //
+  // NOTE, this may be too big, and we'll have to stage forcing data?
+  //
   // -- allocate
   Kokkos::View<double**> forc_rain("forc_rain", n_times, n_grid_cells);
   Kokkos::View<double**> forc_snow("forc_snow", n_times, n_grid_cells);
@@ -127,7 +129,7 @@ int main(int argc, char ** argv)
       // -- reshape to fit the files, creating a view into forcing arrays
       auto forc_rain3D = ELM::Utils::reshape(forc_rain2D, std::array<size_t,3>{n_times, nx_local, ny_local});
       auto forc_snow3D = ELM::Utils::reshape(forc_snow2D, std::array<size_t,3>{n_times, nx_local, ny_local});
-      auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp, std::array<size_t,3>{n_times, nx_local, ny_local});
+      auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp2D, std::array<size_t,3>{n_times, nx_local, ny_local});
 
       // -- read
       ELM::IO::read_forcing(MPI_COMM_WORLD, files, "RAIN",
@@ -174,53 +176,53 @@ int main(int argc, char ** argv)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // // need them to be for these kernels. --etc
-  Kokkos<double**> z("z", n_grid_cells, n_levels_snow);
-  Kokkos<double**> zi("zi", n_grid_cells, n_levels_snow);
-  Kokkos<double**> dz("dz", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> z("z", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> zi("zi", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> dz("dz", n_grid_cells, n_levels_snow);
 
   // state variables that require ICs and evolve (in/out)
-  Kokkos<double**> h2ocan("h2ocan", n_grid_cells, n_pfts);
-  Kokkos<double**> swe_old("swe_old", n_grid_cells, n_levels_snow);
-  Kokkos<double**> h2osoi_liq("h2osoi_liq", n_grid_cells, n_levels_snow);
-  Kokkos<double**> h2osoi_ice("h2osoi_ice", n_grid_cells, n_levels_snow);
-  Kokkos<double**> t_soisno("t_soisno", n_grid_cells, n_levels_snow);
-  Kokkos<double**> frac_iceold("frac_iceold", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> h2ocan("h2ocan", n_grid_cells, n_pfts);
+  Kokkos::View<double**> swe_old("swe_old", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> h2osoi_liq("h2osoi_liq", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> h2osoi_ice("h2osoi_ice", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> t_soisno("t_soisno", n_grid_cells, n_levels_snow);
+  Kokkos::View<double**> frac_iceold("frac_iceold", n_grid_cells, n_levels_snow);
   
-  Kokkos<double*> t_grnd("t_grnd", n_grid_cells);
-  Kokkos<double*> h2osno("h2osno", n_grid_cells);
-  Kokkos<double*> snow_depth("snow_depth", n_grid_cells);
-  Kokkos<double*> snow_level("snow_level", n_grid_cells);
+  Kokkos::View<double*> t_grnd("t_grnd", n_grid_cells);
+  Kokkos::View<double*> h2osno("h2osno", n_grid_cells);
+  Kokkos::View<double*> snow_depth("snow_depth", n_grid_cells);
+  Kokkos::View<double*> snow_level("snow_level", n_grid_cells);
 
-  Kokkos<double*> h2osfc("h2osfc", n_grid_cells);
-  Kokkos<double*> frac_h2osfc("frac_h2osfc", n_grid_cells);
+  Kokkos::View<double*> h2osfc("h2osfc", n_grid_cells);
+  Kokkos::View<double*> frac_h2osfc("frac_h2osfc", n_grid_cells);
   
   // output fluxes by pft
-  Kokkos<double**> qflx_prec_intr("qflx_prec_intr", n_grid_cells, n_pfts);
-  Kokkos<double**> qflx_irrig("qflx_irrig", n_grid_cells, n_pfts );
-  Kokkos<double**> qflx_prec_grnd("qflx_prec_grnd", n_grid_cells, n_pfts );
-  Kokkos<double**> qflx_snwcp_liq("qflx_snwcp_liq", n_grid_cells, n_pfts);
-  Kokkos<double**> qflx_snwcp_ice ("qflx_snwcp_ice ", n_grid_cells, n_pfts );
-  Kokkos<double**> qflx_snow_grnd_patch("qflx_snow_grnd_patch", n_grid_cells, n_pfts );
-  Kokkos<double**> qflx_rain_grnd("qflx_rain_grnd", n_grid_cells, n_pfts );
+  Kokkos::View<double**> qflx_prec_intr("qflx_prec_intr", n_grid_cells, n_pfts);
+  Kokkos::View<double**> qflx_irrig("qflx_irrig", n_grid_cells, n_pfts );
+  Kokkos::View<double**> qflx_prec_grnd("qflx_prec_grnd", n_grid_cells, n_pfts );
+  Kokkos::View<double**> qflx_snwcp_liq("qflx_snwcp_liq", n_grid_cells, n_pfts);
+  Kokkos::View<double**> qflx_snwcp_ice ("qflx_snwcp_ice ", n_grid_cells, n_pfts );
+  Kokkos::View<double**> qflx_snow_grnd_patch("qflx_snow_grnd_patch", n_grid_cells, n_pfts );
+  Kokkos::View<double**> qflx_rain_grnd("qflx_rain_grnd", n_grid_cells, n_pfts );
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  Kokkos<double*> integrated_snow("integrated_snow", n_grid_cells);
+  Kokkos::View<double*> integrated_snow("integrated_snow", n_grid_cells);
   
   // output fluxes, state by the column
-  Kokkos<double*> qflx_snow_grnd_col("qflx_snow_grnd_col", n_grid_cells);
-  Kokkos<double*> qflx_snow_h2osfc("qflx_snow_h2osfc", n_grid_cells);
-  Kokkos<double*> qflx_h2osfc2topsoi("qflx_h2osfc2topsoi", n_grid_cells);
-  Kokkos<double*> qflx_floodc("qflx_floodc", n_grid_cells);
+  Kokkos::View<double*> qflx_snow_grnd_col("qflx_snow_grnd_col", n_grid_cells);
+  Kokkos::View<double*> qflx_snow_h2osfc("qflx_snow_h2osfc", n_grid_cells);
+  Kokkos::View<double*> qflx_h2osfc2topsoi("qflx_h2osfc2topsoi", n_grid_cells);
+  Kokkos::View<double*> qflx_floodc("qflx_floodc", n_grid_cells);
   
-  Kokkos<double*> frac_sno_eff("frac_sno_eff", n_grid_cells);
-  Kokkos<double*> frac_sno("frac_sno", n_grid_cells);
+  Kokkos::View<double*> frac_sno_eff("frac_sno_eff", n_grid_cells);
+  Kokkos::View<double*> frac_sno("frac_sno", n_grid_cells);
 
 #ifdef UNIT_TEST  
   // for unit testing
-  auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(comm, h2ocan);
-  auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(comm, h20sno);
-  auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(comm, frac_h2osfc);
+  auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h2ocan);
+  auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h20sno);
+  auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
 
   std::ofstream soln_file;
   if (myrank == 0) {
@@ -238,6 +240,8 @@ int main(int argc, char ** argv)
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
+    // NOTE (etc): check me... is this correct/reasonable?
+    int i_month = (int) std::floor((double) t / (365.0 * 8 / 12));
 
     // Column level operations
     // NOTE: this is effectively an accumulation kernel/task! --etc
@@ -255,14 +259,16 @@ int main(int argc, char ** argv)
                 ELM::CanopyHydrology_Interception(dtime,
                         forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                         ltype, ctype, urbpoi, do_capsnow,
-                        elai(g,p), esai(g,p), dewmx, frac_veg_nosno,
+                        elai(i_month, g,p), esai(i_month, g,p), dewmx, frac_veg_nosno,
                         h2ocan(g,p), n_irrig_steps_left,
                         qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                         qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
                         qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
 
                 double fwet = 0., fdry = 0.;
-                ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(g,p), esai(g,p), dewmx, fwet, fdry);
+                ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p),
+                        elai(i_month, g,p), esai(i_month, g,p),
+                        dewmx, fwet, fdry);
 
                 lsum += qflx_snow_grnd_patch(team.league_rank(),p);
               }, sum);
@@ -296,13 +302,13 @@ int main(int argc, char ** argv)
         });
 
 #ifdef UNIT_TEST    
-    auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(comm, h2ocan);
-    auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(comm, h20sno);
-    auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(comm, frac_h2osfc);
+    auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h2ocan);
+    auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h20sno);
+    auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
 
     if (myrank == 0) {
-      soln_file << std::setprecision(16)
-                << 0 << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+      soln_file << std::setprecision(16) << 0
+                << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
                 << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
                 << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
     }
@@ -312,7 +318,7 @@ int main(int argc, char ** argv)
 
 
   auto stop = ELM::Utils::Clock::time();
-  auto times = ELM::Utils::Clock::min_max_mean(comm, stop-start);
+  auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop-start);
   if (myrank == 0) {
     std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
               << ", mean: " << times[2] << std::endl;

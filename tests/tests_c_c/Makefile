@@ -29,7 +29,7 @@ debug:
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
-test_%: %.cc.o utils.hh array.hh readers_decl.hh
+test_%: %.cc.o utils.hh array.hh readers.hh #readers.cc.o
 	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
 compute: logo links library $(TEST1)
