@@ -7,12 +7,12 @@
 #include "Kokkos_Core.hpp"
 
 template<typename T, template View_type>
-std::array<3,T> min_max_sum1(const Teuchos::Comm<>& comm,
+std::array<T, 3> min_max_sum1(const Teuchos::Comm<>& comm,
                              const View_type& v)
 {
   View_type::const_view_type vc = v;
 
-  std::array<3,T> results;
+  std::array<T,3> results;
   {
     double result;
     Kokkos::parallel_reduce(
@@ -48,12 +48,12 @@ std::array<3,T> min_max_sum1(const Teuchos::Comm<>& comm,
 
 
 template<typename T, template View_type>
-std::array<3,T> min_max_sum2(const View_type& v)
+std::array<T,3> min_max_sum2(const View_type& v)
 {
   View_type::const_view_type vc = v;
   Kokkos::MDRangePolicy<Kokkos::Range<2>> range({0,0},{vc.extent(0), vc.extent(1)});
 
-  std::array<3,T> results;
+  std::array<T,3> results;
   {
     double result;
     Kokkos::parallel_reduce(

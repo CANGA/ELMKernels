@@ -20,8 +20,6 @@ CUDA_LD_FLAGS = $(NETCDF_FLAGS) -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -l
 %.F90.o: %.F90
 	$(FC) $(FC_FLAGS) -c $< -o $@ 
 %.cc.o: %.cc
-	$(CC) $(CXXFLAGS) $(INC_FLAGS) -c $< -o $@
-%.cpp.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(KOKKOS_CXXFLAGS) $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS) -c $< -o $@ #-I$(MPI_LIB_ROOT)/include
 %.cu.o: %.cu
 	$(NVCC) $(CUDA_FLAGS) -I$(MPI_LIB_ROOT)/include $(INC_FLAGS) -c $< -o $@

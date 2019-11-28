@@ -17,9 +17,10 @@ get_dimensions(const std::string& fname,
 //  
 template<class Array_t>
 void
-read_phenology(const std::string& fname, const std::string& phenology_type,
-               std::size_t start_year, std::size_t start_month,
-               std::size_t i_beg, std::size_t j_beg, Array_t arr);
+read_phenology(const MPI_Comm& comm,
+               const std::string& fname, const std::string& phenology_type,
+               size_t start_year, size_t start_month,
+               size_t i_beg, size_t j_beg, Array_t arr);
 
 
 //
@@ -29,9 +30,10 @@ read_phenology(const std::string& fname, const std::string& phenology_type,
 //
 template<class Array_t>
 void
-read_forcing(const std::string& fname, const std::string& forcing_type,
-             std::size_t start_year, std::size_t start_month,
-             std::size_t i_beg, std::size_t j_beg, Array_t& forcing);
+read_forcing(const MPI_Comm& comm,
+             const std::string& fname, const std::string& forcing_type,
+             size_t start_year, size_t start_month,
+             size_t i_beg, size_t j_beg, Array_t& forcing);
 
 } // namespace
 } // namespace

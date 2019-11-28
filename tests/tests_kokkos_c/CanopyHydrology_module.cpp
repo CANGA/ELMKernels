@@ -12,11 +12,12 @@
 #include <fstream>
 #include <chrono>
 
-#include "Teuchos_Comm.hpp"
 #include "Kokkos_Core.hpp"
 
-#include "utils.hh"
-#include "readers.hh"
+#include "utils_kokkos.hh"
+#include "../utils/array.hh"
+#include "../utils/utils.hh"
+#include "../utils/readers.hh"
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
 
@@ -24,22 +25,7 @@ using namespace std::chrono;
 
 int main(int argc, char ** argv)
 {
-  // NOTE: _global indicates values that are across all ranks.  The absence of
-  // global means the variable is spatially local.
-  std::size_t n_times = 365 * 8; // 1 year times 3-hourly timestep
-  std::size_t n_months = 12;
-  std::size_t nx_global = 360;
-  std::size_t ny_global = 180;
-
-  std::size_t nx_ranks = 3;
-  std::size_t ny_ranks = 2;
-
-  std::size_t nx = nx_global / nx_ranks; // assumes exact
-  std::size_t ny = ny_global / ny_ranks; // assumes exact
-  std::size_t n_grid_cells = nx * ny;
-
   // MPI_Init, etc
-  // TODO: convert this to Teuchos::Comm
   int myrank, numprocs;
   double mytime, maxtime, mintime, avgtime;
   MPI_Init(&argc,&argv);
@@ -47,9 +33,124 @@ int main(int argc, char ** argv)
   MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
-  assert(nx_ranks * ny_ranks == n_ranks && "Compile-time sizes set so that code must be run with 6 mpi processes.");
+
+  // get ranks in x, y
+  size_t nx_procs, ny_procs;
+  std::tie(nx_procs, ny_procs) =
+      ELM::Utils::get_domain_decomposition(n_procs, argc, argv);
+
+
+  // NOTE: _global indicates values that are across all ranks.  The absence of
+  // global means the variable is spatially local.
+  const size_t start_year = 2014;
+  const size_t start_month = 1;
+  const size_t n_months = 12;
+  const size_t n_pfts = 17;
   
+  const std::string files = "location_of_data";
+  
+  const auto problem_dims = ELM::IO::get_dimensions(files, start_year, start_month, n_months);
+  const size_t n_times = std::get<0>(problem_dims);
+  const size_t nx_global = std::get<1>(problem_dims);
+  const size_t ny_global = std::get<2>(problem_dims);
+
+  // domain decomposition
+  assert(nx_global % nx_procs == 0 && "Currently expect perfectly divisible decomposition.");
+  assert(ny_global % ny_procs == 0 && "Currently expect perfectly divisible decomposition.");
+
+  // -- number of local grid cells per process
+  const size_t nx_local = nx_global / nx_procs;
+  const size_t ny_local = ny_global / ny_procs;
+  const size_t n_grid_cells = nx_local * ny_local;
+
+  // -- where am i on the process grid?
+  const size_t i_proc = myrank % nx_procs;
+  const size_t j_proc = myrank / nx_procs;
+
+  // -- where do my local unknowns start globally
+  const size_t i_begin_global = i_proc * nx_local;
+  const size_t j_begin_global = j_proc * ny_local;
+
+  // allocate storage and initialize phenology input data
+  // -- allocate on device
+  Kokkos::View<double***> elai("elai", n_months, n_grid_cells, n_pfts);
+  Kokkos::View<double***> esai("esai", n_months, n_grid_cells, n_pfts);
+  {
+    // -- host mirror
+    auto h_elai = Kokkos::create_mirror_view(elai);
+    auto h_esai = Kokkos::create_mirror_view(esai);
+
+    // -- Array for reading
+    ELM::Utils::Array<double,3> elai3D(n_months, n_grid_cells, n_pfts);
+    ELM::Utils::Array<double,3> esai3D(n_months, n_grid_cells, n_pfts);
+
+    {
+      // -- reshape Array to fit the files, creating a view into elai/esai
+      auto elai4D = ELM::Utils::reshape(elai3D, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
+      auto esai4D = ELM::Utils::reshape(esai3D, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
+
+      // -- read
+      ELM::IO::read_phenology(MPI_COMM_WORLD, files, "ELAI",
+              start_year, start_month, i_begin_global, j_begin_global, elai4D);
+      ELM::IO::read_phenology(MPI_COMM_WORLD, files, "ESAI",
+              start_year, start_month, i_begin_global, j_begin_global, esai4D);
+    }
+
+    // -- copy to host view
+    ELM::Utils::deep_copy(h_elai, elai3D);
+    ELM::Utils::deep_copy(h_esai, esai3D);
+
+    // -- copy to device
+    Kokkos::deep_copy(elai, h_elai);
+    Kokkos::deep_copy(esai, h_esai);
+  } // destroys host views, 3D arrays
+  
+  // allocate storage and initialize forcing input data
+  // -- allocate
+  Kokkos::View<double**> forc_rain("forc_rain", n_times, n_grid_cells);
+  Kokkos::View<double**> forc_snow("forc_snow", n_times, n_grid_cells);
+  Kokkos::View<double**> forc_air_temp("forc_air_temp", n_times, n_grid_cells);
+  Kokkos::View<double**> forc_irrig("forc_irrig", n_times, n_grid_cells);
+  double qflx_floodg = 0.0;
+  {
+    // -- host views
+    auto h_forc_rain = Kokkos::create_mirror_view(forc_rain);
+    auto h_forc_snow = Kokkos::create_mirror_view(forc_snow);
+    auto h_forc_air_temp = Kokkos::create_mirror_view(forc_air_temp);
+
+    // -- arrays for reading
+    ELM::Utils::Array<double,2> forc_rain2D(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+    ELM::Utils::Array<double,2> forc_snow2D(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+    ELM::Utils::Array<double,2> forc_air_temp2D(n_times, n_grid_cells); // NOTE (etc): order uncertain?
+
+    {
+      // -- reshape to fit the files, creating a view into forcing arrays
+      auto forc_rain3D = ELM::Utils::reshape(forc_rain2D, std::array<size_t,3>{n_times, nx_local, ny_local});
+      auto forc_snow3D = ELM::Utils::reshape(forc_snow2D, std::array<size_t,3>{n_times, nx_local, ny_local});
+      auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp, std::array<size_t,3>{n_times, nx_local, ny_local});
+
+      // -- read
+      ELM::IO::read_forcing(MPI_COMM_WORLD, files, "RAIN",
+                            start_year, start_month, i_begin_global, j_begin_global, forc_rain3D);
+      ELM::IO::read_forcing(MPI_COMM_WORLD, files, "SNOW",
+                            start_year, start_month, i_begin_global, j_begin_global, forc_snow3D);
+      ELM::IO::read_forcing(MPI_COMM_WORLD, files, "AIR_TEMP",
+                            start_year, start_month, i_begin_global, j_begin_global, forc_air_temp3D);
+    }
+
+    // -- copy to host view
+    ELM::Utils::deep_copy(h_forc_rain, forc_rain2D);
+    ELM::Utils::deep_copy(h_forc_snow, forc_snow2D);
+    ELM::Utils::deep_copy(h_forc_air_temp, forc_air_temp2D);
+
+    // -- copy to device
+    Kokkos::deep_copy(forc_rain, h_forc_rain);
+    Kokkos::deep_copy(forc_snow, h_forc_snow);
+    Kokkos::deep_copy(forc_air_temp, h_forc_air_temp);
+  } // destroys host views, Array2D objects
+
   // fixed magic parameters for now
+  const int n_levels_snow = 5;
   const int ctype = 1;
   const int ltype = 1;
   const bool urbpoi = false;
@@ -69,84 +170,51 @@ int main(int argc, char ** argv)
   const double min_h2osfc = 1.0e-8;
   const double n_melt = 0.7;
 
-  // phenology input
-  using Array1 = Kokkos::View<double*>;
-  using Array2 = Kokkos::View<double**>;
-  using Array3 = Kokkos::View<double***>;
-  using IArray1 = Kokkos::View<int*>;
-  using IArray2 = Kokkos::View<int**>;
-
-  // dimensionality... not clear this is right yet --etc
-  Array3 elai("elai", n_grid_cells, n_pfts, n_months);
-  Array3 esai("esai", n_grid_cells, n_pfts, n_months);
-  auto h_elai = Kokkos::create_mirror_view(elai);
-  auto h_esai = Kokkos::create_mirror_view(esai);
-
-  // FIX ME (etc)
-  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", n_months, n_pfts, 0, h_elai, h_esai);
-  Kokkos::deep_copy(elai, h_elai);
-  Kokkos::deep_copy(esai, h_esai);
-
-  // forcing input
-  Array2 forc_rain("forc_rain", n_times, n_grid_cells);
-  Array2 forc_snow("forc_snow", n_times, n_grid_cells);
-  Array2 forc_air_temp("forc_air_temp", n_times, n_grid_cells);
-  auto h_forc_rain = Kokkos::create_mirror_view(forc_rain);
-  auto h_forc_snow = Kokkos::create_mirror_view(forc_snow);
-  auto h_forc_air_temp = Kokkos::create_mirror_view(forc_air_temp);
-  const int n_times = ELM::Utils::read_forcing("../links/forcing", n_max_times, 0, n_grid_cells, h_forc_rain, h_forc_snow, h_forc_air_temp);
-  Kokkos::deep_copy(forc_rain, h_forc_rain);
-  Kokkos::deep_copy(forc_snow, h_forc_snow);
-  Kokkos::deep_copy(forc_air_temp, h_forc_air_temp);
-  
-  Array2 forc_irrig("forc_irrig", n_times, n_grid_cells);
-  double qflx_floodg = 0.0;
-
   // mesh input (though can also change as snow layers evolve)
   //
   // NOTE: in a real case, these would be populated, but we don't actually
   // // need them to be for these kernels. --etc
-  Array2 z("z", n_grid_cells, n_levels_snow);
-  Array2 zi("zi", n_grid_cells, n_levels_snow);
-  Array2 dz("dz", n_grid_cells, n_levels_snow);
+  Kokkos<double**> z("z", n_grid_cells, n_levels_snow);
+  Kokkos<double**> zi("zi", n_grid_cells, n_levels_snow);
+  Kokkos<double**> dz("dz", n_grid_cells, n_levels_snow);
 
   // state variables that require ICs and evolve (in/out)
-  Array2 h2ocan("h2ocan", n_grid_cells, n_pfts);
-  Array2 swe_old("swe_old", n_grid_cells, n_levels_snow);
-  Array2 h2osoi_liq("h2osoi_liq", n_grid_cells, n_levels_snow);
-  Array2 h2osoi_ice("h2osoi_ice", n_grid_cells, n_levels_snow);
-  Array2 t_soisno("t_soisno", n_grid_cells, n_levels_snow);
-  Array2 frac_iceold("frac_iceold", n_grid_cells, n_levels_snow);
+  Kokkos<double**> h2ocan("h2ocan", n_grid_cells, n_pfts);
+  Kokkos<double**> swe_old("swe_old", n_grid_cells, n_levels_snow);
+  Kokkos<double**> h2osoi_liq("h2osoi_liq", n_grid_cells, n_levels_snow);
+  Kokkos<double**> h2osoi_ice("h2osoi_ice", n_grid_cells, n_levels_snow);
+  Kokkos<double**> t_soisno("t_soisno", n_grid_cells, n_levels_snow);
+  Kokkos<double**> frac_iceold("frac_iceold", n_grid_cells, n_levels_snow);
   
-  Array1 t_grnd("t_grnd", n_grid_cells);
-  Array1 h2osno("h2osno", n_grid_cells);
-  Array1 snow_depth("snow_depth", n_grid_cells);
-  Array1 snow_level("snow_level", n_grid_cells);
+  Kokkos<double*> t_grnd("t_grnd", n_grid_cells);
+  Kokkos<double*> h2osno("h2osno", n_grid_cells);
+  Kokkos<double*> snow_depth("snow_depth", n_grid_cells);
+  Kokkos<double*> snow_level("snow_level", n_grid_cells);
 
-  Array1 h2osfc("h2osfc", n_grid_cells);
-  Array1 frac_h2osfc("frac_h2osfc", n_grid_cells);
+  Kokkos<double*> h2osfc("h2osfc", n_grid_cells);
+  Kokkos<double*> frac_h2osfc("frac_h2osfc", n_grid_cells);
   
   // output fluxes by pft
-  Array2 qflx_prec_intr("qflx_prec_intr", n_grid_cells, n_pfts);
-  Array2 qflx_irrig("qflx_irrig", n_grid_cells, n_pfts );
-  Array2 qflx_prec_grnd("qflx_prec_grnd", n_grid_cells, n_pfts );
-  Array2 qflx_snwcp_liq("qflx_snwcp_liq", n_grid_cells, n_pfts);
-  Array2 qflx_snwcp_ice ("qflx_snwcp_ice ", n_grid_cells, n_pfts );
-  Array2 qflx_snow_grnd_patch("qflx_snow_grnd_patch", n_grid_cells, n_pfts );
-  Array2 qflx_rain_grnd("qflx_rain_grnd", n_grid_cells, n_pfts );
+  Kokkos<double**> qflx_prec_intr("qflx_prec_intr", n_grid_cells, n_pfts);
+  Kokkos<double**> qflx_irrig("qflx_irrig", n_grid_cells, n_pfts );
+  Kokkos<double**> qflx_prec_grnd("qflx_prec_grnd", n_grid_cells, n_pfts );
+  Kokkos<double**> qflx_snwcp_liq("qflx_snwcp_liq", n_grid_cells, n_pfts);
+  Kokkos<double**> qflx_snwcp_ice ("qflx_snwcp_ice ", n_grid_cells, n_pfts );
+  Kokkos<double**> qflx_snow_grnd_patch("qflx_snow_grnd_patch", n_grid_cells, n_pfts );
+  Kokkos<double**> qflx_rain_grnd("qflx_rain_grnd", n_grid_cells, n_pfts );
 
   // FIXME: I have no clue what this is... it is inout on WaterSnow.  For now I
   // am guessing the data structure. Ask Scott.  --etc
-  Array1 integrated_snow("integrated_snow", n_grid_cells);
+  Kokkos<double*> integrated_snow("integrated_snow", n_grid_cells);
   
   // output fluxes, state by the column
-  Array1 qflx_snow_grnd_col("qflx_snow_grnd_col", n_grid_cells);
-  Array1 qflx_snow_h2osfc("qflx_snow_h2osfc", n_grid_cells);
-  Array1 qflx_h2osfc2topsoi("qflx_h2osfc2topsoi", n_grid_cells);
-  Array1 qflx_floodc("qflx_floodc", n_grid_cells);
+  Kokkos<double*> qflx_snow_grnd_col("qflx_snow_grnd_col", n_grid_cells);
+  Kokkos<double*> qflx_snow_h2osfc("qflx_snow_h2osfc", n_grid_cells);
+  Kokkos<double*> qflx_h2osfc2topsoi("qflx_h2osfc2topsoi", n_grid_cells);
+  Kokkos<double*> qflx_floodc("qflx_floodc", n_grid_cells);
   
-  Array1 frac_sno_eff("frac_sno_eff", n_grid_cells);
-  Array1 frac_sno("frac_sno", n_grid_cells);
+  Kokkos<double*> frac_sno_eff("frac_sno_eff", n_grid_cells);
+  Kokkos<double*> frac_sno("frac_sno", n_grid_cells);
 
   // for unit testing
   auto min_max_sum_water = min_max_sum(comm, h2ocan);

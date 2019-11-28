@@ -11,6 +11,8 @@ TEST1 = mpi_CanopyHydrology_module
 
 EXEC_TESTS = CanopyHydrology_module
 
+VPATH = ../utils
+
 .PHONY: links library test compute
 
 default: test
@@ -27,13 +29,10 @@ debug:
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
-test_%: %.cpp.o readers.hh utils.hh 
+test_%: %.cc.o utils.hh array.hh readers_decl.hh
 	$(CXX) -o $@ $< $(NETCDF_FLAGS)
 
 compute: logo links library $(TEST1)
-
-mpi_%: %.cpp.o readers.hh utils.hh
-	$(MPICXX) -DMPICOMP -o $@ $< $(NETCDF_FLAGS) $(MPI_INC_FLAGS) -L$(MPI_LIB_ROOT)/lib -lmpi
 
 clean:
 	$(RM) test_* mpi_* *.o 

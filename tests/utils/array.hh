@@ -322,6 +322,69 @@ Array<T,D2> reshape(Array<T,D1>& arr_in, const std::array<std::size_t, D2>& new_
   return std::make_from_tuple<Array<T,D2>>(std::move(constructor_args));
 }
 
+
+//
+// Copies from an Array into an Array-like object.
+//
+template<typename T, typename Array_type>
+void
+deep_copy(Array_type& arr, const Array<T,1>& arr_in)
+{
+  assert(arr.extent(0) == arr_in.extent(0));
+  for (size_t i=0; i!=arr_in.extent(0); ++i) {
+    arr(i) = arr_in(i);
+  }
+}
+
+template<typename T, typename Array_type>
+void
+deep_copy(Array_type& arr, const Array<T,2>& arr_in)
+{
+  assert(arr.extent(0) == arr_in.extent(0));
+  assert(arr.extent(1) == arr_in.extent(1));
+  for (size_t i=0; i!=arr_in.extent(0); ++i) {
+    for (size_t j=0; j!=arr_in.extent(1); ++j) {
+      arr(i,j) = arr_in(i,j);
+    }
+  }
+}
+
+template<typename T, typename Array_type>
+void
+deep_copy(Array_type& arr, const Array<T,3>& arr_in)
+{
+  assert(arr.extent(0) == arr_in.extent(0));
+  assert(arr.extent(1) == arr_in.extent(1));
+  assert(arr.extent(2) == arr_in.extent(2));
+  for (size_t i=0; i!=arr_in.extent(0); ++i) {
+    for (size_t j=0; j!=arr_in.extent(1); ++j) {
+      for (size_t k=0; k!=arr_in.extent(2); ++k) {
+        arr(i,j,k) = arr_in(i,j,k);
+      }
+    }
+  }
+}
+
+template<typename T, typename Array_type>
+void
+deep_copy(Array_type& arr, const Array<T,4>& arr_in)
+{
+  assert(arr.extent(0) == arr_in.extent(0));
+  assert(arr.extent(1) == arr_in.extent(1));
+  assert(arr.extent(2) == arr_in.extent(2));
+  assert(arr.extent(3) == arr_in.extent(3));
+  for (size_t i=0; i!=arr_in.extent(0); ++i) {
+    for (size_t j=0; j!=arr_in.extent(1); ++j) {
+      for (size_t k=0; k!=arr_in.extent(2); ++k) {
+        for (size_t l=0; l!=arr_in.extent(3); ++l) {
+          arr(i,j,k,l) = arr_in(i,j,k,l);
+        }
+      }
+    }
+  }
+}
+
+
 } // namespace Utils
 } // namespace ELM
 
