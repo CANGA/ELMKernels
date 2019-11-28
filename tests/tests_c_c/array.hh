@@ -1,7 +1,7 @@
 //! A set of utilities for testing ELM kernels in C++
 
-#ifndef ELM_KERNEL_TEST_UTILS_HH_
-#define ELM_KERNEL_TEST_UTILS_HH_
+#ifndef ELM_KERNEL_TEST_ARRAY_HH_
+#define ELM_KERNEL_TEST_ARRAY_HH_
 
 #include <iostream>
 #include <memory>
@@ -68,13 +68,13 @@ class Data_ {
   
 
 // templated class for multi-dimensional array
-template<int D, typename T>
+template<typename T, std::size_t D>
 class Array : public Data_<T> {};
 
 // 1D specialization
 template<typename T>
-class Array<1,T> : public Data_<T> {
-  static const int dim = 1;
+class Array<T,1> : public Data_<T> {
+  static const std::size_t dim = 1;
 
  public:
   // forward construction
@@ -91,7 +91,7 @@ class Array<1,T> : public Data_<T> {
   {}
 
   // forward construction
-  Array(const Array<1,T>& other) = default;
+  Array(const Array<T,1>& other) = default;
 
   // accessors
   T& operator()(const std::size_t i) { assert(0 <= i && i < len_); return d_[i]; }
@@ -101,7 +101,7 @@ class Array<1,T> : public Data_<T> {
   const T& operator[](std::size_t i) const { assert(0 <= i && i < len_); return d_[i]; }
 
   // shape
-  std::array<1,std::size_t> shape() const {
+  std::array<std::size_t,1> shape() const {
     return { len_ };
   }
   
@@ -113,8 +113,8 @@ class Array<1,T> : public Data_<T> {
 
 // 2D specialization
 template<typename T>
-class Array<2,T> : public Data_<T> {
-  static const int dim = 2;
+class Array<T,2> : public Data_<T> {
+  static const std::size_t dim = 2;
 
  public:
   // forward construction
@@ -139,16 +139,16 @@ class Array<2,T> : public Data_<T> {
   {}
 
   // forward construction
-  Array(const Array<2,T>& other) = default;
+  Array(const Array<T,2>& other) = default;
 
   T& operator()(std::size_t i, std::size_t j) { assert(0 <= i && i < M_ && 0 <= j && j < N_); return d_[j+i*N_]; }
   const T& operator()(std::size_t i, std::size_t j) const { assert(0 <= i && i < M_ && 0 <= j && j < N_); return d_[j+i*N_]; }
 
-  Array<1,T> operator[](std::size_t i) { assert(0 <= i && i < M_); return Array<1,T>(N_, &d_[i*N_]); }
-  const Array<1,T> operator[](std::size_t i) const { assert(0 <= i && i < M_); return Array<1,T>(N_, &d_[i*N_]); }
+  Array<T,1> operator[](std::size_t i) { assert(0 <= i && i < M_); return Array<T,1>(N_, &d_[i*N_]); }
+  const Array<T,1> operator[](std::size_t i) const { assert(0 <= i && i < M_); return Array<T,1>(N_, &d_[i*N_]); }
 
   // shape
-  std::array<2,std::size_t> shape() const {
+  std::array<std::size_t,2> shape() const {
     return { M_, N_ };
   }
 
@@ -162,8 +162,8 @@ class Array<2,T> : public Data_<T> {
 
 // 3D specialization
 template<typename T>
-class Array<3,T> : public Data_<T> {
-  static const int dim = 3;
+class Array<T,3> : public Data_<T> {
+  static const std::size_t dim = 3;
   
  public:
   // forward construction
@@ -191,7 +191,7 @@ class Array<3,T> : public Data_<T> {
   {}
 
   // forward construction
-  Array(const Array<3,T>& other) = default;
+  Array(const Array<T,3>& other) = default;
 
   T& operator()(std::size_t i, std::size_t j, std::size_t k) {
     assert(0 <= i && i < M_ &&
@@ -206,17 +206,17 @@ class Array<3,T> : public Data_<T> {
     return d_[k + P_*(j+i*N_)];
   }
 
-  Array<2,T> operator[](std::size_t i) {
+  Array<T,2> operator[](std::size_t i) {
     assert(0 <= i && i < M_);
-    return Array<2,T>(N_, P_, &d_[i*N_*P_]);
+    return Array<T,2>(N_, P_, &d_[i*N_*P_]);
   }
-  const Array<2,T> operator[](std::size_t i) const {
+  const Array<T,2> operator[](std::size_t i) const {
     assert(0 <= i && i < M_);
-    return Array<2,T>(N_, P_, &d_[i*N_*P_]);
+    return Array<T,2>(N_, P_, &d_[i*N_*P_]);
   }
 
   // shape
-  std::array<2,std::size_t> shape() const {
+  std::array<std::size_t,3> shape() const {
     return { M_, N_, P_ };
   }
   
@@ -230,8 +230,8 @@ class Array<3,T> : public Data_<T> {
 
 // 4D specialization
 template<typename T>
-class Array<4,T> : public Data_<T> {
-  static const int dim = 4;
+class Array<T,4> : public Data_<T> {
+  static const std::size_t dim = 4;
  public:
   // forward construction
   Array(std::size_t M, std::size_t N, std::size_t P, std::size_t Q)
@@ -261,7 +261,7 @@ class Array<4,T> : public Data_<T> {
   {}
 
   // forward construction
-  Array(const Array<4,T>& other) = default;
+  Array(const Array<T,4>& other) = default;
 
   T& operator()(std::size_t i, std::size_t j, std::size_t k, std::size_t l) {
     assert(0 <= i && i < M_ &&
@@ -270,7 +270,7 @@ class Array<4,T> : public Data_<T> {
            0 <= l && l < Q_);
     return d_[l + Q_*(k + P_*(j+i*N_))];
   }
-  const T& operator()(std::size_t i, std::size_t j, std::size_t k) const {
+  const T& operator()(std::size_t i, std::size_t j, std::size_t k, std::size_t l) const {
     assert(0 <= i && i < M_ &&
            0 <= j && j < N_ &&
            0 <= k && k < P_ &&
@@ -278,17 +278,17 @@ class Array<4,T> : public Data_<T> {
     return d_[l + Q_*(k + P_*(j+i*N_))];
   }
 
-  Array<3,T> operator[](std::size_t i) {
+  Array<T,3> operator[](std::size_t i) {
     assert(0 <= i && i < M_);
-    return Array<3,T>(N_, P_, Q_, &d_[i*N_*P_*Q_]);
+    return Array<T,3>(N_, P_, Q_, &d_[i*N_*P_*Q_]);
   }
-  const Array<3,T> operator[](std::size_t i) const {
+  const Array<T,3> operator[](std::size_t i) const {
     assert(0 <= i && i < M_);
-    return Array<3,T>(N_, P_, Q_, &d_[i*N_*P_*Q_]);
+    return Array<T,3>(N_, P_, Q_, &d_[i*N_*P_*Q_]);
   }
 
   // shape
-  std::array<3,std::size_t> shape() const {
+  std::array<std::size_t,4> shape() const {
     return { M_, N_, P_, Q_ };
   }
   
@@ -300,34 +300,13 @@ class Array<4,T> : public Data_<T> {
 
 
 //
-// Helper functions to make a tuple from an array of size_t
-//
-namespace Impl {
-
-template <class... Formats, size_t N, size_t... Is>
-std::tuple<Formats...> as_tuple(std::array<char*, N> const& arr,
-                                std::index_sequence<Is...>)
-{
-    return std::make_tuple(Formats{arr[Is]}...);
-}
-
-template <class... Formats, size_t N,
-          class = std::enable_if_t<(N == sizeof...(Formats))>>
-std::tuple<Formats...> as_tuple(std::array<char*, N> const& arr)
-{
-    return as_tuple<Formats...>(arr, std::make_index_sequence<N>{});
-}
-
-} // namespace impl
-
-//
 // Construct a non-owning Array of a different shape but with the same data as
 // an old shape.
 //
 // NOTE, this does no transposing!
 //
-template<int D1, int D2, typename T>
-Array<D2,T> reshape(const Array<D1,T>& arr_in, const std::array<D2,std::size_t>& new_shape) {
+template<std::size_t D1, std::size_t D2, typename T>
+Array<T,D2> reshape(Array<T,D1>& arr_in, const std::array<std::size_t, D2>& new_shape) {
   std::size_t new_length = std::accumulate(new_shape.begin(), new_shape.end(), 1, std::multiplies<std::size_t>());
   if (new_length != arr_in.size()) {
     std::stringstream err;
@@ -336,13 +315,13 @@ Array<D2,T> reshape(const Array<D1,T>& arr_in, const std::array<D2,std::size_t>&
   }
 
   // make a tuple of the new shape plus the pointer to data.
-  auto constructor_args = std::tuple_cat(Impl::as_tuple(new_shape), std::make_tuple({(T*) arr_in.begin()}));
+  auto data_tuple = std::make_tuple( (T*) arr_in.begin() );
+  auto constructor_args = std::tuple_cat(new_shape, data_tuple);
 
   // construct and return
-  return std::make_from_tuple<Array<D2,T>>(std::move(constructor_args));
+  return std::make_from_tuple<Array<T,D2>>(std::move(constructor_args));
 }
 
-  
 } // namespace Utils
 } // namespace ELM
 

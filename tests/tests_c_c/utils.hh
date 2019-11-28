@@ -13,7 +13,7 @@ namespace Utils {
 //
 // Determine month_of_year from day_of_year
 //
-const static std::array<12, std::size_t> days_per_month = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+const static std::array<std::size_t,12> days_per_month = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 //
 std::size_t
 month_from_day(std::size_t doy) {
