@@ -39,15 +39,15 @@ include $(KOKKOS_PATH)/Makefile.kokkos
 # build the tests
 TESTS = test_CanopyHydrology_module
 
-SRC1 = CanopyHydrology_kern1_single.cpp        
-SRC2 = CanopyHydrology_kern1_multiple.cpp
-SRC3 = CanopyHydrology_module.cpp     
-SRC4 = CanopyHydrology_module_multiple.cpp   
+SRC1 = CanopyHydrology_kern1_single.cc        
+SRC2 = CanopyHydrology_kern1_multiple.cc
+SRC3 = CanopyHydrology_module.cc     
+SRC4 = CanopyHydrology_module_multiple.cc   
 
 LINK = ${CXX}
 
-OBJ3 =  $(SRC3:.cpp=.cpp.o)	
-OBJ4 =  $(SRC4:.cpp=.cpp.o)
+OBJ3 =  $(SRC3:.cc=.cc.o)	
+OBJ4 =  $(SRC4:.cc=.cc.o)
 
 include $(ELM_BASE)/config/Makefile.logo
 

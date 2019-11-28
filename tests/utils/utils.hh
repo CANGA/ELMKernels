@@ -6,6 +6,9 @@
 #include <iostream>
 #include <memory>
 #include <type_traits>
+#include <chrono>
+
+#include "../utils/array.hh"
 
 namespace ELM {
 namespace Utils {
@@ -41,7 +44,52 @@ get_domain_decomposition(int nprocs, int argc, char** argv) {
   assert(nprocs == 6 && "NPROCS must be 6 for now!");
   return std::make_pair(3,2);
 }
-    
+
+
+//
+// min/max/sum an array
+//
+template<size_t D>
+std::array<double, 3>
+min_max_sum(const MPI_Comm& comm, const Array<double,D>& arr)
+{
+  auto min_max = std::minmax_element(arr.begin(), arr.end());
+  double min = *min_max.first;
+  double max = *min_max.second;
+  double sum = std::accumulate(arr.begin(), arr.end(), 0.);
+
+  double gmin, gmax, gsum;
+  MPI_Reduce(&min, &gmin, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
+  MPI_Reduce(&max, &gmax, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+  MPI_Reduce(&sum, &gsum, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+
+  return std::array<double,3>{gmin, gmax, gsum};
+}
+  
+
+namespace Clock {
+using time_point_type = std::chrono::high_resolution_clock::time_point;
+using duration_type = std::chrono::duration<double>;
+
+time_point_type time() {
+  return std::chrono::high_resolution_clock::now();
+}
+
+std::array<double,3> min_max_mean(const MPI_Comm& comm, duration_type duration) {
+  double duration_d(duration.count());
+  double min, max, mean;
+  MPI_Reduce(&duration_d, &max, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+  MPI_Reduce(&duration_d, &min, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
+  MPI_Reduce(&duration_d, &mean, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+
+  int numprocs;
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  mean /= numprocs;
+
+  return std::array<double,3>{min, max, mean};
+}
+
+} // namespace Clock
 
 
 

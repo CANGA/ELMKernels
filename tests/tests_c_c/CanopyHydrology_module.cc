@@ -1,19 +1,10 @@
-#include <array>
-#include <sstream>
-#include <iterator>
-#include <exception>
-#include <string>
-#include <stdlib.h>
-#include <cstring>
-#include <vector>
 #include <iostream>
-#include <iomanip>
-#include <numeric>
-#include <algorithm>
-#include <assert.h>
 #include <fstream>
-#include <mpi.h>
-#include <chrono>
+
+#include <array>
+#include <string>
+
+#include "mpi.h"
 
 #include "../utils/utils.hh"
 #include "../utils/array.hh"
@@ -22,13 +13,11 @@
 
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
-using namespace std::chrono; 
 
 int main(int argc, char ** argv)
 {
   // MPI_Init, etc
   int myrank, n_procs;
-  double mytime, maxtime, mintime, avgtime;
   MPI_Init(&argc,&argv);
   MPI_Comm_size(MPI_COMM_WORLD,&n_procs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
@@ -177,29 +166,28 @@ int main(int argc, char ** argv)
   auto frac_sno_eff = ELM::Utils::Array<double,1>(n_grid_cells, 0.);
   auto frac_sno = ELM::Utils::Array<double,1>(n_grid_cells, 0.);
 
-#ifdef DEBUG
+#ifdef UNIT_TEST
   std::ofstream soln_file;
-  soln_file.open("test_CanopyHydrology_module.soln");
   {
-    soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
-    auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
-    auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
+    // for unit testing
+    auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
+    auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
+    auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
 
-    auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
-    auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
+    if (myrank == 0) {
+      soln_file.open("test_CanopyHydrology_module.soln");
+      soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
 
-    auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
-    auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
-      
-    soln_file << std::setprecision(16)
-              << 0 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
-              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
-              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
+      soln_file << std::setprecision(16) << 0
+                << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+                << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+    }
   }
 #endif
 
-  auto start = high_resolution_clock::now();
-  mytime = MPI_Wtime();
+  auto start = ELM::Utils::Clock::time();
+
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -267,37 +255,31 @@ int main(int argc, char ** argv)
               qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
       
     } // end grid cell loop
-#ifdef DEBUG
-    auto min_max_water = std::minmax_element(h2ocan.begin(), h2ocan.end());
-    auto sum_water = std::accumulate(h2ocan.begin(), h2ocan.end(), 0.);
+#ifdef UNIT_TEST
+    auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
+    auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
+    auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
 
-    auto min_max_snow = std::minmax_element(h2osno.begin(), h2osno.end());
-    auto sum_snow = std::accumulate(h2osno.begin(), h2osno.end(), 0.);
-
-    auto min_max_frac_sfc = std::minmax_element(frac_h2osfc.begin(), frac_h2osfc.end());
-    auto avg_frac_sfc = std::accumulate(frac_h2osfc.begin(), frac_h2osfc.end(), 0.) / (frac_h2osfc.end() - frac_h2osfc.begin());
-                  
-    soln_file << std::setprecision(16)
-              << t+1 << "\t" << sum_water << "\t" << *min_max_water.first << "\t" << *min_max_water.second
-              << "\t" << sum_snow << "\t" << *min_max_snow.first << "\t" << *min_max_snow.second
-              << "\t" << avg_frac_sfc << "\t" << *min_max_frac_sfc.first << "\t" << *min_max_frac_sfc.second << std::endl;
+    if (myrank == 0) {
+      soln_file << std::setprecision(16)
+                << 0 << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+                << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+    }
 #endif
   } // end timestep loop
-  auto stop = high_resolution_clock::now();
 
-  mytime = MPI_Wtime() - mytime;
-  std::cout <<"Timing from node "<< myrank  << " is "<< mytime << "seconds." << std::endl;
-
-  MPI_Reduce(&mytime, &maxtime, 1, MPI_DOUBLE,MPI_MAX, 0, MPI_COMM_WORLD);
-  MPI_Reduce(&mytime, &mintime, 1, MPI_DOUBLE, MPI_MIN, 0,MPI_COMM_WORLD);
-  MPI_Reduce(&mytime, &avgtime, 1, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+  auto stop = ELM::Utils::Clock::time();
+  auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop-start);
   if (myrank == 0) {
-    avgtime /= n_procs;
-    std::cout << "Min: "<< mintime <<  ", Max: " << maxtime << ", Avg: " <<avgtime << std::endl;
+    std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
+              << ", mean: " << times[2] << std::endl;
   }
-  MPI_Finalize();
+  
+#ifdef UNIT_TEST
+  if (myrank == 0) soln_file.close();
+#endif
 
-  auto duration = duration_cast<microseconds>(stop - start); 
-  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl;
+  MPI_Finalize();
   return 0;
 }

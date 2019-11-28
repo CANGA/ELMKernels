@@ -24,7 +24,7 @@ test: debug logo links library $(TESTS) $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
 
 debug:
-	$(eval CXXFLAGS += -DDEBUG)
+	$(eval CXXFLAGS += -DUNIT_TEST)
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout

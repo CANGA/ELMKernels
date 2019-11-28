@@ -216,13 +216,14 @@ int main(int argc, char ** argv)
   Kokkos<double*> frac_sno_eff("frac_sno_eff", n_grid_cells);
   Kokkos<double*> frac_sno("frac_sno", n_grid_cells);
 
+#ifdef UNIT_TEST  
   // for unit testing
-  auto min_max_sum_water = min_max_sum(comm, h2ocan);
-  auto min_max_sum_snow = min_max_sum(comm, h20sno);
-  auto min_max_sum_surfacewater = min_max_sum(comm, frac_h2osfc);
+  auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(comm, h2ocan);
+  auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(comm, h20sno);
+  auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(comm, frac_h2osfc);
 
+  std::ofstream soln_file;
   if (myrank == 0) {
-    std::ofstream soln_file;
     soln_file.open("test_CanopyHydrology_module.soln");
     soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
 
@@ -231,9 +232,9 @@ int main(int argc, char ** argv)
               << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
               << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
   }
+#endif
 
-  Kokkos::Timer timer;
-  auto start = high_resolution_clock::now();
+  auto start = ELM::Utils::Clock::time();
   // main loop
   // -- the timestep loop cannot/should not be parallelized
   for (size_t t = 0; t != n_times; ++t) {
@@ -293,10 +294,11 @@ int main(int argc, char ** argv)
                   h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
                   qflx_h2osfc2topsoi(g), frac_h2osfc(g));
         });
-         
-    auto min_max_sum_water = min_max_sum(comm, h2ocan);
-    auto min_max_sum_snow = min_max_sum(comm, h20sno);
-    auto min_max_sum_surfacewater = min_max_sum(comm, frac_h2osfc);
+
+#ifdef UNIT_TEST    
+    auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(comm, h2ocan);
+    auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(comm, h20sno);
+    auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(comm, frac_h2osfc);
 
     if (myrank == 0) {
       soln_file << std::setprecision(16)
@@ -304,16 +306,23 @@ int main(int argc, char ** argv)
                 << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
                 << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
     }
+#endif
+    
   } // end timestep loop
-  soln_file.close();
 
-  double time = timer.seconds();
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(stop - start); 
-  std::cout << "Time taken by function: "<< duration.count() << " microseconds" << std::endl; 
-}
 
-Kokkos::finalize();
-MPI_Finalize();
-return 0;
+  auto stop = ELM::Utils::Clock::time();
+  auto times = ELM::Utils::Clock::min_max_mean(comm, stop-start);
+  if (myrank == 0) {
+    std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
+              << ", mean: " << times[2] << std::endl;
+  }
+
+#ifdef UNIT_TEST
+  if (myrank == 0) soln_file.close();
+#endif
+
+  Kokkos::finalize();
+  MPI_Finalize();
+  return 0;
 }

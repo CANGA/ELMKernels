@@ -6,11 +6,14 @@
 #include "mpi.h"
 #include "Kokkos_Core.hpp"
 
-template<typename T, template View_type>
-std::array<T, 3> min_max_sum1(const Teuchos::Comm<>& comm,
+namespace ELM {
+namespace ELMKokkos {
+
+template<typename T, class View_type>
+std::array<T, 3> min_max_sum1(const MPI_Comm& comm,
                              const View_type& v)
 {
-  View_type::const_view_type vc = v;
+  typename View_type::const_view_type vc = v;
 
   std::array<T,3> results;
   {
@@ -21,7 +24,9 @@ std::array<T, 3> min_max_sum1(const Teuchos::Comm<>& comm,
           min_val = min(min_val, vc(i));
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_MIN, 1, &result, &results[0]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
+    results[0] = result_g;
   }             
   {
     double result;
@@ -31,7 +36,9 @@ std::array<T, 3> min_max_sum1(const Teuchos::Comm<>& comm,
           max_val = max(max_val, vc(i));
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_MAX, 1, &result, &results[1]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    results[1] = result_g;
   }             
   {
     double result;
@@ -41,17 +48,19 @@ std::array<T, 3> min_max_sum1(const Teuchos::Comm<>& comm,
           sum_val += vc(i);
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_SUM, 1, &result, &results[2]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+    results[2] = result_g;
   }             
   return results;  
 }
 
 
-template<typename T, template View_type>
-std::array<T,3> min_max_sum2(const View_type& v)
+template<typename T, class View_type>
+std::array<T,3> min_max_sum2(const MPI_Comm& comm, const View_type& v)
 {
-  View_type::const_view_type vc = v;
-  Kokkos::MDRangePolicy<Kokkos::Range<2>> range({0,0},{vc.extent(0), vc.extent(1)});
+  typename View_type::const_view_type vc = v;
+  Kokkos::MDRangePolicy<Kokkos::Rank<2>> range({0,0},{vc.extent(0), vc.extent(1)});
 
   std::array<T,3> results;
   {
@@ -62,7 +71,9 @@ std::array<T,3> min_max_sum2(const View_type& v)
           min_val = min(min_val, vc(i,j));
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_MIN, 1, &result, &results[0]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
+    results[0] = result_g;
   }             
   {
     double result;
@@ -72,7 +83,9 @@ std::array<T,3> min_max_sum2(const View_type& v)
           max_val = max(max_val, vc(i,j));
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_MAX, 1, &result, &results[1]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+    results[1] = result_g;
   }             
   {
     double result;
@@ -82,13 +95,16 @@ std::array<T,3> min_max_sum2(const View_type& v)
           sum_val += vc(i,j);
         }, result);
     
-    Teuchos::reduceAll(comm, Teuchos::REDUCE_SUM, 1, &result, &results[2]);
+    double result_g;
+    MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+    results[2] = result_g;
   }             
   return results;  
 }
 
 
-
+} // namespace Kokkos
+} // namespace ELM
 
 
 #endif

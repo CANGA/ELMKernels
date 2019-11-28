@@ -3,9 +3,12 @@
 #ifndef ELM_KERNEL_TEST_ARRAY_HH_
 #define ELM_KERNEL_TEST_ARRAY_HH_
 
-#include <iostream>
-#include <memory>
-#include <type_traits>
+#include <tuple>
+#include <algorithm>
+#include <array>
+#include <numeric>
+#include <sstream>
+#include <iomanip>
 
 namespace ELM {
 namespace Utils {
