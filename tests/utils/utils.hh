@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <chrono>
 
+#include "mpi.h"
+
 #include "../utils/array.hh"
 
 namespace ELM {
