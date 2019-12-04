@@ -4,7 +4,7 @@
 #include <array>
 #include <string>
 
-#include "mpi.h"
+//#include "mpi.h"
 
 #include "../utils/utils.hh"
 #include "../utils/array.hh"
@@ -35,7 +35,8 @@ int main(int argc, char ** argv)
   const size_t n_months = 12;
   const size_t n_pfts = 17;
   
-  const std::string files = "location_of_data";
+  const std::string dir = "directory of data";
+  std::string basename;
   
   const auto problem_dims = ELM::IO::get_dimensions(files, start_year, start_month, n_months);
   const size_t n_times = std::get<0>(problem_dims);
@@ -68,11 +69,15 @@ int main(int argc, char ** argv)
     // -- reshape to fit the files, creating a view into elai/esai
     auto elai4D = ELM::Utils::reshape(elai, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
     auto esai4D = ELM::Utils::reshape(esai, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
+	 
 
+	 basename="************";
     // -- read
-    ELM::IO::read_phenology(MPI_COMM_WORLD, files, "ELAI",
+    ELM::IO::read_phenology(MPI_COMM_WORLD, dir, basename, "ELAI",
                             start_year, start_month, i_begin_global, j_begin_global, elai4D);
-    ELM::IO::read_phenology(MPI_COMM_WORLD, files, "ESAI",
+
+	 basename="************";
+    ELM::IO::read_phenology(MPI_COMM_WORLD, dir, basename, "ESAI",
                             start_year, start_month, i_begin_global, j_begin_global, esai4D);
   }
   
@@ -90,13 +95,20 @@ int main(int argc, char ** argv)
     auto forc_snow3D = ELM::Utils::reshape(forc_snow, std::array<size_t,3>{n_times, nx_local, ny_local});
     auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp, std::array<size_t,3>{n_times, nx_local, ny_local});
 
+	 basename="************";
     // -- read
-    ELM::IO::read_forcing(MPI_COMM_WORLD, files, "RAIN",
+    ELM::IO::read_forcing(MPI_COMM_WORLD, dir, basename, "PRECIP",
                           start_year, start_month, i_begin_global, j_begin_global, forc_rain3D);
-    ELM::IO::read_forcing(MPI_COMM_WORLD, files, "SNOW",
-                          start_year, start_month, i_begin_global, j_begin_global, forc_snow3D);
-    ELM::IO::read_forcing(MPI_COMM_WORLD, files, "AIR_TEMP",
+    //copy rain3D to snow3D
+	
+	//ELM::IO::read_forcing(MPI_COMM_WORLD, files, "SNOW",
+     //                     start_year, start_month, i_begin_global, j_begin_global, forc_snow3D);
+     basename="************";
+
+	 ELM::IO::read_forcing(MPI_COMM_WORLD, dir, basename, "AIR_TEMP",
                           start_year, start_month, i_begin_global, j_begin_global, forc_air_temp3D);
+  
+  	 ELM::IO::convert_precip_to_rain_snow(forc_rain3D,forc_snow3D,forc_air_temp3D);
   }    
 
   
