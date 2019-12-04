@@ -11,8 +11,8 @@ namespace IO {
 // Returns shape in file, as a pair (N_TIMES, NX_GLOBAL, NY_GLOBAL)
 //
 std::tuple<std::size_t, std::size_t, std::size_t>
-get_dimensions(const std::string& fname,
-               std::size_t start_year, std::size_t start_months, std::size_t n_months);
+get_dimensions(const std::string& dir,const std::string& basename,
+               std::size_t start_year, std::size_t start_month, std::size_t n_months);
 
 
 //
@@ -22,7 +22,7 @@ get_dimensions(const std::string& fname,
 //  
 void
 read_phenology(const MPI_Comm& comm,
-               const std::string& fname, const std::string& phenology_type,
+               const std::string& dir,const std::string& basename, const std::string& phenology_type,
                size_t start_year, size_t start_month,
                size_t i_beg, size_t j_beg, ELM::Utils::Array<double,4>& arr);
 
@@ -34,9 +34,16 @@ read_phenology(const MPI_Comm& comm,
 //
 void
 read_forcing(const MPI_Comm& comm,
-             const std::string& fname, const std::string& forcing_type,
+             const std::string& dir,const std::string& basename, const std::string& forcing_type,
              size_t start_year, size_t start_month,
              size_t i_beg, size_t j_beg, ELM::Utils::Array<double,3>& arr);
+
+
+// Convert precipitation to rain and snow
+void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::Array<double,3>& snow, 
+											ELM::Utils::Array<double,3>& temp);
+
+
 
 } // namespace
 } // namespace
