@@ -22,11 +22,12 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	?= $(NETCDF_INC_FLAGS) -I$(ELM_ROOT)
-CC_FLAGS= -DLEGION_SPY
+INC_FLAGS	+= -I$(LG_RT_DIR)
+CXXFLAGS        += -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
-#CC = mpicc
+
+
 
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
@@ -50,7 +51,7 @@ include $(LG_RT_DIR)/runtime.mk
 .PHONY: links library test
 
 default: logo all
-	echo "GEN OBJS = $(GEN_OBJS)"
+	@echo "GEN OBJS = $(GEN_OBJS)"
 
 
 all: $(TESTS)
@@ -75,7 +76,8 @@ sandbox: test_sandbox_domain_template_magic
 # If we're using CUDA we have to link with nvcc
 test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
 	@echo "---> Linking objects into one binary: $()"
-	$(CXX) -o $@ $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
+	$(CXX) -o $@ $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
+	#$(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
 
 $(SLIB_LEGION) : $(LEGION_OBJS) $(MAPPER_OBJS)
 	rm -f $@
@@ -105,9 +107,6 @@ $(GEN_GPU_OBJS) : %.cu.o : %.cu
 
 $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
-
-# disable gmake's default rule for building % from %.o
-#% : %.o
 
 %.cc.o : %.cc domains.hh readers.hh utils.hh
 	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) -c $< -o $@

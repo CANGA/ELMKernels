@@ -1,13 +1,10 @@
 # compile flags
 FCFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
-CXXFLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
+CXX_FLAGS += $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS)
+INC_FLAGS += $(NETCDF_INC_FLAGS) -I$(ELM_ROOT) 
 
 # linking flags
-CC_LD_FLAGS += $(NETCDF_FLAGS) -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(FC_LIB_ROOT) -lgfortran
-#CC_LD_FLAGS += $(NETCDF_FLAGS) -L$(STD_LIB_ROOT)/lib -lstdc++ -L$(MPI_LIB_ROOT)/lib -L$(FC_LIB_ROOT) -lgfortran
-FC_LD_FLAGS +=  $(NETCDF_FLAGS)f
-CXX_LD_FLAGS +=  $(NETCDF_FLAGS)
-#CXX_LD_FLAGS +=  $(NETCDF_FLAGS) -I$(MPI_LIB_ROOT)/include -L$(MPI_LIB_ROOT)/lib -lmpi
+CXX_LD_FLAGS += $(NETCDF_FLAGS) -L$(STD_LIB_ROOT)/lib -lstdc++
 CUDA_LD_FLAGS = $(NETCDF_FLAGS) -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -lcublas
 
 #
@@ -20,7 +17,7 @@ CUDA_LD_FLAGS = $(NETCDF_FLAGS) -L$(CUDA_LIBDIRS) -lstdc++ -lpthread -lcudart -l
 %.F90.o: %.F90
 	$(FC) $(FC_FLAGS) -c $< -o $@ 
 %.cc.o: %.cc
-	$(CXX) $(CXXFLAGS) $(KOKKOS_CXXFLAGS) $(NETCDF_INC_FLAGS) $(ELM_INC_FLAGS) -c $< -o $@ #-I$(MPI_LIB_ROOT)/include
+	$(CXX) $(CXXFLAGS) $(INC_FLAGS) -c $< -o $@
 %.cu.o: %.cu
 	$(NVCC) $(CUDA_FLAGS) -I$(MPI_LIB_ROOT)/include $(INC_FLAGS) -c $< -o $@
 
