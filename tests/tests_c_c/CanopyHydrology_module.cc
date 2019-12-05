@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+//#include <assert.h>
 
 #include "mpi.h"
 
@@ -98,12 +99,12 @@ int main(int argc, char ** argv)
     basename="************";
     // -- read
     ELM::IO::read_forcing(MPI_COMM_WORLD, dir, basename, "PRECIP",
-                          start_year, start_month, i_begin_global, j_begin_global, forc_rain3D);
+                          start_year, start_month, n_months, i_begin_global, j_begin_global, forc_rain3D);
     std::copy(forc_rain3D.begin(), forc_rain3D.end(), forc_snow3D.begin());
 
     basename="************";
     ELM::IO::read_forcing(MPI_COMM_WORLD, dir, basename, "AIR_TEMP",
-                          start_year, start_month, i_begin_global, j_begin_global, forc_air_temp3D);
+                          start_year, start_month, n_months, i_begin_global, j_begin_global, forc_air_temp3D);
   
     ELM::IO::convert_precip_to_rain_snow(forc_rain3D,forc_snow3D,forc_air_temp3D);
   }    

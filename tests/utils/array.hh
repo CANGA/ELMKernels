@@ -9,6 +9,8 @@
 #include <numeric>
 #include <sstream>
 #include <iomanip>
+#include <assert.h>
+#include <memory>
 
 namespace ELM {
 namespace Utils {
@@ -332,9 +334,8 @@ template<size_t D1, size_t D2, typename T>
 Array<T,D2> reshape(Array<T,D1>& arr_in, const std::array<size_t, D2>& new_shape) {
   size_t new_length = std::accumulate(new_shape.begin(), new_shape.end(), 1, std::multiplies<size_t>());
   if (new_length != arr_in.size()) {
-    std::stringstream err;
-    err << "Invalid Array reshape, cannot reshape object of size: " << arr_in.size() << " into array of size: " << new_length;
-    throw(err);
+    //std::stringstream err;
+    std::cout << "Invalid Array reshape, cannot reshape object of size: " << arr_in.size() << " into array of size: " << new_length;
   }
 
   // make a tuple of the new shape plus the pointer to data.

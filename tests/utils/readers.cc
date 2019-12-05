@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include "pnetcdf.h"
+#include "array.hh"
 
 
 #define NCMPI_HANDLE_ERROR( status, what )      \
@@ -46,18 +47,21 @@ void read_phenology(const MPI_Comm& comm,
                     size_t i_beg, size_t j_beg, ELM::Utils::Array<double,4>& arr){
 
   MPI_Info info;
+  std::string varname;
 
-  if(forcing_type.compare("ELAI")){
+	MPI_Info_create (&info);
+
+  if(phenology_type.compare("ELAI")){
     varname="MONTHLY_LAI";
   }else{
-    if(forcing_type.compare("ESAI")){
+    if(phenology_type.compare("ESAI")){
       varname="MONTHLY_SAI";
     }else{
       std::cout << "Error: phenology_type "<< phenology_type.c_str() << "doesn't exist" << std::endl; 
     }	
   }
 
-  const auto dims=shape()arr;
+  const auto dims=arr.shape();
   const size_t n_months = std::get<0>(dims);
   const size_t nx = std::get<1>(dims);
   const size_t ny = std::get<2>(dims);
@@ -75,18 +79,18 @@ void read_phenology(const MPI_Comm& comm,
     fname_full << dir << basename << year << "-" << std::setw(2) << std::setfill('0') << month << ".nc";
 
     int ncid = -1;
-    auto status = ncmpi_open(MPI_COMM_WORLD, fname.c_str(), NC_NOWRITE, info, &ncid);
-    NCMPI_HANDLE_ERROR(status, std::string("nc_open")+" \""+fname+"\"");
+    auto status = ncmpi_open(MPI_COMM_WORLD, fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
+    NCMPI_HANDLE_ERROR(status, std::string("nc_open")+" \""+fname_full.str().c_str()+"\"");
 
-    auto start = std::array<MPI_Offset,3>{0,0,j_beg,i_beg};
-    auto count = std::array<MPI_Offset,3>{1,n_pfts, ny, nx};
+    auto start = std::array<MPI_Offset,4>{0,0,j_beg,i_beg};
+    auto count = std::array<MPI_Offset,4>{1,n_pfts, ny, nx};
 
     // get id and read LAI
     int varid = -1;
     status = ncmpi_inq_varid(ncid, "MONTHLY_LAI", &varid);
     NCMPI_HANDLE_ERROR(status, "nc_inq_varid for LAI");
 
-    status = ncmpi_get_vara_double_all(ncid, varid, start.data(), count.data(), data.data());
+    status = ncmpi_get_vara_double_all(ncid, varid, start.data(), count.data(), data_read.data());
     NCMPI_HANDLE_ERROR(status, "nc_get_vara_double monthly_lai");
 
     status = ncmpi_close(ncid);
@@ -95,7 +99,7 @@ void read_phenology(const MPI_Comm& comm,
     index_start+=n_pfts*nx*ny;
   }
 
-  for(int ii=0;ii<n_months*n_pfts*nx*ny;ii++){
+  for(size_t ii=0;ii<n_months*n_pfts*nx*ny;ii++){
     //unpacking the indexes from 1D (ii) to 3D (k,l,i,j)
     int i,j,k,l; //k for time, l for pfts
     k = (ii/(nx*ny*n_pfts))     ;
@@ -114,6 +118,9 @@ get_dimensions(const std::string& dir, const std::string& basename,
   MPI_Info info;
   std::vector<int> all_lon(n_months); 
   std::vector<int> all_lat(n_months);
+
+	MPI_Info_create (&info);
+
 
   int ntimes=0;
   for (size_t mm=0; mm!=n_months; ++mm) {
@@ -168,11 +175,8 @@ get_dimensions(const std::string& dir, const std::string& basename,
     }
   }
 
-  //should be the same to the first component
-  nx_glob=all_lon[0];
-  ny_glob=all_lat[0];
 
-
+//should be the same to the first component
   return std::make_tuple(ntimes, all_lon[0], all_lat[0]);
 
 }
@@ -182,13 +186,14 @@ get_dimensions(const std::string& dir, const std::string& basename,
 // -----------------------------------------------------------------------------
 void read_forcing(const MPI_Comm& comm,
                   const std::string& dir,const std::string& basename, const std::string& forcing_type,
-                  size_t start_year, size_t start_month,
+                  size_t start_year, size_t start_month, std::size_t n_months,
                   size_t i_beg, size_t j_beg, ELM::Utils::Array<double,3>& arr){
 
 
   MPI_Info info;
+	MPI_Info_create (&info);
 
-  const auto dims=shape()arr;
+  const auto dims=arr.shape();
   const size_t n_times = std::get<0>(dims);
   const size_t nx = std::get<1>(dims);
   const size_t ny = std::get<2>(dims);
@@ -219,6 +224,10 @@ void read_forcing(const MPI_Comm& comm,
     int ncid = -1;
     int dimid = -1;
 
+    //open
+    auto status = ncmpi_open(MPI_COMM_WORLD,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
+    NCMPI_HANDLE_ERROR(status, std::string("ncmpi_open")+" \""+fname_full.str()+"\"");
+		
     //time
     status = ncmpi_inq_dimid(ncid, "time", &dimid);
     NCMPI_HANDLE_ERROR(status, "ncmpi_inq_dimid");
@@ -226,10 +235,6 @@ void read_forcing(const MPI_Comm& comm,
     status = ncmpi_inq_dimlen(ncid, dimid, &tmp_times);
     NCMPI_HANDLE_ERROR(status, "ncmpi_inq_dimlen");
 
-    //open
-    auto status = ncmpi_open(MPI_COMM_WORLD,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
-    NCMPI_HANDLE_ERROR(status, std::string("ncmpi_open")+" \""+fname_full.str()+"\"");
-		
     int varid = -1;
 
     //define offsets
@@ -252,7 +257,7 @@ void read_forcing(const MPI_Comm& comm,
 			
   }
 
-  for(int ii=0;ii<n_times*ny*ny;ii++){
+  for(size_t ii=0;ii<n_times*ny*ny;ii++){
     //unpacking the indexes from 1D (ii) to 3D (k,i,j)
     int i,j,k;
     k = (ii/(nx*ny));
@@ -267,14 +272,14 @@ void read_forcing(const MPI_Comm& comm,
 void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::Array<double,3>& snow, 
         ELM::Utils::Array<double,3>& temp){
 
-  const auto dims=shape()arr;
+  const auto dims=rain.shape();
   const size_t nt = std::get<0>(dims);
   const size_t nx = std::get<1>(dims);
   const size_t ny = std::get<2>(dims);
 
-  for(int k=0;k<nt;k++){
-    for(int i=0;i<nt;i++){
-      for(int j=0;j<nt;j++){
+  for(size_t k=0;k<nt;k++){
+    for(size_t i=0;i<nx;i++){
+      for(size_t j=0;j<ny;j++){
         if(temp[k][i][j]<273.15){
           rain[k][i][j]=0.0; //no need to update the snow (it will have the correct value)
         }else{
@@ -283,6 +288,9 @@ void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::
       }
     }
   }
+
+}
+
 } // namespace Utils
 } // namespace ELM
 
