@@ -27,10 +27,10 @@ debug:
 	$(eval CXXFLAGS += -DUNIT_TEST)
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
+	mpiexec --oversubscribe -n 6 ./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 test_%: %.cc.o utils.hh array.hh readers.hh readers.cc.o
-	$(CXX) -o $@ $< $(NETCDF_FLAGS)
+	$(CXX) -o $@ readers.cc.o $< $(NETCDF_FLAGS) 
 
 compute: logo links library $(TEST1)
 

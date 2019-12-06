@@ -11,9 +11,9 @@ namespace IO {
 //
 // Returns shape in file, as a pair (N_TIMES, NX_GLOBAL, NY_GLOBAL)
 //
-std::tuple<std::size_t, std::size_t, std::size_t>
+std::tuple<int, int, int>
 get_dimensions(const std::string& dir,const std::string& basename,
-               std::size_t start_year, std::size_t start_month, std::size_t n_months);
+               int start_year, int start_month, int n_months);
 
 
 //
@@ -24,8 +24,8 @@ get_dimensions(const std::string& dir,const std::string& basename,
 void
 read_phenology(const MPI_Comm& comm,
                const std::string& dir,const std::string& basename, const std::string& phenology_type,
-               size_t start_year, size_t start_month,
-               size_t i_beg, size_t j_beg, ELM::Utils::Array<double,4>& arr);
+               int start_year, int start_month,
+               int i_beg, int j_beg, ELM::Utils::Array<double,4>& arr);
 
 
 //
@@ -36,8 +36,8 @@ read_phenology(const MPI_Comm& comm,
 void
 read_forcing(const MPI_Comm& comm,
              const std::string& dir,const std::string& basename, const std::string& forcing_type,
-             size_t start_year, size_t start_month, std::size_t n_months, 
-             size_t i_beg, size_t j_beg, ELM::Utils::Array<double,3>& arr);
+             int start_year, int start_month, int n_months, 
+             int i_beg, int j_beg, ELM::Utils::Array<double,3>& arr);
 
 
 // Convert precipitation to rain and snow

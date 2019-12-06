@@ -25,41 +25,41 @@ int main(int argc, char ** argv)
   MPI_Barrier(MPI_COMM_WORLD);
 
   // get ranks in x, y
-  size_t nx_procs, ny_procs;
+  int nx_procs, ny_procs;
   std::tie(nx_procs, ny_procs) =
       ELM::Utils::get_domain_decomposition(n_procs, argc, argv);
 
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
-  const size_t start_year = 2014;
-  const size_t start_month = 1;
-  const size_t n_months = 12;
-  const size_t n_pfts = 17;
+  const int start_year = 2014;
+  const int start_month = 1;
+  const int n_months = 12;
+  const int n_pfts = 17;
   
   const std::string dir = "directory of data";
   std::string basename;
 
   const auto problem_dims = ELM::IO::get_dimensions(dir, basename, start_year, start_month, n_months);
-  const size_t n_times = std::get<0>(problem_dims);
-  const size_t nx_global = std::get<1>(problem_dims);
-  const size_t ny_global = std::get<2>(problem_dims);
+  const int n_times = std::get<0>(problem_dims);
+  const int nx_global = std::get<1>(problem_dims);
+  const int ny_global = std::get<2>(problem_dims);
 
   // domain decomposition
   assert(nx_global % nx_procs == 0 && "Currently expect perfectly divisible decomposition.");
   assert(ny_global % ny_procs == 0 && "Currently expect perfectly divisible decomposition.");
 
   // -- number of local grid cells per process
-  const size_t nx_local = nx_global / nx_procs;
-  const size_t ny_local = ny_global / ny_procs;
-  const size_t n_grid_cells = nx_local * ny_local;
+  const int nx_local = nx_global / nx_procs;
+  const int ny_local = ny_global / ny_procs;
+  const int n_grid_cells = nx_local * ny_local;
 
   // -- where am i on the process grid?
-  const size_t i_proc = myrank % nx_procs;
-  const size_t j_proc = myrank / nx_procs;
+  const int i_proc = myrank % nx_procs;
+  const int j_proc = myrank / nx_procs;
 
   // -- where do my local unknowns start globally
-  const size_t i_begin_global = i_proc * nx_local;
-  const size_t j_begin_global = j_proc * ny_local;
+  int i_begin_global = i_proc * nx_local;
+  int j_begin_global = j_proc * ny_local;
 
   // allocate storage and initialize phenology input data
   // -- allocate
@@ -68,8 +68,8 @@ int main(int argc, char ** argv)
 
   {
     // -- reshape to fit the files, creating a view into elai/esai
-    auto elai4D = ELM::Utils::reshape(elai, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
-    auto esai4D = ELM::Utils::reshape(esai, std::array<size_t,4>{n_months, nx_local, ny_local, n_pfts});
+    auto elai4D = ELM::Utils::reshape(elai, std::array<int,4>{n_months, nx_local, ny_local, n_pfts});
+    auto esai4D = ELM::Utils::reshape(esai, std::array<int,4>{n_months, nx_local, ny_local, n_pfts});
 	 
 
     basename="************";
@@ -92,9 +92,9 @@ int main(int argc, char ** argv)
 
   {
     // -- reshape to fit the files, creating a view into forcing arrays
-    auto forc_rain3D = ELM::Utils::reshape(forc_rain, std::array<size_t,3>{n_times, nx_local, ny_local});
-    auto forc_snow3D = ELM::Utils::reshape(forc_snow, std::array<size_t,3>{n_times, nx_local, ny_local});
-    auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp, std::array<size_t,3>{n_times, nx_local, ny_local});
+    auto forc_rain3D = ELM::Utils::reshape(forc_rain, std::array<int,3>{n_times, nx_local, ny_local});
+    auto forc_snow3D = ELM::Utils::reshape(forc_snow, std::array<int,3>{n_times, nx_local, ny_local});
+    auto forc_air_temp3D = ELM::Utils::reshape(forc_air_temp, std::array<int,3>{n_times, nx_local, ny_local});
 
     basename="************";
     // -- read
@@ -200,15 +200,15 @@ int main(int argc, char ** argv)
 
   // main loop
   // -- the timestep loop cannot/should not be parallelized
-  for (size_t t = 0; t != n_times; ++t) {
+  for (int t = 0; t != n_times; ++t) {
     // NOTE (etc): check me... is this correct/reasonable?
     int i_month = (int) std::floor((double) t / (365.0 * 8 / 12));
 
     // grid cell and/or pft loop can be parallelized
-    for (size_t g = 0; g != n_grid_cells; ++g) {
+    for (int g = 0; g != n_grid_cells; ++g) {
 
       // PFT level operations
-      for (size_t p = 0; p != n_pfts; ++p) {
+      for (int p = 0; p != n_pfts; ++p) {
         //
         // Calculate interception
         //

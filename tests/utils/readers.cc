@@ -36,15 +36,15 @@
 
 
 namespace ELM {
-namespace Utils {
+namespace IO {
 
 //
 // Reads nx*ny worth of phenology data from NetCDF files, each with
 // n_pft PFTs, into LAI and SAI matrices // -----------------------------------------------------------------------------
 void read_phenology(const MPI_Comm& comm,
                     const std::string& dir,const std::string& basename, const std::string& phenology_type,
-                    size_t start_year, size_t start_month,
-                    size_t i_beg, size_t j_beg, ELM::Utils::Array<double,4>& arr){
+                    int start_year, int start_month,
+                    int i_beg, int j_beg, ELM::Utils::Array<double,4>& arr){
 
   MPI_Info info;
   std::string varname;
@@ -62,15 +62,15 @@ void read_phenology(const MPI_Comm& comm,
   }
 
   const auto dims=arr.shape();
-  const size_t n_months = std::get<0>(dims);
-  const size_t nx = std::get<1>(dims);
-  const size_t ny = std::get<2>(dims);
-  const size_t n_pfts = std::get<0>(dims);
+  const int n_months = std::get<0>(dims);
+  const int nx = std::get<1>(dims);
+  const int ny = std::get<2>(dims);
+  const int n_pfts = std::get<0>(dims);
 
   std::vector<double> data_read(n_months*nx*ny*n_pfts);
 
   int index_start=0; //index to track the position in the vector data_read
-  for (size_t mm=0; mm!=n_months; ++mm) {
+  for (int mm=0; mm!=n_months; ++mm) {
     int month=(start_month+mm-1)%12+1;
     int year=start_year+(start_month+mm-1)/12;
 		
@@ -99,7 +99,7 @@ void read_phenology(const MPI_Comm& comm,
     index_start+=n_pfts*nx*ny;
   }
 
-  for(size_t ii=0;ii<n_months*n_pfts*nx*ny;ii++){
+  for(int ii=0;ii<n_months*n_pfts*nx*ny;ii++){
     //unpacking the indexes from 1D (ii) to 3D (k,l,i,j)
     int i,j,k,l; //k for time, l for pfts
     k = (ii/(nx*ny*n_pfts))     ;
@@ -111,9 +111,9 @@ void read_phenology(const MPI_Comm& comm,
 
 }
 
-std::tuple<std::size_t, std::size_t, std::size_t> 
+std::tuple<int, int, int> 
 get_dimensions(const std::string& dir, const std::string& basename, 
-               std::size_t start_year, std::size_t start_month, std::size_t n_months){
+               int start_year, int start_month, int n_months){
 	
   MPI_Info info;
   std::vector<int> all_lon(n_months); 
@@ -123,7 +123,7 @@ get_dimensions(const std::string& dir, const std::string& basename,
 
 
   int ntimes=0;
-  for (size_t mm=0; mm!=n_months; ++mm) {
+  for (int mm=0; mm!=n_months; ++mm) {
     int month=(start_month+mm-1)%12+1;
     int year=start_year+(start_month+mm-1)/12;
 
@@ -168,7 +168,7 @@ get_dimensions(const std::string& dir, const std::string& basename,
   }
 
   //check if all long and lat values are the same acroos the years and months
-  for (size_t mm=1; mm!=n_months; ++mm){
+  for (int mm=1; mm!=n_months; ++mm){
     if(all_lon[mm] !=all_lon[mm-1] || all_lat[mm] !=all_lat[mm-1]){
       std::cout << "Error: All longitude or latitude values are not the same" << std::endl; 
       std::cout << "See year: " << mm/n_months << " month" << mm%n_months << std::endl; 
@@ -186,17 +186,17 @@ get_dimensions(const std::string& dir, const std::string& basename,
 // -----------------------------------------------------------------------------
 void read_forcing(const MPI_Comm& comm,
                   const std::string& dir,const std::string& basename, const std::string& forcing_type,
-                  size_t start_year, size_t start_month, std::size_t n_months,
-                  size_t i_beg, size_t j_beg, ELM::Utils::Array<double,3>& arr){
+                  int start_year, int start_month, int n_months,
+                  int i_beg, int j_beg, ELM::Utils::Array<double,3>& arr){
 
 
   MPI_Info info;
 	MPI_Info_create (&info);
 
   const auto dims=arr.shape();
-  const size_t n_times = std::get<0>(dims);
-  const size_t nx = std::get<1>(dims);
-  const size_t ny = std::get<2>(dims);
+  const int n_times = std::get<0>(dims);
+  const int nx = std::get<1>(dims);
+  const int ny = std::get<2>(dims);
 
   std::string varname;
 	
@@ -214,7 +214,7 @@ void read_forcing(const MPI_Comm& comm,
 
   int index_start=0; //index to track the position in the vector data_read
 
-  for (size_t mm=0; mm!=n_months; ++mm) {
+  for (int mm=0; mm!=n_months; ++mm) {
     int month=(start_month+mm-1)%12+1;
     int year=start_year+(start_month+mm-1)/12;
 
@@ -257,7 +257,7 @@ void read_forcing(const MPI_Comm& comm,
 			
   }
 
-  for(size_t ii=0;ii<n_times*ny*ny;ii++){
+  for(int ii=0;ii<n_times*ny*ny;ii++){
     //unpacking the indexes from 1D (ii) to 3D (k,i,j)
     int i,j,k;
     k = (ii/(nx*ny));
@@ -273,13 +273,13 @@ void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::
         ELM::Utils::Array<double,3>& temp){
 
   const auto dims=rain.shape();
-  const size_t nt = std::get<0>(dims);
-  const size_t nx = std::get<1>(dims);
-  const size_t ny = std::get<2>(dims);
+  const int nt = std::get<0>(dims);
+  const int nx = std::get<1>(dims);
+  const int ny = std::get<2>(dims);
 
-  for(size_t k=0;k<nt;k++){
-    for(size_t i=0;i<nx;i++){
-      for(size_t j=0;j<ny;j++){
+  for(int k=0;k<nt;k++){
+    for(int i=0;i<nx;i++){
+      for(int j=0;j<ny;j++){
         if(temp[k][i][j]<273.15){
           rain[k][i][j]=0.0; //no need to update the snow (it will have the correct value)
         }else{
