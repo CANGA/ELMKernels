@@ -209,11 +209,8 @@ void read_forcing(const MPI_Comm& comm,
       std::cout << "Error: forcing_type "<< forcing_type.c_str() << "doesn't exist" << std::endl; 
     }	
   }
-	
-  std::vector<double> data_read(n_times*nx*ny);
 
   int index_start=0; //index to track the position in the vector data_read
-
   for (int mm=0; mm!=n_months; ++mm) {
     int month=(start_month+mm-1)%12+1;
     int year=start_year+(start_month+mm-1)/12;
@@ -246,26 +243,16 @@ void read_forcing(const MPI_Comm& comm,
     NCMPI_HANDLE_ERROR(status, "nc_inq_varid");
 
     //read
-    status = ncmpi_get_vara_double_all(ncid, varid, start.data(), count.data(), data_read.data()+index_start);
+    status = ncmpi_get_vara_double_all(ncid, varid, start.data(), count.data(), (double*) arr[index_start].begin());
     NCMPI_HANDLE_ERROR( status, "nc_get_vara_double total_precip" );
 
     //close
     status = ncmpi_close(ncid);
     NCMPI_HANDLE_ERROR( status, "ncmpi_close" ) ;
 
-    index_start+=tmp_times*nx*ny;
+    index_start+=tmp_times;
 			
   }
-
-  for(int ii=0;ii<n_times*ny*ny;ii++){
-    //unpacking the indexes from 1D (ii) to 3D (k,i,j)
-    int i,j,k;
-    k = (ii/(nx*ny));
-    j = (ii/nx) % ny;
-    i = ii % nx;
-    arr[k][i][j]=data_read[ii];
-  }
-
 }
 
 
