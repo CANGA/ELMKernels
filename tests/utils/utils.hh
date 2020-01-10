@@ -20,21 +20,30 @@ namespace Utils {
 //
 const static std::array<int,12> days_per_month = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 //
-int
-month_from_day(int doy) {
-  doy = doy % 365;
-  int i_month = 0;
-  int total = 0;
+int month_from_day(int doy, int start_month) { //i_month will be the month inside the year, but we need the aboslute month from the starting month and year
+  
+  int doyM, total, i_month, ny;
+  doyM = doy;
+  for(int i=0;i<start_month-1;i++){
+   doyM += days_per_month[i];
+  }
+  
+  ny=doyM/365;
+  //std::cout << "doyM: " << doyM << " ny: " << ny << std::endl;
+  doyM=doyM%365;
+
+  i_month = 0;
+  total = 0;
   while (i_month < 12) {
     total += days_per_month[i_month];
-    if (doy < total) {
+    if (doyM < total) {
       break;
     } else {
       i_month++;
     }
   }
   assert(i_month < 12 && "Broken month_from_day.");
-  return i_month;
+  return (ny*12 + i_month-start_month+1);
 }
 
 
