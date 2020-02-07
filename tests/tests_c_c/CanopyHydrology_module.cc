@@ -14,6 +14,8 @@
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
 
+#define UNIT_TEST 1
+
 int main(int argc, char ** argv)
 {
   // MPI_Init, etc
@@ -22,6 +24,13 @@ int main(int argc, char ** argv)
   MPI_Comm_size(MPI_COMM_WORLD,&n_procs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
+  if (myrank == 0) {
+    std::cout << "CanopyHydrology: MPI" << std::endl
+	      << "====================" << std::endl
+	      << "Problem Setup" << std::endl
+	      << "--------------------" << std::endl
+              << " n_procs = " << n_procs << std::endl;
+  }
 
   // get ranks in x, y
   int nx_procs, ny_procs;
@@ -30,10 +39,11 @@ int main(int argc, char ** argv)
 
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
-  const int start_year = 2013;
-  const int start_month = 11;
+  const int start_year = 2014;
+  const int start_month = 1;
   const int n_months = 3;
   const int n_pfts = 17;
+  const int write_interval = 8 * 12;
   
   const std::string dir_atm = ATM_DATA_LOCATION;
   const std::string dir_elm = ELM_DATA_LOCATION;
@@ -43,6 +53,13 @@ int main(int argc, char ** argv)
   basename="Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.";
 
   const auto problem_dims = ELM::IO::get_dimensions(dir_atm, basename, start_year, start_month, n_months); //tuple(time,lat,lon)
+  if (myrank == 0) {
+    std::cout << " dimensions:" << std::endl
+	      << "   n_time = " << std::get<0>(problem_dims) << std::endl
+	      << "   n_lat = " << std::get<1>(problem_dims) << std::endl
+	      << "   n_lon = " << std::get<2>(problem_dims) << std::endl;
+  }
+
 
   const int n_times = std::get<0>(problem_dims);
   //lat=ny long=nx
@@ -57,6 +74,10 @@ int main(int argc, char ** argv)
   const int nx_local = nx_global / nx_procs;
   const int ny_local = ny_global / ny_procs;
   const int n_grid_cells = nx_local * ny_local;
+  if (myrank == 0) {
+    std::cout << " domain decomposition = " << nx_procs << "," << ny_procs << std::endl
+	      << " local problem size = " << nx_local << "," << ny_local << std::endl;
+  }
 
   // -- where am i on the process grid?
   const int i_proc = myrank % nx_procs;
@@ -68,9 +89,9 @@ int main(int argc, char ** argv)
 
   // allocate storage and initialize phenology input data
   // -- allocate
+  MPI_Barrier(MPI_COMM_WORLD);
   ELM::Utils::Array<double,3> elai(n_months, n_pfts, n_grid_cells);
   ELM::Utils::Array<double,3> esai(n_months, n_pfts, n_grid_cells);
-
   {
     // -- reshape to fit the files, creating a view into elai/esai
     auto elai4D = ELM::Utils::reshape(elai, std::array<int,4>{n_months, n_pfts, ny_local, nx_local});
@@ -81,15 +102,17 @@ int main(int argc, char ** argv)
     // -- read
     ELM::IO::read_phenology(MPI_COMM_WORLD, dir_elm, basename, "ELAI",
                             start_year, start_month, i_begin_global, j_begin_global, elai4D);
-	 /*if (myrank == 0) {
-    	std::cout << "Phenology LAI read" << std::endl;
-  	 }*/
+    if (myrank == 0) {
+      std::cout << "File I/O" << std::endl
+		<< "--------------------" << std::endl
+		<< "  Phenology LAI read" << std::endl;
+    }
 
     ELM::IO::read_phenology(MPI_COMM_WORLD, dir_elm, basename, "ESAI",
                             start_year, start_month, i_begin_global, j_begin_global, esai4D);
-	 /*if (myrank == 0) {
-    	std::cout << "Phenology SAI read" << std::endl;
-  	 }*/
+    if (myrank == 0) {
+      std::cout << "  Phenology SAI read" << std::endl;
+    }
 
   }
   
@@ -110,25 +133,32 @@ int main(int argc, char ** argv)
 	 basename="Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.";
     ELM::IO::read_forcing(MPI_COMM_WORLD, dir_atm, basename, "PRECIP",
                           start_year, start_month, n_months, i_begin_global, j_begin_global, forc_rain3D);
-	 /*if (myrank == 0) {
-    	std::cout << "Forcing precip temperature read" << std::endl;
-  	 }*/
+    if (myrank == 0) {
+      std::cout << "  Forcing precip read" << std::endl;
+    }
 
     //copy precip to snow too
-	 std::copy(forc_rain3D.begin(), forc_rain3D.end(), forc_snow3D.begin());
+    std::copy(forc_rain3D.begin(), forc_rain3D.end(), forc_snow3D.begin());
 
-	 basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
+    basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
     ELM::IO::read_forcing(MPI_COMM_WORLD, dir_atm, basename, "AIR_TEMP",
                           start_year, start_month, n_months, i_begin_global, j_begin_global, forc_air_temp3D);
-  
-  	 /*if (myrank == 0) {
-    	std::cout << "Forcing air temperature read" << std::endl;
-  	 }*/
+    if (myrank == 0) {
+      std::cout << "  Forcing air temperature read" << std::endl;
+    }
 
     ELM::IO::convert_precip_to_rain_snow(forc_rain3D,forc_snow3D,forc_air_temp3D);
+    if (myrank == 0) {
+      std::cout << "  Converted precip to rain + snow" << std::endl;
+    }
   }    
 
   
+  MPI_Barrier(MPI_COMM_WORLD);
+  if (myrank == 0) {
+    std::cout << "Test Execution" << std::endl
+	      << "--------------" << std::endl;
+  }
   // fixed magic parameters for now
   const int n_levels_snow = 5;
   const int ctype = 1;
@@ -202,6 +232,7 @@ int main(int argc, char ** argv)
     auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
     auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
     auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+    if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
 
     if (myrank == 0) {
       soln_file.open("test_CanopyHydrology_module.soln");
@@ -284,15 +315,18 @@ int main(int argc, char ** argv)
       
     } // end grid cell loop
 #ifdef UNIT_TEST
-    auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
-    auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
-    auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+    if (t % write_interval == 0) {
+      auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
+      auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
+      auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+      if (myrank == 0) std::cout << "  writing ts " << t << std::endl;
 
-    if (myrank == 0) {
-      soln_file << std::setprecision(16)
-                << 0 << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-                << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+      if (myrank == 0) {
+	soln_file << std::setprecision(16)
+		  << t << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+		  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+		  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+      }
     }
 #endif
   } // end timestep loop

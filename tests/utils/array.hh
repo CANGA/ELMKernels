@@ -84,16 +84,21 @@ class Array<T,1> : public Data_<T> {
  public:
   // forward construction
   Array(int N)
-      : Data_<T>(N) {}
+    : Data_<T>(N) {}
+  Array(std::array<int,1> N)
+    : Data_<T>(std::get<0>(N)) {}
 
   // forward construction
   Array(int N, T t)
-      : Data_<T>(N, t) {}
+    : Data_<T>(N, t) {}
+  Array(std::array<int,1> N, T t) 
+    : Data_<T>(std::get<0>(N), t) {}
   
   // forward construction
-  Array(int N, T* d) :
-      Data_<T>(N, d)
-  {}
+  Array(int N, T* d) 
+    : Data_<T>(N, d) {}
+  Array(std::array<int,1> N, T* d)
+    : Data_<T>(std::get<0>(N), d) {}
 
   // forward construction
   Array(const Array<T,1>& other) = default;
@@ -133,6 +138,11 @@ class Array<T,2> : public Data_<T> {
         M_(M),
         N_(N)
   {}
+  Array(std::array<int, 2> N)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N)),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)) 
+  {}
 
   // forward construction
   Array(int M, int N, T t)
@@ -140,12 +150,22 @@ class Array<T,2> : public Data_<T> {
         M_(M),
         N_(N)
   {}
+  Array(std::array<int, 2> N, T t)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N), t),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)) 
+  {}
   
   // forward construction
   Array(int M, int N, T* d)
       : Data_<T>(N*M, d),
         M_(M),
         N_(N)
+  {}
+  Array(std::array<int, 2> N, T* d)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N), d),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)) 
   {}
 
   // forward construction
@@ -188,6 +208,12 @@ class Array<T,3> : public Data_<T> {
         N_(N),
         P_(P)
   {}
+  Array(std::array<int, 3> N)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N)),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)) 
+  {}
 
   // forward construction
   Array(int M, int N, int P, T t)
@@ -196,6 +222,12 @@ class Array<T,3> : public Data_<T> {
         N_(N),
         P_(P)
   {}
+  Array(std::array<int, 3> N, T t)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), t),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)) 
+  {}
   
   // forward construction
   Array(int M, int N, int P, T* d)
@@ -203,6 +235,12 @@ class Array<T,3> : public Data_<T> {
         M_(M),
         N_(N),
         P_(P)
+  {}
+  Array(std::array<int, 3> N, T* d)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), d),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)) 
   {}
 
   // forward construction
@@ -261,6 +299,13 @@ class Array<T,4> : public Data_<T> {
         P_(P),
         Q_(Q)
   {}
+  Array(std::array<int, 4> N)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N) * std::get<3>(N)),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)),
+      Q_(std::get<3>(N))
+  {}
 
   // forward construction
   Array(int M, int N, int P, int Q, T t)
@@ -270,6 +315,13 @@ class Array<T,4> : public Data_<T> {
         P_(P),
         Q_(Q)
   {}
+  Array(std::array<int, 4> N, T t)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N) * std::get<3>(N), t),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)),
+      Q_(std::get<3>(N))
+  {}
   
   // forward construction
   Array(int M, int N, int P, int Q, T* d)
@@ -278,6 +330,13 @@ class Array<T,4> : public Data_<T> {
         N_(N),
         P_(P),
         Q_(Q)
+  {}
+  Array(std::array<int, 4> N, T* d)
+    : Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N) * std::get<3>(N), d),
+      M_(std::get<0>(N)),
+      N_(std::get<1>(N)),
+      P_(std::get<2>(N)),
+      Q_(std::get<3>(N))
   {}
 
   // forward construction
@@ -324,6 +383,7 @@ class Array<T,4> : public Data_<T> {
 };
 
 
+
 //
 // Construct a non-owning Array of a different shape but with the same data as
 // an old shape.
@@ -338,12 +398,8 @@ Array<T,D2> reshape(Array<T,D1>& arr_in, const std::array<int, D2>& new_shape) {
     std::cout << "Invalid Array reshape, cannot reshape object of size: " << arr_in.size() << " into array of size: " << new_length;
   }
 
-  // make a tuple of the new shape plus the pointer to data.
-  auto data_tuple = std::make_tuple( (T*) arr_in.begin() );
-  auto constructor_args = std::tuple_cat(new_shape, data_tuple);
-
   // construct and return
-  return std::make_from_tuple<Array<T,D2>>(std::move(constructor_args));
+  return Array<T,D2>(new_shape, (T*) arr_in.begin());
 }
 
 
