@@ -24,9 +24,9 @@ int main(int argc, char ** argv)
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
     std::cout << "CanopyHydrology: MPI" << std::endl
-	      << "====================" << std::endl
-	      << "Problem Setup" << std::endl
-	      << "--------------------" << std::endl
+              << "====================" << std::endl
+              << "Problem Setup" << std::endl
+              << "--------------------" << std::endl
               << " n_procs = " << n_procs << std::endl;
   }
 
@@ -56,9 +56,9 @@ int main(int argc, char ** argv)
   const int nx_global = std::get<2>(problem_dims);
   if (myrank == 0) {
     std::cout << " dimensions:" << std::endl
-	      << "   n_time = " << n_times << std::endl
-	      << "   n_lat = " << ny_global << std::endl
-	      << "   n_lon = " << nx_global << std::endl;
+              << "   n_time = " << n_times << std::endl
+              << "   n_lat = " << ny_global << std::endl
+              << "   n_lon = " << nx_global << std::endl;
   }
 
   // domain decomposition
@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
   const int n_grid_cells = nx_local * ny_local;
   if (myrank == 0) {
     std::cout << " domain decomposition = " << nx_procs << "," << ny_procs << std::endl
-	      << " local problem size = " << nx_local << "," << ny_local << std::endl;
+              << " local problem size = " << nx_local << "," << ny_local << std::endl;
   }
 
   // -- where am i on the process grid?
@@ -86,9 +86,8 @@ int main(int argc, char ** argv)
   // -- allocate
   MPI_Barrier(MPI_COMM_WORLD);
 
-  // NOTE: order! this is backwards (n_pfts, n_grid_cells) are flipped
-  // to stay consistent with the netcdf file.  Switch this to the
-  // right order, then do the copy. --etc
+  // allocate storage and initialize phenology input data
+  // -- allocate
   ELM::Utils::Array<double,3> elai(n_months, n_grid_cells, n_pfts);
   ELM::Utils::Array<double,3> esai(n_months, n_grid_cells, n_pfts);
   {
@@ -96,16 +95,16 @@ int main(int argc, char ** argv)
     // -- read
     ELM::IO::read_and_reshape_phenology(MPI_COMM_WORLD, dir_elm, basename, "ELAI",
                         start_year, start_month, 
- 			i_begin_global, j_begin_global, ny_local, nx_local, elai);
+                        i_begin_global, j_begin_global, ny_local, nx_local, elai);
     if (myrank == 0) {
       std::cout << "File I/O" << std::endl
-		<< "--------------------" << std::endl
-		<< "  Phenology LAI read" << std::endl;
+                << "--------------------" << std::endl
+                << "  Phenology LAI read" << std::endl;
     }
 
     ELM::IO::read_and_reshape_phenology(MPI_COMM_WORLD, dir_elm, basename, "ESAI",
                         start_year, start_month, 
-			i_begin_global, j_begin_global, ny_local, nx_local, esai);
+                        i_begin_global, j_begin_global, ny_local, nx_local, esai);
     if (myrank == 0) {
       std::cout << "  Phenology SAI read" << std::endl;
     }
@@ -147,7 +146,7 @@ int main(int argc, char ** argv)
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
     std::cout << "Test Execution" << std::endl
-	      << "--------------" << std::endl;
+              << "--------------" << std::endl;
   }
 
   // fixed magic parameters for now
@@ -229,9 +228,9 @@ int main(int argc, char ** argv)
     soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
 
     soln_file << std::setprecision(16) << 0
-	      << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-	      << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-	      << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+              << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+              << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+              << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
   }
 #endif
 
@@ -257,7 +256,7 @@ int main(int argc, char ** argv)
         ELM::CanopyHydrology_Interception(dtime,
                 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
                 ltype, ctype, urbpoi, do_capsnow,
-		elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
+                elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
                 h2ocan(g,p), n_irrig_steps_left,
                 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
                 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
@@ -312,10 +311,10 @@ int main(int argc, char ** argv)
       if (myrank == 0) std::cout << "  writing ts " << t << std::endl;
 
       if (myrank == 0) {
-	soln_file << std::setprecision(16)
-		  << t << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-		  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-		  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+        soln_file << std::setprecision(16)
+                  << t << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+                  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
       }
     }
 #endif

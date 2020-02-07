@@ -28,9 +28,9 @@ int main(int argc, char ** argv)
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
     std::cout << "CanopyHydrology: Kokkos" << std::endl
-	      << "=======================" << std::endl
-	      << "Problem Setup" << std::endl
-	      << "--------------------" << std::endl
+              << "=======================" << std::endl
+              << "Problem Setup" << std::endl
+              << "--------------------" << std::endl
               << " n_procs = " << n_procs << std::endl;
   }
 
@@ -60,9 +60,9 @@ int main(int argc, char ** argv)
   const int nx_global = std::get<2>(problem_dims);
   if (myrank == 0) {
     std::cout << " dimensions:" << std::endl
-	      << "   n_time = " << n_times << std::endl
-	      << "   n_lat = " << ny_global << std::endl
-	      << "   n_lon = " << nx_global << std::endl;
+              << "   n_time = " << n_times << std::endl
+              << "   n_lat = " << ny_global << std::endl
+              << "   n_lon = " << nx_global << std::endl;
   }
 
   // domain decomposition
@@ -75,7 +75,7 @@ int main(int argc, char ** argv)
   const int n_grid_cells = nx_local * ny_local;
   if (myrank == 0) {
     std::cout << " domain decomposition = " << nx_procs << "," << ny_procs << std::endl
-	      << " local problem size = " << nx_local << "," << ny_local << std::endl;
+              << " local problem size = " << nx_local << "," << ny_local << std::endl;
   }
 
   // -- where am i on the process grid?
@@ -102,15 +102,16 @@ int main(int argc, char ** argv)
     const std::string basename("surfdata_360x720cru_simyr1850_c180216.nc");
     // -- read
     ELM::IO::read_and_reshape_phenology(MPI_COMM_WORLD, dir_elm, basename, "ELAI",
-                            start_year, start_month, i_begin_global, j_begin_global, h_elai);
+            start_year, start_month, 
+            i_begin_global, j_begin_global, ny_local, nx_local, h_elai);
     if (myrank == 0) {
       std::cout << "File I/O" << std::endl
-		<< "--------------------" << std::endl
-		<< "  Phenology LAI read" << std::endl;
+                << "--------------------" << std::endl
+                << "  Phenology LAI read" << std::endl;
     }
 
     ELM::IO::read_and_reshape_phenology(MPI_COMM_WORLD, dir_elm, basename, "ESAI",
-                            start_year, start_month, i_begin_global, j_begin_global, h_esai);
+            start_year, start_month, i_begin_global, j_begin_global, h_esai);
     if (myrank == 0) {
       std::cout << "  Phenology SAI read" << std::endl;
     }
@@ -140,13 +141,15 @@ int main(int argc, char ** argv)
       // -- read
       std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
       ELM::IO::read_and_reshape_forcing(MPI_COMM_WORLD, dir_atm, basename, "PRECIP",
-		  start_year, start_month, n_months, i_begin_global, j_begin_global, h_forc_rain);
+              start_year, start_month, n_months,
+              i_begin_global, j_begin_global, ny_local, nx_local, h_forc_rain);
       if (myrank == 0) std::cout << "  Forcing precip read" << std::endl;
       Kokkos::deep_copy(h_forc_snow, h_forc_rain);
 
       basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
       ELM::IO::read_and_reshape_forcing(MPI_COMM_WORLD, dir_atm, basename, "AIR_TEMP",
-                  start_year, start_month, n_months, i_begin_global, j_begin_global, h_forc_air_temp);
+              start_year, start_month, n_months,
+              i_begin_global, j_begin_global, ny_local, nx_local, h_forc_air_temp);
       if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
 
       ELM::IO::convert_precip_to_rain_snow(h_forc_rain,h_forc_snow,h_forc_air_temp);
@@ -162,7 +165,7 @@ int main(int argc, char ** argv)
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
     std::cout << "Test Execution" << std::endl
-	      << "--------------" << std::endl;
+              << "--------------" << std::endl;
   }
 
   // fixed magic parameters for now
@@ -327,10 +330,10 @@ int main(int argc, char ** argv)
       if (myrank == 0) std::cout << "  writing ts " << t << std::endl;
 
       if (myrank == 0) {
-	soln_file << std::setprecision(16) << 0
-		  << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-		  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-		  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+        soln_file << std::setprecision(16) << 0
+                  << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+                  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
       }
     }
 #endif
