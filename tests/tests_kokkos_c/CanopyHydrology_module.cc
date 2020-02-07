@@ -111,7 +111,8 @@ int main(int argc, char ** argv)
     }
 
     ELM::IO::read_and_reshape_phenology(MPI_COMM_WORLD, dir_elm, basename, "ESAI",
-            start_year, start_month, i_begin_global, j_begin_global, h_esai);
+            start_year, start_month,
+            i_begin_global, j_begin_global, ny_local, nx_local, h_esai);
     if (myrank == 0) {
       std::cout << "  Phenology SAI read" << std::endl;
     }
@@ -151,10 +152,9 @@ int main(int argc, char ** argv)
               start_year, start_month, n_months,
               i_begin_global, j_begin_global, ny_local, nx_local, h_forc_air_temp);
       if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
-
-      ELM::IO::convert_precip_to_rain_snow(h_forc_rain,h_forc_snow,h_forc_air_temp);
-      if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
     }
+    ELM::IO::convert_precip_to_rain_snow(h_forc_rain,h_forc_snow,h_forc_air_temp);
+    if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
 
     // -- copy to device
     Kokkos::deep_copy(forc_rain, h_forc_rain);
@@ -208,7 +208,7 @@ int main(int argc, char ** argv)
   Kokkos::View<double*> t_grnd("t_grnd", n_grid_cells);
   Kokkos::View<double*> h2osno("h2osno", n_grid_cells);
   Kokkos::View<double*> snow_depth("snow_depth", n_grid_cells);
-  Kokkos::View<double*> snow_level("snow_level", n_grid_cells);
+  Kokkos::View<int*> snow_level("snow_level", n_grid_cells);
 
   Kokkos::View<double*> h2osfc("h2osfc", n_grid_cells);
   Kokkos::View<double*> frac_h2osfc("frac_h2osfc", n_grid_cells);
@@ -236,12 +236,10 @@ int main(int argc, char ** argv)
   Kokkos::View<double*> frac_sno("frac_sno", n_grid_cells);
 
 #ifdef UNIT_TEST  
-  std::ofstream soln_file;
-
   // for unit testing
-  auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h2ocan);
-  auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h20sno);
-  auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+  auto min_max_sum_water = ELM::ELMKokkos::min_max_sum2(MPI_COMM_WORLD, h2ocan);
+  auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, h2osno);
+  auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, frac_h2osfc);
   if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
 
   std::ofstream soln_file;
@@ -324,9 +322,9 @@ int main(int argc, char ** argv)
 
 #ifdef UNIT_TEST    
     if (t % write_interval == 0) {
-      auto min_max_sum_water = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h2ocan);
-      auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, h20sno);
-      auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+      auto min_max_sum_water = ELM::ELMKokkos::min_max_sum2(MPI_COMM_WORLD, h2ocan);
+      auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, h2osno);
+      auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, frac_h2osfc);
       if (myrank == 0) std::cout << "  writing ts " << t << std::endl;
 
       if (myrank == 0) {

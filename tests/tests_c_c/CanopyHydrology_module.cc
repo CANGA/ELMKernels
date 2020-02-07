@@ -137,11 +137,9 @@ int main(int argc, char ** argv)
     ELM::IO::read_forcing(MPI_COMM_WORLD, dir_atm, basename, "AIR_TEMP",
                           start_year, start_month, n_months, i_begin_global, j_begin_global, forc_air_temp3D);
     if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
-
-    ELM::IO::convert_precip_to_rain_snow(forc_rain3D,forc_snow3D,forc_air_temp3D);
-    if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
   }    
-
+  ELM::IO::convert_precip_to_rain_snow(forc_rain,forc_snow,forc_air_temp);
+  if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
   
   MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {

@@ -235,29 +235,6 @@ void read_forcing(const MPI_Comm& comm,
 }
 
 
-void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::Array<double,3>& snow, 
-        ELM::Utils::Array<double,3>& temp){
-
-  const auto dims=rain.shape();
-  const int nt = std::get<0>(dims);
-  const int ny = std::get<1>(dims);
-  const int nx = std::get<2>(dims);
-
-
-  for(int k=0;k<nt;k++){
-    for(int j=0;j<ny;j++){
-      for(int i=0;i<nx;i++){
-        if(temp[k][j][i]<273.15){
-          rain[k][j][i]=0.0; //no need to update snow (it will have the correct value)
-        }else{
-          snow[k][j][i]=0.0; //no need to update rain (it will have the correct value)
-        }
-      }
-    }
-  }
-
-}
-
 } // namespace Utils
 } // namespace ELM
 

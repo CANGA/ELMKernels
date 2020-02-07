@@ -41,7 +41,7 @@ def run_comparison(testname, full_message=False):
         
     # compare
     try:
-        close = np.allclose(gold, mine)
+        close = np.allclose(gold, mine, rtol=1.e-10, atol=1.e-10)
     except ValueError as err:
         if full_message:
             print('')

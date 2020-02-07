@@ -39,8 +39,6 @@ read_and_reshape_phenology(const MPI_Comm& comm,
 			   int start_year, int start_month,
 			   int i_beg, int j_beg, int n_lat_local, int n_lon_local, Array_t& arr) 
 {
-  std::cout << "n_lat,lon_local = " << n_lat_local << "," << n_lon_local << std::endl;
-  std::cout << "arr shape = " << arr.extent(0) << "," << arr.extent(1) << "," << arr.extent(2) << std::endl;
   assert(arr.extent(1) == n_lat_local * n_lon_local);
   ELM::Utils::Array<double,4> arr_for_read(arr.extent(0), arr.extent(2), n_lat_local, n_lon_local);
   read_phenology(comm, dir, basename, phenology_type, start_year, start_month, 
@@ -75,12 +73,12 @@ read_forcing(const MPI_Comm& comm,
 //
 template<class Array_t>
 void
-read_and_reshape_phenology(const MPI_Comm& comm,
+read_and_reshape_forcing(const MPI_Comm& comm,
 	     const std::string& dir,const std::string& basename, const std::string& forcing_type,
              int start_year, int start_month, int n_months,
 	     int i_beg, int j_beg, int n_lat_local, int n_lon_local, Array_t& arr) 
 {
-  assert(arr.extent(1) == n_lon_local * n_lon_local);
+  assert(arr.extent(1) == n_lat_local * n_lon_local);
   ELM::Utils::Array<double,3> arr_for_read(arr.extent(0), n_lat_local, n_lon_local);
   read_forcing(comm, dir, basename, forcing_type, start_year, start_month, n_months,
 	       i_beg, j_beg, arr_for_read);
@@ -96,8 +94,27 @@ read_and_reshape_phenology(const MPI_Comm& comm,
 
 
 // Convert precipitation to rain and snow
-void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::Array<double,3>& snow, 
-											ELM::Utils::Array<double,3>& temp);
+template<class Array_t>
+void
+convert_precip_to_rain_snow(Array_t& rain,
+                            Array_t& snow, 
+                            const Array_t& temp)
+{
+  const int nt = rain.extent(0);
+  const int ng = rain.extent(1);
+
+  for (int k=0; k<nt; k++) {
+    for (int j=0; j<ng; j++) {
+      if (temp(k,j) < 273.15) {
+        // no need to update snow, both are initially total precip
+        rain(k,j) = 0.0; 
+      } else {
+        // no need to update rain, both are initially total precip
+        snow(k,j) = 0.0;
+      }
+    }
+  }
+}
 
 
 
