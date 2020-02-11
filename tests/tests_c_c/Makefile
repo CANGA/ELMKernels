@@ -2,6 +2,12 @@ ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
+#
+# COMPILERS
+# =================================
+CXX	      = mpic++
+CXXFLAGS      += -Wall -Wshadow -std=c++14
+
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 

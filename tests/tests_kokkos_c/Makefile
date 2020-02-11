@@ -7,27 +7,37 @@ EXE_NAME = test_CanopyHydrology_module
 
 include $(ELM_BASE)/config/Makefile.config
 
-# Get the Kokkos Device
+#
+# Set up Kokkos flags custom by device
+#
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
+
+CXXFLAGS += -Wall -Wshadow -ccbin ${NVCC_WRAPPER_DEFAULT_COMPILER}
 EXE = ${EXE_NAME}.cuda
+
 else
+
+CXX	      = mpic++
+CXXFLAGS      += -Wall -Wshadow -std=c++11
 EXE = ${EXE_NAME}.host
+
 endif
 
 CXXFLAGS += -DNATURE=KOKKOS_INLINE_FUNCTION 
-
-default: all
-
-# include Kokkos
-include $(KOKKOS_ROOT)/Makefile.kokkos
-CXXFLAGS += ${KOKKOS_CXXFLAGS}
-include $(ELM_BASE)/config/Makefile.rules
-
 
 # build the tests
 TEST = test_CanopyHydrology_module
 SRC = CanopyHydrology_module.cc     
 OBJ =  $(SRC:.cc=.cc.o)	
+
+
+
+default: main
+
+# include Kokkos
+include $(KOKKOS_ROOT)/Makefile.kokkos
+include $(ELM_BASE)/config/Makefile.rules
+
 
 LINK = ${CXX}
 VPATH = ../utils
@@ -36,33 +46,36 @@ include $(ELM_BASE)/config/Makefile.logo
 
 .PHONY: logo all
 
-all: logo build test
+main: logo report $(EXE)
 
 report: 
-	@echo "LINKING"
+	@echo "Kokkos setup"
 	@echo "----------------"
 	@echo "LINK = $(LINK)"
-	@echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)"
-	@echo "OBJ = $(OBJ)"
-	@echo "NETCDF_FLAGS = $(NETCDF_FLAGS)"
-	@echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
-	@echo "EXE = $(EXE)"
+	@echo "CXX = $(CXX)"
 	@echo "CXXFLAGS = $(CXXFLAGS)"
 	@echo "CXX_LD_FLAGS = $(CXX_LD_FLAGS)"
 	@echo "KOKKOS_CXXFLAGS = $(KOKKOS_CXXFLAGS)"
-	@echo "KOKKOS_CPPFLAGS = $(KOKKOS_CPPFLAGS)"
+	@echo "KOKKOS_LDFLAGS = $(KOKKOS_LDFLAGS)"
+	@echo "KOKKOS_LIBS = $(KOKKOS_LIBS)"
 
-build: $(OBJ) $(KOKKOS_LINK_DEPENDS) utils.hh kokkos_utils.hh array.hh readers.hh readers.cc.o $(EXE)
+build_msg:
+	@echo "Building"
+	@echo "----------------"
 
-$(EXE): build report
-	$(LINK) readers.cc.o $(OBJ) $(NETCDF_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) $(CXX_LD_FLAGS) -o $(EXE)
+build: build_msg $(OBJ) $(KOKKOS_LINK_DEPENDS) utils.hh kokkos_utils.hh array.hh readers.hh readers.cc.o
+
+$(EXE): report build 
+	@echo "Linking"
+	@echo "----------------"
+	$(LINK) readers.cc.o $(OBJ) $(CXX_LD_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) -o $(EXE)
 
 clean:
 	@$(ELM_CLEAN)
-	rm -f test_* *.o *.cuda *.host
+	rm -f test_* *.o *.cuda *.host KokkosCore_config.h KokosCore_config.tmp
 
-test : $(SRC)
-	./$(EXE) > test_CanopyHydrology_module_multiple.stdout
+test : main
+	${MPIEXEC} ${MPI_NP}6 ./$(EXE) > test_CanopyHydrology_module_multiple.stdout
 	python ../compare_to_gold.py $(TESTS)
 
 allclean: clean

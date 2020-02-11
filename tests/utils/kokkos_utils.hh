@@ -12,21 +12,23 @@ namespace ELM {
 namespace ELMKokkos {
 
 template<class View_type>
-std::array<typename View_type::value_type, 3>
+std::array<double, 3>
 min_max_sum1(const MPI_Comm& comm,
              const View_type& v)
 {
   using T = typename View_type::value_type;
   typename View_type::const_type vc = v;
 
-  std::array<T,3> results;
+  std::array<double,3> results;
   {
     double result;
     Kokkos::parallel_reduce(
         "min", vc.extent(0),
-        KOKKOS_LAMBDA(const int& i, T& min_val) {
-          min_val = fmin(min_val, vc(i));
-        }, result);
+        KOKKOS_LAMBDA(const int& i, double& min_val) {
+          if (vc(i) < min_val) {
+            min_val = vc(i);
+          }
+        }, Kokkos::Min<double>(result));
     
     double result_g;
     MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
@@ -36,9 +38,11 @@ min_max_sum1(const MPI_Comm& comm,
     double result;
     Kokkos::parallel_reduce(
         "max", vc.extent(0),
-        KOKKOS_LAMBDA(const int& i, T& max_val) {
-          max_val = fmax(max_val, vc(i));
-        }, result);
+        KOKKOS_LAMBDA(const int& i, double& max_val) {
+          if (vc(i) > max_val) {
+            max_val = vc(i);
+          }
+        }, Kokkos::Max<double>(result));
     
     double result_g;
     MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
@@ -48,7 +52,7 @@ min_max_sum1(const MPI_Comm& comm,
     double result;
     Kokkos::parallel_reduce(
         "sum", vc.extent(0),
-        KOKKOS_LAMBDA(const int& i, T& sum_val) {
+        KOKKOS_LAMBDA(const int& i, double& sum_val) {
           sum_val += vc(i);
         }, result);
     
@@ -61,21 +65,21 @@ min_max_sum1(const MPI_Comm& comm,
 
 
 template<class View_type>
-std::array<typename View_type::value_type,3>
+std::array<double,3>
 min_max_sum2(const MPI_Comm& comm, const View_type& v)
 {
   using T = typename View_type::value_type;
   typename View_type::const_type vc = v;
   Kokkos::MDRangePolicy<Kokkos::Rank<2>> range({0,0},{vc.extent(0), vc.extent(1)});
 
-  std::array<T,3> results;
+  std::array<double,3> results;
   {
     double result;
     Kokkos::parallel_reduce(
         "min", range,
-        KOKKOS_LAMBDA(const int& i, const int& j, T& min_val) {
-          min_val = fmin(min_val, vc(i,j));
-        }, result);
+        KOKKOS_LAMBDA(const int& i, const int& j, double& min_val) {
+          if (vc(i,j) < min_val) min_val = vc(i,j);
+        }, Kokkos::Min<double>(result));
     
     double result_g;
     MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
@@ -85,9 +89,9 @@ min_max_sum2(const MPI_Comm& comm, const View_type& v)
     double result;
     Kokkos::parallel_reduce(
         "max", range,
-        KOKKOS_LAMBDA(const int& i, const int& j, T& max_val) {
-          max_val = fmax(max_val, vc(i,j));
-        }, result);
+        KOKKOS_LAMBDA(const int& i, const int& j, double& max_val) {
+          if (vc(i,j) > max_val) max_val = vc(i,j);
+        }, Kokkos::Max<double>(result));
     
     double result_g;
     MPI_Reduce(&result, &result_g, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
@@ -97,7 +101,7 @@ min_max_sum2(const MPI_Comm& comm, const View_type& v)
     double result;
     Kokkos::parallel_reduce(
         "sum", range,
-        KOKKOS_LAMBDA(const int& i, const int& j, T& sum_val) {
+        KOKKOS_LAMBDA(const int& i, const int& j, double& sum_val) {
           sum_val += vc(i,j);
         }, result);
     
