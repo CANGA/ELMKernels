@@ -52,8 +52,24 @@ int month_from_day(int doy, int start_month) { //i_month will be the month insid
 //
 std::pair<int, int>
 get_domain_decomposition(int nprocs, int argc, char** argv) {
-  assert(nprocs == 6 && "NPROCS must be 6 for now!");
-  return std::make_pair(3,2);
+  	int numprocs_x=1;
+	int numprocs_y=1;
+	int n=nprocs;
+	int i=2;
+	while(n!=1){
+		if(n%i==0)
+		{
+			if(numprocs_x-numprocs_y>=0){
+				numprocs_y*=i;
+			}else{
+				numprocs_x*=i;
+			}
+			n=n/i;
+		}else{
+			i++;
+		}
+	}
+  return std::make_pair(numprocs_x,numprocs_y);
 }
 
 

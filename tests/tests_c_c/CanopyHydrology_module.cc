@@ -1,5 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <tuple>
+#include <functional>
 #include <array>
 #include <string>
 
