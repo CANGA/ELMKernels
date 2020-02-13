@@ -117,6 +117,41 @@ convert_precip_to_rain_snow(Array_t& rain,
 }
 
 
+//
+// Write a variable to disk
+//
+// Assumes shape(arr) == (N_LAT_LOCAL, N_LON_LOCAL )
+//
+void
+write_grid_cell(const MPI_Comm& comm,
+                const std::string& filename, const std::string& varname,
+                int i_beg, int j_beg, int n_lat_global, int n_lon_global,
+                ELM::Utils::Array<double,2>& arr);
+
+
+//
+// Write a variable to disk
+//
+// Assumes shape(arr) == (N_GRID_CELLS )
+//
+template<class Array_t>
+void
+reshape_and_write_grid_cell(const MPI_Comm& comm,
+                            const std::string& filename, const std::string& varname,
+                            int i_beg, int j_beg, int n_lat_local, int n_lon_local,
+                            int n_lat_global, int n_lon_global,                            
+                            const Array_t& arr)
+{
+  assert(arr.extent(0) == n_lat_local * n_lon_local);
+  ELM::Utils::Array<double,2> arr_for_write(n_lat_local, n_lon_local);
+  for (int j=0; j!=n_lat_local; ++j) {
+    for (int k=0; k!=n_lon_local; ++k) {
+      arr_for_write(j,k) = arr(j*n_lon_local + k);
+    }
+  }
+  write_grid_cell(comm, filename, varname, i_beg, j_beg, n_lat_global, n_lon_global, arr_for_write);
+}
+
 
 } // namespace
 } // namespace

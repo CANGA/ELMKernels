@@ -326,6 +326,10 @@ int main(int argc, char ** argv)
     std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
               << ", mean: " << times[2] << std::endl;
   }
+
+  // write final canopy water for kicks
+  ELM::IO::reshape_and_write_grid_cell(MPI_COMM_WORLD, "./final.nc", "snow_depth",
+          i_begin_global, j_begin_global, ny_local, nx_local, ny_global, nx_global, snow_depth);
   
 #ifdef UNIT_TEST
   if (myrank == 0) soln_file.close();

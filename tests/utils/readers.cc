@@ -71,7 +71,7 @@ void read_phenology(const MPI_Comm& comm,
 
   for (int mm=0; mm!=n_months; ++mm) {	
     int ncid = -1;
-    auto status = ncmpi_open(MPI_COMM_WORLD, fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
+    auto status = ncmpi_open(comm, fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
     NCMPI_HANDLE_ERROR(status, std::string("nc_open")+" \""+fname_full.str().c_str()+"\"");
 
     auto start = std::array<MPI_Offset,4>{0,0,j_beg,i_beg};
@@ -201,7 +201,7 @@ void read_forcing(const MPI_Comm& comm,
     int dimid = -1;
 
     //open
-    auto status = ncmpi_open(MPI_COMM_WORLD,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
+    auto status = ncmpi_open(comm,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
     NCMPI_HANDLE_ERROR(status, std::string("ncmpi_open")+" \""+fname_full.str()+"\"");
 		
     //time
@@ -232,6 +232,50 @@ void read_forcing(const MPI_Comm& comm,
     index_start+=tmp_times;
 			
   }
+}
+
+
+//
+// Write NetCDF file
+// -----------------------------------------------------------------------------
+void write_grid_cell(const MPI_Comm& comm,
+                     const std::string& filename, const std::string& varname,
+                     int i_beg, int j_beg, int n_lat_global, int n_lon_global, ELM::Utils::Array<double,2>& arr)
+{
+  MPI_Info info;
+  MPI_Info_create (&info);
+
+  const auto dims=arr.shape();
+  const int ny = std::get<0>(dims);
+  const int nx = std::get<1>(dims);
+
+  int ncid = -1;
+  auto status = ncmpi_create(comm, filename.c_str(), NC_WRITE, info, &ncid);
+  NCMPI_HANDLE_ERROR(status, std::string("ncmpi_open")+" \""+filename+"\"");
+  
+  std::array<int,2> dimid;
+  status = ncmpi_def_dim(ncid, "lat", (MPI_Offset) n_lat_global, &dimid[0]);
+  NCMPI_HANDLE_ERROR(status, "ncmpi_def_dim: lat");
+
+  int lon_dimid = -1;
+  status = ncmpi_def_dim(ncid, "lon", (MPI_Offset) n_lon_global, &dimid[1]);
+  NCMPI_HANDLE_ERROR(status, "ncmpi_def_dim: lon");
+
+  int var_id = -1;
+  status = ncmpi_def_var(ncid, varname.c_str(), NC_DOUBLE, 2, dimid.data(), &var_id);
+  NCMPI_HANDLE_ERROR(status, "ncmpi_def_varid: "+varname);
+
+  status = ncmpi_enddef(ncid);
+  NCMPI_HANDLE_ERROR(status, "ncmpi_enddef");
+
+  auto start = std::array<MPI_Offset,2>{j_beg, i_beg};
+  auto count = std::array<MPI_Offset,2>{arr.extent(0), arr.extent(1)};
+  status = ncmpi_put_vara_double_all(ncid, var_id, start.data(), count.data(),
+          (double*) arr.begin()); 
+  NCMPI_HANDLE_ERROR(status, "ncmpi_put_vara_double: "+varname);
+
+  status = ncmpi_close(ncid);
+  NCMPI_HANDLE_ERROR( status, "nc_close" ) ;
 }
 
 
