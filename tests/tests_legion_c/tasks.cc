@@ -1,8 +1,10 @@
 #include <iostream>
+#include <fstream>
+#include <array>
 #include <numeric>
 #include <string>
 #include <functional>
-#include "readers.hh"
+#include "../utils/readers_seq.hh"
 #include "CanopyHydrology.hh"
 #include "legion.h"
 #include "tasks.hh"
@@ -151,6 +153,8 @@ InitPhenology::cpu_execute_task(const Task *task,
                    const std::vector<PhysicalRegion> &regions,
                    Context ctx, Runtime *runtime)
 {
+    
+
   assert(regions.size() == 1);
   assert(task->regions.size() == 1);
   assert(task->regions[0].instance_fields.size() == 2); // LAI, SAI
@@ -161,14 +165,22 @@ InitPhenology::cpu_execute_task(const Task *task,
   const FieldAccessor<WRITE_DISCARD,double,2> esai(regions[0],
           task->regions[0].instance_fields[1]);
 
-  Rect<2> my_bounds = Domain(runtime->get_index_space_domain(
+  Rect<4> my_bounds = Domain(runtime->get_index_space_domain(
       regions[0].get_logical_region().get_index_space()));
-  coord_t n_grid_cells = my_bounds.hi[0] - my_bounds.lo[0] + 1;
-  coord_t n_pfts = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  coord_t n_months = my_bounds.hi[0] - my_bounds.lo[0] + 1;
+  coord_t ny = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  coord_t nx = my_bounds.hi[2] - my_bounds.lo[2] + 1;
+  coord_t n_pfts = my_bounds.hi[3] - my_bounds.lo[3] + 1;
   
-  assert(n_grid_cells == 24); // hard coded as two reads of 2x 12 increments
-  ELM::Utils::read_phenology("../links/surfacedataWBW.nc", 12, n_pfts, 0, elai, esai);
-  ELM::Utils::read_phenology("../links/surfacedataBRW.nc", 12, n_pfts, 12, elai, esai);
+  //assert(n_grid_cells == 24); // hard coded as two reads of 2x 12 increments
+  //ELM::Utils::read_phenology("../links/surfacedataWBW.nc", 12, n_pfts, 0, elai, esai);
+  //ELM::Utils::read_phenology("../links/surfacedataBRW.nc", 12, n_pfts, 12, elai, esai);
+
+  const std::string basename("surfdata_360x720cru_simyr1850_c180216.nc");
+  ELM::IO::read_and_reshape_phenology(dir_elm, basename, "ELAI", start_year, start_month,
+                           nx, ny, elai);
+  ELM::IO::read_and_reshape_phenology(dir_elm, basename, "ESAI", start_year, start_month,
+                          nx, ny, esai);
 }
 
 void
@@ -221,10 +233,11 @@ InitForcing::cpu_execute_task(const Task *task,
   assert(task->regions[0].instance_fields.size() == 4);
 
   //std::cout << "LOG: Executing InitForcing task" << std::endl;
-  Rect<2> my_bounds = Domain(runtime->get_index_space_domain(
+  Rect<3> my_bounds = Domain(runtime->get_index_space_domain(
       regions[0].get_logical_region().get_index_space()));
   coord_t n_times_max = my_bounds.hi[0] - my_bounds.lo[0] + 1;
-  coord_t n_grid_cells = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  coord_t ny = my_bounds.hi[1] - my_bounds.lo[1] + 1;
+  coord_t nx = my_bounds.hi[2] - my_bounds.lo[2] + 1;
   
   // init rain, snow, and air temp through reader
   const FieldAccessor<WRITE_DISCARD,double,2> rain(regions[0],
@@ -235,17 +248,25 @@ InitForcing::cpu_execute_task(const Task *task,
           task->regions[0].instance_fields[2]);
   const FieldAccessor<WRITE_DISCARD,double,2> irrig(regions[0],
           task->regions[0].instance_fields[3]);
-  int n_times = ELM::Utils::read_forcing("../links/forcing",
-          n_times_max, 0, n_grid_cells,
-          rain, snow, air_temp);
-
+  //int n_times = ELM::Utils::read_forcing("../links/forcing",n_times_max, 0, n_grid_cells,rain, snow, air_temp);
+  std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
+  ELM::IO::read_and_reshape_forcing(dir_atm, basename, "PRECIP",
+          start_year, start_month, n_months,
+          ny, nx, forc_rain);
+  
+  basename1="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
+  ELM::IO::read_and_reshape_forcing(dir_atm, basename1, "AIR_TEMP",
+          start_year, start_month, n_months,
+          ny, nx, forc_air_temp);
+  
+  ELM::IO::convert_precip_to_rain_snow(forc_rain,forc_snow,forc_air_temp);
   // init irrig to zero
   for (size_t t=0; t!=n_times_max; ++t) {
     for (size_t g=0; g!=n_grid_cells; ++g) {
       irrig[t][g] = 0.;
     }
   }
-  return n_times;
+  return n_times_max;
 }  
 
 void

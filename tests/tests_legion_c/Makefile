@@ -22,7 +22,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	+= -I$(LG_RT_DIR)
+INC_FLAGS	+= -I$(LG_RT_DIR) -I../utils/
 CXXFLAGS        += -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
@@ -70,7 +70,7 @@ sandbox: test_sandbox_domain_template_magic
 # If we're using CUDA we have to link with nvcc
 test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
 	@echo "---> Linking objects into one binary: $()"
-	$(CXX) -o $@ $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
+	$(CXX) -o $@ readers_seq.cc $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
 	#$(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
 
 $(SLIB_LEGION) : $(LEGION_OBJS) $(MAPPER_OBJS)
@@ -102,7 +102,7 @@ $(GEN_GPU_OBJS) : %.cu.o : %.cu
 $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
 
-%.cc.o : %.cc domains.hh #readers.hh utils.hh
+%.cc.o : %.cc domains.hh readers_seq.hh legion_utils.hh array.hh
 	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) -c $< -o $@
 
 clean :
