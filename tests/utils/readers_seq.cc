@@ -44,7 +44,7 @@ namespace IO {
 // n_pft PFTs, into LAI and SAI matrices // -----------------------------------------------------------------------------
 void read_phenology(const std::string& dir,const std::string& basename, const std::string& phenology_type,
                     int start_year, int start_month,
-                    int i_beg, int j_beg, ELM::Utils::Array<double,4>& arr){
+                    ELM::Utils::Array<double,4>& arr){
 
   std::string varname;
 
@@ -159,7 +159,7 @@ get_dimensions(const std::string& dir, const std::string& basename,
 // -----------------------------------------------------------------------------
 void read_forcing(const std::string& dir,const std::string& basename, const std::string& forcing_type,
                   int start_year, int start_month, int n_months,
-                  int i_beg, int j_beg, ELM::Utils::Array<double,3>& arr){
+                  ELM::Utils::Array<double,3>& arr){
 
 
   const auto dims=arr.shape();
