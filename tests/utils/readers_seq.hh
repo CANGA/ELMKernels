@@ -90,8 +90,8 @@ read_and_reshape_forcing(const std::string& dir,const std::string& basename, con
 
 
 // Convert precipitation to rain and snow
-void convert_precip_to_rain_snow(ELM::Utils::Array<double,3>& rain, ELM::Utils::Array<double,3>& snow, 
-											ELM::Utils::Array<double,3>& temp);
+void convert_precip_to_rain_snow(ELM::Utils::Array<double,2>& rain, ELM::Utils::Array<double,2>& snow, 
+											ELM::Utils::Array<double,2>& temp);
 
 
 

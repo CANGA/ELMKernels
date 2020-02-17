@@ -21,9 +21,9 @@
 #include <tuple>
 #include <functional>
 #include "legion.h"
-#include "../utils/array.hh"
-#include "../utils/readers_seq.hh"
-#include "../utils/legion_utils.hh"
+#include "array.hh"
+#include "readers_seq.hh"
+#include "data.hh"
 #include "tasks.hh"
 
 using namespace Legion;
@@ -48,14 +48,14 @@ void top_level_task(const Task *task,
   const int n_parts = 4;
   const int n_levels_soil_col = 5;  // NOTE: this will change once we get soil,
                                     // currently this is just n_lev_snow
-  const std::string dir_atm = "ATM_DATA_LOCATION";
-  const std::string dir_elm = "ELM_DATA_LOCATION";
+  //const std::string dir_atm = "ATM_DATA_LOCATION";
+  //const std::string dir_elm = "ELM_DATA_LOCATION";
   const std::string basename1("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
   const auto problem_dims = ELM::IO::get_dimensions(dir_atm, basename1, start_year, start_month, n_months);
   const int n_times = std::get<0>(problem_dims);
   const int ny = std::get<1>(problem_dims);
   const int nx = std::get<2>(problem_dims);
-  //const int n_grid_cells = nx * ny ;
+  int n_grid_cells = nx * ny ;
   // -----------------------------------------------------------------------------
   // SETUP Phase
   // -----------------------------------------------------------------------------
@@ -64,15 +64,15 @@ void top_level_task(const Task *task,
   //
   // grid cell x pft data for phenology
   auto phenology_fs_names = std::vector<std::string>{ "elai", "esai" };
-  Data<4> phenology("phenology", ctx, runtime,
-                    Point<4>(n_months,ny,nx, n_pfts), Point<4>(1,n_parts,n_parts,1),
+  Data<3> phenology("phenology", ctx, runtime,
+                    Point<3>(n_months,n_grid_cells, n_pfts), Point<3>(1,n_parts,n_parts,1),
                     phenology_fs_names);
   
   // n_times_max x n_grid_cells forcing data
   auto forcing_fs_names = std::vector<std::string>{
     "forc_rain", "forc_snow", "forc_air_temp", "forc_irrig"};
-  Data<3> forcing("forcing", ctx, runtime,
-                  Point<3>(n_times,ny,nx), Point<3>(1,n_parts,n_parts),
+  Data<2> forcing("forcing", ctx, runtime,
+                  Point<2>(n_times,n_grid_cells), Point<2>(1,n_parts),
                   forcing_fs_names);
   
   // grid cell x pft water state and flux outputs
