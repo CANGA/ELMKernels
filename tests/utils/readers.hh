@@ -12,7 +12,8 @@ namespace IO {
 // Returns shape in file, as a pair (N_TIMES, NX_GLOBAL, NY_GLOBAL)
 //
 std::tuple<int, int, int>
-get_dimensions(const std::string& dir,const std::string& basename,
+get_dimensions(const MPI_Comm& comm,
+               const std::string& dir,const std::string& basename,
                int start_year, int start_month, int n_months);
 
 
@@ -86,31 +87,6 @@ read_and_reshape_forcing(const MPI_Comm& comm,
     for (int j=0; j!=n_lat_local; ++j) {
       for (int k=0; k!=n_lon_local; ++k) {
 	arr(i,j*n_lon_local + k) = arr_for_read(i,j,k);
-      }
-    }
-  }
-}
-
-
-
-// Convert precipitation to rain and snow
-template<class Array_t>
-void
-convert_precip_to_rain_snow(Array_t& rain,
-                            Array_t& snow, 
-                            const Array_t& temp)
-{
-  const int nt = rain.extent(0);
-  const int ng = rain.extent(1);
-
-  for (int k=0; k<nt; k++) {
-    for (int j=0; j<ng; j++) {
-      if (temp(k,j) < 273.15) {
-        // no need to update snow, both are initially total precip
-        rain(k,j) = 0.0; 
-      } else {
-        // no need to update rain, both are initially total precip
-        snow(k,j) = 0.0;
       }
     }
   }

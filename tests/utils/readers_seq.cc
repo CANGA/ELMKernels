@@ -13,7 +13,7 @@
 #include "array.hh"
 
 
-#define NC_HANDLE_ERROR( status, what )      \
+#define NC_HANDLE_ERROR( status, what )         \
   do {                                          \
     if ( status )                               \
     {                                           \
@@ -26,7 +26,7 @@
           << " failed with rc = "               \
           << status                             \
           << ':'                                \
-          << nc_strerror( status )           \
+          << nc_strerror( status )              \
           << '\n' ;                             \
       abort() ;                                 \
     }                                           \
@@ -77,7 +77,7 @@ void read_phenology(const std::string& dir,const std::string& basename, const st
     // get id and read varname
     int varid = -1;
     status = nc_inq_varid(ncid, varname.c_str(), &varid);
-	 NC_HANDLE_ERROR(status, "nc_inq_varid phenology");
+    NC_HANDLE_ERROR(status, "nc_inq_varid phenology");
 
     status = nc_get_vara_double(ncid, varid, start.data(), count.data(), (double*) arr[mm].begin());
     NC_HANDLE_ERROR(status, "nc_get_vara_double phenology");
@@ -149,7 +149,7 @@ get_dimensions(const std::string& dir, const std::string& basename,
   }
 
 
-//should be the same to the first component
+  //should be the same to the first component
   return std::make_tuple(ntimes, all_lat[0], all_lon[0]);
 
 }
@@ -197,7 +197,7 @@ void read_forcing(const std::string& dir,const std::string& basename, const std:
     //time
     status = nc_inq_dimid(ncid, "time", &dimid);
     NC_HANDLE_ERROR(status, "nc_inq_dimid");
-	 size_t tmp_times;
+    size_t tmp_times;
     status = nc_inq_dimlen(ncid, dimid, &tmp_times);
     NC_HANDLE_ERROR(status, "nc_inq_dimlen");
 
@@ -225,28 +225,46 @@ void read_forcing(const std::string& dir,const std::string& basename, const std:
 }
 
 
-void convert_precip_to_rain_snow(ELM::Utils::Array<double,2>& rain, ELM::Utils::Array<double,2>& snow, 
-        ELM::Utils::Array<double,2>& temp){
 
-  const auto dims=rain.shape();
-  const int nt = std::get<0>(dims);
-  const int ny = std::get<1>(dims);
-  const int nx = std::get<2>(dims);
+//
+// Write NetCDF file
+// -----------------------------------------------------------------------------
+void write_grid_cell(const std::string& filename, const std::string& varname,
+                     int i_beg, int j_beg, int n_lat_global, int n_lon_global, ELM::Utils::Array<double,2>& arr)
+{
+  const auto dims=arr.shape();
+  const int ny = std::get<0>(dims);
+  const int nx = std::get<1>(dims);
 
+  int ncid = -1;
+  auto status = nc_create(filename.c_str(), NC_WRITE, info, &ncid);
+  NC_HANDLE_ERROR(status, std::string("nc_open")+" \""+filename+"\"");
+  
+  std::array<int,2> dimid;
+  status = nc_def_dim(ncid, "lat", n_lat_global, &dimid[0]);
+  NC_HANDLE_ERROR(status, "nc_def_dim: lat");
 
-  for(int k=0;k<nt;k++){
-    for(int j=0;j<ny;j++){
-      for(int i=0;i<nx;i++){
-        if(temp[k][j][i]<273.15){
-          rain[k][j][i]=0.0; //no need to update snow (it will have the correct value)
-        }else{
-          snow[k][j][i]=0.0; //no need to update rain (it will have the correct value)
-        }
-      }
-    }
-  }
+  int lon_dimid = -1;
+  status = nc_def_dim(ncid, "lon", (MPI_Offset) n_lon_global, &dimid[1]);
+  NC_HANDLE_ERROR(status, "nc_def_dim: lon");
 
+  int var_id = -1;
+  status = nc_def_var(ncid, varname.c_str(), NC_DOUBLE, 2, dimid.data(), &var_id);
+  NC_HANDLE_ERROR(status, "nc_def_varid: "+varname);
+
+  status = nc_enddef(ncid);
+  NC_HANDLE_ERROR(status, "nc_enddef");
+
+  auto start = std::array<MPI_Offset,2>{j_beg, i_beg};
+  auto count = std::array<MPI_Offset,2>{arr.extent(0), arr.extent(1)};
+  status = nc_put_vara_double_all(ncid, var_id, start.data(), count.data(),
+          (double*) arr.begin()); 
+  NC_HANDLE_ERROR(status, "nc_put_vara_double: "+varname);
+
+  status = nc_close(ncid);
+  NC_HANDLE_ERROR( status, "nc_close" ) ;
 }
+
 
 } // namespace Utils
 } // namespace ELM

@@ -91,7 +91,8 @@ void read_phenology(const MPI_Comm& comm,
 }
 
 std::tuple<int, int, int> 
-get_dimensions(const std::string& dir, const std::string& basename, 
+get_dimensions(const MPI_Comm& comm,
+               const std::string& dir, const std::string& basename, 
                int start_year, int start_month, int n_months){
 	
   MPI_Info info;
@@ -113,7 +114,7 @@ get_dimensions(const std::string& dir, const std::string& basename,
     int ncid = -1;
     int dimid = -1;
     //open
-    auto status = ncmpi_open(MPI_COMM_WORLD,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
+    auto status = ncmpi_open(comm,fname_full.str().c_str(), NC_NOWRITE, info, &ncid);
     NCMPI_HANDLE_ERROR(status, std::string("ncmpi_open")+" \""+fname_full.str().c_str()+"\"");
 
     //lon

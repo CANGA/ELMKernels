@@ -72,7 +72,7 @@ read_forcing(const std::string& dir,const std::string& basename, const std::stri
 template<class Array_t>
 void
 read_and_reshape_forcing(const std::string& dir,const std::string& basename, const std::string& forcing_type, int start_year, int start_month, int n_months,
-	     int n_lat_local, int n_lon_local, Array_t& arr) 
+                         int n_lat_local, int n_lon_local, Array_t& arr) 
 {
   assert(arr.extent(1) == n_lon_local * n_lon_local);
   ELM::Utils::Array<double,3> arr_for_read(arr.extent(0), n_lat_local, n_lon_local);
@@ -88,12 +88,38 @@ read_and_reshape_forcing(const std::string& dir,const std::string& basename, con
 }
 
 
+//
+// Write a variable to disk
+//
+// Assumes shape(arr) == (N_LAT_LOCAL, N_LON_LOCAL )
+//
+void
+write_grid_cell(const std::string& filename, const std::string& varname,
+                int i_beg, int j_beg, int n_lat_global, int n_lon_global,
+                ELM::Utils::Array<double,2>& arr);
 
-// Convert precipitation to rain and snow
-void convert_precip_to_rain_snow(ELM::Utils::Array<double,2>& rain, ELM::Utils::Array<double,2>& snow, 
-											ELM::Utils::Array<double,2>& temp);
 
-
+//
+// Write a variable to disk
+//
+// Assumes shape(arr) == (N_GRID_CELLS )
+//
+template<class Array_t>
+void
+reshape_and_write_grid_cell(const std::string& filename, const std::string& varname,
+                            int i_beg, int j_beg, int n_lat_local, int n_lon_local,
+                            int n_lat_global, int n_lon_global,                            
+                            const Array_t& arr)
+{
+  assert(arr.extent(0) == n_lat_local * n_lon_local);
+  ELM::Utils::Array<double,2> arr_for_write(n_lat_local, n_lon_local);
+  for (int j=0; j!=n_lat_local; ++j) {
+    for (int k=0; k!=n_lon_local; ++k) {
+      arr_for_write(j,k) = arr(j*n_lon_local + k);
+    }
+  }
+  write_grid_cell(filename, varname, i_beg, j_beg, n_lat_global, n_lon_global, arr_for_write);
+}
 
 } // namespace
 } // namespace

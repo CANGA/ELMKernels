@@ -54,7 +54,7 @@ int main(int argc, char ** argv)
   // dimension: time, lat (ny), lon (nx)
   const std::string basename1("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
   const auto problem_dims = 
-    ELM::IO::get_dimensions(dir_atm, basename1, start_year, start_month, n_months);
+      ELM::IO::get_dimensions(MPI_COMM_WORLD, dir_atm, basename1, start_year, start_month, n_months);
   const int n_times = std::get<0>(problem_dims);
   const int ny_global = std::get<1>(problem_dims);
   const int nx_global = std::get<2>(problem_dims);
@@ -153,7 +153,7 @@ int main(int argc, char ** argv)
               i_begin_global, j_begin_global, ny_local, nx_local, h_forc_air_temp);
       if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
     }
-    ELM::IO::convert_precip_to_rain_snow(h_forc_rain,h_forc_snow,h_forc_air_temp);
+    ELM::Utils::convert_precip_to_rain_snow(h_forc_rain,h_forc_snow,h_forc_air_temp);
     if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
 
     // -- copy to device
