@@ -63,11 +63,11 @@ int main(int argc, char ** argv)
 
   auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,
           { forc_dims[1], forc_dims[2] },
-          { myrank / proc_decomp[2], myrank % proc_decomp[2] });
+          { myrank / proc_decomp[1], myrank % proc_decomp[1] });
   
   
-  if (myrank == 0) {
-    std::cout << " dimensions:" << std::endl
+  if (myrank == n_procs-1) {
+    std::cout << " dimensions (rank " << myrank << "):" << std::endl
               << "   n_time = " << n_times << std::endl
               << "   global_n_lat,lon = " << dd.n_global[0] << "," << dd.n_global[1] << std::endl
               << "   nprocs_lat,lon = " << dd.n_procs[0] << "," << dd.n_procs[1] << std::endl
@@ -307,7 +307,16 @@ int main(int argc, char ** argv)
   }
 
   // write final canopy water for kicks
-  ELM::IO::reshape_and_write_grid_cell("./final.nc", "snow_depth", dd, snow_depth);
+#ifdef HAVE_PNETCDF
+  // this is collective
+  ELM::IO::init_writing("/ccs/home/ecoon/geo132/proj-work/ecoon/final.nc", "snow_depth", dd);
+#else
+  // only rank 0
+  if (myrank == 0) {
+    ELM::IO::init_writing("/ccs/home/ecoon/geo132/proj-work/ecoon/final.nc", "snow_depth", dd);
+  }
+#endif
+  ELM::IO::reshape_and_write_grid_cell("/ccs/home/ecoon/geo132/proj-work/ecoon/final.nc", "snow_depth", dd, snow_depth);
   
   if (myrank == 0) soln_file.close();
 

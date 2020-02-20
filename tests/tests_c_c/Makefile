@@ -13,6 +13,7 @@ include $(ELM_BASE)/config/Makefile.rules
 
 TESTS = test_CanopyHydrology_module
 EXEC_TESTS = CanopyHydrology_module
+CXXFLAGS += -std=c++11
 
 VPATH = ../utils
 

@@ -7,6 +7,7 @@
 #include <array>
 #include <numeric>
 #include <assert.h>
+#include <memory>
 
 namespace ELM {
 namespace Impl {

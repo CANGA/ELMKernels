@@ -59,7 +59,7 @@ min_max_sum(const Array_type& arr)
   double min = *min_max.first;
   double max = *min_max.second;
   double sum = std::accumulate(arr.begin(), arr.end(), 0.);
-  return std::array<double,3>{ min, max, sum };
+  return std::array<double,3>{ {min, max, sum} };
 }
 
 

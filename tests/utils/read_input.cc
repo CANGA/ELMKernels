@@ -133,6 +133,9 @@ read_phenology(const std::string& dir, const std::string& basename, const std::s
   assert(arr.extent(1) > 0);
   std::array<GO, 4> count = { (GO) n_months, (GO) arr.extent(1), dd.n_local[0], dd.n_local[1] };
 
+  // std::cout << "Reading: start = " << start[0] << "," << start[1] << "," << start[2] << "," << start[3] << std::endl
+  //           << "         count = " << count[0] << "," << count[1] << "," << count[2] << "," << count[3] << std::endl;
+  
   std::stringstream fname_full;
   fname_full << dir << "/" << basename;
 

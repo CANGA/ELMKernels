@@ -273,7 +273,7 @@ reshape_and_write_grid_cell(const std::string& filename, const std::string& varn
 {
   Array<double,2> arr_for_write(dd.n_local[0], dd.n_local[1]);
   for (int i=0; i!=dd.n_local[0]; ++i) {
-    for (int j=0; j!=dd.n_local[0]; ++j) {
+    for (int j=0; j!=dd.n_local[1]; ++j) {
       arr_for_write(i,j) = arr[i * dd.n_local[1] + j];
     }
   }
