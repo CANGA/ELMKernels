@@ -4,7 +4,10 @@
 #include "legion.h"
 using namespace Legion;
 
-// projection
+//
+// A projection function projects from a point in the domain to a color.
+//
+// Not sure why this isn't a default?  Need more notes here! --etc
 template<size_t DIM>
 class LocalProjectionFunction : public ProjectionFunctor {
  public:
@@ -40,7 +43,10 @@ class LocalProjectionFunction : public ProjectionFunctor {
 };
 
 
-
+//
+// A struct for storing a logical_region and its default (owning, disjoint)
+// partition.
+//
 template<size_t DIM>
 struct Data {
   Data(const std::string& name_,

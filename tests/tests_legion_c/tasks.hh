@@ -97,7 +97,7 @@ struct SumMinMaxReduction1D {
 //
 // If this grows, will need to make it index-launched.
 struct InitPhenology {
-  Future launch(Context ctx, Runtime *runtime, Data<2>& data);
+  Future launch(Context ctx, Runtime *runtime, Data<3>& data);
   static void cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,
           Context ctx, Runtime *runtime);
@@ -129,7 +129,7 @@ struct InitForcing {
 struct CanopyHydrology_Interception {
   FutureMap launch(Context ctx, Runtime *runtime,
                    Rect<1>& color_space,
-                   Data<2>& phenology_data,
+                   Data<3>& phenology_data,
                    Data<2>& forcing_data,
                    Data<2>& flux,
                    int itime);
@@ -151,7 +151,7 @@ struct CanopyHydrology_Interception {
 struct CanopyHydrology_FracWet {
   FutureMap launch(Context ctx, Runtime *runtime,
                    Rect<1>& color_space,
-                   Data<2>& phenology_data,
+                   Data<3>& phenology_data,
                    Data<2>& flux);
   static void cpu_execute_task(const Task *task,
           const std::vector<PhysicalRegion> &regions,

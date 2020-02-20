@@ -1,18 +1,10 @@
 //! A set of utilities for testing ELM kernels in C++
+
 #ifndef ELM_UTILS_HH_
 #define ELM_UTILS_HH_
 
-#include <chrono>
-
 #ifdef HAVE_MPI
-
 #include "mpi.h"
-using GO = MPI_Offset;
-
-#else
-
-using GO = size_t;
-
 #endif
 
 #include "array.hh"
@@ -20,36 +12,30 @@ using GO = size_t;
 namespace ELM {
 namespace Utils {
 
-template<size_t D>
-struct DomainDecomposition {
-  std::array<int, D> n_procs;
-  std::array<int, D> proc_index;
-  std::array<GO, D> n_global;
-  std::array<GO, D> start;
-  std::array<GO, D> n_local;
 
-#ifdef HAVE_MPI
-  MPI_Comm comm;
-  DomainDecomposition()
-      : comm(MPI_COMM_WORLD) {}
-#else
-  int comm;
-  DomainDecomposition()
-      : comm(-1) {}
-
-#endif
-  
-};
-
-std::array<int,2> square_numprocs(int nprocs);
-
-DomainDecomposition<1>
-create_domain_decomposition_1D(int nprocs, GO n_global, int proc_index);
-
-
-DomainDecomposition<2>
-create_domain_decomposition_2D(std::array<int,2> n_procs,
-        std::array<GO,2> n_global, std::array<int,2> proc_index);
+//
+// Domain decomposition in x, y
+//
+std::pair<int, int>
+get_domain_decomposition_2D(int nprocs, int argc, char** argv) {
+  int numprocs_x=1;
+  int numprocs_y=1;
+  int n=nprocs;
+  int i=2;
+  while (n!=1) {
+    if (n%i==0) {
+      if (numprocs_x-numprocs_y>=0) {
+        numprocs_y*=i;
+      } else {
+        numprocs_x*=i;
+      }
+      n=n/i;
+    } else {
+      i++;
+    }
+  }
+  return std::make_pair(numprocs_x,numprocs_y);
+}
 
 
 //
@@ -59,7 +45,6 @@ create_domain_decomposition_2D(std::array<int,2> n_procs,
 // hide this from bad developers!
 namespace Impl {
 #endif
-
 
 template<typename Array_type>
 std::array<double, 3>
@@ -71,7 +56,6 @@ min_max_sum(const Array_type& arr)
   double sum = std::accumulate(arr.begin(), arr.end(), 0.);
   return std::array<double,3>{ min, max, sum };
 }
-
 
 #ifdef HAVE_MPI
 } // namespace Impl
@@ -125,17 +109,29 @@ convert_precip_to_rain_snow(Array_t& rain,
 // Performance metric Clock
 //
 namespace Clock {
-
 using time_point_type = std::chrono::high_resolution_clock::time_point;
 using duration_type = std::chrono::duration<double>;
 
-inline time_point_type
-time() {
+time_point_type time() {
   return std::chrono::high_resolution_clock::now();
 }
 
 #ifdef HAVE_MPI
-std::array<double,3> min_max_mean(const MPI_Comm& comm, duration_type duration);
+
+std::array<double,3> min_max_mean(const MPI_Comm& comm, duration_type duration) {
+  double duration_d(duration.count());
+  double min, max, mean;
+  MPI_Reduce(&duration_d, &max, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
+  MPI_Reduce(&duration_d, &min, 1, MPI_DOUBLE, MPI_MIN, 0, comm);
+  MPI_Reduce(&duration_d, &mean, 1, MPI_DOUBLE, MPI_SUM, 0, comm);
+
+  int numprocs;
+  MPI_Comm_size(MPI_COMM_WORLD,&numprocs);
+  mean /= numprocs;
+
+  return std::array<double,3>{min, max, mean};
+}
+
 #endif
 
 } // namespace Clock

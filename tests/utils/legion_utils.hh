@@ -2,8 +2,13 @@
 #define DOMAINS_HH_
 
 #include "legion.h"
+#include "readers_seq.hh"
+
+namespace ELM {
+
 using namespace Legion;
 
+namespace Impl {
 // projection
 template<size_t DIM>
 class LocalProjectionFunction : public ProjectionFunctor {
@@ -39,7 +44,7 @@ class LocalProjectionFunction : public ProjectionFunctor {
   Point<DIM> partition_;
 };
 
-
+} // namespace Impl
 
 template<size_t DIM>
 struct Data {
@@ -140,7 +145,7 @@ struct Data {
 
     // register the projection
     projection_id = runtime->generate_dynamic_projection_id();
-    auto* pf = new LocalProjectionFunction<DIM>(blocked_shape, runtime);
+    auto* pf = new Impl::LocalProjectionFunction<DIM>(blocked_shape, runtime);
     runtime->register_projection_functor(projection_id,pf);
             
   }
@@ -181,5 +186,89 @@ struct Data {
 
   ProjectionID projection_id;
 };
+
+
+namespace IO {
+
+//
+// Read a variable from the phenology file and copy it into the provided array.
+//
+// Provided shape(arr) == (N_MONTHS, N_GRID_CELLS_LOCAL, N_PFT)
+//
+// This variant is provided for Legion, whose accessors don't know their own dimensions?
+template<class Array_t>
+void
+read_and_reshape_phenology(const std::string& dir,const std::string& basename, const std::string& phenology_type,
+                           int start_year, int start_month, int n_months,
+			   int n_lat_local, int n_lon_local, int n_pfts, Array_t& arr) 
+{
+  ELM::Utils::Array<double,4> arr_for_read(n_months, n_pfts, n_lat_local, n_lon_local);
+  read_phenology(dir, basename, phenology_type, start_year, start_month, 
+		 arr_for_read);
+  for (int i=0; i!=n_months; ++i) {
+    for (int p=0; p!=n_pfts; ++p) {
+      for (int j=0; j!=n_lat_local; ++j) {
+        for (int k=0; k!=n_lon_local; ++k) {
+	  arr[Legion::Point<3>{i,j*n_lon_local + k,p}] = arr_for_read(i,p,j,k);
+	}
+      }
+    }
+  }
+}
+
+
+
+//
+// Read a variable from the forcing files.
+//
+// Assumes shape(arr) == (N_TIMES, N_GRID_CELLS_LOCAL )
+//
+// provided because Legion accessors don't know their own dimension?
+template<class Array_t>
+void
+read_and_reshape_forcing(const std::string& dir,const std::string& basename, const std::string& forcing_type, int start_year, int start_month, int n_months,
+                         int n_timesteps, int n_lat_local, int n_lon_local, Array_t& arr) 
+{
+  ELM::Utils::Array<double,3> arr_for_read(n_timesteps, n_lat_local, n_lon_local);
+  read_forcing(dir, basename, forcing_type, start_year, start_month, n_months, arr_for_read);
+  for (int i=0; i!=n_timesteps; ++i) {
+    for (int j=0; j!=n_lat_local; ++j) {
+      for (int k=0; k!=n_lon_local; ++k) {
+	arr[Point<2>{i,j*n_lon_local + k}] = arr_for_read(i,j,k);
+      }
+    }
+  }
+}
+
+
+} // namespace IO
+
+namespace Utils {
+
+
+template<class Array_t>
+void
+convert_precip_to_rain_snow(Array_t& rain,
+                            Array_t& snow,
+                            const Array_t& temp,
+                            int nt, int ng)
+{
+  for (int k=0; k<nt; k++) {
+    for (int j=0; j<ng; j++) {
+      auto p = Legion::Point<2>{k,j};
+      if (temp[p] < 273.15) {
+        // no need to update snow, both are initially total precip
+        rain[p] = 0.0; 
+      } else {
+        // no need to update rain, both are initially total precip
+        snow[p] = 0.0;
+      }
+    }
+  }
+}
+
+} // namespace Utils
+
+} // namespace ELM
 
 #endif

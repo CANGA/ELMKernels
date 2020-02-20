@@ -20,106 +20,41 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # Put the binary file name here
 
 # You can modify these variables, some will be appended to by the runtime makefile
-GEN_SRC		?= tasks.cc
+OUTFILE = CanopyHydrology_module
+GEN_SRC	= tasks.cc readers_seq.cc CanopyHydrology_module.cc
 
-INC_FLAGS	+= -I$(LG_RT_DIR) -I../utils/
 CXXFLAGS        += -DLEGION_SPY
-NVCC_FLAGS	?=
-GASNET_FLAGS	?=
-
-
 
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
+INC_FLAGS += -I ../utils $(NETCDF_INC_FLAGS)
+CC_FLAGS += $(CXXFLAGS)
+LD_FLAGS += $(CXX_LD_FLAGS)
+
 TESTS = test_CanopyHydrology_module
-
-
 EXEC_TESTS = CanopyHydrology_module
+
+VPATH = ../utils
 
 #
 # Load Legion logic, but not rules
 #
-NO_BUILD_RULES = 1
+
+.PHONY: default
+default: all
+
 include $(LG_RT_DIR)/runtime.mk
 
-#
-# Legion rules
-#
-.PHONY: library test
+# test: $(EXEC_TESTS)
+# 	python ../compare_to_gold.py $(TESTS)
 
-default: all
-	@echo "GEN OBJS = $(GEN_OBJS)"
+# CanopyHydrology_module: test_CanopyHydrology_module
+# 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
 
 
-all: $(TESTS)
-
-test: $(EXEC_TESTS)
-	python ../compare_to_gold.py $(TESTS)
-
-
-CanopyHydrology_module: test_CanopyHydrology_module
-	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
-# 	./test_CanopyHydrology_module -lg:spy -logfile spy_module%.log
-# 	$(LG_RT_DIR)/../tools/legion_spy.py -dez spy_module*.log
-
-
-sandbox: test_sandbox_domain_template_magic
-	./test_sandbox_domain_template_magic
-
-# If we're using CUDA we have to link with nvcc
-test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
-	@echo "---> Linking objects into one binary: $()"
-	$(CXX) -o $@ readers_seq.cc $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
-	#$(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
-
-$(SLIB_LEGION) : $(LEGION_OBJS) $(MAPPER_OBJS)
-	rm -f $@
-	$(AR) rc $@ $^
-
-$(SLIB_REALM) : $(REALM_OBJS)
-	rm -f $@
-	$(AR) rc $@ $^
-
-$(GEN_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(CPP_FLAGS) $(INC_FLAGS)
-
-$(ASM_OBJS) : %.S.o : %.S
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
-
-$(REALM_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
-
-$(LEGION_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
-
-$(MAPPER_OBJS) : %.cc.o : %.cc
-	$(CXX) -o $@ -c $< $(CXXFLAGS) $(INC_FLAGS)
-
-$(GEN_GPU_OBJS) : %.cu.o : %.cu
-	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
-
-$(GPU_RUNTIME_OBJS): %.cu.o : %.cu
-	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
-
-%.cc.o : %.cc domains.hh readers_seq.hh legion_utils.hh array.hh
-	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) -c $< -o $@
-
-clean :
-	$(ELM_CLEAN)
-	rm -f test_*
-
-allclean : clean
+allclean: clean
 	$(MAKE) -C $(OBJECT) allclean
 	$(RM) -f $(SLIB_LEGION) $(SLIB_REALM) $(GEN_OBJS) $(GEN_GPU_OBJS) $(REALM_OBJS) $(LEGION_OBJS) $(GPU_RUNTIME_OBJS) $(MAPPER_OBJS) $(ASM_OBJS)
-
-ifeq ($(strip $(USE_LLVM)),1)
-llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
-%/llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
-endif
-
-links:
-	@echo "making in links"
-	$(MAKE) -C ../links links
 
 

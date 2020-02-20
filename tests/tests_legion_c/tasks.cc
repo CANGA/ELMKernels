@@ -4,9 +4,12 @@
 #include <numeric>
 #include <string>
 #include <functional>
-#include "readers_seq.hh"
-#include "CanopyHydrology.hh"
+
 #include "legion.h"
+
+#include "utils.hh"
+#include "legion_utils.hh"
+#include "CanopyHydrology.hh"
 #include "tasks.hh"
 
 using namespace Legion;
@@ -136,7 +139,7 @@ std::string SumMinMaxReduction1D::name = "sum_min_max_reduction1D";
 //
 // =============================================================================
 Future
-InitPhenology::launch(Context ctx, Runtime *runtime, Data<2>& data)
+InitPhenology::launch(Context ctx, Runtime *runtime, Data<3>& data)
 {
   TaskLauncher phenology_launcher(taskid, TaskArgument(NULL, 0));
   phenology_launcher.add_region_requirement(
@@ -174,16 +177,13 @@ InitPhenology::cpu_execute_task(const Task *task,
   coord_t n_grid_cells = my_bounds.hi[1] - my_bounds.lo[1] + 1;
   coord_t n_pfts = my_bounds.hi[2] - my_bounds.lo[2] + 1;
   
-  
-  //assert(n_grid_cells == 24); // hard coded as two reads of 2x 12 increments
-  //ELM::Utils::read_phenology("../links/surfacedataWBW.nc", 12, n_pfts, 0, elai, esai);
-  //ELM::Utils::read_phenology("../links/surfacedataBRW.nc", 12, n_pfts, 12, elai, esai);
-
   const std::string basename("surfdata_360x720cru_simyr1850_c180216.nc");
-  ELM::IO::read_and_reshape_phenology(ELM_DATA_LOCATION, basename, "ELAI", start_year, start_month,
-                           nx, ny, elai);
-  ELM::IO::read_and_reshape_phenology(ELM_DATA_LOCATION, basename, "ESAI", start_year, start_month,
-                          nx, ny, esai);
+  ELM::IO::read_and_reshape_phenology(ELM_DATA_LOCATION, basename, "ELAI",
+          start_year, start_month, n_months,
+          nx, ny, n_pfts, elai);
+  ELM::IO::read_and_reshape_phenology(ELM_DATA_LOCATION, basename, "ESAI",
+          start_year, start_month, n_months,
+          nx, ny, n_pfts, esai);
 }
 
 void
@@ -247,27 +247,27 @@ InitForcing::cpu_execute_task(const Task *task,
   coord_t n_grid_cells = my_bounds.hi[1] - my_bounds.lo[1] + 1;
     
   // init rain, snow, and air temp through reader
-  const FieldAccessor<WRITE_DISCARD,double,2> rain(regions[0],
+  FieldAccessor<WRITE_DISCARD,double,2> rain(regions[0],
           task->regions[0].instance_fields[0]);
-  const FieldAccessor<WRITE_DISCARD,double,2> snow(regions[0],
+  FieldAccessor<WRITE_DISCARD,double,2> snow(regions[0],
           task->regions[0].instance_fields[1]);
-  const FieldAccessor<WRITE_DISCARD,double,2> air_temp(regions[0],
+  FieldAccessor<WRITE_DISCARD,double,2> air_temp(regions[0],
           task->regions[0].instance_fields[2]);
-  const FieldAccessor<WRITE_DISCARD,double,2> irrig(regions[0],
+  FieldAccessor<WRITE_DISCARD,double,2> irrig(regions[0],
           task->regions[0].instance_fields[3]);
   //int n_times = ELM::Utils::read_forcing("../links/forcing",n_times_max, 0, n_grid_cells,rain, snow, air_temp);
   //int n_grid_cells = rain.bounds.hi[1] ; 
   std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
   ELM::IO::read_and_reshape_forcing(ATM_DATA_LOCATION, basename, "PRECIP",
-          start_year, start_month, n_months,
+          start_year, start_month, n_months, n_times,
           ny, nx, rain);
   
   std::string basename1="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
   ELM::IO::read_and_reshape_forcing(ATM_DATA_LOCATION, basename1, "AIR_TEMP",
-          start_year, start_month, n_months,
+          start_year, start_month, n_months, n_times,
           ny, nx, air_temp);
   
-  ELM::IO::convert_precip_to_rain_snow(rain,snow,air_temp);
+  ELM::Utils::convert_precip_to_rain_snow(rain,snow,air_temp, n_times, n_grid_cells);
   // init irrig to zero
   for (size_t t=0; t!=n_times; ++t) {
     for (size_t g=0; g!=n_grid_cells; ++g) {
@@ -306,7 +306,7 @@ std::string InitForcing::name = "init_forcing";
 FutureMap
 CanopyHydrology_Interception::launch(Context ctx, Runtime *runtime,
         Rect<1>& color_space,
-        Data<2>& phenology,
+        Data<3>& phenology,
         Data<2>& forcing,
         Data<2>& flux,
         int itime)
@@ -376,11 +376,15 @@ CanopyHydrology_Interception::cpu_execute_task(const Task *task,
   std::tie(lcv_time, dtime, ltype, ctype, urbpoi, do_capsnow, dewmx, frac_veg_nosno) =
       *((args_t*) task->args);
 
+  int i_month = ELM::Utils::month_from_day((int)(lcv_time/8), 0) ;
+
   // get accessors
   using AffineAccessorRO = FieldAccessor<READ_ONLY,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
   using AffineAccessorRW = FieldAccessor<READ_WRITE,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
+  using AffineAccessorRO3 = FieldAccessor<READ_ONLY,double,3,coord_t,
+                                         Realm::AffineAccessor<double,3,coord_t> >;
   
   // -- forcing
   // //std::cout << "rain, snow, irrig = "
@@ -392,8 +396,8 @@ CanopyHydrology_Interception::cpu_execute_task(const Task *task,
   const AffineAccessorRO forc_irrig(regions[0], task->regions[0].instance_fields[2]);
 
   // -- phenology
-  const AffineAccessorRO elai(regions[1], task->regions[1].instance_fields[0]);
-  const AffineAccessorRO esai(regions[1], task->regions[1].instance_fields[1]);
+  const AffineAccessorRO3 elai(regions[1], task->regions[1].instance_fields[0]);
+  const AffineAccessorRO3 esai(regions[1], task->regions[1].instance_fields[1]);
 
   // -- output
   const AffineAccessorRW qflx_prec_intr(regions[2], task->regions[2].instance_fields[0]);
@@ -419,7 +423,7 @@ CanopyHydrology_Interception::cpu_execute_task(const Task *task,
       ELM::CanopyHydrology_Interception(dtime,
               forc_rain[lcv_time][g], forc_snow[lcv_time][g], forc_irrig[lcv_time][g],
               ltype, ctype, urbpoi, do_capsnow,
-              elai[g][p], esai[g][p], dewmx, frac_veg_nosno,
+              elai[i_month][g][p], esai[i_month][g][p], dewmx, frac_veg_nosno,
               h2ocan[g][p], n_irrig_steps_left,
               qflx_prec_intr[g][p], qflx_irrig[g][p], qflx_prec_grnd[g][p],
               qflx_snwcp_liq[g][p], qflx_snwcp_ice[g][p],
@@ -457,7 +461,7 @@ std::string CanopyHydrology_Interception::name = "canopy_hydrology_interception"
 FutureMap
 CanopyHydrology_FracWet::launch(Context ctx, Runtime *runtime,
         Rect<1>& color_space,
-        Data<2>& phenology,
+        Data<3>& phenology,
         Data<2>& flux)
 {
   const int frac_veg_nosno = 1;
@@ -498,25 +502,29 @@ CanopyHydrology_FracWet::cpu_execute_task(const Task *task,
   //std::cout << "LOG: Executing FracWet task" << std::endl;
 
   // process args / parameters
+  int i_time;
   double dewmx, fwet, fdry;
   int frac_veg_nosno;
-  using args_t = std::tuple<double, int, double, double>;
-  std::tie(dewmx, frac_veg_nosno, fwet, fdry) =
+  using args_t = std::tuple<int, double, int, double, double>;
+  std::tie(i_time, dewmx, frac_veg_nosno, fwet, fdry) =
       *((args_t*) task->args);
+  int i_month = ELM::Utils::month_from_day((int)(i_time/8), 0);
 
   // get accessors
   using AffineAccessorRO = FieldAccessor<READ_ONLY,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
   using AffineAccessorRW = FieldAccessor<READ_WRITE,double,2,coord_t,
                                          Realm::AffineAccessor<double,2,coord_t> >;
+  using AffineAccessorRO3 = FieldAccessor<READ_ONLY,double,3,coord_t,
+                                         Realm::AffineAccessor<double,3,coord_t> >;
   
   // -- phenology
   // //std::cout << "elai,esai = "
   //           << task->regions[0].instance_fields[0] << ","
   //           << task->regions[0].instance_fields[1] <<  std::endl;
   
-  const AffineAccessorRO elai(regions[0], task->regions[0].instance_fields[0]);
-  const AffineAccessorRO esai(regions[0], task->regions[0].instance_fields[1]);
+  const AffineAccessorRO3 elai(regions[0], task->regions[0].instance_fields[0]);
+  const AffineAccessorRO3 esai(regions[0], task->regions[0].instance_fields[1]);
 
   // -- output
   const AffineAccessorRW h2ocan(regions[1], task->regions[1].instance_fields[0]);

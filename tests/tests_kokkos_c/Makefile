@@ -5,6 +5,7 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 KOKKOS_DEBUG = "yes"
 EXE_NAME = test_CanopyHydrology_module
 
+PARALLEL_NETCDF = TRUE
 include $(ELM_BASE)/config/Makefile.config
 
 #

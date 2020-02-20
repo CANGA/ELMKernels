@@ -5,38 +5,38 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 #
 # COMPILERS
 # =================================
-CXX	      = mpic++
-CXXFLAGS      += -Wall -Wshadow -std=c++14
+HAVE_MPI = 1
+HAVE_PNETCDF = 1
 
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
 TESTS = test_CanopyHydrology_module
-
-TEST1 = mpi_CanopyHydrology_module
-
 EXEC_TESTS = CanopyHydrology_module
 
 VPATH = ../utils
 
-.PHONY: library test compute
+.PHONY: default library test compute
 
 default: test
 
 include $(ELM_BASE)/config/Makefile.logo
 
-
-test: debug logo library $(TESTS) $(EXEC_TESTS)
+test: logo report library $(TESTS) $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
 
-debug:
-	$(eval CXXFLAGS += -DUNIT_TEST)
+report:
+	@echo "Building with:"
+	@echo "---------------"
+	@echo "CXX = $(CXX)"
+	@echo "CXXFLAGS = $(CXXFLAGS)"
+	@echo ""
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	mpiexec -n 6 ./test_CanopyHydrology_module 
 
-test_%: %.cc.o utils.hh array.hh readers.hh readers.cc.o
-	$(CXX) -o $@ readers.cc.o $< $(NETCDF_FLAGS)  
+test_%: %.cc.o utils.hh utils.cc.o array.hh read_pnetcdf.hh read_input.hh read_input.cc.o
+	$(CXX) -o $@ utils.cc.o read_input.cc.o $< $(CXX_LD_FLAGS)
 
 compute: logo library $(TEST1)
 
