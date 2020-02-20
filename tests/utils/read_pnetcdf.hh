@@ -9,6 +9,7 @@
 #include <array>
 #include <iostream>
 
+#include "mpi.h"
 #include "pnetcdf.h"
 #include "array.hh"
 #include "utils.hh"
@@ -53,12 +54,15 @@ inline std::array<GO,D>
 get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::string& varname)
 {
   MPI_Info info;
-  MPI_Info_create (&info);
-
+  MPI_Info* info_p = &info;
+  MPI_Info_create(info_p);
+  
   int nc_id = -1;
   auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
   error(status, "nc_open", filename);
 
+  MPI_Info_free(&info);
+  
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
   error(status, "ncmpi_inq_varid", filename, varname);
@@ -100,6 +104,7 @@ read(const MPI_Comm& comm,
   MPI_Info_create(&info);
   auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
   error(status, "ncmpi_open", filename);
+  MPI_Info_free(&info);
 
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
@@ -126,6 +131,7 @@ init_writing(const std::string& filename,
   MPI_Info_create(&info);
   auto status = ncmpi_create(dd.comm, filename.c_str(), NC_WRITE, info, &nc_id);
   error(status, "ncmpi_create", filename);
+  MPI_Info_free(&info);
 
   std::array<int,2> dim_ids;
   status = ncmpi_def_dim(nc_id, "lat", dd.n_global[0], &dim_ids[0]);
@@ -158,11 +164,11 @@ write(const std::string& filename,
 {
   MPI_Info info;
   MPI_Info_create(&info);
-
   int nc_id = -1;
   auto status = ncmpi_open(dd.comm, filename.c_str(), NC_WRITE, info, &nc_id);
   error(status, "ncmpi_open", filename);
-
+  MPI_Info_free(&info);
+  
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
   error(status, "ncmpi_inq_varid", filename, varname);

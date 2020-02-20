@@ -18,11 +18,13 @@ VPATH = ../utils
 
 .PHONY: default library test compute
 
-default: test
+default: all
+
+all: logo report library $(TESTS)
 
 include $(ELM_BASE)/config/Makefile.logo
 
-test: logo report library $(TESTS) $(EXEC_TESTS)
+test: all $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
 
 report:

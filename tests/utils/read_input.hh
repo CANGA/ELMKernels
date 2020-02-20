@@ -5,19 +5,12 @@
 #include "legion.h"
 #endif
 
-#ifdef HAVE_MPI
+#include "mpi_types.hh"
 
-#include "mpi.h"
-using Comm_type = MPI_Comm;
-using GO = MPI_Offset;
+#ifdef HAVE_PNETCDF
 #include "read_pnetcdf.hh"
-
 #else
-
-using Comm_type = int;
-using GO = size_t;
 #include "read_netcdf.hh"
-
 #endif
 
 #include "array.hh"

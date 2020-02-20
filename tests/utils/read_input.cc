@@ -5,12 +5,6 @@
 #include <sstream>
 #include "read_input.hh"
 
-#ifdef HAVE_MPI
-using Comm_type = MPI_Comm;
-#else
-using Comm_type = int;
-#endif
-
 namespace ELM {
 namespace IO {
 
@@ -72,7 +66,7 @@ read_forcing(const std::string& dir, const std::string& basename, const std::str
 
   // my slice in space
   std::array<GO, 3> start = { 0, dd.start[0], dd.start[1] };
-  std::array<GO, 3> count = { -1, dd.n_local[0], dd.n_local[1] };
+  std::array<GO, 3> count = { 0, dd.n_local[0], dd.n_local[1] };
   
   for (int mm=0; mm!=n_months; ++mm) {
     auto date = time_start.date();
@@ -133,8 +127,11 @@ read_phenology(const std::string& dir, const std::string& basename, const std::s
                const Utils::DomainDecomposition<2>& dd, Array<double,4>& arr)
 {
   // my slice in space
-  std::array<GO, 4> start = { std::get<1>(time_start.date())-1, 0, dd.start[0], dd.start[1] };
-  std::array<GO, 4> count = { n_months, arr.extent(1), dd.n_local[0], dd.n_local[1] };
+  assert(n_months > 0);
+  std::array<GO, 4> start = { (GO) (std::get<1>(time_start.date())-1), 0, dd.start[0], dd.start[1] };
+
+  assert(arr.extent(1) > 0);
+  std::array<GO, 4> count = { (GO) n_months, (GO) arr.extent(1), dd.n_local[0], dd.n_local[1] };
 
   std::stringstream fname_full;
   fname_full << dir << "/" << basename;

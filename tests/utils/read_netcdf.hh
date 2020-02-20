@@ -4,14 +4,17 @@
 //
 // Generic readers/writers using sequential NETCDF
 //
-// NOTE: systematically, an "int comm" argument appears in interfaces to make
+// NOTE: systematically, an "const Comm_type& comm" argument appears in interfaces to make
 // life easier for client codes.  This can be set to anything and is NEVER used
 // in this file.
 
 #include <string>
 #include <array>
+#include <iostream>
 
 #include "netcdf.h"
+#include "mpi_types.hh"
+#include "utils.hh"
 #include "array.hh"
 
 #define NC_HANDLE_ERROR( status, what )         \
@@ -53,7 +56,7 @@ inline void error(int status, const std::string& func, const std::string& file, 
 //
 template<size_t D>
 inline std::array<GO,D>
-get_dimensions(int comm, const std::string& filename, const std::string& varname)
+get_dimensions(const Comm_type& comm, const std::string& filename, const std::string& varname)
 {
   int nc_id = -1;
   auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
@@ -88,7 +91,7 @@ get_dimensions(int comm, const std::string& filename, const std::string& varname
 //
 template<size_t D>
 inline void
-read(int comm,
+read(const Comm_type& comm,
      const std::string& filename,
      const std::string& varname,
      Array<double,D>& arr)
@@ -105,7 +108,7 @@ read(int comm,
 //
 template<size_t D>
 inline void
-read(int comm,
+read(const Comm_type& comm,
      const std::string& filename,
      const std::string& varname,
      const std::array<size_t,D>& start, 
@@ -131,7 +134,7 @@ read(int comm,
 // open for writing
 //
 inline void
-init_writing(int comm,
+init_writing(const Comm_type& comm,
              const std::string& filename,
              const std::string& varname,
              const Utils::DomainDecomposition<2>& dd)
@@ -165,8 +168,7 @@ init_writing(int comm,
 //
 template<size_t D>
 inline void
-write(int comm,
-      const std::string& filename,
+write(const std::string& filename,
       const std::string& varname,
       const Utils::DomainDecomposition<2>& dd,
       const Array<double,D>& arr)

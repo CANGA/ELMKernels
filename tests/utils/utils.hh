@@ -4,17 +4,7 @@
 
 #include <chrono>
 
-#ifdef HAVE_MPI
-
-#include "mpi.h"
-using GO = MPI_Offset;
-
-#else
-
-using GO = size_t;
-
-#endif
-
+#include "mpi_types.hh"
 #include "array.hh"
 
 namespace ELM {

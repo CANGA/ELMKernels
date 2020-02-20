@@ -11,8 +11,8 @@
 #include "../utils/array.hh"
 #include "../utils/read_input.hh"
 
-// #include "CanopyHydrology.hh"
-// #include "CanopyHydrology_SnowWater_impl.hh"
+#include "CanopyHydrology.hh"
+#include "CanopyHydrology_SnowWater_impl.hh"
 
 int main(int argc, char ** argv)
 {
@@ -29,11 +29,15 @@ int main(int argc, char ** argv)
               << "--------------------" << std::endl
               << " n_procs = " << n_procs << std::endl;
   }
+  auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
+  if (myrank == 0) {
+    std::cout << " proc_decomp: " << proc_decomp[0] << "," << proc_decomp[1] << std::endl;
+  }
 
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
-  const auto start = ELM::Utils::Date(1850, 1, 1);
-  const int n_months = 3;
+  const auto start = ELM::Utils::Date(2014, 1, 1);
+  const int n_months = 1;
   const int ticks_per_day = 8; // 3-hourly data
   const int write_interval = 8 * 12;
   
@@ -43,11 +47,11 @@ int main(int argc, char ** argv)
   // dimension: time, lat (ny), lon (nx)
   const std::string basename_forc("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
   const auto forc_dims = 
-      ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, dir_atm, basename_forc, "PRECmms", start, n_months);
+      ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, dir_atm, basename_forc, "PRECTmms", start, n_months);
 
   const std::string basename_phen("surfdata_360x720cru_simyr1850_c180216.nc");
   const auto phen_dims = 
-      ELM::IO::get_phenology_dimensions(MPI_COMM_WORLD, dir_elm, basename_phen, "LAI", start, n_months);
+      ELM::IO::get_phenology_dimensions(MPI_COMM_WORLD, dir_elm, basename_phen, "MONTHLY_LAI", start, n_months);
 
   assert(forc_dims[1] == phen_dims[2]); // n_lat_global
   assert(forc_dims[2] == phen_dims[3]); // n_lon_global
@@ -56,10 +60,10 @@ int main(int argc, char ** argv)
   const int n_pfts = phen_dims[1];
 
   // Create the domain decomposition.
-  auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
+
   auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,
           { forc_dims[1], forc_dims[2] },
-          { n_procs / proc_decomp[2], n_procs % proc_decomp[2] });
+          { myrank / proc_decomp[2], myrank % proc_decomp[2] });
   
   
   if (myrank == 0) {
@@ -67,6 +71,7 @@ int main(int argc, char ** argv)
               << "   n_time = " << n_times << std::endl
               << "   global_n_lat,lon = " << dd.n_global[0] << "," << dd.n_global[1] << std::endl
               << "   nprocs_lat,lon = " << dd.n_procs[0] << "," << dd.n_procs[1] << std::endl
+              << "   local_start = " << dd.start[0] << "," << dd.start[1] << std::endl
               << "   local_n_lat,lon = " << dd.n_local[0] << "," << dd.n_local[1] << std::endl;
   }
   auto n_grid_cells = dd.n_local[0] * dd.n_local[1];
@@ -77,7 +82,7 @@ int main(int argc, char ** argv)
   ELM::Array<double,3> esai(n_months, n_grid_cells, n_pfts);
   {
     // -- read
-    ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "ELAI",
+    ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "MONTHLY_LAI",
             start, n_months, dd, elai);
     if (myrank == 0) {
       std::cout << "File I/O" << std::endl
@@ -85,7 +90,7 @@ int main(int argc, char ** argv)
                 << "  Phenology LAI read" << std::endl;
     }
 
-    ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "ESAI",
+    ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "MONTHLY_SAI",
             start, n_months, dd, esai);
     if (myrank == 0) {
       std::cout << "  Phenology SAI read" << std::endl;
@@ -107,12 +112,12 @@ int main(int argc, char ** argv)
     auto forc_air_temp3D = ELM::reshape(forc_air_temp, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
 
     std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
-    ELM::IO::read_forcing(dir_atm, basename, "PRECmms",
+    ELM::IO::read_forcing(dir_atm, basename, "PRECTmms",
                           start, n_months, dd, forc_rain3D);
     if (myrank == 0) std::cout << "  Forcing precip read" << std::endl;
 
     basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
-    ELM::IO::read_forcing(dir_atm, basename, "TAIRc",
+    ELM::IO::read_forcing(dir_atm, basename, "TBOT",
                           start, n_months, dd, forc_air_temp3D);
     if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
   }    
@@ -192,20 +197,22 @@ int main(int argc, char ** argv)
   auto frac_sno = ELM::Array<double,1>(n_grid_cells, 0.);
 
   // for unit testing
-  auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
-  auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
-  auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
-  if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
-
   std::ofstream soln_file;
-  if (myrank == 0) {
-    soln_file.open("test_CanopyHydrology_module.soln");
-    soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+  {
+    auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
+    auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
+    auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+    if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
 
-    soln_file << std::setprecision(16) << 0
-              << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-              << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-              << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+    if (myrank == 0) {
+      soln_file.open("test_CanopyHydrology_module.soln");
+      soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
+
+      soln_file << std::setprecision(16) << 0
+                << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+                << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+    }
   }
 
   auto start_wc = ELM::Utils::Clock::time();
@@ -227,14 +234,14 @@ int main(int argc, char ** argv)
         // NOTE: this currently punts on what to do with the qflx variables!
         // Surely they should be either accumulated or stored on PFTs as well.
         // --etc
-        // ELM::CanopyHydrology_Interception(dtime,
-        //         forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-        //         ltype, ctype, urbpoi, do_capsnow,
-        //         elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
-        //         h2ocan(g,p), n_irrig_steps_left,
-        //         qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-        //         qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-        //         qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+        ELM::CanopyHydrology_Interception(dtime,
+                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+                ltype, ctype, urbpoi, do_capsnow,
+                elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
+                h2ocan(g,p), n_irrig_steps_left,
+                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
 
         //
         // Calculate fraction of LAI that is wet vs dry.
@@ -244,7 +251,7 @@ int main(int argc, char ** argv)
         // By the PFT?
         // --etc
         double fwet = 0., fdry = 0.;
-        // ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(i_month,g,p), esai(i_month,g,p), dewmx, fwet, fdry);
+        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(i_month,g,p), esai(i_month,g,p), dewmx, fwet, fdry);
       } // end PFT loop
 
       // Column level operations
@@ -258,23 +265,23 @@ int main(int argc, char ** argv)
       //
       // local outputs
       int newnode;
-      // ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
-      //         ltype, ctype, urbpoi, do_capsnow, oldfflag,
-      //         forc_air_temp(t,g), t_grnd(g),
-      //         qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],
-      //         snow_depth[g], h2osno[g], integrated_snow[g], swe_old[g],
-      //         h2osoi_liq[g], h2osoi_ice[g], t_soisno[g], frac_iceold[g],
-      //         snow_level[g], dz[g], z[g], zi[g], newnode,
-      //         qflx_floodc[g], qflx_snow_h2osfc[g], frac_sno_eff[g], frac_sno[g]);
+      ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+              ltype, ctype, urbpoi, do_capsnow, oldfflag,
+              forc_air_temp(t,g), t_grnd(g),
+              qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],
+              snow_depth[g], h2osno[g], integrated_snow[g], swe_old[g],
+              h2osoi_liq[g], h2osoi_ice[g], t_soisno[g], frac_iceold[g],
+              snow_level[g], dz[g], z[g], zi[g], newnode,
+              qflx_floodc[g], qflx_snow_h2osfc[g], frac_sno_eff[g], frac_sno[g]);
 
       // Calculate Fraction of Water to the Surface?
       //
       // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
       // interface specifies a single double.  For now passing the 0th
       // entry. --etc
-      // ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
-      //         h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_sno_eff[g],
-      //         qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
+      ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
+              h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_sno_eff[g],
+              qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
       
     } // end grid cell loop
     if (t % write_interval == 0) {
