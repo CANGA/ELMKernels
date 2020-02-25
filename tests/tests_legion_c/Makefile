@@ -55,7 +55,7 @@ default: all
 all: $(TESTS)
 
 test: $(EXEC_TESTS)
-	python ../compare_to_gold.py $(TESTS)
+	../compare_to_gold.py $(TESTS)
 
 
 CanopyHydrology_module: test_CanopyHydrology_module

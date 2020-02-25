@@ -44,12 +44,12 @@ int main(int argc, char ** argv)
   // global means the variable is spatially local.
   const int start_year = 2014;
   const int start_month = 1;
-  const int n_months = 3;
+  const int n_months = 12;
   const int n_pfts = 17;
   const int write_interval = 8 * 12;
   
-  const std::string dir_atm = "ATM_DATA_LOCATION";
-  const std::string dir_elm = "ELM_DATA_LOCATION";
+  const std::string dir_atm = ATM_DATA_LOCATION;
+  const std::string dir_elm = ELM_DATA_LOCATION;
 
   // dimension: time, lat (ny), lon (nx)
   const std::string basename1("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
