@@ -22,7 +22,7 @@ ALT_MAPPERS     ?= 0		# Include alternative mappers (not recommended)
 # You can modify these variables, some will be appended to by the runtime makefile
 GEN_SRC		?= tasks.cc
 
-INC_FLAGS	+= -I$(LG_RT_DIR)
+INC_FLAGS	+= -I$(LG_RT_DIR) -I../utils/
 CXXFLAGS        += -DLEGION_SPY
 NVCC_FLAGS	?=
 GASNET_FLAGS	?=
@@ -32,12 +32,10 @@ GASNET_FLAGS	?=
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
 
-TESTS = test_CanopyHydrology_kern1_multiple \
-        test_CanopyHydrology_module
+TESTS = test_CanopyHydrology_module
 
 
-EXEC_TESTS = CanopyHydrology_kern1_multiple \
-             CanopyHydrology_module
+EXEC_TESTS = CanopyHydrology_module
 
 #
 # Load Legion logic, but not rules
@@ -48,21 +46,17 @@ include $(LG_RT_DIR)/runtime.mk
 #
 # Legion rules
 #
-.PHONY: links library test
+.PHONY: library test
 
-default: logo all
+default: all
 	@echo "GEN OBJS = $(GEN_OBJS)"
 
 
 all: $(TESTS)
 
 test: $(EXEC_TESTS)
-	python ../compare_to_gold.py $(TESTS)
+	../compare_to_gold.py $(TESTS)
 
-CanopyHydrology_kern1_multiple: test_CanopyHydrology_kern1_multiple
-	./test_CanopyHydrology_kern1_multiple > test_CanopyHydrology_kern1_multiple.stdout
-# 	./test_CanopyHydrology_kern1_multiple -lg:spy -logfile spy_multiple%.log
-# 	$(LG_RT_DIR)/../tools/legion_spy.py -dez spy_multiple*.log
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
@@ -76,7 +70,7 @@ sandbox: test_sandbox_domain_template_magic
 # If we're using CUDA we have to link with nvcc
 test_%: %.cc.o $(GEN_OBJS) $(GEN_GPU_OBJS) $(SLIB_LEGION) $(SLIB_REALM)
 	@echo "---> Linking objects into one binary: $()"
-	$(CXX) -o $@ $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
+	$(CXX) -o $@ readers_seq.cc $< $(GEN_OBJS) $(GEN_GPU_OBJS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(CXX_LD_FLAGS)
 	#$(CC_LD_FLAGS) $(LEGION_LIBS) $(LEGION_LD_FLAGS) $(GASNET_FLAGS)
 
 $(SLIB_LEGION) : $(LEGION_OBJS) $(MAPPER_OBJS)
@@ -108,7 +102,7 @@ $(GEN_GPU_OBJS) : %.cu.o : %.cu
 $(GPU_RUNTIME_OBJS): %.cu.o : %.cu
 	$(NVCC) -o $@ -c $< $(NVCXXFLAGS) $(INC_FLAGS)
 
-%.cc.o : %.cc domains.hh readers.hh utils.hh
+%.cc.o : %.cc domains.hh readers_seq.hh legion_utils.hh array.hh
 	$(CXX) $(CXXFLAGS) $(NETCDF_FLAGS) -c $< -o $@
 
 clean :
@@ -123,8 +117,6 @@ ifeq ($(strip $(USE_LLVM)),1)
 llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
 %/llvmjit_internal.cc.o : CXXFLAGS += $(LLVM_CXXFLAGS)
 endif
-
-include $(ELM_BASE)/config/Makefile.logo
 
 links:
 	@echo "making in links"

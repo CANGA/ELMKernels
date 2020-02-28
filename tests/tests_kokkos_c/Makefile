@@ -20,7 +20,7 @@ KOKKOS_CUDA_OPTIONS = "enable_lambda"
 else
 
 CXXFLAGS      += -O3 -Wall -Wshadow -std=c++11
-EXE = ${EXE_NAME}.host
+EXE = ${EXE_NAME}
 
 endif
 
@@ -43,11 +43,11 @@ include $(ELM_BASE)/config/Makefile.rules
 LINK = ${CXX}
 VPATH = ../utils
 
-include $(ELM_BASE)/config/Makefile.logo
 
-.PHONY: logo all
 
-main: logo report $(EXE)
+.PHONY: all
+
+main: report $(EXE)
 
 report: 
 	@echo "Kokkos setup"
@@ -77,7 +77,11 @@ $(EXE): report build
 
 clean:
 	@$(ELM_CLEAN)
-	rm -f test_* *.o *.cuda *.host KokkosCore_config.h KokosCore_config.tmp
+	rm -f  *.o *.cuda  KokkosCore_config.h KokosCore_config.tmp
+
+cleanish:
+	@$(ELM_CLEAN)
+	rm -f test_* *.o KokkosCore_config.h KokosCore_config.tmp
 
 cleanish:
 	@$(ELM_CLEAN)
@@ -85,7 +89,19 @@ cleanish:
 
 test : main
 	${MPIEXEC} ${MPI_NP}6 ./$(EXE) > test_CanopyHydrology_module_multiple.host
-	python ../compare_to_gold.py $(TESTS)
+	../compare_to_gold.py $(TESTS)
+
+test_serial : main
+	jsrun -n6 -a1 -g0 -c1 ./$(EXE) &> serial.log
+	# ../compare_to_gold.py $(TESTS)
+
+test_cuda : main
+	jsrun -n6 -a1 -g1 -c1 ./$(EXE) &> cuda.log
+	# ../compare_to_gold.py $(TESTS)
+
+test_openmp : main
+	jsrun -n6 -a1 -g0 -c7 -b packed:7 -dpacked ./$(EXE) --kokkos-threads=21 $> openmp.log
+	# ../compare_to_gold.py $(TESTS)
 
 test_serial : main
 	jsrun -n6 -a1 -g0 -c1 ./$(EXE) &> serial.log

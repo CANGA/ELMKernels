@@ -94,6 +94,31 @@ min_max_sum(const MPI_Comm& comm, const Array<double,D>& arr)
 }
   
 
+// Convert precipitation to rain and snow
+template<class Array_t>
+void
+convert_precip_to_rain_snow(Array_t& rain,
+                            Array_t& snow, 
+                            const Array_t& temp)
+{
+  const int nt = rain.extent(0);
+  const int ng = rain.extent(1);
+
+  for (int k=0; k<nt; k++) {
+    for (int j=0; j<ng; j++) {
+      if (temp(k,j) < 273.15) {
+        // no need to update snow, both are initially total precip
+        rain(k,j) = 0.0; 
+      } else {
+        // no need to update rain, both are initially total precip
+        snow(k,j) = 0.0;
+      }
+    }
+  }
+}
+
+
+
 namespace Clock {
 using time_point_type = std::chrono::high_resolution_clock::time_point;
 using duration_type = std::chrono::duration<double>;

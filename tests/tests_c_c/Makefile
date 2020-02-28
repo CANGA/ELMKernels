@@ -28,10 +28,10 @@ include $(ELM_BASE)/config/Makefile.logo
 main: logo $(TESTS)
 
 test: main $(EXEC_TESTS)
-	python ../compare_to_gold.py $(TESTS)
+	../compare_to_gold.py $(TESTS)
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	mpiexec -n 6 ./test_CanopyHydrology_module 
+	jsrun -n1 -c20 -a20 ./test_CanopyHydrology_module 
 
 test_%: %.cc.o utils.hh array.hh readers.hh readers.cc.o
 	$(CXX) -o $@ readers.cc.o $< $(NETCDF_FLAGS)  
