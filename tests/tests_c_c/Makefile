@@ -6,7 +6,7 @@ ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 # COMPILERS
 # =================================
 CXX	      = mpic++
-CXXFLAGS      += -Wall -Wshadow -std=c++14
+CXXFLAGS      += -Wall -Wshadow -O3 -std=c++14
 
 include $(ELM_BASE)/config/Makefile.config
 include $(ELM_BASE)/config/Makefile.rules
@@ -21,24 +21,20 @@ VPATH = ../utils
 
 .PHONY: library test compute
 
-default: test
+default: main
 
 include $(ELM_BASE)/config/Makefile.logo
 
+main: logo $(TESTS)
 
-test: debug logo library $(TESTS) $(EXEC_TESTS)
+test: main $(EXEC_TESTS)
 	python ../compare_to_gold.py $(TESTS)
-
-debug:
-	$(eval CXXFLAGS += -DUNIT_TEST)
 
 CanopyHydrology_module: test_CanopyHydrology_module
 	mpiexec -n 6 ./test_CanopyHydrology_module 
 
 test_%: %.cc.o utils.hh array.hh readers.hh readers.cc.o
 	$(CXX) -o $@ readers.cc.o $< $(NETCDF_FLAGS)  
-
-compute: logo library $(TEST1)
 
 clean:
 	$(RM) test_* mpi_* *.o 
