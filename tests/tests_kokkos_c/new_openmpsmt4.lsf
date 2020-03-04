@@ -1,0 +1,121 @@
+#!/bin/bash 
+### Begin BSUB Options 
+#BSUB -P GEO132 
+#BSUB -J kokkos_openmp_smt4node1
+#BSUB -W 2:00 
+#BSUB -nnodes 1 
+#BSUB -alloc_flags "smt4"
+#BSUB -o kokkos_openmp_smt4node1_output.log
+#BSUB -e kokkos_openmp_smt4node1_error.log
+### End BSUB Options and begin shell commands
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/openmp
+module load gcc/7.4.0
+module load cuda
+module load parallel-netcdf
+export CUDA_LAUNCH_BLOCKING=1
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/repos/scalability/tests/tests_kokkos_c
+make clean
+
+make
+
+
+
+export OMP_NUM_THREADS=1
+jsrun -n 1 -a 1 -c 1 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1" >> openmpsmt4.log
+
+export OMP_NUM_THREADS=2
+jsrun -n 1 -a 1 -c 2 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 2 OMP_NUM_THREADS 2 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=4
+jsrun -n 1 -a 1 -c 4 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 4 OMP_NUM_THREADS 4 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=8
+jsrun -n 1 -a 1 -c 8 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 8 OMP_NUM_THREADS 8 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=16
+jsrun -n 1 -a 1 -c 16 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 16 OMP_NUM_THREADS 16 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=32
+jsrun -n 1 -a 1 -c 32 -r 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 1 SMT 4 --cpu_per_rs 32 OMP_NUM_THREADS 32 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=1
+jsrun -n 2 -a 1 -c 1 -r 2 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 2 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=2
+jsrun -n 2 -a 1 -c 2 -r 2 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 2 SMT 4 --cpu_per_rs 2 OMP_NUM_THREADS 2 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=1
+jsrun -n 4 -a 1 -c 1 -r 4 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 4 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1 " >> openmpsmt4.log
+
+
+
+export OMP_NUM_THREADS=4
+jsrun -n 2 -a 1 -c 4 -r 2 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 2 SMT 4 --cpu_per_rs 4 OMP_NUM_THREADS 4 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=2
+jsrun -n 4 -a 1 -c 2 -r 4 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 4 SMT 4 --cpu_per_rs 2 OMP_NUM_THREADS 2 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=1
+jsrun -n 8 -a 1 -c 1 -r 8 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 8 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=8
+jsrun -n 2 -a 1 -c 8 -r 2 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 2 SMT 4 --cpu_per_rs 8 OMP_NUM_THREADS 8 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=4
+jsrun -n 4 -a 1 -c 4 -r 4 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 4 SMT 4 --cpu_per_rs 4 OMP_NUM_THREADS 4 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=2
+jsrun -n 8 -a 1 -c 2 -r 8 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 8 SMT 4 --cpu_per_rs 2 OMP_NUM_THREADS 2 " >> openmpsmt4.log
+
+
+export OMP_NUM_THREADS=1
+jsrun -n 16 -a 1 -c 1 -r 16 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 16 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1 " >> openmpsmt4.log
+
+
+
+
+export OMP_NUM_THREADS=16
+jsrun -n 2 -a 1 -c 16 -r 2 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 2 SMT 4 --cpu_per_rs 16 OMP_NUM_THREADS 16 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=8
+jsrun -n 4 -a 1 -c 8 -r 4 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 4 SMT 4 --cpu_per_rs 8 OMP_NUM_THREADS 8 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=4
+jsrun -n 8 -a 1 -c 4 -r 8 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 8 SMT 4 --cpu_per_rs 4 OMP_NUM_THREADS 4 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=2
+jsrun -n 16 -a 1 -c 2 -r 16 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 16 SMT 4 --cpu_per_rs 2 OMP_NUM_THREADS 2 " >> openmpsmt4.log
+
+export OMP_NUM_THREADS=1
+jsrun -n 32 -a 1 -c 1 -r 32 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt4.log
+echo "--nrs= 32 SMT 4 --cpu_per_rs 1 OMP_NUM_THREADS 1 " >> openmpsmt4.log
