@@ -12,11 +12,11 @@ inline int to_doy(int month, int day)
       std::array<int,12>{31,28,31,30,31,30,31,31,30,31,30,31};
 
   int doy = 0;
-  for (int i=0; i!=month; ++i) {
+  for (int i=0; i!=month-1; ++i) {
     doy += dy_per_mo[i];
   }
   doy += day - 1;
-  return doy;
+  return std::move(doy);
 }
   
 inline std::tuple<int,int,int> to_date(int year, int doy)
@@ -25,8 +25,9 @@ inline std::tuple<int,int,int> to_date(int year, int doy)
       std::array<int,12>{31,28,31,30,31,30,31,31,30,31,30,31};
 
   assert(doy < 365 && "ELM::Utils::to_date() expects day_of_year < 365");
+  assert(doy >= 0 && "ELM::Utils::to_date() expects day_of_year >= 0");
   int month = 0;
-  while (doy > 0) {
+  while (doy >= 0) {
     doy -= dy_per_mo[month];
     ++month;
   }

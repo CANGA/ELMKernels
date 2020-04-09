@@ -27,7 +27,7 @@ namespace IO {
 // Returns shape in a forcing file, as { N_TIMES, N_LAT_GLOBAL, N_LON_GLOBAL }
 //
 std::array<GO, 3>
-get_forcing_dimensions(const Comm_type& comm,
+get_forcing_dimensions(const MPI_Comm& comm,
                        const std::string& dir, const std::string& basename, const std::string& varname,
                        const Utils::Date& time_start, int n_months);
 

@@ -11,7 +11,12 @@ Error codes:
 ----------------------------------------------------------
 
 """
-from termcolor import colored 
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(string, cname):
+        return string
+    
 import argparse
 import numpy as np
 import os

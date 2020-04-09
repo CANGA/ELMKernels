@@ -54,21 +54,20 @@ inline std::array<GO,D>
 get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::string& varname)
 {
   MPI_Info info;
-  MPI_Info* info_p = &info;
-  MPI_Info_create(info_p);
+  MPI_Info_create(&info);
   
   int nc_id = -1;
   auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
   error(status, "nc_open", filename);
 
-  MPI_Info_free(&info);
-  
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
   error(status, "ncmpi_inq_varid", filename, varname);
 
   int n_dims;
-  std::array<int, NC_MAX_VAR_DIMS> dim_ids;
+  std::array<int, 10> dim_ids; // NOTE: This nominally should be
+                               // NC_MAX_VAR_DIMS (not 10), but that is NC_MAX_INT,
+                               // which breaks this.
   status = ncmpi_inq_var(nc_id, var_id, nullptr, nullptr, &n_dims, dim_ids.data(), nullptr);
   error(status, "ncmpi_inq_var", filename, varname);
 
@@ -83,6 +82,8 @@ get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::str
 
   status = ncmpi_close(nc_id);
   error(status, "ncmpi_close", filename);
+
+  MPI_Info_free(&info);
   return dims;
 }
 

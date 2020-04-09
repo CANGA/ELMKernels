@@ -17,7 +17,7 @@ namespace IO {
 // Returns shape in a forcing file, as { N_TIMES, N_LAT_GLOBAL, N_LON_GLOBAL }
 //
 std::array<GO, 3>
-get_forcing_dimensions(const Comm_type& comm,
+get_forcing_dimensions(const MPI_Comm& comm,
                        const std::string& dir, const std::string& basename, const std::string& varname,
                        const Utils::Date& time_start, int n_months)
 {
@@ -26,15 +26,15 @@ get_forcing_dimensions(const Comm_type& comm,
   // files organized by month
   Utils::Date current(time_start);
   for (int mm=0; mm!=n_months; ++mm) {
-    auto date = time_start.date();
+    auto date = current.date();
     int month = std::get<1>(date);
     int year = std::get<0>(date);
 
     std::stringstream fname_full;
     fname_full << dir << "/" << basename << year << "-"
                << std::setw(2) << std::setfill('0') << month << ".nc";
-
-    auto dims = get_dimensions<3>(comm, fname_full.str(), varname);
+    std::string fname = fname_full.str();
+    auto dims = get_dimensions<3>(comm, fname, varname);
 
     if (mm == 0) {
       total_dims[1] = dims[1];
@@ -44,7 +44,6 @@ get_forcing_dimensions(const Comm_type& comm,
       assert(total_dims[2] == dims[2]);
     }
     total_dims[0] += dims[0];
-
     current.increment_month();
   }
   return total_dims;
@@ -69,7 +68,7 @@ read_forcing(const std::string& dir, const std::string& basename, const std::str
   std::array<GO, 3> count = { 0, dd.n_local[0], dd.n_local[1] };
   
   for (int mm=0; mm!=n_months; ++mm) {
-    auto date = time_start.date();
+    auto date = current.date();
     int month = std::get<1>(date);
     int year = std::get<0>(date);
 
@@ -77,11 +76,17 @@ read_forcing(const std::string& dir, const std::string& basename, const std::str
     fname_full << dir << "/" << basename << year << "-"
                << std::setw(2) << std::setfill('0') << month << ".nc";
 
+    // std::cout << "reading: " << fname_full.str() << std::endl;
+    
     // this file's slice in time is the full thing
     auto dims = get_dimensions<3>(dd.comm, fname_full.str(), varname);
     count[0] = dims[0];
 
     // read the slice, into a specific location
+    // std::cout << "  at (" << start[0] << "," << start[1] << "," << start[2] << ");"
+    //           << " (" << count[0] << "," << count[1] << "," << count[2] << ")"
+    //           << std::endl;
+    // std::cout << "  into: " << i_times << std::endl;
     read(dd.comm, fname_full.str(), varname, start, count, arr[i_times].data());
 
     // increment the position and month
@@ -106,6 +111,7 @@ get_phenology_dimensions(const Comm_type& comm,
 {
   Utils::Date current(time_start);
   current.increment_month(n_months);
+  current.increment_day(-1); // back up one day to get last day of previous month
   assert(time_start.year == current.year && "No current support for crossing years in phenology data?");      
 
   std::stringstream fname_full;

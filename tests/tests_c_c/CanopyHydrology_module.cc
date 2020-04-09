@@ -14,6 +14,8 @@
 #include "CanopyHydrology.hh"
 #include "CanopyHydrology_SnowWater_impl.hh"
 
+#define WRITE_GLOBAL_IMAGE 0
+
 int main(int argc, char ** argv)
 {
   // MPI_Init, etc
@@ -22,6 +24,7 @@ int main(int argc, char ** argv)
   MPI_Comm_size(MPI_COMM_WORLD,&n_procs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
   MPI_Barrier(MPI_COMM_WORLD);
+
   if (myrank == 0) {
     std::cout << "CanopyHydrology: MPI" << std::endl
               << "====================" << std::endl
@@ -37,7 +40,7 @@ int main(int argc, char ** argv)
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
   const auto start = ELM::Utils::Date(2014, 1, 1);
-  const int n_months = 1;
+  const int n_months = 12;
   const int ticks_per_day = 8; // 3-hourly data
   const int write_interval = 8 * 12;
   
@@ -202,6 +205,8 @@ int main(int argc, char ** argv)
     auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
     auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
     auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+    //    auto min_max_sum_snow_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_snow[0]);
+    //    auto min_max_sum_rain_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_rain[0]);
     if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
 
     if (myrank == 0) {
@@ -211,7 +216,10 @@ int main(int argc, char ** argv)
       soln_file << std::setprecision(16) << 0
                 << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
                 << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+                << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
+          //                << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
+          //                << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
+                << std::endl;
     }
   }
 
@@ -284,17 +292,23 @@ int main(int argc, char ** argv)
               qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
       
     } // end grid cell loop
+
     if (t % write_interval == 0) {
       auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
       auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
       auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
-      if (myrank == 0) std::cout << "  writing ts " << t << std::endl;
+      // auto min_max_sum_snow_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_snow[t]);
+      // auto min_max_sum_rain_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_rain[t]);
 
       if (myrank == 0) {
+        std::cout << "  writing ts " << t << std::endl;
         soln_file << std::setprecision(16)
                   << t << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
                   << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
+                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
+                  // << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
+                  // << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
+                  << std::endl;            
       }
     }
   } // end timestep loop
@@ -306,6 +320,7 @@ int main(int argc, char ** argv)
               << ", mean: " << times[2] << std::endl;
   }
 
+#if WRITE_GLOBAL_IMAGE  
   // write final canopy water for kicks
 #ifdef HAVE_PNETCDF
   // this is collective
@@ -317,7 +332,8 @@ int main(int argc, char ** argv)
   }
 #endif
   ELM::IO::reshape_and_write_grid_cell("/ccs/home/ecoon/geo132/proj-work/ecoon/final.nc", "snow_depth", dd, snow_depth);
-  
+#endif
+
   if (myrank == 0) soln_file.close();
 
   MPI_Finalize();

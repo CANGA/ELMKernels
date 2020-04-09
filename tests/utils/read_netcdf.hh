@@ -134,8 +134,7 @@ read(const Comm_type& comm,
 // open for writing
 //
 inline void
-init_writing(const Comm_type& comm,
-             const std::string& filename,
+init_writing(const std::string& filename,
              const std::string& varname,
              const Utils::DomainDecomposition<2>& dd)
 {

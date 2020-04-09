@@ -33,12 +33,13 @@ report:
 	@echo "---------------"
 	@echo "CXX = $(CXX)"
 	@echo "CXXFLAGS = $(CXXFLAGS)"
+	@echo "INC_FLAGS = $(INC_FLAGS)"
 	@echo ""
 
 CanopyHydrology_module: test_CanopyHydrology_module
-	mpiexec -n 6 ./test_CanopyHydrology_module 
+	mpiexec -n 6 $(MPI_EXEC_GLOBAL_ARGS) ./test_CanopyHydrology_module 
 
-test_%: %.cc.o utils.hh utils.cc.o array.hh read_pnetcdf.hh read_input.hh read_input.cc.o
+test_%: %.cc.o utils.hh utils.cc.o array.hh read_netcdf.hh read_input.hh read_input.cc.o
 	$(CXX) -o $@ utils.cc.o read_input.cc.o $< $(CXX_LD_FLAGS)
 
 compute: logo library $(TEST1)
