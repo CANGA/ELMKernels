@@ -42,7 +42,7 @@ void top_level_task(const Task *task,
   
   const int start_year = 2014;
   const int start_month = 1;
-  const int n_months = 3;
+  const int n_months = 12;
   const int n_pfts = 17;
   const int write_interval = 8 * 12;
   const int n_parts = 4;

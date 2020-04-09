@@ -1,0 +1,41 @@
+#!/bin/bash 
+### Begin BSUB Options 
+#BSUB -P GEO132 
+#BSUB -J kokkos_cuda_gpumps_smt4
+#BSUB -W 2:00 
+#BSUB -nnodes 1 
+#BSUB -alloc_flags gpumps
+#BSUB -o cuda_gpumps_output.log
+#BSUB -e cuda_gpumps_error.log
+### End BSUB Options and begin shell commands
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/cuda
+module load gcc/7.4.0
+module load cuda
+module load parallel-netcdf
+
+export CUDA_LAUNCH_BLOCKING=1
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/repos/scalability/tests/tests_kokkos_c
+make
+
+jsrun -n 1 -a 4 -c 1 -g 1 -r 1 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 1 -a 3 -c 42 -g 6 -r 1 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 1 -a 2 -c 42 -g 6 -r 1 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 1 -a 1 -c 42 -g 6 -r 1 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 2 -a 4 -c 21 -g 3 -r 2 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 2 -a 1 -c 21 -g 3 -r 2 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 3 -a 4 -c 14 -g 2 -r 3 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 3 -a 1 -c 14 -g 2 -r 3 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 4 -a 4 -c 10 -g 1 -r 4 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 4 -a 4 -c 1 -g 1 -r 4 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 4 -a 1 -c 10 -g 1 -r 4 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 5 -a 5 -c 8 -g 1 -r 5 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+#jsrun -n 5 -a 5 -c 1 -g 1 -r 5 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 5 -a 1 -c 8 -g 1 -r 5 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 6 -a 6 -c 7 -g 1 -r 6 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 6 -a 1 -c 1 -g 1 -r 6 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log
+jsrun -n 6 -a 1 -c 7 -g 1 -r 6 -l GPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module.cuda >> cuda_gpumps.log

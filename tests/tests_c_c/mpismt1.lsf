@@ -1,0 +1,30 @@
+#!/bin/bash 
+### Begin BSUB Options 
+#BSUB -P GEO132 
+#BSUB -J mpismt1node1
+#BSUB -W 2:00 
+#BSUB -nnodes 1 
+#BSUB -alloc_flags "smt1"
+#BSUB -o mpismt1node1_output.log
+#BSUB -e mpismt1node1_error.log
+### End BSUB Options and begin shell commands
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/
+module use modulefiles/
+module load elm_kernels/scalability/c/default
+module load gcc/7.4.0
+module load cuda
+module load parallel-netcdf
+export CUDA_LAUNCH_BLOCKING=1
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/repos/new_scalability/elm_kernels/tests/tests_c_c
+make clean
+
+make
+
+for i in 1 2 4 8 16 32
+do
+        jsrun -n $i -a 1 -c 1 -r $i -l CPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module >> mpionly_smt1.log
+done
+make clean

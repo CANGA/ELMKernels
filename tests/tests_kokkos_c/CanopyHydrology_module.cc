@@ -22,6 +22,9 @@ int main(int argc, char ** argv)
   // MPI_Init, etc
   MPI_Init(&argc,&argv);
   Kokkos::initialize( argc, argv);
+
+  { // note: this scope simply ensures release of View resources prior to call to Kokkos::finalize()
+    
   int myrank, n_procs;
   MPI_Comm_size(MPI_COMM_WORLD,&n_procs);
   MPI_Comm_rank(MPI_COMM_WORLD,&myrank);
@@ -44,12 +47,12 @@ int main(int argc, char ** argv)
   // global means the variable is spatially local.
   const int start_year = 2014;
   const int start_month = 1;
-  const int n_months = 3;
+  const int n_months = 12;
   const int n_pfts = 17;
   const int write_interval = 8 * 12;
   
-  const std::string dir_atm = "ATM_DATA_LOCATION";
-  const std::string dir_elm = "ELM_DATA_LOCATION";
+  const std::string dir_atm = ATM_DATA_LOCATION;
+  const std::string dir_elm = ELM_DATA_LOCATION;
 
   // dimension: time, lat (ny), lon (nx)
   const std::string basename1("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
@@ -235,7 +238,7 @@ int main(int argc, char ** argv)
   Kokkos::View<double*> frac_sno_eff("frac_sno_eff", n_grid_cells);
   Kokkos::View<double*> frac_sno("frac_sno", n_grid_cells);
 
-#ifdef UNIT_TEST  
+  //#ifdef UNIT_TEST  
   // for unit testing
   std::ofstream soln_file;
   {
@@ -245,7 +248,7 @@ int main(int argc, char ** argv)
     if (myrank == 0) std::cout << "  writing ts 0" << std::endl;
 
     if (myrank == 0) {
-      soln_file.open("test_CanopyHydrology_module.soln");
+      soln_file.open("./test_CanopyHydrology_module.soln");
       soln_file << "Time\t Total Canopy Water\t Min Water\t Max Water\t Total Snow\t Min Snow\t Max Snow\t Avg Frac Sfc\t Min Frac Sfc\t Max Frac Sfc" << std::endl;
 
       soln_file << std::setprecision(16)
@@ -254,7 +257,7 @@ int main(int argc, char ** argv)
                 << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
     }
   }
-#endif
+  //#endif
 
   auto start = ELM::Utils::Clock::time();
 
@@ -322,7 +325,7 @@ int main(int argc, char ** argv)
                   qflx_h2osfc2topsoi(g), frac_h2osfc(g));
         });
 
-#ifdef UNIT_TEST
+    //#ifdef UNIT_TEST
     if (t % write_interval == 0) {
       auto min_max_sum_water = ELM::ELMKokkos::min_max_sum2(MPI_COMM_WORLD, h2ocan);
       auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, h2osno);
@@ -336,7 +339,7 @@ int main(int argc, char ** argv)
                   << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1];
       }
     }
-#endif
+    //#endif
     
   } // end timestep loop
 
@@ -352,6 +355,7 @@ int main(int argc, char ** argv)
   if (myrank == 0) soln_file.close();
 #endif
 
+  } // end scope for View resource destruction
   Kokkos::finalize();
   MPI_Finalize();
   return 0;

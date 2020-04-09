@@ -43,6 +43,18 @@ VPATH = ../utils
 
 .PHONY: default
 default: all
+	@echo "GEN OBJS = $(GEN_OBJS)"
+
+all: $(TESTS)
+
+test: $(EXEC_TESTS)
+	../compare_to_gold.py $(TESTS)
+
+
+CanopyHydrology_module: test_CanopyHydrology_module
+	./test_CanopyHydrology_module > test_CanopyHydrology_module.stdout
+# 	./test_CanopyHydrology_module -lg:spy -logfile spy_module%.log
+# 	$(LG_RT_DIR)/../tools/legion_spy.py -dez spy_module*.log
 
 include $(LG_RT_DIR)/runtime.mk
 
