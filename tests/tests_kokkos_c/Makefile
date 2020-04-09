@@ -2,10 +2,15 @@ ELM_BASE = ../../src
 KERNEL_FOLDER = cc
 ELM_ROOT = $(ELM_BASE)/$(KERNEL_FOLDER)
 
+#
+# COMPILERS
+# =================================
+HAVE_MPI = 1
+HAVE_PNETCDF = 1
+
 KOKKOS_DEBUG = "yes"
 EXE_NAME = test_CanopyHydrology_module
 
-PARALLEL_NETCDF = TRUE
 include $(ELM_BASE)/config/Makefile.config
 
 #
@@ -13,7 +18,7 @@ include $(ELM_BASE)/config/Makefile.config
 #
 ifneq (,$(findstring Cuda,$(KOKKOS_DEVICES)))
 
-OMPI_CXX = $(KOKKOS_ROOT)/bin/nvcc_wrapper
+OMPI_CXX = $(KOKKOS_PATH)/bin/nvcc_wrapper
 CXXFLAGS += -O3 -Wall -Wshadow #-ccbin $(NVCC_WRAPPER_DEFAULT_COMPILER)
 EXE = ${EXE_NAME}.cuda
 KOKKOS_ARCH = "Volta70"
@@ -33,11 +38,10 @@ SRC = CanopyHydrology_module.cc
 OBJ =  $(SRC:.cc=.cc.o)	
 
 
-
 default: main
 
 # include Kokkos
-include $(KOKKOS_ROOT)/Makefile.kokkos
+include $(KOKKOS_PATH)/Makefile.kokkos
 include $(ELM_BASE)/config/Makefile.rules
 
 
@@ -67,13 +71,13 @@ build_msg:
 	@echo "Building"
 	@echo "----------------"
 
-build: build_msg $(OBJ) $(KOKKOS_LINK_DEPENDS) utils.hh kokkos_utils.hh array.hh readers.hh readers.cc.o
+build: build_msg $(OBJ) $(KOKKOS_LINK_DEPENDS) utils.hh utils.cc.o kokkos_utils.hh array.hh read_pnetcdf.hh read_input.hh read_input.cc.o
 	@echo ""
 
 $(EXE): report build 
 	@echo "Linking"
 	@echo "----------------"
-	$(LINK) readers.cc.o $(OBJ) $(CXX_LD_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) -o $(EXE)
+	$(LINK) utils.cc.o read_input.cc.o $(OBJ) $(CXX_LD_FLAGS) $(KOKKOS_LDFLAGS) $(KOKKOS_LIBS) -o $(EXE)
 	@echo ""
 
 clean:
