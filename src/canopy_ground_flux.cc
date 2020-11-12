@@ -49,7 +49,7 @@ void CanopyGroundFlux(const int& ctype,
 {
 
   double qflx_prec_grnd_snow, qflx_prec_grnd_rain;
-  double qflx_dirct_rain, qflx_leafdrip;
+  double qflx_dirct_rain, qflx_leafdrip; // these are not currently needed, but should be passed out if SedYield is desired 
 
 // Precipitation onto ground (kg/(m2 s))
   if ((ctype != icol_sunwall) && (ctype != icol_shadewall)) {
