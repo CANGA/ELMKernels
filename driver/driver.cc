@@ -17,9 +17,14 @@ int main(int argc, char** argv)
     //read_input();
 
 //call physics
-    //phys_func_1();
-    //phys_func_2();
     physics_dummy();
+
+    /* Calling tree currently looks like:
+    CanopyInterception(); 
+    CanopyIrrigation();
+    CanopyGroundFlux();
+    Canopy FracWet();
+    */
 
 
 
