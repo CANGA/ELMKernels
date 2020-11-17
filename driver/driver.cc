@@ -20,6 +20,14 @@ int main(int argc, char** argv)
     physics_dummy();
 
     /* Calling tree currently looks like:
+    read input, process data and initialize
+    ReadInput() - need to write
+    TopoSlopes() - set 0.2 (-) as minimum slope
+    ColdStartMicroTopo() - sets n_melt and micro_sigma for SCA calculations
+
+
+    Time stepping:
+    each of these functions operate on a single non-lake grid cell with !one! PFT
     CanopyInterception(); 
     CanopyIrrigation();
     CanopyGroundFlux();
