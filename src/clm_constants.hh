@@ -29,5 +29,13 @@ static const int icol_sunwall     = isturb_MIN*10 + 2;
 static const int icol_shadewall   = isturb_MIN*10 + 3;
 static const int icol_road_imperv = isturb_MIN*10 + 4;
 static const int icol_road_perv   = isturb_MIN*10 + 5;
+static const double snw_rds_min = 54.526; //minimum allowed snow effective radius (also "fresh snow" value) [microns]
+static const double zlnd = 0.01;        // Roughness length for soil [m]
+static const double zsno = 0.0024;      // Roughness length for snow [m]
+
+//from shr_const_mod.F90
+static const double SHR_CONST_PI  = 3.14159265358979323846;
+static const double SHR_CONST_TKFRZ = 273.15;
+static const double tfrz = SHR_CONST_TKFRZ;
 
 #endif

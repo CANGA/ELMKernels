@@ -24,6 +24,7 @@ int main(int argc, char** argv)
     ReadInput() - need to write
     TopoSlopes() - set 0.2 (-) as minimum slope
     ColdStartMicroTopo() - sets n_melt and micro_sigma for SCA calculations
+    ColdStartSnow() - sets number of snow layers (snl), snow dz, z, zi
 
 
     Time stepping:
@@ -32,6 +33,9 @@ int main(int argc, char** argv)
     CanopyIrrigation();
     CanopyGroundFlux();
     Canopy FracWet();
+    SnowInit();
+    FracH2OSfc();
+
     */
 
 
