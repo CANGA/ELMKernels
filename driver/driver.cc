@@ -35,6 +35,7 @@ int main(int argc, char** argv)
     Canopy FracWet();
     SnowInit();
     FracH2OSfc();
+    CanopySunShadeFrac();
 
     */
 
