@@ -1,0 +1,25 @@
+#!/bin/bash 
+### Begin BSUB Options 
+#BSUB -P GEO132 
+#BSUB -J serialnode1
+#BSUB -W 2:00 
+#BSUB -nnodes 1 
+#BSUB -o serialnode1_output.log
+#BSUB -e serialnode1_error.log
+### End BSUB Options and begin shell commands
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/serial
+module load gcc/7.4.0
+module load parallel-netcdf
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_kokkos_c
+make clean
+make
+cp test_CanopyHydrology_module exeserial
+for i in 1 2 4 8 16 32
+do
+        jsrun -n $i -a 1 -c 1 -r $i -l CPU-CPU -d packed -b packed:1 ./exeserial >> serial.results
+done
+rm exeserial

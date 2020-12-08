@@ -1,0 +1,46 @@
+#!/bin/bash
+rm *.results
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/cuda
+module load gcc/7.4.0
+module load cuda
+module load parallel-netcdf
+
+export CUDA_LAUNCH_BLOCKING=1
+export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_kokkos_c
+make clean
+make
+cp test_CanopyHydrology_module.cuda execuda
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/openmp
+module load gcc/7.4.0
+module load parallel-netcdf
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_kokkos_c
+make clean
+
+make
+cp test_CanopyHydrology_module exeopenmp
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
+module use modulefiles/
+module load elm_kernels/scalability/kokkos/serial
+module load gcc/7.4.0
+module load parallel-netcdf
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_kokkos_c
+make clean
+
+make
+cp test_CanopyHydrology_module exeserial
+
+bsub cuda.lsf
+bsub serial.lsf
+bsub openmpsmt1.lsf
+bsub openmpsmt4.lsf

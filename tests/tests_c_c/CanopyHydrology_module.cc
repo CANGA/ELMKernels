@@ -40,7 +40,7 @@ int main(int argc, char ** argv)
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
   const auto start = ELM::Utils::Date(2014, 1, 1);
-  const int n_months = 12;
+  const int n_months = 6;
   const int ticks_per_day = 8; // 3-hourly data
   const int write_interval = 8 * 12;
   

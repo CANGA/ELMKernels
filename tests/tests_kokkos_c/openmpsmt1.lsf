@@ -9,22 +9,18 @@
 #BSUB -e kokkos_openmp_smt1node1_error.log
 ### End BSUB Options and begin shell commands
 
-cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
 module use modulefiles/
 module load elm_kernels/scalability/kokkos/openmp
 module load gcc/7.4.0
-module load cuda
 module load parallel-netcdf
-export CUDA_LAUNCH_BLOCKING=1
-export CUDA_MANAGED_FORCE_DEVICE_ALLOC=1
 
-cd /gpfs/alpine/proj-shared/geo132/module_build/elm_kernels/repos/scalability/tests/tests_kokkos_c
-make clean
-
-make
-
-for i in 1 2 4 16
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_kokkos_c
+#make clean
+#make
+#cp test_CanopyHydrology_module exeopenmp
+for i in 1 2 4 8 16 32
 do
         export OMP_NUM_THREADS=$i
-        jsrun -n $i -c $i -r $i -p 1 -l CPU-CPU -d packed -b rs ./test_CanopyHydrology_module.host >> openmpsmt1.log
+        jsrun -n 1 -a 1 -c $i -r 1 -l CPU-CPU -d packed -b rs ./exeopenmp >> openmpsmt1.results
 done

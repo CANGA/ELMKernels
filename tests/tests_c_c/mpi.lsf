@@ -1,0 +1,26 @@
+#!/bin/bash 
+### Begin BSUB Options 
+#BSUB -P GEO132 
+#BSUB -J mpinode1
+#BSUB -W 2:00 
+#BSUB -nnodes 1 
+#BSUB -o mpinode1_output.log
+#BSUB -e mpinode1_error.log
+### End BSUB Options and begin shell commands
+
+rm *.results
+cd /gpfs/alpine/proj-shared/geo132/ELM/env/elm_kernels_env
+module use modulefiles/
+module load elm_kernels/scalability/c/default
+module load gcc/7.4.0
+module load parallel-netcdf
+
+cd /gpfs/alpine/proj-shared/geo132/ELM/repo/utils/tests/tests_c_c
+make clean
+
+make
+
+for i in 1 2 4 8 16 32
+do
+        jsrun -n $i -a 1 -c 1 -r $i -l CPU-CPU -d packed -b packed:1 ./test_CanopyHydrology_module >> mpionly.results
+done
