@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
 
     // -- read
     ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "MONTHLY_LAI",
-            start, n_months, dd, elai);
+            start, n_months, dd, h_elai);
 
     if (myrank == 0) {
       std::cout << "File I/O" << std::endl
@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
     }
 
     ELM::IO::read_and_reshape_phenology(dir_elm, basename_phen, "MONTHLY_SAI",
-            start, n_months, dd, esai);
+            start, n_months, dd, h_esai);
     if (myrank == 0) {
       std::cout << "  Phenology SAI read" << std::endl;
     }
