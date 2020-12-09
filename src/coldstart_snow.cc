@@ -81,6 +81,9 @@ void ColdStartSnow(
          }
       }
       for (int j = 0; j < snl; j++) {
+         // calc z (cell centers - 0,..,snl-1) and zi (cell interface elevations - 0,..,snl)
+         // zi is initialized as 0.0, which will always be the reference elevation of the ground/snow interface
+         // zi[0] will always equal 0.0, and zi[1,..,snl] are calculated below 
          z[j]    = zi[j] - 0.5 * dz[j];
          zi[j+1] = zi[j] - dz[j];
       }
