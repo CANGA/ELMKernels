@@ -1,0 +1,131 @@
+CLM/ELM functional physics library plan:
+
+CLM/ELM is the land surface model component of CESM/E3SM. This document 
+presents a plan for the creation of a functional physics library from CLM/ELM 
+source code that could be called from a driver other than a coupled ESM 
+(eg a numerical hydrology model). In addition to decoupling CLM/ELM from the ESM
+framework in which it currently resides, a goal of this project is to break 
+apart the large (relative) original functions into numerous smaller 
+(relative) functions. This will provide more opportunity for enhancement of
+computational performance through utilization of a task-parallel framework.
+
+Ideally, the resultant functions will be logically separated based on physics
+functionality. In reality, the structure of CLM/ELM's source code is also a 
+major factor in determing the functional granularity in this library.
+
+INITIALIZATION:
+...
+
+PHYSICS:
+Time-stepping physics calls originate from clm_run() in main/clm_driver.F90
+
+BalanceCheckMod.F90
+  BeginWaterBalance() - start calculations of numerical truncation errors - relatively unchanged
+
+CanopyHydrologyMod.F90
+  CanopyInterception() - calc precip interception by canopy
+  CanopyIrrigation() - add irrigation water to ground
+  CanopyGroundFlux() - add water to ground surface after interception
+  FracWet() - fraction of foliage covered by water and the fraction of foliage that is dry and transpiring - relatively unchanged
+  SnowInit() - init snow layer(s) if the snow accumulation exceeds 10 mm
+  FracH2OSfc() - Determine fraction of land surfaces which are submerged based on surface microtopography and surface water storage - relatively unchanged
+
+SurfaceRadiationMod.F90
+  CanopySunShadeFractions() - determine sun/shade fractions and absorbed PAR in canopy - relatively unchanged
+  SurfRadZeroFluxes() - zero out fluxes before surface radiation calculations
+  SurfRadAbsorbed() - calculate solar flux absorbed by canopy, soil, snow, and ground
+  SurfRadLayers() - compute absorbed flux in each snow layer and top soil layer
+  SurfRadReflected() - calculate reflected solar radiation
+
+UrbanRadiationMod.F90 - secondary goal, could be implemented in a much scaled-down manner
+  UrbanRad() - small, single function
+
+SurfaceResistanceMod.F90
+  calc_soilevap_stress() - compute the stress factor for soil evaporation calculation - relatively unchanged
+
+CanopyTemperatureMod.F90
+  ground_temp() - calc ground temp (244-250)
+  soil_alpha() - calc alpha for humidity calcs (254-308) 
+  specific_humidity() calc humiditues for snow, soil, liquid water (311-362)
+    QSatMod.F90
+      Qsat() Computes saturation mixing ratio and the change in saturation mixing ratio with respect to temperature. - relatively unchanged
+  ground_emissivity() - calc non urban emissivities (367-373)
+  set_vars() - set initial values for latent heat constant, rougness length, wind speed, fluxes, etc (378-457)
+  forcing_height() - set forcing height (461-499)
+
+BareGroundFluxesMod.F90
+  init() - set initial values (200-227)
+    FrictionVelocityMod.F90
+      MoninObukIni() - Initialization of the Monin-Obukhov length - relatively unchanged
+  stability_iteration() - Determine friction velocity, and potential temperature and humidity (233-264)
+    FrictionVelocityMod.F90
+      FrictionVelocity() - Calculation of the friction velocity, relation for potential temperature and humidity profiles of surface boundary layer - relatively unchanged, or break up? - (33-394)
+  compute_fluxes() - compute fluxes of enegry and water (266-341)
+
+CanopyFluxesMod.F90 -  a big one!
+  init() - all initialization before calcs will happen here - @beginning of file and in (654 - ~740) - includes Qsat and MoninObukIni calls
+    SoilMoistStressMod.F90
+      calc_effective_soilporosity() - either provided or calculated
+      calc_volumetric_h2oliq() - either provided or calculated
+      calc_root_moist_stress() - relatively unchanged
+  irrigation()? (591-614)
+  Stability_iteration() (740-1100) - includes 2 calls to photosynthesis, 1 for sun, 1 for shade
+  collect_fluxes() - gather fluxes after photosynthesis calcs
+
+PhotosynthesisMod.F90 - it seems like most of the work here relates to nutrient or temperature limitation scaling factors, which may not be necessary.
+  init() - assign variables based on veg type pft parameters (start - ~400)
+  leaf_level_psn() - calc psn at the leaf/canopy layer level
+  canopy_level_psn() - Sum canopy layer fluxes and then derive effective leaf-level fluxes
+  hybrid() - equation root finder
+
+UrbanFluxesMod.F90 - secondary
+
+SoilTemperatureMod.F90 - this file is large, with 40+ subroutines; I need to pull out the snow temperature solver, and any code that calculates surface boundary temp
+
+SoilFluxesMod.F90
+  divide this into 4 subroutines denoted by bgp2_loop_i for i= 1,..,4 in the code
+
+Hydrology calls are located here. The fluxes and their derivatives that have been calculated at this point should be used in the driver hydrology solution.
+We can disregard most of what happens in HydrologyDrainage() and HydrologyNoDrainage(), except for solution of flow in the snow layers.
+HydrologyNoDrainageMod.F90 - main hydrology call
+  SnowHydrologyMod.F90::SnowWater() - this will be one function - calcs changes to snow mass and snow water - most is for aerosols, a secondary objective
+  SoilHydrologyMod.F90::SurfaceRunoff() - this will be one function - only need small portion to get surface flux - qflx_top_soil and/or qflx_surf
+  SoilHydrologyMod.F90::Infiltration - this will be one function - only need to grab qflx_infl
+  !! not needed - SoilWaterMovementMod.F90::Compute_EffecRootFrac_And_VertTranSink_Default() - this will be one function - only need to grab qflx_rootsoi
+  SnowHydrologyMod.F90::SnowCompaction & CombineSnowLayers & DivideSnowLayers, and code following calls
+
+SnowAge_grain()?
+
+SatellitePhenologyMod.F90 - most of the functionality of this file needs to be added in order to read, interpolate, and initialize phenology variables
+
+SurfaceAlbedoMod.F90 - most of the code in this subroutine is for feedbacks to the atmosphere - need to examine to understand what must be included
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
