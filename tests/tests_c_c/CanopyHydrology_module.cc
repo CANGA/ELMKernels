@@ -40,10 +40,11 @@ int main(int argc, char ** argv)
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
   const auto start = ELM::Utils::Date(2014, 1, 1);
-  const int n_months = 6;
+  const int n_months = 12;
   const int ticks_per_day = 8; // 3-hourly data
   const int write_interval = 8 * 12;
-  
+  const int n_stages = 1;
+
   const std::string dir_atm = ATM_DATA_LOCATION;
   const std::string dir_elm = ELM_DATA_LOCATION;
 
@@ -58,8 +59,11 @@ int main(int argc, char ** argv)
 
   assert(forc_dims[1] == phen_dims[2]); // n_lat_global
   assert(forc_dims[2] == phen_dims[3]); // n_lon_global
+  assert(n_months%n_stages == 0);
+
+  const int n_months_per_stage = n_months / n_stages;
   
-  const int n_times = forc_dims[0];
+  const int n_total_times = forc_dims[0];
   const int n_pfts = phen_dims[1];
 
   // Create the domain decomposition.
@@ -71,7 +75,7 @@ int main(int argc, char ** argv)
   
   if (myrank == n_procs-1) {
     std::cout << " dimensions (rank " << myrank << "):" << std::endl
-              << "   n_time = " << n_times << std::endl
+              << "   n_time = " << n_total_times << std::endl
               << "   global_n_lat,lon = " << dd.n_global[0] << "," << dd.n_global[1] << std::endl
               << "   nprocs_lat,lon = " << dd.n_procs[0] << "," << dd.n_procs[1] << std::endl
               << "   local_start = " << dd.start[0] << "," << dd.start[1] << std::endl
@@ -100,32 +104,6 @@ int main(int argc, char ** argv)
     }
   }
   
-  // allocate storage and initialize forcing input data
-  // -- allocate
-  ELM::Array<double,2> forc_rain(n_times, n_grid_cells); 
-  ELM::Array<double,2> forc_snow(n_times, n_grid_cells); 
-  ELM::Array<double,2> forc_air_temp(n_times, n_grid_cells); 
-  ELM::Array<double,2> forc_irrig(n_times, n_grid_cells, 0.);
-  double qflx_floodg = 0.0;
-
-  {
-    // -- reshape to fit the files, creating a view into forcing arrays, and read directly (no copy needed)
-    auto forc_rain3D = ELM::reshape(forc_rain, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
-    auto forc_snow3D = ELM::reshape(forc_snow, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
-    auto forc_air_temp3D = ELM::reshape(forc_air_temp, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
-
-    std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
-    ELM::IO::read_forcing(dir_atm, basename, "PRECTmms",
-                          start, n_months, dd, forc_rain3D);
-    if (myrank == 0) std::cout << "  Forcing precip read" << std::endl;
-
-    basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
-    ELM::IO::read_forcing(dir_atm, basename, "TBOT",
-                          start, n_months, dd, forc_air_temp3D);
-    if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
-  }    
-  ELM::Utils::convert_precip_to_rain_snow(forc_rain, forc_snow, forc_air_temp);
-  if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
   
   if (myrank == 0) {
     std::cout << "Test Execution" << std::endl
@@ -223,101 +201,165 @@ int main(int argc, char ** argv)
     }
   }
 
-  auto start_wc = ELM::Utils::Clock::time();
-  ELM::Utils::Ticker ticker(start, ticks_per_day);
+  // allocate storage and initialize forcing input data
+  // -- allocate
+  ELM::Array<double,2> forc_rain(1, n_grid_cells); 
+  ELM::Array<double,2> forc_snow(1, n_grid_cells); 
+  ELM::Array<double,2> forc_air_temp(1, n_grid_cells); 
+  ELM::Array<double,2> forc_irrig(1, n_grid_cells, 0.);
 
-  // main loop
-  // -- the timestep loop cannot be parallelized
-  for (int t = 0; t != n_times; ++t) {
-    int i_month = ELM::Utils::months_since(ticker.now(), ticker.start);
 
-    // grid cell and/or pft loop can be parallelized
-    for (int g = 0; g != n_grid_cells; ++g) {
+	ELM::Utils::Date current_start(start);
 
-      // PFT level operations
-      for (int p = 0; p != n_pfts; ++p) {
-        //
-        // Calculate interception
-        //
-        // NOTE: this currently punts on what to do with the qflx variables!
-        // Surely they should be either accumulated or stored on PFTs as well.
-        // --etc
-        ELM::CanopyHydrology_Interception(dtime,
-                forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-                ltype, ctype, urbpoi, do_capsnow,
-                elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
-                h2ocan(g,p), n_irrig_steps_left,
-                qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-                qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-                qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+	int count_times=0;
+	std::array<double,3> runtime={0,0,0};
 
-        //
-        // Calculate fraction of LAI that is wet vs dry.
-        //
-        // FIXME: this currently punts on what to do with the fwet/fdry variables.
-        // Surely they should be something, as such this is dead code.
-        // By the PFT?
-        // --etc
-        double fwet = 0., fdry = 0.;
-        ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(i_month,g,p), esai(i_month,g,p), dewmx, fwet, fdry);
-      } // end PFT loop
+	for (int ss= 0; ss < n_stages; ++ss) {
 
-      // Column level operations
+  		// We have to call the get_forcing_dimensions subroutine inside the stage loop in order to get the number of times per stage. 
+  		// Although off the bat you might think that n_total_times/n_stages is the correct size and should be constant during the simulation,
+  		// the truth is that the size might vary depending on the number of days per month. Then we have to allocate/deallocate the memory each stage
+  		// The same applies for the Kokkos_view.
 
-      // NOTE: this is effectively an accumulation kernel/task! --etc
-      qflx_snow_grnd_col[g] = std::accumulate(qflx_snow_grnd_patch[g].begin(),
-              qflx_snow_grnd_patch[g].end(), 0.);
+  		const auto forc_dims_per_stage = 
+      ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, dir_atm, basename_forc, "PRECTmms", current_start, n_months_per_stage);
 
-      // Calculate ?water balance? on the snow column, adding throughfall,
-      // removing melt, etc.
-      //
-      // local outputs
-      int newnode;
-      ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
-              ltype, ctype, urbpoi, do_capsnow, oldfflag,
-              forc_air_temp(t,g), t_grnd(g),
-              qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],
-              snow_depth[g], h2osno[g], integrated_snow[g], swe_old[g],
-              h2osoi_liq[g], h2osoi_ice[g], t_soisno[g], frac_iceold[g],
-              snow_level[g], dz[g], z[g], zi[g], newnode,
-              qflx_floodc[g], qflx_snow_h2osfc[g], frac_sno_eff[g], frac_sno[g]);
+  		const int n_times = forc_dims_per_stage[0];
 
-      // Calculate Fraction of Water to the Surface?
-      //
-      // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
-      // interface specifies a single double.  For now passing the 0th
-      // entry. --etc
-      ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
-              h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_sno_eff[g],
-              qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
-      
-    } // end grid cell loop
+	  // TODO: build this function resize, analogous to Kokkos::resize
+	  ELM::Array::resize(forc_rain, n_times , n_grid_cells); 
+	  ELM::Array::resize(forc_snow, n_times, n_grid_cells); 
+	  ELM::Array::resize(forc_air_temp, n_times, n_grid_cells); 
+	  ELM::Array::resize(forc_irrig, n_times, n_grid_cells, 0.);
 
-    if (t % write_interval == 0) {
-      auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
-      auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
-      auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
-      // auto min_max_sum_snow_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_snow[t]);
-      // auto min_max_sum_rain_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_rain[t]);
+	  double qflx_floodg = 0.0;
 
-      if (myrank == 0) {
-        std::cout << "  writing ts " << t << std::endl;
-        soln_file << std::setprecision(16)
-                  << t << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-                  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
-                  // << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
-                  // << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
-                  << std::endl;            
-      }
-    }
-  } // end timestep loop
+	  {
+		 // -- reshape to fit the files, creating a view into forcing arrays, and read directly (no copy needed)
+		 auto forc_rain3D = ELM::reshape(forc_rain, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
+		 auto forc_snow3D = ELM::reshape(forc_snow, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
+		 auto forc_air_temp3D = ELM::reshape(forc_air_temp, std::array<int,3>{n_times, (int) dd.n_local[0], (int) dd.n_local[1]});
 
-  auto stop_wc = ELM::Utils::Clock::time();
-  auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop_wc-start_wc);
+		 std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
+		 ELM::IO::read_forcing(dir_atm, basename, "PRECTmms",
+									  current_start, n_months_per_stage, dd, forc_rain3D);
+		 if (myrank == 0) std::cout << "Stage " << ss << "  Forcing precip read" << std::endl;
+
+		 basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
+		 ELM::IO::read_forcing(dir_atm, basename, "TBOT",
+									  current_start, n_months_per_stage, dd, forc_air_temp3D);
+		 if (myrank == 0) std::cout << "Stage " << ss << " Forcing air temperature read" << std::endl;
+	  }
+
+	  ELM::Utils::convert_precip_to_rain_snow(forc_rain, forc_snow, forc_air_temp);
+	  if (myrank == 0) std::cout << "Stage " << ss << " Converted precip to rain + snow" << std::endl;
+
+
+	  auto start_wc = ELM::Utils::Clock::time();
+	  ELM::Utils::Ticker ticker(current_start, ticks_per_day);
+
+	  // main loop
+	  // -- the timestep loop cannot be parallelized
+	  for (int t = 0; t != n_times; ++t) {
+		 int i_month = ELM::Utils::months_since(ticker.now(), ticker.start);
+
+		 // grid cell and/or pft loop can be parallelized
+		 for (int g = 0; g != n_grid_cells; ++g) {
+
+			// PFT level operations
+			for (int p = 0; p != n_pfts; ++p) {
+			  //
+			  // Calculate interception
+			  //
+			  // NOTE: this currently punts on what to do with the qflx variables!
+			  // Surely they should be either accumulated or stored on PFTs as well.
+			  // --etc
+			  ELM::CanopyHydrology_Interception(dtime,
+						 forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+						 ltype, ctype, urbpoi, do_capsnow,
+						 elai(i_month,g,p), esai(i_month,g,p), dewmx, frac_veg_nosno,
+						 h2ocan(g,p), n_irrig_steps_left,
+						 qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+						 qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+						 qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p));
+
+			  //
+			  // Calculate fraction of LAI that is wet vs dry.
+			  //
+			  // FIXME: this currently punts on what to do with the fwet/fdry variables.
+			  // Surely they should be something, as such this is dead code.
+			  // By the PFT?
+			  // --etc
+			  double fwet = 0., fdry = 0.;
+			  ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p), elai(i_month,g,p), esai(i_month,g,p), dewmx, fwet, fdry);
+			} // end PFT loop
+
+			// Column level operations
+
+			// NOTE: this is effectively an accumulation kernel/task! --etc
+			qflx_snow_grnd_col[g] = std::accumulate(qflx_snow_grnd_patch[g].begin(),
+					  qflx_snow_grnd_patch[g].end(), 0.);
+
+			// Calculate ?water balance? on the snow column, adding throughfall,
+			// removing melt, etc.
+			//
+			// local outputs
+			int newnode;
+			ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+					  ltype, ctype, urbpoi, do_capsnow, oldfflag,
+					  forc_air_temp(t,g), t_grnd(g),
+					  qflx_snow_grnd_col[g], qflx_snow_melt, n_melt, frac_h2osfc[g],
+					  snow_depth[g], h2osno[g], integrated_snow[g], swe_old[g],
+					  h2osoi_liq[g], h2osoi_ice[g], t_soisno[g], frac_iceold[g],
+					  snow_level[g], dz[g], z[g], zi[g], newnode,
+					  qflx_floodc[g], qflx_snow_h2osfc[g], frac_sno_eff[g], frac_sno[g]);
+
+			// Calculate Fraction of Water to the Surface?
+			//
+			// FIXME: Fortran black magic... h2osoi_liq is a vector, but the
+			// interface specifies a single double.  For now passing the 0th
+			// entry. --etc
+			ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
+					  h2osno[g], h2osfc[g], h2osoi_liq[g][0], frac_sno[g], frac_sno_eff[g],
+					  qflx_h2osfc2topsoi[g], frac_h2osfc[g]);
+			
+		 } // end grid cell loop
+
+		 if ((t+count_times) % write_interval == 0) {
+			auto min_max_sum_water = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2ocan);
+			auto min_max_sum_snow = ELM::Utils::min_max_sum(MPI_COMM_WORLD, h2osno);
+			auto min_max_sum_surfacewater = ELM::Utils::min_max_sum(MPI_COMM_WORLD, frac_h2osfc);
+			// auto min_max_sum_snow_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_snow[t]);
+			// auto min_max_sum_rain_prcp = ELM::Utils::min_max_sum(MPI_COMM_WORLD, forc_rain[t]);
+
+			if (myrank == 0) {
+			  std::cout << "  writing ts " << t+count_times << std::endl;
+			  soln_file << std::setprecision(16)
+							<< t+count_times << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+							<< "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+							<< "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
+							// << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
+							// << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
+							<< std::endl;            
+			}
+		 }
+	  } // end timestep loop
+
+	  for (int j= 0; j < n_months_per_stage; ++j) {
+			current_start.increment_month();
+		}
+		count_times+=n_times;
+		auto stop_wc = ELM::Utils::Clock::time();
+		auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop_wc-start_wc);
+		runtime[0]+=times[0];
+		runtime[1]+=times[1];
+		runtime[2]+=times[2];
+
+	} //end stage loop
+
   if (myrank == 0) {
-    std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
-              << ", mean: " << times[2] << std::endl;
+    std::cout << "Timing: min: "<< runtime[0] <<  ", max: " << runtime[1]
+              << ", mean: " << runtime[2] << std::endl;
   }
 
 #if WRITE_GLOBAL_IMAGE  

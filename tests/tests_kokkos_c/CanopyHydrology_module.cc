@@ -45,9 +45,10 @@ int main(int argc, char ** argv)
   // NOTE: _global indicates values that are across all ranks.  The absence of
   // global means the variable is spatially local.
   const auto start = ELM::Utils::Date(2014, 1, 1);
-  const int n_months = 6;
+  const int n_months = 12;
   const int ticks_per_day = 8; // 3-hourly data
   const int write_interval = 8 * 12;
+  const int n_stages = 3;
   
   const std::string dir_atm = ATM_DATA_LOCATION;
   const std::string dir_elm = ELM_DATA_LOCATION;
@@ -63,8 +64,11 @@ int main(int argc, char ** argv)
 
   assert(forc_dims[1] == phen_dims[2]); // n_lat_global
   assert(forc_dims[2] == phen_dims[3]); // n_lon_global
-  
-  const int n_times = forc_dims[0];
+  assert(n_months%n_stages == 0);
+
+  const int n_months_per_stage = n_months / n_stages;
+
+  const int n_total_times = forc_dims[0];
   const int n_pfts = phen_dims[1];
 
   // Create the domain decomposition.
@@ -73,7 +77,7 @@ int main(int argc, char ** argv)
           { myrank / proc_decomp[1], myrank % proc_decomp[1] });
   if (myrank == n_procs-1) {
     std::cout << " dimensions (rank " << myrank << "):" << std::endl
-              << "   n_time = " << n_times << std::endl
+              << "   n_time = " << n_total_times << std::endl
               << "   global_n_lat,lon = " << dd.n_global[0] << "," << dd.n_global[1] << std::endl
               << "   nprocs_lat,lon = " << dd.n_procs[0] << "," << dd.n_procs[1] << std::endl
               << "   local_start = " << dd.start[0] << "," << dd.start[1] << std::endl
@@ -118,51 +122,8 @@ int main(int argc, char ** argv)
   // allocate storage and initialize forcing input data
   //
   // NOTE, this may be too big, and we'll have to stage forcing data?
-  //
-  // -- allocate
-  Kokkos::View<double**> forc_rain("forc_rain", n_times, n_grid_cells);
-  Kokkos::View<double**> forc_snow("forc_snow", n_times, n_grid_cells);
-  Kokkos::View<double**> forc_air_temp("forc_air_temp", n_times, n_grid_cells);
-  Kokkos::View<double**> forc_irrig("forc_irrig", n_times, n_grid_cells);
-  double qflx_floodg = 0.0;
-  {
-    // -- host views
-    auto h_forc_rain = Kokkos::create_mirror_view(forc_rain);
-    auto h_forc_snow = Kokkos::create_mirror_view(forc_snow);
-    auto h_forc_air_temp = Kokkos::create_mirror_view(forc_air_temp);
+  
 
-    {
-      // -- read
-      std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
-      ELM::IO::read_and_reshape_forcing(dir_atm, basename, "PRECTmms",
-              start, n_months, dd, h_forc_rain);
-      if (myrank == 0) std::cout << "  Forcing precip read" << std::endl;
-      Kokkos::deep_copy(h_forc_snow, h_forc_rain);
-
-      basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
-      ELM::IO::read_and_reshape_forcing(dir_atm, basename, "TBOT",
-              start, n_months, dd, h_forc_air_temp);
-      if (myrank == 0) std::cout << "  Forcing air temperature read" << std::endl;
-    }
-
-    ELM::Utils::convert_precip_to_rain_snow(h_forc_rain, h_forc_snow, h_forc_air_temp);
-
-    // for (int i=0; i!=360; i+=10) {
-    //   for (int j=0; j!=360; j+=10) {
-    //     std::cout << h_forc_snow(0, i*360 + j) << " ";
-    //   }
-    //   std::cout << std::endl;
-    // }
-
-    if (myrank == 0) std::cout << "  Converted precip to rain + snow" << std::endl;
-
-    // -- copy to device
-    Kokkos::deep_copy(forc_rain, h_forc_rain);
-    Kokkos::deep_copy(forc_snow, h_forc_snow);
-    Kokkos::deep_copy(forc_air_temp, h_forc_air_temp);
-  } // destroys host views, Array2D objects
-
-  MPI_Barrier(MPI_COMM_WORLD);
   if (myrank == 0) {
     std::cout << "Test Execution" << std::endl
               << "--------------" << std::endl;
@@ -262,101 +223,179 @@ int main(int argc, char ** argv)
   }
   //#endif
 
-  auto start_wc = ELM::Utils::Clock::time();
-  ELM::Utils::Ticker ticker(start, ticks_per_day);
 
-  // main loop
-  // -- the timestep loop cannot/should not be parallelized
-  for (int t = 0; t != n_times; ++t) {
-    int i_month = ELM::Utils::months_since(ticker.now(), ticker.start);
-
-    // Column level operations
-    // NOTE: this is effectively an accumulation kernel/task! --etc
-    typedef Kokkos::TeamPolicy<> team_policy ;
-    typedef typename team_policy::member_type team_type ;
-    Kokkos::parallel_for(
-        "pft_reduction",
-        Kokkos::TeamPolicy<> (n_grid_cells, Kokkos::AUTO()),
-        KOKKOS_LAMBDA (const team_type& team) {
-          auto g = team.league_rank() ;
-          double sum = 0;
-          Kokkos::parallel_reduce(
-              Kokkos::TeamThreadRange(team, n_pfts),
-              [=] (const size_t& p, double& lsum) {
-                ELM::CanopyHydrology_Interception(dtime,
-                        forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
-                        ltype, ctype, urbpoi, do_capsnow,
-                        elai(i_month, g,p), esai(i_month, g,p), dewmx, frac_veg_nosno,
-                        h2ocan(g,p), n_irrig_steps_left,
-                        qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
-                        qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
-                        qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
-
-                double fwet = 0., fdry = 0.;
-                ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p),
-                        elai(i_month, g,p), esai(i_month, g,p),
-                        dewmx, fwet, fdry);
-
-                lsum += qflx_snow_grnd_patch(team.league_rank(),p);
-              }, sum);
-          qflx_snow_grnd_col(team.league_rank()) = sum ;
-
-          int newnode;
-          ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
-                  ltype, ctype, urbpoi, do_capsnow, oldfflag,
-                  forc_air_temp(t,g), t_grnd(g),
-                  qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
-                  snow_depth(g), h2osno(g), integrated_snow(g),
-                  Kokkos::subview(swe_old, g, Kokkos::ALL),
-                  Kokkos::subview(h2osoi_liq, g, Kokkos::ALL),
-                  Kokkos::subview(h2osoi_ice, g, Kokkos::ALL),
-                  Kokkos::subview(t_soisno, g, Kokkos::ALL),
-                  Kokkos::subview(frac_iceold, g, Kokkos::ALL),
-                  snow_level(g),
-                  Kokkos::subview(dz, g, Kokkos::ALL),
-                  Kokkos::subview(z, g, Kokkos::ALL),
-                  Kokkos::subview(zi, g, Kokkos::ALL), newnode,
-                  qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));
-          
-          // Calculate Fraction of Water to the Surface?
-          //
-          // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
-          // interface specifies a single double.  For now passing the 0th
-          // entry. --etc
-          ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
-                  h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
-                  qflx_h2osfc2topsoi(g), frac_h2osfc(g));
-        });
-
-    //#ifdef UNIT_TEST
-    if (t % write_interval == 0) {
-      auto min_max_sum_water = ELM::ELMKokkos::min_max_sum2(MPI_COMM_WORLD, h2ocan);
-      auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, h2osno);
-      auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, frac_h2osfc);
-      // auto min_max_sum_snow_prcp = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, Kokkos::subview(forc_snow, t, Kokkos::ALL));
-      // auto min_max_sum_rain_prcp = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, Kokkos::subview(forc_rain, t, Kokkos::ALL));
-
-      if (myrank == 0) {
-        std::cout << "  writing ts " << t << std::endl;
-        soln_file << std::setprecision(16) << t
-                  << "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
-                  << "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
-                  << "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
-                  // << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
-                  // << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
-                  << std::endl;
-      }
-    }
-    //#endif
-    
-  } // end timestep loop
+  	// -- allocate the view outside the stage loop. Then we will do the resize
+  	Kokkos::View<double**> forc_rain("forc_rain", 1, n_grid_cells);
+  	Kokkos::View<double**> forc_snow("forc_snow", 1, n_grid_cells);
+  	Kokkos::View<double**> forc_air_temp("forc_air_temp", 1, n_grid_cells);
+  	Kokkos::View<double**> forc_irrig("forc_irrig", 1, n_grid_cells);
 
 
-  auto stop_wc = ELM::Utils::Clock::time();
-  auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop_wc-start_wc);
+
+	ELM::Utils::Date current_start(start);
+
+	int count_times=0;
+	std::array<double,3> runtime={0,0,0};
+
+	for (int ss= 0; ss < n_stages; ++ss) {
+
+  		// We have to call the get_forcing_dimensions subroutine inside the stage loop in order to get the number of times per stage. 
+  		// Although off the bat you might think that n_total_times/n_stages is the correct size and should be constant during the simulation,
+  		// the truth is that the size might vary depending on the number of days per month. Then we have to allocate/deallocate the memory each stage
+  		// The same applies for the Kokkos_view.
+
+  		const auto forc_dims_per_stage = 
+      ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, dir_atm, basename_forc, "PRECTmms", current_start, n_months_per_stage);
+
+  		const int n_times = forc_dims_per_stage[0];
+
+  		// -- resize
+  		Kokkos::resize(forc_rain, n_times, n_grid_cells);
+  		Kokkos::resize(forc_snow, n_times, n_grid_cells);
+  		Kokkos::resize(forc_air_temp, n_times, n_grid_cells);
+  		Kokkos::resize(forc_irrig, n_times, n_grid_cells);
+
+  		double qflx_floodg = 0.0;
+			
+	  {
+		 // -- host views
+		 auto h_forc_rain = Kokkos::create_mirror_view(forc_rain);
+		 auto h_forc_snow = Kokkos::create_mirror_view(forc_snow);
+		 auto h_forc_air_temp = Kokkos::create_mirror_view(forc_air_temp);
+
+		 {
+			// -- read
+			std::string basename("Precip3Hrly/clmforc.GSWP3.c2011.0.5x0.5.Prec.");
+			ELM::IO::read_and_reshape_forcing(dir_atm, basename, "PRECTmms",
+					  current_start, n_months_per_stage, dd, h_forc_rain);
+			if (myrank == 0) std::cout << "Stage " << ss << "  Forcing precip read" << std::endl;
+			Kokkos::deep_copy(h_forc_snow, h_forc_rain);
+
+			basename="TPHWL3Hrly/clmforc.GSWP3.c2011.0.5x0.5.TPQWL.";
+			ELM::IO::read_and_reshape_forcing(dir_atm, basename, "TBOT",
+					  current_start, n_months_per_stage, dd, h_forc_air_temp);
+			if (myrank == 0) std::cout << "Stage " << ss << "  Forcing air temperature read" << std::endl;
+		 }
+
+		 ELM::Utils::convert_precip_to_rain_snow(h_forc_rain, h_forc_snow, h_forc_air_temp);
+
+		 if (myrank == 0) std::cout <<"Stage " << ss <<  "  Converted precip to rain + snow" << std::endl;
+
+		 // -- copy to device
+		 Kokkos::deep_copy(forc_rain, h_forc_rain);
+		 Kokkos::deep_copy(forc_snow, h_forc_snow);
+		 Kokkos::deep_copy(forc_air_temp, h_forc_air_temp);
+	  } // destroys host views, Array2D objects
+
+	  MPI_Barrier(MPI_COMM_WORLD);
+	 	
+	  auto start_wc = ELM::Utils::Clock::time();
+	  ELM::Utils::Ticker ticker(current_start, ticks_per_day);
+
+	  // main loop
+	  // -- the timestep loop cannot/should not be parallelized
+	  for (int t = 0; t != n_times; ++t) {
+		 int i_month = ELM::Utils::months_since(ticker.now(), ticker.start);
+
+		 // Column level operations
+		 // NOTE: this is effectively an accumulation kernel/task! --etc
+		 typedef Kokkos::TeamPolicy<> team_policy ;
+		 typedef typename team_policy::member_type team_type ;
+		 Kokkos::parallel_for(
+			  "pft_reduction",
+			  Kokkos::TeamPolicy<> (n_grid_cells, Kokkos::AUTO()),
+			  KOKKOS_LAMBDA (const team_type& team) {
+				 auto g = team.league_rank() ;
+				 double sum = 0;
+				 Kokkos::parallel_reduce(
+					  Kokkos::TeamThreadRange(team, n_pfts),
+					  [=] (const size_t& p, double& lsum) {
+						 ELM::CanopyHydrology_Interception(dtime,
+									forc_rain(t,g), forc_snow(t,g), forc_irrig(t,g),
+									ltype, ctype, urbpoi, do_capsnow,
+									elai(i_month, g,p), esai(i_month, g,p), dewmx, frac_veg_nosno,
+									h2ocan(g,p), n_irrig_steps_left,
+									qflx_prec_intr(g,p), qflx_irrig(g,p), qflx_prec_grnd(g,p),
+									qflx_snwcp_liq(g,p), qflx_snwcp_ice(g,p),
+									qflx_snow_grnd_patch(g,p), qflx_rain_grnd(g,p)); 
+
+						 double fwet = 0., fdry = 0.;
+						 ELM::CanopyHydrology_FracWet(frac_veg_nosno, h2ocan(g,p),
+									elai(i_month, g,p), esai(i_month, g,p),
+									dewmx, fwet, fdry);
+
+						 lsum += qflx_snow_grnd_patch(team.league_rank(),p);
+					  }, sum);
+				 qflx_snow_grnd_col(team.league_rank()) = sum ;
+
+				 int newnode;
+				 ELM::CanopyHydrology_SnowWater(dtime, qflx_floodg,
+							ltype, ctype, urbpoi, do_capsnow, oldfflag,
+							forc_air_temp(t,g), t_grnd(g),
+							qflx_snow_grnd_col(g), qflx_snow_melt, n_melt, frac_h2osfc(g),
+							snow_depth(g), h2osno(g), integrated_snow(g),
+							Kokkos::subview(swe_old, g, Kokkos::ALL),
+							Kokkos::subview(h2osoi_liq, g, Kokkos::ALL),
+							Kokkos::subview(h2osoi_ice, g, Kokkos::ALL),
+							Kokkos::subview(t_soisno, g, Kokkos::ALL),
+							Kokkos::subview(frac_iceold, g, Kokkos::ALL),
+							snow_level(g),
+							Kokkos::subview(dz, g, Kokkos::ALL),
+							Kokkos::subview(z, g, Kokkos::ALL),
+							Kokkos::subview(zi, g, Kokkos::ALL), newnode,
+							qflx_floodc(g), qflx_snow_h2osfc(g), frac_sno_eff(g), frac_sno(g));
+				 
+				 // Calculate Fraction of Water to the Surface?
+				 //
+				 // FIXME: Fortran black magic... h2osoi_liq is a vector, but the
+				 // interface specifies a single double.  For now passing the 0th
+				 // entry. --etc
+				 ELM::CanopyHydrology_FracH2OSfc(dtime, min_h2osfc, ltype, micro_sigma,
+							h2osno(g), h2osfc(g), h2osoi_liq(g,0), frac_sno(g), frac_sno_eff(g),
+							qflx_h2osfc2topsoi(g), frac_h2osfc(g));
+			  });
+
+		 //#ifdef UNIT_TEST
+		 if ((t+count_times) % write_interval == 0) {
+			auto min_max_sum_water = ELM::ELMKokkos::min_max_sum2(MPI_COMM_WORLD, h2ocan);
+			auto min_max_sum_snow = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, h2osno);
+			auto min_max_sum_surfacewater = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, frac_h2osfc);
+			// auto min_max_sum_snow_prcp = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, Kokkos::subview(forc_snow, t, Kokkos::ALL));
+			// auto min_max_sum_rain_prcp = ELM::ELMKokkos::min_max_sum1(MPI_COMM_WORLD, Kokkos::subview(forc_rain, t, Kokkos::ALL));
+
+			if (myrank == 0) {
+			  std::cout << "  writing ts " << t+count_times << std::endl;
+			  soln_file << std::setprecision(16) << t+count_times
+							<< "\t" << min_max_sum_water[2] << "\t" << min_max_sum_water[0] << "\t" << min_max_sum_water[1]
+							<< "\t" << min_max_sum_snow[2] << "\t" << min_max_sum_snow[0] << "\t" << min_max_sum_snow[1]
+							<< "\t" << min_max_sum_surfacewater[2] << "\t" << min_max_sum_surfacewater[0] << "\t" << min_max_sum_surfacewater[1]
+							// << "\t" << min_max_sum_snow_prcp[2] << "\t" << min_max_sum_snow_prcp[1]
+							// << "\t" << min_max_sum_rain_prcp[2] << "\t" << min_max_sum_rain_prcp[1]
+							<< std::endl;
+			}
+		 }
+		 //#endif
+		 
+	  } // end timestep loop
+
+		for (int j= 0; j < n_months_per_stage; ++j) {
+			current_start.increment_month();
+		}
+		count_times+=n_times;
+
+ 		auto stop_wc = ELM::Utils::Clock::time();
+  		auto times = ELM::Utils::Clock::min_max_mean(MPI_COMM_WORLD, stop_wc-start_wc);
+		runtime[0]+=times[0];
+		runtime[1]+=times[1];
+		runtime[2]+=times[2];
+
+
+	} //end stage loop
+
+
   if (myrank == 0) {
-    std::cout << "Timing: min: "<< times[0] <<  ", max: " << times[1]
-              << ", mean: " << times[2] << std::endl;
+    std::cout << "Timing: min: "<< runtime[0] <<  ", max: " << runtime[1]
+              << ", mean: " << runtime[2] << std::endl;
   }
 
   if (myrank == 0) soln_file.close();
