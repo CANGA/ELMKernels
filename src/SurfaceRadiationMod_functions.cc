@@ -27,21 +27,22 @@ SurfRadReflected
 #include <assert.h>
 #include "clm_constants.hh"
 
-/* 
+/* SurfRadZeroFluxes()
 DESCRIPTION: zero out fluxes before surface radiation calculations
 
 INPUTS:
-ltype [int] landunit type
+ltype               [int] landunit type
 
 OUTPUTS:
-sabg_soil [double] solar radiation absorbed by soil (W/m**2) 
-sabg_snow [double] solar radiation absorbed by snow (W/m**2)
-sabg      [double] solar radiation absorbed by ground (W/m**2)
-sabv      [double] solar radiation absorbed by vegetation (W/m**2)
-fsa       [double] solar radiation absorbed (total) (W/m**2)
-fsa_r     [double] rural solar radiation absorbed (total) (W/m**2)
-fsun      [double] sunlit fraction of canopy 
-sabg_lyr  [double] absorbed radiative flux (pft,lyr) [W/m2] */
+sabg_soil           [double] solar radiation absorbed by soil (W/m**2) 
+sabg_snow           [double] solar radiation absorbed by snow (W/m**2)
+sabg                [double] solar radiation absorbed by ground (W/m**2)
+sabv                [double] solar radiation absorbed by vegetation (W/m**2)
+fsa                 [double] solar radiation absorbed (total) (W/m**2)
+fsa_r               [double] rural solar radiation absorbed (total) (W/m**2)
+fsun                [double] sunlit fraction of canopy 
+sabg_lyr[nlevsno+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
+*/
 void SurfRadZeroFluxes (
   const int& ltype,
 
@@ -71,23 +72,37 @@ void SurfRadZeroFluxes (
   if (ltype >= isturb_MIN && ltype <= isturb_MAX) { fsun = 0.0; }
 }
 
-/*
-DESCRIPTION: calculate solat dlux absorbed by canopy, soil, snow, and ground
+/* SurfRadAbsorbed()
+DESCRIPTION: calculate solar flux absorbed by canopy, soil, snow, and ground
 
 INPUTS:
-ltype [int] landunit type
-nband [int] number of solar radiation waveband classes (same as numrad)
-snl   [int] number of snow layers
-
-ftdd       [double] down direct flux below canopy per unit direct flux
-ftid       [double] down diffuse flux below canopy per unit direct flux
-ftii       [double] down diffuse flux below canopy per unit diffuse flux
-forc_solad [double] direct beam radiation (W/m**2)
-forc_solai [double] diffuse radiation (W/m**2)    
-
+ltype              [int] landunit type
+nband              [int] number of solar radiation waveband classes (equal to numrad)
+snl                [int] number of snow layers
+ftdd[numrad]       [double] down direct flux below canopy per unit direct flux
+ftid[numrad]       [double] down diffuse flux below canopy per unit direct flux
+ftii[numrad]       [double] down diffuse flux below canopy per unit diffuse flux
+forc_solad[numrad] [double] direct beam radiation (W/m**2)
+forc_solai[numrad] [double] diffuse radiation (W/m**2)
+fabd[numrad]       [double] flux absorbed by canopy per unit direct flux
+fabi[numrad]       [double] flux absorbed by canopy per unit diffuse flux
+albsod[numrad]     [double] soil albedo: direct 
+albsoi[numrad]     [double] soil albedo: diffuse
+albsnd_hst[numrad] [double] snow albedo, direct , for history files
+albsni_hst[numrad] [double] snow albedo, diffuse, for history files
+albgrd[numrad]     [double] ground albedo (direct) 
+albgri[numrad]     [double] ground albedo (diffuse)
 
 OUTPUTS:
-
+parveg             [double] absorbed par by vegetation (W/m**2)
+fsa_r              [double] rural solar radiation absorbed (total) (W/m**2)
+sabv               [double] solar radiation absorbed by vegetation (W/m**2)
+fsa                [double] solar radiation absorbed (total) (W/m**2)
+sabg               [double] solar radiation absorbed by ground (W/m**2)
+sabg_soil          [double] solar radiation absorbed by soil (W/m**2)
+sabg_snow          [double] solar radiation absorbed by snow (W/m**2)
+trd[numrad]        [double] transmitted solar radiation: direct (W/m**2)
+tri[numrad]        [double] transmitted solar radiation: diffuse (W/m**2)
 
 */
 void SurfRadAbsorbed(
@@ -115,12 +130,10 @@ void SurfRadAbsorbed(
   double& sabg,
   double& sabg_soil,
   double& sabg_snow,
-  double* cad,
-  double* cai,
   double* trd,
   double* tri)
 {
-  double absrad;
+  double absrad, cad[nband], cai[nband];
 
   if (ltype < isturb_MIN) {
     for (int ib = 0; ib < nband; ib++) {
@@ -160,7 +173,28 @@ void SurfRadAbsorbed(
   } // end if not urban
 }
 
+/* SurfRadLayers()
+DESCRIPTION: compute absorbed flux in each snow layer and top soil layer
 
+INPUTS:
+ltype                [int] landunit type
+snl                  [int] number of snow layers
+subgridflag          [int] use subgrid fluxes
+sabg                 [double] solar radiation absorbed by ground (W/m**2)
+sabg_snow            [double] solar radiation absorbed by snow (W/m**2)
+snow_depth           [double] snow height (m) 
+flx_absdv[nlevsno+1] [double] direct flux absorption factor: VIS 
+flx_absdn[nlevsno+1] [double] direct flux absorption factor: NIR 
+flx_absiv[nlevsno+1] [double] diffuse flux absorption factor: VIS
+flx_absin[nlevsno+1] [double] diffuse flux absorption factor: NIR
+trd[numrad]          [double] transmitted solar radiation: direct (W/m**2)
+tri[numrad]          [double] transmitted solar radiation: diffuse (W/m**2)
+
+OUTPUTS:
+sub_surf_abs_SW      [double] percent of solar radiation absorbed below first snow layer (W/M**2)
+sabg_pen             [double] solar (rural) radiation penetrating top soisno layer (W/m**2)
+sabg_lyr[nlevsno+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
+*/
 void SurfRadLayers(
   const int& ltype,
   const int& snl,
@@ -175,12 +209,12 @@ void SurfRadLayers(
   const double* tri,
   const double* trd,
 
-  double& sabg_snl_sum,
   double& sub_surf_abs_SW,
   double& sabg_pen,
   double* sabg_lyr)
 {
   double err_sum = 0.0;
+  double sabg_snl_sum;
 
   // compute absorbed flux in each snow layer and top soil layer,
   // based on flux factors computed in the radiative transfer portion of SNICAR.
@@ -267,7 +301,19 @@ void SurfRadLayers(
 }
 
 
+/* SurfRadReflected()
+DESCRIPTION: calculate reflected solar radiation
 
+INPUTS:
+ltype              [int] landunit type
+albd[numrad]       [double] surface albedo (direct)
+albi[numrad]       [double] surface albedo (diffuse)
+forc_solad[numrad] [double] direct beam radiation (W/m**2)
+forc_solai[numrad] [double] diffuse radiation (W/m**2)
+
+OUTPUTS:
+fsr                [double] solar radiation reflected (W/m**2)
+*/
 void SurfRadReflected(
   const int& ltype,
   const double* albd,
@@ -275,11 +321,9 @@ void SurfRadReflected(
   const double* forc_solad,
   const double* forc_solai,
 
-  double& rvis,
-  double& rnir,
   double& fsr)
 {
-  double fsr_vis_d, fsr_nir_d, fsr_vis_i, fsr_nir_i;
+  double fsr_vis_d, fsr_nir_d, fsr_vis_i, fsr_nir_i, rvis, rnir;
 
   // Radiation diagnostics
   if (ltype < isturb_MIN) {
