@@ -38,6 +38,9 @@ static const double zsno = 0.0024;      // Roughness length for snow [m]
 //from shr_const_mod.F90
 static const double SHR_CONST_PI  = 3.14159265358979323846;
 static const double SHR_CONST_TKFRZ = 273.15;
+static const double SHR_CONST_RHOFW   = 1.000e3; // density of fresh water     ~ kg/m^3
+static const double SHR_CONST_RHOSW   = 1.026e3; // density of sea water       ~ kg/m^3
+static const double SHR_CONST_RHOICE  = 0.917e3; // density of ice             ~ kg/m^3
 static const double tfrz = SHR_CONST_TKFRZ;
 
 #endif

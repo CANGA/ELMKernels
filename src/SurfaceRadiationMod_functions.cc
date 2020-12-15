@@ -400,7 +400,7 @@ void CanopySunShadeFractions(
  double& fsun)
 {
   if (ltype < isturb_MIN) {
-    int ipar = 1; // The band index for PAR
+    int ipar = 0; // The band index for PAR
     for (int iv = 0; iv < nrad; iv++) {
       parsun_z[iv] = 0.0;
       parsha_z[iv] = 0.0;
