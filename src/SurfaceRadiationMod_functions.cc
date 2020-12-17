@@ -4,17 +4,17 @@ We use a simple array declared as var[6]. The index mapping is described below.
 This mapping will be consistently used in all similar situations throughout the code.
 
 CLM variable indices      This code's variable indices
-|-4|   top snow layer       |5|
- --                         ---
-|-3|   snow layer           |4|
- --                         ---
-|-2|   snow layer           |3|
- --                         ---
-|-1|   snow layer           |2|
- --                         ---
-| 0|   bottom snow layer    |1| 
------  ground interface  -------
-| 1|   top soil layer       |0|
+|-4|   top snow layer     |0|
+ --                       ---
+|-3|   snow layer         |1|
+ --                       ---
+|-2|   snow layer         |2|
+ --                       ---
+|-1|   snow layer         |3|
+ --                       ---
+| 0|   bottom snow layer  |4| 
+-----  ground interface  ------
+| 1|   top soil layer     |5|
 
 Call sequence: 
 SurfRadZeroFluxes()
@@ -63,7 +63,7 @@ void SurfRadZeroFluxes (
     sabv      = 0.0;
     fsa       = 0.0;
     if (ltype == istsoil || ltype == istcrop) { fsa_r = 0.0; }
-    for (int j = nlevsno; j >= 0; j--) { sabg_lyr[j] = 0.0; }
+    for (int j = 0; j < nlevsno + 1; j++) { sabg_lyr[j] = 0.0; }
   }
 
   // zero-out fsun for the urban patches
@@ -225,18 +225,18 @@ void SurfRadLayers(
 
     // CASE1: No snow layers: all energy is absorbed in top soil layer
     if (snl == 0) {
-      for (int i = 0; i < nlevsno + 1; i++) { sabg_lyr[i] = 0.0; }
-      sabg_lyr[0] = sabg; 
-      sabg_snl_sum  = sabg_lyr[0];
+      for (int i = 0; i <= nlevsno; i++) { sabg_lyr[i] = 0.0; }
+      sabg_lyr[nlevsno] = sabg; 
+      sabg_snl_sum  = sabg_lyr[nlevsno];
     } else { // CASE 2: Snow layers present: absorbed radiation is scaled according to flux factors computed by SNICAR
 
-      for (int i = nlevsno; i >= 0; i--) {
+      for (int i = 0; i < nlevsno + 1; i++) {
         sabg_lyr[i] = flx_absdv[i] * trd[0] + flx_absdn[i] * trd[1] + flx_absiv[i] * tri[0] + flx_absin[i] * tri[1];
         // summed radiation in active snow layers:
         // if snow layer is at or below snow surface 
-        if (i <= snl) { sabg_snl_sum += sabg_lyr[i]; }
+        if (i >= nlevsno - snl) { sabg_snl_sum += sabg_lyr[i]; }
         // if snow layer is below surface snow layer accumulate subsurface flux as a diagnostic
-        if (i < snl) { sub_surf_abs_SW += + sabg_lyr[i]; }
+        if (i > nlevsno - snl) { sub_surf_abs_SW += + sabg_lyr[i]; }
       }
 
       // Divide absorbed by total, to get % absorbed in subsurface
@@ -257,16 +257,16 @@ void SurfRadLayers(
 
       if (std::abs(sabg_snl_sum - sabg_snow) > 0.00001) {
         if (snl == 0) {
-          for (int j = nlevsno; j > 0; j--) { sabg_lyr[j] = 0.0; }
-          sabg_lyr[0] = sabg;
+          for (int j = 0; j < nlevsno; j++) { sabg_lyr[j] = 0.0; }
+          sabg_lyr[nlevsno] = sabg;
         } else if (snl == 1) {
-          for (int j = nlevsno; j > 1; j--) { sabg_lyr[j] = 0.0; }
-          sabg_lyr[1] = sabg_snow * 0.6;
-          sabg_lyr[0] = sabg_snow * 0.4;
+          for (int j = 0; j < nlevsno - 1; j++) { sabg_lyr[j] = 0.0; }
+          sabg_lyr[nlevsno - 1] = sabg_snow * 0.6;
+          sabg_lyr[nlevsno] = sabg_snow * 0.4;
         } else {
-          for (int j = nlevsno; j >= 0; j--) { sabg_lyr[j] = 0.0; }
-          sabg_lyr[snl] = sabg_snow * 0.75;
-          sabg_lyr[snl-1] = sabg_snow * 0.25;
+          for (int j = 0; j <= nlevsno; j++) { sabg_lyr[j] = 0.0; }
+          sabg_lyr[nlevsno - snl] = sabg_snow * 0.75;
+          sabg_lyr[nlevsno - snl + 1] = sabg_snow * 0.25;
         }
       }
 
@@ -276,23 +276,23 @@ void SurfRadLayers(
       if (subgridflag == 0) {
         if (snow_depth < 0.1) {
           if (snl == 0) {
-            for (int j = nlevsno; j > 0; j--) { sabg_lyr[j] = 0.0; }
-            sabg_lyr[0] = sabg;
+            for (int j = 0; j < nlevsno; j++) { sabg_lyr[j] = 0.0; }
+            sabg_lyr[nlevsno] = sabg;
           } else if (snl == 1) {
-            for (int j = nlevsno; j > 1; j--) { sabg_lyr[j] = 0.0; }
-            sabg_lyr[1] = sabg;
-            sabg_lyr[0] = 0.0;
+            for (int j = 0; j < nlevsno - 1; j++) { sabg_lyr[j] = 0.0; }
+            sabg_lyr[nlevsno - 1] = sabg;
+            sabg_lyr[nlevsno] = 0.0;
           } else {
-            for (int j = nlevsno; j >= 0; j--) { sabg_lyr[j] = 0.0; }
-            sabg_lyr[snl] = sabg_snow * 0.75;
-            sabg_lyr[snl-1] = sabg_snow * 0.25;
+            for (int j = 0; j <= nlevsno; j++) { sabg_lyr[j] = 0.0; }
+            sabg_lyr[nlevsno - snl] = sabg_snow * 0.75;
+            sabg_lyr[nlevsno - snl + 1] = sabg_snow * 0.25;
           }
         }
       }
     }
 
     // Error check - This situation should not happen:
-    for (int j = nlevsno; j >= 0; j--) { err_sum += sabg_lyr[j]; }
+    for (int j = 0; j <= nlevsno; j++) { err_sum += sabg_lyr[j]; }
     assert(!(std::abs(err_sum - sabg_snow) > 0.00001)); 
 
     // Diagnostic: shortwave penetrating ground (e.g. top layer)
