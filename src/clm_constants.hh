@@ -21,7 +21,8 @@ static const int numurbl = isturb_MAX - isturb_MIN + 1;
 static const int subgridflag = 0;
 
 //from clm_varpar.F90
-static const int nlevsno = 5;
+static const int nlevsno = 5; // this should be set by driver
+static const int nlevgrnd = 5; 
 
 //from column_varcon.F90
 static const int icol_roof        = isturb_MIN*10 + 1;
@@ -50,6 +51,8 @@ static const double SHR_CONST_LATSUB  = SHR_CONST_LATICE + SHR_CONST_LATVAP; // 
 static const double snw_rds_min = 54.526; //minimum allowed snow effective radius (also "fresh snow" value) [microns]
 static const double zlnd = 0.01;        // Roughness length for soil [m]
 static const double zsno = 0.0024;      // Roughness length for snow [m]
+static const double spval = 1.0e36;   // special value for real data
+static const int ispval = -9999;             // special value for int data 
 static const double tfrz = SHR_CONST_TKFRZ; // freezing temperature [K]
 static const double roverg = SHR_CONST_RWV/SHR_CONST_G*1000.0;   // Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
 static const double denice = SHR_CONST_RHOICE;

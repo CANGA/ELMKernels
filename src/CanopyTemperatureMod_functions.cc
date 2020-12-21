@@ -1,25 +1,34 @@
 /* physics functions from CanopyTemperatureMod.F90
 
-
-
 */
 #include <algorithm>
 #include <cmath>
 #include "clm_constants.hh"
+#include "QSatMod_functions.hh"
 
 /* SavePriorGroundTemp()
-record t_h2osfc and t_soisno prior to updating
+DESCRIPTION: Record t_h2osfc and t_soisno prior to updating.
 
+INPUTS:
+ctype                      [int] urban landunit type
+nlevurb                    [int] number of urban layers
+lakpoi                     [bool] true => landunit is a lake point
+t_h2osfc                   [double] surface water temperature 
+t_soisno[nlengrnd+nlevsno] [double] col soil temperature (Kelvin)
+
+OUTPUTS:
+t_h2osfc_bef               [double] saved surface water temperature         
+tssbef[nlengrnd+nlevsno]   [double] soil/snow temperature before update    
 */
 void SavePriorGroundTemp(
   const int& ctype,
+  const int& nlevurb,
   const bool& lakpoi,
-  const int& nlevsno,
-  const int& nlevgrnd,
+  const double& t_h2osfc,
   const double* t_soisno,
 
-  double* tssbef,
-  double* t_h2osfc_bef)
+  double& t_h2osfc_bef,
+  double* tssbef)
 {
   if (!lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
@@ -36,16 +45,26 @@ void SavePriorGroundTemp(
 
 
 /* CalculateGroundTemp()
+DESCRIPTION: Calculate average ground temp.
 
+INPUTS:
+lakpoi                     [bool] true => landunit is a lake point
+snl                        [int] number of snow layers
+frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
+frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
+t_h2osfc                   [double] surface water temperature 
+t_soisno[nlengrnd+nlevsno] [double] col soil temperature (Kelvin)
+
+OUTPUTS:
+t_grnd                     [double] ground temperature (Kelvin)
 */
 void CalculateGroundTemp(
   const bool& lakpoi,
-  const int& nlevsno,
   const int& snl,
   const double& frac_sno_eff, 
   const double& frac_h2osfc,
   const double& t_h2osfc,
-  const double* t_soisno_,
+  const double* t_soisno,
 
   double& t_grnd)
 { // ground temperature is weighted average of exposed soil, snow, and h2osfc
@@ -62,23 +81,34 @@ void CalculateGroundTemp(
 
 /* CalculateSoilAlpha()
 DESCRIPTION: Calculate soilalpha factor that reduces ground saturated specific humidity. 
-It looks like soilalpha doesn't get used in maint-1.0 branch.
+It looks like soilalpha doesn't get used in maint-1.0 branch, but both qred and hr do.
 
 INPUTS:
+lakpoi                     [bool] true => landunit is a lake point
+ctype                      [int] urban landunit type
+ltype                      [int] landunit type
+nlevbed                    [int] number of layers to bedrock
+nlevsoi                    [int] number of hydrologically active soil layers
+frac_sno                   [double] fraction of ground covered by snow (0 to 1)
+frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 smpmin [double] restriction for min of soil potential (mm)
-h2osoi_liq[nlengrnd+nlevsno-1] [double] liquid water (kg/m2)
-h2osoi_ice[nlengrnd+nlevsno-1] [double] ice lens (kg/m2)
-t_soisno[nlengrnd+nlevsno-1] [double]
-dz[nlengrnd+nlevsno-1] [double] layer thickness (m) 
-watsat[nlevgrnd]  [double]  volumetric soil water at saturation (porosity)
-bsw[nlevgrnd]            [double] Clapp and Hornberger "b" 
-sucsat[nlevgrnd] [double]  minimum soil suction (mm)
-watdry[nlevgrnd] [double]  btran parameter for btran = 0
-watopt[nlevgrnd] [double]  btran parameter for btran = 1
-rootr_road_perv[nlevgrnd]  [double] effective fraction of roots in each soil layer for urban pervious road
-rootfr_road_perv[nlevgrnd] [double] fraction of roots in each soil layer for urban pervious road
+h2osoi_liq[nlengrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlengrnd+nlevsno] [double] ice lens (kg/m2)
+dz[nlengrnd+nlevsno]         [double] layer thickness (m)
+t_soisno[nlengrnd+nlevsno]   [double] col soil temperature (Kelvin)
+watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
+sucsat[nlevgrnd]             [double] minimum soil suction (mm)
+bsw[nlevgrnd]                [double] Clapp and Hornberger "b" 
+watdry[nlevgrnd]             [double] btran parameter for btran = 0
+watopt[nlevgrnd]             [double] btran parameter for btran = 1
+rootfr_road_perv[nlevgrnd]   [double] fraction of roots in each soil layer for urban pervious road
 
-
+OUTPUTS:
+rootr_road_perv[nlevgrnd]    [double] effective fraction of roots in each soil layer for urban pervious road
+qred                         [double] soil surface relative humidity
+hr                           [double] relative humidity
+soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
+soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
 */
 
 void CalculateSoilAlpha(
@@ -87,25 +117,23 @@ void CalculateSoilAlpha(
   const int& ltype,
   const int& nlevbed,
   const int& nlevsoi,
-  const int& nlevsno,
   const double& frac_sno,
   const double& frac_h2osfc,
   const double& smpmin,
-
   const double* h2osoi_liq,
   const double* h2osoi_ice,
   const double* dz,
   const double* t_soisno,
-
   const double* watsat,
   const double* sucsat,
   const double* bsw,
   const double* watdry,
   const double* watopt,
-  const double* rootr_road_perv,
   const double* rootfr_road_perv,
 
+  double* rootr_road_perv,
   double& qred,
+  double& hr,
   double& soilalpha,
   double& soilalpha_u)
 {
@@ -117,7 +145,6 @@ void CalculateSoilAlpha(
     double fac; // soil wetness of surface layer
     double wx; // partial volume of ice and water of surface layer
     double psit; // negative potential of soil
-    double hr; // relative humidity
     double eff_porosity; //  effective porosity in layer
     double vol_ice;      //  partial volume of ice lens in layer
     double vol_liq;      //  partial volume of liquid water in layer
@@ -172,29 +199,34 @@ void CalculateSoilAlpha(
 }
 
 /*
-DESCRIPTION:
-Saturated vapor pressure, specific humidity and their derivatives at ground surface. 
+DESCRIPTION: Saturated vapor pressure, specific humidity and their derivatives at ground surface. 
 Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
 
 INPUTS:
-forc_q atmospheric specific humidity (kg/kg)    
-forc_pbot atmospheric pressure (Pa) 
 
-frac_sno_eff eff. fraction of ground covered by snow (0 to 1)
+lakpoi                     [bool] true => landunit is a lake point
+ltype                      [int] landunit type
+snl                        [int] number of snow layers
+forc_q                     [double] atmospheric specific humidity (kg/kg)   
+forc_pbot                  [double] atmospheric pressure (Pa)
+t_h2osfc                   [double] surface water temperature 
+t_grnd                     [double] ground temperature (Kelvin)
+frac_sno                   [double] fraction of ground covered by snow (0 to 1)
+frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
+frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
+qred                       [double] soil surface relative humidity
+hr                         [double] relative humidity
+t_soisno[nlevgrnd+nlevsno] [double] soil temperature (Kelvin)
 
-
-
-
-qg_snow   specific humidity at snow surface [kg/kg]
-qg_soil   specific humidity at soil surface [kg/kg]
-qg        ground specific humidity [kg/kg]         
-qg_h2osfc specific humidity at h2osfc surface [kg/kg]
-dqgdT     d(qg)/dT                                 
+qg_snow                    [double] specific humidity at snow surface [kg/kg]
+qg_soil                    [double] specific humidity at soil surface [kg/kg]
+qg                         [double] ground specific humidity [kg/kg]         
+qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
+dqgdT                      [double] d(qg)/dT                                 
 */
 void CalculateHumidities(
   const bool& lakpoi,
   const int& ltype,
-  const int& nlevsno,
   const int& snl,
   const double& forc_q,
   const double& forc_pbot,
@@ -202,20 +234,16 @@ void CalculateHumidities(
   const double& t_grnd,
   const double& frac_sno,
   const double& frac_sno_eff,
+  const double& frac_h2osfc,
   const double& qred,
-
+  const double& hr,
   const double* t_soisno,
-
-
 
   double& qg_snow,
   double& qg_soil,
   double& qg,
   double& qg_h2osfc,
-  double& dqgdT,
-
-
-  )
+  double& dqgdT)
 {
   if (!lakpoi) {
 
@@ -243,7 +271,7 @@ void CalculateHumidities(
       // to be consistent with hs_top values in SoilTemp, set qg_snow to qg_soil for snl = 0 case
       // this ensures hs_top_snow will equal hs_top_soil
       if (snl == 0) {
-        qg_snow; = qg_soil;
+        qg_snow = qg_soil;
         dqgdT = (1.0 - frac_h2osfc) * hr * dqgdT;
       }
       QSat(t_h2osfc, forc_pbot, eg, degdT, qsatg, qsatgdT);
@@ -273,29 +301,82 @@ void CalculateHumidities(
 
 
 /* GroundProperties()
-DESCRIPTION:
-Calculate ground emissivity, latent heat constant, roughness lengths, 
+DESCRIPTION: Calculate ground emissivity, latent heat constant, roughness lengths, 
 potential temp and wind speed.
 
+INPUTS:
+urbpoi                       [bool] true => landunit is an urban point
+lakpoi                       [bool] true => landunit is a lake point
+ltype                        [int] landunit type
+vtype                        [int] vegetation type
+snl                          [int] number of snow layers
+frac_sno                     [double] fraction of ground covered by snow (0 to 1)
+forc_th                      [double] atmospheric potential temperature (Kelvin)
+forc_q                       [double] atmospheric specific humidity (kg/kg)
+elai                         [double] one-sided leaf area index with burying by snow
+esai                         [double] one-sided stem area index with burying by snow
+htop                         [double] canopy top (m) 
+displar[numpft]              [double] ratio of displacement height to canopy top height (-)
+z0mr[numpft]                 [double] ratio of momentum roughness length to canopy top height (-)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)    
+
+OUTPUTS:
+emg                          [double] ground emissivity
+emv                          [double] vegetation emissivity   
+htvp                         [double] latent heat of vapor of water (or sublimation) [j/kg]
+z0mg                         [double] roughness length over ground, momentum [m]
+z0hg                         [double] roughness length over ground, sensible heat [m]
+z0qg                         [double] roughness length over ground, latent heat [m]
+z0mv                         [double] roughness length over vegetation, momentum [m]
+z0hv                         [double] roughness length over vegetation, sensible heat [m]
+z0qv                         [double] roughness length over vegetation, latent heat [m]
+beta                         [double] coefficient of convective velocity [-]   
+zii                          [double] convective boundary height [m]           
+thv                          [double] virtual potential temperature (kelvin)   
+z0m                          [double] momentum roughness length (m)
+displa                       [double] displacement height (m)
+cgrnd                        [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
+cgrnds                       [double] deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
+cgrndl                       [double] deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
 */
 void GroundProperties(
-  const bool& lakpoi,
   const bool& urbpoi,
+  const bool& lakpoi,
+  const int& ltype,
+  const bool& vtype,
+  const int& snl,
   const double& frac_sno,
+  const double& forc_th,
+  const double& forc_q,
+  const double& elai,
+  const double& esai,
+  const double& htop,
+  const double* displar,
+  const double* z0mr,
   const double* h2osoi_liq,
   const double* h2osoi_ice,
 
-
   double& emg,
+  double& emv,
   double& htvp,
-  double& z0hg,
   double& z0mg,
+  double& z0hg,
   double& z0qg,
+  double& z0mv,
+  double& z0hv,
+  double& z0qv,
   double& beta,
   double& zii,
-  double& thv)
+  double& thv,
+  double& z0m,
+  double& displa,
+  double& cgrnd,
+  double& cgrnds,
+  double& cgrndl)
 {
   if (!lakpoi) {
+    double avmuir; //ir inverse optical depth per unit leaf area
 
     // Ground emissivity - only calculate for non-urban landunits 
     // Urban emissivities are currently read in from data file
@@ -306,6 +387,10 @@ void GroundProperties(
         emg = (1.0 - frac_sno) * 0.96 + frac_sno * 0.97;
       }
     }
+
+    // Vegetation Emissivity
+    avmuir = 1.0;
+    emv = 1.0 - exp(-(elai + esai) / avmuir);
 
     // Latent heat. We arbitrarily assume that the sublimation occurs
     // only as h2osoi_liq = 0
@@ -321,10 +406,152 @@ void GroundProperties(
     }
     z0hg = z0mg;            // initial set only
     z0qg = z0mg;            // initial set only
+    z0m = z0mr[vtype] * htop;
+    displa = displar[vtype] * htop;
+
+    // vegetation roughness lengths
+    z0mv = z0m;
+    z0hv = z0mv;
+    z0qv = z0mv;
 
     // Potential, virtual potential temperature, and wind speed at the reference height
     beta = 1.0;
     zii  = 1000.0;
     thv  = forc_th * (1.0 + 0.61 * forc_q);
+
+    //Initial set for calculation
+    cgrnd = 0.0;
+    cgrnds = 0.0;
+    cgrndl = 0.0;
   }
+}
+
+
+/*CalculateForcingHeight()
+DESCRIPTION: Calculate roughness length, displacement height, and forcing height for wind , temp, and humidity.
+
+INPUTS:
+urbpoi           [bool] true => landunit is an urban point
+veg_active       [bool] true => landunit is an urban point
+ltype            [int] landunit type
+frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
+forc_hgt_u       [double] observational height of wind [m]         
+forc_hgt_t       [double] observational height of temperature [m]          
+forc_hgt_q       [double] observational height of specific humidity [m]
+z0m              [double] momentum roughness length (m)
+z0mg             [double] roughness length over ground, momentum [m]
+z_0_town         [double] momentum roughness length of urban landunit (
+z_d_town         [double] displacement height of urban landunit (m)
+forc_t           [double] atmospheric temperature (Kelvin)         
+displa           [double] displacement height (m)
+
+OUTPUTS:
+forc_hgt_u_patch [double] observational height of wind at pft level [m]
+forc_hgt_t_patch [double] observational height of temperature at pft level [m]
+forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
+thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+*/
+void CalculateForcingHeight(
+  const bool& urbpoi,
+  const bool& veg_active,
+  const int& ltype,
+  const int& frac_veg_nosno,
+  const double& forc_hgt_u,
+  const double& forc_hgt_t,
+  const double& forc_hgt_q,
+  const double& z0m,
+  const double& z0mg,
+  const double& z_0_town,
+  const double& z_d_town,
+  const double& forc_t,
+  const double& displa,
+
+  double& forc_hgt_u_patch,
+  double& forc_hgt_t_patch,
+  double& forc_hgt_q_patch,
+  double& thm)
+{
+  // Make forcing height a pft-level quantity that is the atmospheric forcing 
+  // height plus each pft's z0m+displa
+  if (veg_active) {
+    if (ltype == istsoil || ltype == istcrop) {
+      if (frac_veg_nosno == 0) {
+        forc_hgt_u_patch = forc_hgt_u + z0mg + displa;
+        forc_hgt_t_patch = forc_hgt_t + z0mg + displa;
+        forc_hgt_q_patch = forc_hgt_q + z0mg + displa;
+      } else {
+        forc_hgt_u_patch = forc_hgt_u + z0m + displa;
+        forc_hgt_t_patch = forc_hgt_t + z0m + displa;
+        forc_hgt_q_patch = forc_hgt_q + z0m + displa;
+      }
+    } else if (ltype == istwet || ltype == istice || ltype == istice_mec) {
+      forc_hgt_u_patch = forc_hgt_u + z0mg;
+      forc_hgt_t_patch = forc_hgt_t + z0mg;
+      forc_hgt_q_patch = forc_hgt_q + z0mg;
+    } else if (ltype == istdlak) {
+      forc_hgt_u_patch = forc_hgt_u;
+      forc_hgt_t_patch = forc_hgt_t;
+      forc_hgt_q_patch = forc_hgt_q;
+    } else if (urbpoi) {
+      forc_hgt_u_patch = forc_hgt_u + z_0_town + z_d_town;
+      forc_hgt_t_patch = forc_hgt_t + z_0_town + z_d_town;
+      forc_hgt_q_patch = forc_hgt_q + z_0_town + z_d_town;
+    }
+  }
+
+  thm  = forc_t + 0.0098 * forc_hgt_t_patch;
+}
+
+
+/* InitializeEnergyFluxes()
+DESCRIPTION: Set energy flux terms to 0.0 before calculation.
+
+INPUTS:
+urbpoi           [bool] true => landunit is an urban point
+ltype            [int] landunit type
+
+OUTPUTS:
+eflx_sh_tot      [double] total sensible heat flux (W/m**2) [+ to atm]
+eflx_sh_tot_u    [double] urban total sensible heat flux (W/m**2) [+ to atm]
+eflx_sh_tot_r    [double] rural total sensible heat flux (W/m**2) [+ to atm]
+eflx_lh_tot      [double] total latent heat flux (W/m**2)  [+ to atm]
+eflx_lh_tot_u    [double] urban total latent heat flux (W/m**2)  [+ to atm]
+eflx_lh_tot_r    [double] rural total latent heat flux (W/m**2)  [+ to atm]
+eflx_sh_veg      [double] sensible heat flux from leaves (W/m**2) [+ to atm]
+qflx_evap_tot    [double] qflx_evap_soi + qflx_evap_can + qflx_tran_veg
+qflx_evap_veg    [double] vegetation evaporation (mm H2O/s) (+ = to atm)
+qflx_tran_veg    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
+*/
+void InitializeEnergyFluxes(
+  const bool& urbpoi,
+  const int& ltype,
+
+  double& eflx_sh_tot,
+  double& eflx_sh_tot_u,
+  double& eflx_sh_tot_r,
+  double& eflx_lh_tot,
+  double& eflx_lh_tot_u,
+  double& eflx_lh_tot_r,
+  double& eflx_sh_veg,
+  double& qflx_evap_tot,
+  double& qflx_evap_veg,
+  double& qflx_tran_veg)
+{
+  // Initial set (needed for history tape fields)
+  eflx_sh_tot = 0.0;
+  if (urbpoi) {
+    eflx_sh_tot_u = 0.0;
+  } else if (ltype == istsoil || ltype == istcrop) {
+    eflx_sh_tot_r = 0.0;
+  }
+  eflx_lh_tot = 0.0;
+  if (urbpoi) {
+    eflx_lh_tot_u = 0.0;
+  } else if (ltype == istsoil || ltype == istcrop) {
+    eflx_lh_tot_r = 0.0;
+  }
+  eflx_sh_veg = 0.0;
+  qflx_evap_tot = 0.0;
+  qflx_evap_veg = 0.0;
+  qflx_tran_veg = 0.0;
 }
