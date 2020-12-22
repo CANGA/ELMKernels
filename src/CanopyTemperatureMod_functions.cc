@@ -14,11 +14,11 @@ ctype                      [int] urban landunit type
 nlevurb                    [int] number of urban layers
 lakpoi                     [bool] true => landunit is a lake point
 t_h2osfc                   [double] surface water temperature 
-t_soisno[nlengrnd+nlevsno] [double] col soil temperature (Kelvin)
+t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 
 OUTPUTS:
 t_h2osfc_bef               [double] saved surface water temperature         
-tssbef[nlengrnd+nlevsno]   [double] soil/snow temperature before update    
+tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update    
 */
 void SavePriorGroundTemp(
   const int& ctype,
@@ -53,7 +53,7 @@ snl                        [int] number of snow layers
 frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
 frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 t_h2osfc                   [double] surface water temperature 
-t_soisno[nlengrnd+nlevsno] [double] col soil temperature (Kelvin)
+t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 
 OUTPUTS:
 t_grnd                     [double] ground temperature (Kelvin)
@@ -92,10 +92,10 @@ nlevsoi                    [int] number of hydrologically active soil layers
 frac_sno                   [double] fraction of ground covered by snow (0 to 1)
 frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 smpmin [double] restriction for min of soil potential (mm)
-h2osoi_liq[nlengrnd+nlevsno] [double] liquid water (kg/m2)
-h2osoi_ice[nlengrnd+nlevsno] [double] ice lens (kg/m2)
-dz[nlengrnd+nlevsno]         [double] layer thickness (m)
-t_soisno[nlengrnd+nlevsno]   [double] col soil temperature (Kelvin)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
+t_soisno[nlevgrnd+nlevsno]   [double] col soil temperature (Kelvin)
 watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
 sucsat[nlevgrnd]             [double] minimum soil suction (mm)
 bsw[nlevgrnd]                [double] Clapp and Hornberger "b" 
