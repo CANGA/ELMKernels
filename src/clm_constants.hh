@@ -46,6 +46,7 @@ static const double SHR_CONST_G       = 9.80616;      // acceleration of gravity
 static const double SHR_CONST_LATICE  = 3.337e5;      // latent heat of fusion      ~ J/kg
 static const double SHR_CONST_LATVAP  = 2.501e6;      // latent heat of evaporation ~ J/kg
 static const double SHR_CONST_LATSUB  = SHR_CONST_LATICE + SHR_CONST_LATVAP; // latent heat of sublimation ~ J/kg
+static const double SHR_CONST_KARMAN  = 0.4;          // Von Karman constant
 
 //from clm_varcon.F90
 static const double snw_rds_min = 54.526; //minimum allowed snow effective radius (also "fresh snow" value) [microns]
@@ -60,5 +61,7 @@ static const double denh2o = SHR_CONST_RHOFW;
 static const double hvap   = SHR_CONST_LATVAP;      // Latent heat of evap for water [J/kg]
 static const double hsub   = SHR_CONST_LATSUB;      // Latent heat of sublimation    [J/kg]
 static const double hfus   = SHR_CONST_LATICE;      // Latent heat of fusion for ice [J/kg]
+static const double grav   = SHR_CONST_G;           // gravity constant [m/s2]
+static const double vkc    = SHR_CONST_KARMAN;      // von Karman constant [-]
 
 #endif
