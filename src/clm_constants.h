@@ -61,4 +61,8 @@ static const double cpair  = 1.00464e3;                 // specific heat of dry 
 
 static const double ELM_PI  = 3.14159265358979323846;   // pi
 
+
+static const bool perchroot = false;     // calculate root function only in unfrozen soil, based on instantaneous temp
+static const bool perchroot_alt = false; // calculate root function only in active layer - estimated from past 2 years
+
 #endif

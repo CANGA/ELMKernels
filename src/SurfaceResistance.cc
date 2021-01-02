@@ -18,8 +18,8 @@ frac_sno                     [double] fraction of ground covered by snow (0 to 1
 frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
 watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
 watfc[nlevgrnd]              [double] volumetric soil water at field capacity
-h2osoi_liq[nlevgrnd+nlevsno] [double] ice lens (kg/m2)                       
-h2osoi_ice[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
 dz[nlevgrnd+nlevsno]         [double] layer thickness (m)                  
 
 OUTPUTS:
