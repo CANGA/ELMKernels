@@ -318,7 +318,6 @@ frac_sno                     [double] fraction of ground covered by snow (0 to 1
     double& frac_sno) {
 
     if (!Land.lakpoi) {
-      double rpi = SHR_CONST_PI;
       double temp_snow_depth, dz_snowf, newsnow, bifall, snowmelt, accum_factor, temp_intsnow, z_avg;
       // Determine snow height and snow water
       // Use Alta relationship, Anderson(1976); LaChapelle(1961),
@@ -361,14 +360,14 @@ frac_sno                     [double] fraction of ground covered by snow (0 to 1
         if (h2osno > 0.0) {
           if(snowmelt > 0.0) {
             double smr = std::min(1.0, (h2osno / int_snow));
-            frac_sno = 1.0 - pow((acos(std::min(1.0, (2.0 * smr - 1.0))) / rpi), n_melt);
+            frac_sno = 1.0 - pow((acos(std::min(1.0, (2.0 * smr - 1.0))) / ELM_PI), n_melt);
           }
           // update fsca by new snow event, add to previous fsca
           if (newsnow > 0.0) {
             double fsno_new = 1.0 - (1.0 - tanh(accum_factor * newsnow)) * (1.0 - frac_sno);
             frac_sno = fsno_new;
             // reset int_snow after accumulation events
-            temp_intsnow = (h2osno + newsnow) / (0.5 * (cos(rpi * pow( (1.0 - std::max(frac_sno, 1.e-6)), (1.0 / n_melt))) + 1.0));
+            temp_intsnow = (h2osno + newsnow) / (0.5 * (cos(ELM_PI * pow( (1.0 - std::max(frac_sno, 1.e-6)), (1.0 / n_melt))) + 1.0));
             int_snow = std::min(1.e8, temp_intsnow);
           }
           /*====================================================================*/
@@ -399,7 +398,7 @@ frac_sno                     [double] fraction of ground covered by snow (0 to 1
             frac_sno = tanh(accum_factor * newsnow);
             // make int_snow consistent w/ new fsno, h2osno
             int_snow = 0.0; //reset prior to adding newsnow below
-            temp_intsnow = (h2osno + newsnow) / (0.5 * (cos(rpi * pow( (1.0 - std::max(frac_sno, 1.e-6)), (1.0 / n_melt))) + 1.0));
+            temp_intsnow = (h2osno + newsnow) / (0.5 * (cos(ELM_PI * pow( (1.0 - std::max(frac_sno, 1.e-6)), (1.0 / n_melt))) + 1.0));
             int_snow = std::min(1.e8, temp_intsnow);
             // update snow_depth and h2osno to be consistent with frac_sno, z_avg
             if (subgridflag == 1 && !Land.urbpoi) {
@@ -509,7 +508,7 @@ frac_h2osfc                  [double] fractional area with surface water greater
           d = 0.0;
           sigma = 1.0e3 * micro_sigma; // convert to mm
           for (int l = 0; l < 10; l++) {
-            fd = 0.5 * d * (1.0 + erf(d / (sigma * sqrt(2.0)))) + sigma / sqrt(2.0 * SHR_CONST_PI) * exp(-pow(d, 2) / (2.0 * pow(sigma, 2))) - h2osfc;
+            fd = 0.5 * d * (1.0 + erf(d / (sigma * sqrt(2.0)))) + sigma / sqrt(2.0 * ELM_PI) * exp(-pow(d, 2) / (2.0 * pow(sigma, 2))) - h2osfc;
             dfdd = 0.5 * (1.0 + erf(d / (sigma * sqrt(2.0))));
             d = d - fd/dfdd;
           }

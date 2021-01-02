@@ -74,7 +74,7 @@ double StabilityFunc1(double zeta)
 
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   chik = std::sqrt(chik2);
-  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + SHR_CONST_PI * 0.5;
+  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELM_PI * 0.5;
   return retval;
 }
 

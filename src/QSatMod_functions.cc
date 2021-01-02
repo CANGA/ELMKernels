@@ -55,7 +55,7 @@ void QSat(
   const double d8 =  0.498070196e-16;
 
   double td,vp,vp1,vp2,T_limit;
-  T_limit = T - SHR_CONST_TKFRZ;
+  T_limit = T - tfrz;
 
   if (T_limit > 100.0) { T_limit=100.0; }
   if (T_limit < -75.0) { T_limit=-75.0; }

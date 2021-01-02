@@ -53,7 +53,7 @@ void calc_soilevap_stress(
           fac_fc  = std::min(1.0, wx / watfc[0]);  // eqn5.66 but divided by theta at field capacity
           fac_fc  = std::max(fac_fc, 0.01);
           // modify soil beta by snow cover. soilbeta for snow surface is one
-          soilbeta = (1.0 - frac_sno - frac_h2osfc) * 0.25 * pow(1.0 - cos(SHR_CONST_PI * fac_fc), 2.0)
+          soilbeta = (1.0 - frac_sno - frac_h2osfc) * 0.25 * pow(1.0 - cos(ELM_PI * fac_fc), 2.0)
           + frac_sno + frac_h2osfc;
         } else {
           soilbeta = 1.0;
