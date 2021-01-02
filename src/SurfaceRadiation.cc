@@ -1,22 +1,7 @@
-/*
-Layer based radiative flux variables are indexed in CLM as var(-nlevsno+1:1). 
-We use a simple array declared as var[6]. The index mapping is described below.
-This mapping will be consistently used in all similar situations throughout the code.
+/* functions derived from SurfaceRadiationMod.F90 
 
-CLM variable indices      This code's variable indices
-|-4|   top snow layer     |0|
- --                       ---
-|-3|   snow layer         |1|
- --                       ---
-|-2|   snow layer         |2|
- --                       ---
-|-1|   snow layer         |3|
- --                       ---
-| 0|   bottom snow layer  |4| 
------  ground interface  ------
-| 1|   top soil layer     |5|
-
-Call sequence: 
+Call sequence:
+CanopySunShadeFrac()
 SurfRadZeroFluxes()
 SurfRadAbsorbed()
 SurfRadLayers()
@@ -26,13 +11,23 @@ SurfRadReflected
 #include <cmath>
 #include <assert.h>
 #include "clm_constants.hh"
+#include "landtype.h"
 
-/* SurfRadZeroFluxes()
+
+class SurfaceRadiation {
+
+private:
+  double trd[numrad]; // transmitted solar radiation: direct (W/m**2)
+  double tri[numrad]; // transmitted solar radiation: diffuse (W/m**2)
+  double parveg; // absorbed par by vegetation (W/m**2)
+
+public:
+
+/* SurfaceRadiation::SurfRadZeroFluxes()
 DESCRIPTION: zero out fluxes before surface radiation calculations
 
 INPUTS:
-ltype               [int] landunit type
-urbpoi              [bool] true => landunit is an urban point
+Land                [LandType] struct containing information about landtype 
 
 OUTPUTS:
 sabg_soil           [double] solar radiation absorbed by soil (W/m**2) 
@@ -45,9 +40,7 @@ fsun                [double] sunlit fraction of canopy
 sabg_lyr[nlevsno+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 void SurfRadZeroFluxes (
-  const int& ltype,
-  const bool& urbpoi,
-
+  const LandType& Land,
   double& sabg_soil,
   double& sabg_snow,
   double& sabg,
@@ -58,29 +51,27 @@ void SurfRadZeroFluxes (
   double* sabg_lyr) 
 {
   // Initialize fluxes
-  if (!urbpoi) {
+  if (!Land.urbpoi) {
     sabg_soil = 0.0;
     sabg_snow = 0.0;
     sabg      = 0.0;
     sabv      = 0.0;
     fsa       = 0.0;
-    if (ltype == istsoil || ltype == istcrop) { fsa_r = 0.0; }
+    if (Land.ltype == istsoil || Land.ltype == istcrop) { fsa_r = 0.0; }
     for (int j = 0; j < nlevsno + 1; j++) { sabg_lyr[j] = 0.0; }
   }
 
   // zero-out fsun for the urban patches
   // the non-urban patches were set prior to this call
   // and split into ed and non-ed specific functions
-  if (urbpoi) { fsun = 0.0; }
+  if (Land.urbpoi) { fsun = 0.0; }
 }
 
 /* SurfRadAbsorbed()
 DESCRIPTION: calculate solar flux absorbed by canopy, soil, snow, and ground
 
 INPUTS:
-ltype              [int] landunit type
-urbpoi             [bool] true => landunit is an urban point
-nband              [int] number of solar radiation waveband classes (equal to numrad)
+Land               [LandType] struct containing information about landtype 
 snl                [int] number of snow layers
 ftdd[numrad]       [double] down direct flux below canopy per unit direct flux
 ftid[numrad]       [double] down diffuse flux below canopy per unit direct flux
@@ -97,21 +88,16 @@ albgrd[numrad]     [double] ground albedo (direct)
 albgri[numrad]     [double] ground albedo (diffuse)
 
 OUTPUTS:
-parveg             [double] absorbed par by vegetation (W/m**2)
 fsa_r              [double] rural solar radiation absorbed (total) (W/m**2)
 sabv               [double] solar radiation absorbed by vegetation (W/m**2)
 fsa                [double] solar radiation absorbed (total) (W/m**2)
 sabg               [double] solar radiation absorbed by ground (W/m**2)
 sabg_soil          [double] solar radiation absorbed by soil (W/m**2)
-sabg_snow          [double] solar radiation absorbed by snow (W/m**2)
-trd[numrad]        [double] transmitted solar radiation: direct (W/m**2)
-tri[numrad]        [double] transmitted solar radiation: diffuse (W/m**2)
+sabg_snow          [double] solar radiation absorbed by snow (W/m**2))
 
 */
 void SurfRadAbsorbed(
-  const int& ltype,
-  const bool& urbpoi,
-  const int& nband,
+  const LandType& Land,
   const int& snl,
   const double* ftdd,
   const double* ftid,
@@ -127,20 +113,17 @@ void SurfRadAbsorbed(
   const double* albgrd,
   const double* albgri,
 
-  double& parveg,
   double& fsa_r,
   double& sabv,
   double& fsa,
   double& sabg,
   double& sabg_soil,
-  double& sabg_snow,
-  double* trd,
-  double* tri)
+  double& sabg_snow)
 {
-  double absrad, cad[nband], cai[nband];
+  double absrad, cad[numrad], cai[numrad];
 
-  if (!urbpoi) {
-    for (int ib = 0; ib < nband; ib++) {
+  if (!Land.urbpoi) {
+    for (int ib = 0; ib < numrad; ib++) {
 
       cad[ib] = forc_solad[ib] * fabd[ib];
       cai[ib] = forc_solai[ib] * fabi[ib];
@@ -148,7 +131,7 @@ void SurfRadAbsorbed(
       fsa  += cad[ib] + cai[ib];
 
       if (ib == 0) { parveg = cad[ib] + cai[ib]; }
-      if (ltype == istsoil || ltype == istcrop) { fsa_r  += cad[ib] + cai[ib]; }
+      if (Land.ltype == istsoil || Land.ltype == istcrop) { fsa_r  += cad[ib] + cai[ib]; }
 
       // Transmitted = solar fluxes incident on ground
       trd[ib] = forc_solad[ib] * ftdd[ib];
@@ -163,7 +146,7 @@ void SurfRadAbsorbed(
       sabg += absrad;
       fsa  += absrad;
 
-      if (ltype == istsoil || ltype == istcrop) { fsa_r += absrad; }
+      if (Land.ltype == istsoil || Land.ltype == istcrop) { fsa_r += absrad; }
       if (snl == 0) {
         sabg_snow = sabg;
         sabg_soil = sabg;
@@ -173,7 +156,7 @@ void SurfRadAbsorbed(
         sabg_snow = sabg;
         sabg_soil = sabg;
       }
-    } // end of nbands
+    } // end of numrad
   } // end if not urban
 }
 
@@ -181,8 +164,7 @@ void SurfRadAbsorbed(
 DESCRIPTION: compute absorbed flux in each snow layer and top soil layer
 
 INPUTS:
-ltype                [int] landunit type
-urbpoi               [bool] true => landunit is an urban point
+Land                 [LandType] struct containing information about landtype
 snl                  [int] number of snow layers
 subgridflag          [int] use subgrid fluxes
 sabg                 [double] solar radiation absorbed by ground (W/m**2)
@@ -192,8 +174,6 @@ flx_absdv[nlevsno+1] [double] direct flux absorption factor: VIS
 flx_absdn[nlevsno+1] [double] direct flux absorption factor: NIR 
 flx_absiv[nlevsno+1] [double] diffuse flux absorption factor: VIS
 flx_absin[nlevsno+1] [double] diffuse flux absorption factor: NIR
-trd[numrad]          [double] transmitted solar radiation: direct (W/m**2)
-tri[numrad]          [double] transmitted solar radiation: diffuse (W/m**2)
 
 OUTPUTS:
 sub_surf_abs_SW      [double] percent of solar radiation absorbed below first snow layer (W/M**2)
@@ -201,8 +181,7 @@ sabg_pen             [double] solar (rural) radiation penetrating top soisno lay
 sabg_lyr[nlevsno+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 void SurfRadLayers(
-  const int& ltype,
-  const bool& urbpoi,
+  const LandType& Land,
   const int& snl,
   const int& subgridflag,
   const double& sabg,
@@ -212,8 +191,6 @@ void SurfRadLayers(
   const double* flx_absdn,
   const double* flx_absiv,
   const double* flx_absin,
-  const double* tri,
-  const double* trd,
 
   double& sub_surf_abs_SW,
   double& sabg_pen,
@@ -224,7 +201,7 @@ void SurfRadLayers(
 
   // compute absorbed flux in each snow layer and top soil layer,
   // based on flux factors computed in the radiative transfer portion of SNICAR.
-  if (!urbpoi) {
+  if (!Land.urbpoi) {
 
     sabg_snl_sum = 0.0;
     sub_surf_abs_SW = 0.0;
@@ -302,7 +279,7 @@ void SurfRadLayers(
     assert(!(std::abs(err_sum - sabg_snow) > 0.00001)); 
 
     // Diagnostic: shortwave penetrating ground (e.g. top layer)
-    if (ltype == istsoil || ltype == istcrop) { sabg_pen = sabg - sabg_lyr[snl]; }
+    if (Land.ltype == istsoil || Land.ltype == istcrop) { sabg_pen = sabg - sabg_lyr[snl]; }
   }
 }
 
@@ -311,7 +288,7 @@ void SurfRadLayers(
 DESCRIPTION: calculate reflected solar radiation
 
 INPUTS:
-urbpoi             [bool] true => landunit is an urban point
+Land               [LandType] struct containing information about landtype 
 albd[numrad]       [double] surface albedo (direct)
 albi[numrad]       [double] surface albedo (diffuse)
 forc_solad[numrad] [double] direct beam radiation (W/m**2)
@@ -321,7 +298,7 @@ OUTPUTS:
 fsr                [double] solar radiation reflected (W/m**2)
 */
 void SurfRadReflected(
-  const bool& urbpoi,
+  const LandType& Land,
   const double* albd,
   const double* albi,
   const double* forc_solad,
@@ -332,7 +309,7 @@ void SurfRadReflected(
   double fsr_vis_d, fsr_nir_d, fsr_vis_i, fsr_nir_i, rvis, rnir;
 
   // Radiation diagnostics
-  if (!urbpoi) {
+  if (!Land.urbpoi) {
     // NDVI and reflected solar radiation
     rvis = albd[0] * forc_solad[0] + albi[0] * forc_solai[0];
     rnir = albd[1] * forc_solad[1] + albi[1] * forc_solai[1];
@@ -360,7 +337,7 @@ This subroutine calculates and returns:
 7) sunlit fraction of canopy
 
 INPUTS:
-urbpoi              [bool] true => landunit is an urban point
+Land                [LandType] struct containing information about landtype 
 nrad                [int] number of canopy layers
 elai                [double] one-sided leaf area index
 tlai_z[nlevcan]     [double] tlai increment for canopy layer
@@ -383,7 +360,7 @@ fsun                [double] sunlit fraction of canopy
 */
 
 void CanopySunShadeFractions(
- const bool& urbpoi,
+ const LandType& Land,
  const int& nrad,
  const double& elai,
  const double* tlai_z,
@@ -403,7 +380,7 @@ void CanopySunShadeFractions(
  double& laisha,
  double& fsun)
 {
-  if (!urbpoi) {
+  if (!Land.urbpoi) {
     int ipar = 0; // The band index for PAR
     for (int iv = 0; iv < nrad; iv++) {
       parsun_z[iv] = 0.0;
@@ -438,3 +415,11 @@ void CanopySunShadeFractions(
     }
   }
 }
+
+
+
+
+
+
+
+};
