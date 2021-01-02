@@ -10,7 +10,7 @@ SurfRadReflected
 
 #include <cmath>
 #include <assert.h>
-#include "clm_constants.hh"
+#include "clm_constants.h"
 #include "landtype.h"
 
 

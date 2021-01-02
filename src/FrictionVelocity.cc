@@ -12,7 +12,7 @@ Vol. 11, 2628-2644.
 
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
+#include "clm_constants.h"
 
 /* MoninObukIni()
 DESCRIPTION: Initialization of the Monin-Obukhov length. The scheme is based on the work of 
@@ -71,7 +71,6 @@ void MoninObukIni(
 double StabilityFunc1(double zeta)
 {
   double chik, chik2, retval;
-
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   chik = std::sqrt(chik2);
   retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELM_PI * 0.5;
@@ -82,7 +81,6 @@ double StabilityFunc1(double zeta)
 double StabilityFunc2(double zeta)
 {
   double chik2, retval;
-
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   retval = 2.0 * std::log((1.0 + chik2) * 0.5);
   return retval;
@@ -108,7 +106,6 @@ void FrictionVelocityWind(
   const double& um,
   const double& obu,
   const double& z0m,
-
   double& ustar)
 {
   double zetam = 1.574; // transition point of flux-gradient relation (wind profile)
@@ -146,7 +143,6 @@ void FrictionVelocityTemperature(
   const double& displa,
   const double& obu,
   const double& z0h,
-
   double& temp1)
 {
   double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
@@ -189,7 +185,6 @@ void FrictionVelocityHumidity(
   const double& z0h,
   const double& z0q,
   const double& temp1,
-
   double& temp2)
 {
   double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)

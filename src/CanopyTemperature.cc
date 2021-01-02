@@ -3,8 +3,8 @@
 */
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
-#include "QSatMod_functions.hh"
+#include "clm_constants.h"
+#include "qsat.h"
 #include "landtype.h"
 
 class CanopyTemperature {

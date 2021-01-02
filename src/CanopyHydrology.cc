@@ -6,7 +6,7 @@ functions derived from CanopyHydrologyMod.F90
 
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
+#include "clm_constants.h"
 #include "landtype.h"
 
 class CanopyHydrology {

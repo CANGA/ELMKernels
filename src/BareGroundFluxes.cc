@@ -9,7 +9,7 @@ It is not the same as the displa calculated in CanopyTemperature
 
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
+#include "clm_constants.h"
 #include "landtype.h"
 #include "frictionvelocity.h"
 

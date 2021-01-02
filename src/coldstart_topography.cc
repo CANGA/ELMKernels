@@ -13,7 +13,7 @@ micro_sigma [double] microtopography pdf sigma (m)
 
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
+#include "clm_constants.h"
 
 void TopoSlopes(const double& topo_slope_in,
     double& topo_slope_out)

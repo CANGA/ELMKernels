@@ -2,7 +2,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include "clm_constants.hh"
+#include "clm_constants.h"
+#include "landtype.h"
 
 /* calc_soilevap_stress()
 DESCRIPTION:
@@ -12,8 +13,7 @@ This is the calc_beta_leepielke1992() function from CLM/ELM that gets called fro
 code that gets called when use_vsfm == true is not currently included 
 
 INPUTS:
-ltype                        [int]    landunit type                            
-lakpoi                       [bool]   true => landunit is a lake point
+Land                         [LandType] struct containing information about landtypet
 frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
 watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
@@ -26,25 +26,24 @@ OUTPUTS:
 soilbeta [double] factor that reduces ground evaporation
 */
 void calc_soilevap_stress(
-  const int& ltype,
-  const bool& lakpoi,
+  const LandType& Land,
   const double& frac_sno,
   const double& frac_h2osfc,
-  const double* watsat,
-  const double* watfc,
-  const double* h2osoi_liq,
-  const double* h2osoi_ice,
-  const double* dz,
+  const double *watsat,
+  const double *watfc,
+  const double *h2osoi_liq,
+  const double *h2osoi_ice,
+  const double *dz,
   
   double& soilbeta)
 {
-  if (!lakpoi) {
+  if (!Land.lakpoi) {
     
     // local variables
     double fac, fac_fc, wx;
 
-    if (ltype != istwet && ltype != istice && ltype != istice_mec) {
-      if (ltype == istsoil || ltype == istcrop) {
+    if (Land.ltype != istwet && Land.ltype != istice && Land.ltype != istice_mec) {
+      if (Land.ltype == istsoil || Land.ltype == istcrop) {
         wx   = (h2osoi_liq[nlevsno] / denh2o + h2osoi_ice[nlevsno] / denice) / dz[nlevsno];
         fac  = std::min(1.0, wx / watsat[0]);
         fac  = std::max(fac, 0.01);
@@ -58,11 +57,11 @@ void calc_soilevap_stress(
         } else {
           soilbeta = 1.0;
         }
-      } else if (ltype == icol_road_perv) {
+      } else if (Land.ltype == icol_road_perv) {
         soilbeta = 0.0;
-      } else if (ltype == icol_sunwall || ltype == icol_shadewall) {
+      } else if (Land.ltype == icol_sunwall || Land.ltype == icol_shadewall) {
         soilbeta = 0.0;
-      } else if (ltype == icol_roof || ltype == icol_road_imperv) {
+      } else if (Land.ltype == icol_roof || Land.ltype == icol_road_imperv) {
         soilbeta = 0.0;
       }
     } else {
