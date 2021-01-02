@@ -38,9 +38,9 @@ will be shifted by (nlevsno - 1), similar to the surface data.
   ABOVE SURFACE DATA AND ABOVE AND BELOW SURFACE DATA:
   snow or canopy bottom layer (adjacent to ground surface) - CLM: var(0), THIS PROJECT: var[nlevsno-1]
   surface/top subsurface layer - CLM: var(1), THIS PROJECT: var[nlevsno]
+  bottom subsurface layer - CLM: var(nlevgrnd), THIS PROJECT: var[nlevgrnd+nlevsno-1]
   top active snow layer -  CLM: var(snl+1), THIS PROJECT: var[nlevsno-snl] -- snl is negative in CLM, positive here
   second from top active snow layer -  CLM: var(snl+2), THIS PROJECT: var[nlevsno-snl+1]
-  bottom subsurface layer - CLM: var(nlevgrnd), THIS PROJECT: var[nlevgrnd+nlevsno-1]
 
   CONCURRENTLY WORKING WITH SUBSURFACE ONLY AND ABOVE SURFACE DATA:
   subsurface data's index is offset from above surface data by nlevsno  
@@ -105,3 +105,23 @@ CLM variable indices    new indices
 .
 --                        ---
 |nlevgrnd|   bottom layer  |nlevgrnd - 1|
+
+
+
+Special zi mapping
+CLM                      new indices
+      zi                 zi
+grid                        grid
+ --   -5                  0  ---
+|-4|                         |0|
+ --   -4                  1  ---
+|-3|                         |1|
+ --   -3                  2  ---
+|-2|                         |2|
+ --   -2                  3  ---
+|-1|                         |3|
+ --   -1                  4  ---  [nlevsno - 1]
+| 0|                         |4|  
+-----  0 ground interface 5 ----- [nlevsno]
+| 1|                         |5|  
+ --    1                  6  ---  [nlevsno + 1]      
