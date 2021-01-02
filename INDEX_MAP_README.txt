@@ -124,4 +124,5 @@ grid                        grid
 | 0|                         |4|  
 -----  0 ground interface 5 ----- [nlevsno]
 | 1|                         |5|  
- --    1                  6  ---  [nlevsno + 1]      
+ --    1                  6  ---  [nlevsno + 1]
+ 

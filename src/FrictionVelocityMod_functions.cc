@@ -97,7 +97,7 @@ forc_hgt_u_patch [double] observational height of wind at pft level [m]
 displa           [double] displacement height (m)
 um               [double] wind speed including the stability effect [m/s]
 obu              [double] monin-obukhov length (m)
-z0m              [double] roughness length over vegetation, momentum [m] [lbn:ubn]
+z0m              [double] roughness length over vegetation, momentum [m]
 
 OUTPUTS:
 ustar            [double] friction velocity [m/s]

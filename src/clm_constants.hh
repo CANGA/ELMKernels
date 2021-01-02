@@ -22,7 +22,8 @@ static const int subgridflag = 0;
 
 //from clm_varpar.F90
 static const int nlevsno = 5; // this should be set by driver
-static const int nlevgrnd = 5; 
+static const int nlevgrnd = 15;
+static const int numrad = 2; // number of solar radiation bands: vis, nir
 
 //from column_varcon.F90
 static const int icol_roof        = isturb_MIN*10 + 1;
