@@ -149,14 +149,12 @@ smpso[numpft]                   [double] soil water potential at full stomatal o
 smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
 eff_porosity[nlevgrnd]          [double] effective soil porosity
 
-
 OUTPUTS:
 rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
 rresis[nlevgrnd]                [double] root soil water stress (resistance) by layer (0-1)
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
-btran2                          [double] integrated soil water stress square
 */
-void calc_root_moist_stress_clm45default(
+void calc_root_moist_stress(
   const int& vtype,
   const double *h2osoi_liqvol,
   const double *rootfr,
@@ -173,8 +171,7 @@ void calc_root_moist_stress_clm45default(
 
   double *rootr,
   double *rresis,
-  double& btran,
-  double& btran2)
+  double& btran)
 {
   double s_node, smp_node, smp_node_lf;
   const double btran0 = 0.0;
@@ -200,7 +197,6 @@ void calc_root_moist_stress_clm45default(
       s_node = h2osoi_vol[i] / watsat[i];
       soil_suction(sucsat[i], s_node, bsw[i], smp_node_lf);
       smp_node_lf = std::max(smpsc[vtype], smp_node_lf);
-      btran2 += rootfr[i] * std::min((smp_node_lf - smpsc[vtype]) / (smpso[vtype] - smpsc[vtype]), 1.0);
     }
   }
   // Normalize root resistances to get layer contribution to ET

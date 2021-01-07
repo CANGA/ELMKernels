@@ -155,7 +155,7 @@ z0qg             [double] roughness length over ground, latent heat [m]
 
 
 
-/* BareGroundFluxes::Flux
+/* BareGroundFluxes::ComputeFlux
 DESCRIPTION:
 calculated bare ground water and energy fluxes
 
@@ -195,7 +195,7 @@ qflx_ev_snow               [double] evaporation flux from snow (W/m**2) [+ to at
 qflx_ev_soil               [double] evaporation flux from soil (W/m**2) [+ to atm]  
 qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to atm]
 */
-  void Flux(
+  void ComputeFlux(
     const LandType& Land,
     const int& frac_veg_nosno,
     const int& snl,
