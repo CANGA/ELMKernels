@@ -1,4 +1,7 @@
 /* functions derived from CanopyFluxesMod.F90
+DESCRIPTION:
+1. Calculates the leaf temperature:
+2. Calculates the leaf fluxes, transpiration, photosynthesis and updates the dew accumulation due to evaporation.
 
 */
 #include <algorithm>
@@ -11,7 +14,18 @@ class CanopyFluxes {
 
 private:
   double btran0 = 0.0;
-  bool found = false;
+  double rssun; // leaf sunlit stomatal resistance (s/m) (output from Photosynthesis)
+  double rssha; // leaf shaded stomatal resistance (s/m) (output from Photosynthesis)
+  double lbl_rsc_h2o; // laminar boundary layer resistance for h2o
+  double rresis[nlevgrnd]; // root soil water stress (resistance) by layer (0-1)
+  double del; // absolute change in leaf temp in current iteration [K]
+  double efeb; // latent heat flux from leaf (previous iter) [mm/s]
+  double wtlq0; // normalized latent heat conductance for leaf [-]
+  double wtgq; // latent heat conductance for ground [m/s]
+  double wtalq; // normalized latent heat cond. for air and leaf [-]
+  double wtaq0; // normalized latent heat conductance for air [-]
+  double obuold; // monin-obukhov length from previous iteration
+  double dayl_factor; // scalar (0-1) for daylength effect on Vcmax
 
 
 
@@ -20,12 +34,131 @@ private:
 public:
 
 
-void InitializeFlux()
+/*
+We start applying the irrigation in the time step FOLLOWING this time, 
+since we won't begin irrigating until the next call to CanopyHydrology
+
+
+
+*/
+void Irrigation(
+  const LandType& Land,
+  const double elai,
+  const double *irrigated, // doesn't need to be in array form if 1 pft/cell -- fix
+
+  int& n_irrig_steps_left,
+  double& irrig_rate)
+{
+  if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
+    // Determines target soil moisture level for irrigation. If h2osoi_liq_so is the soil moisture level at 
+    // which stomata are fully open and h2osoi_liq_sat is the soil moisture level at saturation (eff_porosity), 
+    // then the target soil moisture level is (h2osoi_liq_so + irrig_factor*(h2osoi_liq_sat - h2osoi_liq_so)). 
+    // A value of 0 means that the target soil moisture level is h2osoi_liq_so. 
+    // A value of 1 means that the target soil moisture level is h2osoi_liq_sat
+    double irrig_factor = 0.7;
+
+    double irrig_min_lai = 0.0;  // Minimum LAI for irrigation
+    double irrig_btran_thresh = 0.999999; // Irrigate when btran falls below 0.999999 rather than 1 to allow for round-off error
+    int irrig_start_time = isecspday/4   // Time of day to check whether we need irrigation, seconds (0 = midnight).
+    int irrig_length = isecspday/6; // Desired amount of time to irrigate per day (sec). Actual time may differ if this is not a multiple of dtime. Irrigation won't work properly if dtime > secsperday
+    int irrig_nsteps_per_day = ((irrig_length + (dtime - 1))/dtime);  // number of time steps per day in which we irrigate
+
+    // Determine if irrigation is needed (over irrigated soil columns)
+    // First, determine in what grid cells we need to bother 'measuring' soil water, to see if we need irrigation
+    // Also set n_irrig_steps_left for these grid cells
+    // n_irrig_steps_left(p) > 0 is ok even if irrig_rate(p) ends up = 0
+    // in this case, we'll irrigate by 0 for the given number of time steps
+
+    // get_prev_date(yr, mon, day, time)  ! get time as of beginning of time step --- figure out!! -- need variable 'time'
+    if (irrigated[vtype] == 1.0 && elai > irrig_min_lai && btran < irrig_btran_thresh) {
+      //see if it's the right time of day to start irrigating:
+      int local_time = (((time + round(londeg/degpsec)) % isecspday) + isecspday) % isecspday;
+      int seconds_since_irrig_start_time = (((local_time - irrig_start_time) % isecspday) + isecspday) % isecspday;
+      if (seconds_since_irrig_start_time < dtime) { // it's time to start irrigating
+        bool check_for_irrig = true;
+        n_irrig_steps_left = irrig_nsteps_per_day;
+        irrig_rate = 0.0  // reset; we'll add to this later
+      } else {
+        bool check_for_irrig = false;
+      }
+    } else { // non-irrig pft or elai<=irrig_min_lai or btran>irrig_btran_thresh
+      bool check_for_irrig = false;
+    }
+
+    // Now 'measure' soil water for the grid cells identified above and see if the 
+    // soil is dry enough to warrant irrigation
+    // (Note: frozen_soil could probably be a column-level variable, but that would be
+    // slightly less robust to potential future modifications)
+    // This should not be operating on FATES patches (see is_fates filter above, pushes
+    // check_for_irrig = false
+    bool frozen_soil = false;
+    if (check_for_irrig && !frozen_soil) {
+      for (int i = 0; i < nlevgrnd; i++) {
+        // if level i was frozen, then we don't look at any levels below L
+        if (t_soisno[nlevsno+i] <= tfrz) {
+          frozen_soil = true;
+        } else if (rootfr > 0.0) {
+          // determine soil water deficit in this layer:
+          // Calculate vol_liq_so - i.e., vol_liq at which smp_node = smpso - by inverting the above equations 
+          // for the root resistance factors
+          vol_liq_so = eff_porosity[i] * pow((-smpso[vtype]/sucsat[i]), (-1.0/bsw[i]));
+          // Translate vol_liq_so and eff_porosity into h2osoi_liq_so and h2osoi_liq_sat and calculate deficit
+          h2osoi_liq_so = vol_liq_so * denh2o * dz[i];
+          h2osoi_liq_sat = eff_porosity[i] * denh2o * dz[i];
+          deficit = std::max((h2osoi_liq_so + irrig_factor * (h2osoi_liq_sat - h2osoi_liq_so)) - h2osoi_liq[nlevsno+i], 0.0);
+          // Add deficit to irrig_rate, converting units from mm to mm/sec
+          irrig_rate += deficit / (dtime*irrig_nsteps_per_day);
+        }
+      }
+    }
+  } // if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0)
+} // Irrigation
+
+/*
+INPUTS:
+frac_veg_nosno [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
+forc_t         [double]  atmospheric temperature (Kelvin)
+forc_pbot      [double]  atmospheric pressure (Pa)
+thm            [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+max_dayl  [double] maximum daylength for this grid cell (s)
+dayl      [double] daylength (seconds)
+watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
+h2osoi_ice[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
+
+OUTPUTS:
+btran          [double]  transpiration wetness factor (0 to 1)
+t_veg          [double]  vegetation temperature (Kelvin)
+rootr[nlevgrnd]  [double] effective fraction of roots in each soil layer
+eff_porosity[nlevgrnd]       [double] effective soil porosity
+
+
+
+*/
+void InitializeFlux(
+  const int& frac_veg_nosno,
+  const double& forc_t,
+  const double& forc_pbot,
+  const double& thm,
+  const double& max_dayl,
+  const double& dayl,
+  const double watsat[nlevgrnd],
+  const double h2osoi_ice[nlevgrnd+nlevsno],
+  const double dz[nlevgrnd+nlevsno],
+
+  double& btran,
+  double& t_veg,
+  double *rootr,
+  double eff_porosity[nlevgrnd]
+
+
+
+
+
+  )
 // need to decide where to place photosyns_vars%TimeStepInit() calc_effective_soilporosity() calc_volumetric_h2oliq()
 // calc_root_moist_stress()
-// need to add irrigation function, includes 592-654, 446, maybe more
 {
-  irrig_nsteps_per_day = ((irrig_length + (dtime - 1))/dtime);  // round up
 
   // -----------------------------------------------------------------
   // Time step initialization of photosynthesis variables
@@ -36,7 +169,7 @@ void InitializeFlux()
     if (frac_veg_nosno == 0) {
       btran = 0.0;
       t_veg = forc_t;
-      cf_bare  = forc_pbot / (ELM_RGAS * 0.001 * thm) * 1.e06;
+      double cf_bare  = forc_pbot / (ELM_RGAS * 0.001 * thm) * 1.e06; // heat transfer coefficient from bare ground [-]
       rssun = 1.0 / 1.e15 * cf_bare;
       rssha = 1.0 / 1.e15 * cf_bare;
       lbl_rsc_h2o = 0.0;
@@ -45,14 +178,14 @@ void InitializeFlux()
         rresis[i] = 0.0;
       }
     } else {
-      del(p)    = 0.0;  // change in leaf temperature from previous iteration
-      efeb(p)   = 0.0;  // latent head flux from leaf for previous iteration
-      wtlq0(p)  = 0.0;
-      wtalq(p)  = 0.0;
-      wtgq(p)   = 0.0;
-      wtaq0(p)  = 0.0;
-      obuold(p) = 0.0;
-      btran(p)  = btran0;
+      del    = 0.0;  // change in leaf temperature from previous iteration
+      efeb   = 0.0;  // latent head flux from leaf for previous iteration
+      wtlq0  = 0.0;
+      wtalq  = 0.0;
+      wtgq   = 0.0;
+      wtaq0  = 0.0;
+      obuold = 0.0;
+      btran  = btran0;
 
       // calculate dayl_factor as the ratio of (current:max dayl)^2
       // set a minimum of 0.01 (1%) for the dayl_factor
