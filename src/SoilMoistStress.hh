@@ -22,7 +22,7 @@ void array_normalization (double *arr_inout)
 
   for (int i = 0; i < nlevgrnd; i++) { arr_sum += arr_inout[i]; }
   for (int i = 0; i < nlevgrnd; i++) {
-    if (arr_sum > 0.0) { arr_inout[i] = arr_inout[i] / arr_sum; }
+    if (arr_sum > 0.0) { arr_inout[i] /= arr_sum; }
   }
 }
 
@@ -88,7 +88,7 @@ DESCRIPTION: compute the effective soil porosity
 
 INPUTS:
 watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-h2osoi_ice[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
 dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 
 OUTPUTS:
@@ -115,7 +115,7 @@ DESCRIPTION: compute the volumetric liquid water content
 
 INPUTS:
 eff_porosity[nlevgrnd]       [double] effective soil porosity
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
 dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 
 OUTPUTS:
@@ -136,45 +136,47 @@ void calc_volumetric_h2oliq(
 
 /*
 INPUTS:
-h2osoi_liqvol[nlevgrnd+nlevsno] [double] liquid volumetric moisture, will be used for BeTR
+h2osoi_liqvol[nlevgrnd+nlevsno] [double] liquid volumetric moisture
 rootfr[nlevgrnd]                [double] fraction of roots in each soil layer
-rootfr_unf[nlevgrnd]            [double] root fraction defined for unfrozen layers only
 t_soisno[nlevgrnd+nlevsno]      [double] col soil temperature (Kelvin)
 tc_stress                       [double] critical soil temperature for soil water stress (C)
 sucsat[nlevgrnd]                [double] minimum soil suction (mm)
 watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
-h2osoi_vol[nlevgrnd]            [double] volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
 bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
 smpso[numpft]                   [double] soil water potential at full stomatal opening (mm)                    
 smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
 eff_porosity[nlevgrnd]          [double] effective soil porosity
+altmax_indx                     [int] index corresponding to maximum active layer depth from current year
+altmax_lastyear_indx            [int] index corresponding to maximum active layer depth from prior year
 
 OUTPUTS:
 rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
-rresis[nlevgrnd]                [double] root soil water stress (resistance) by layer (0-1)
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 void calc_root_moist_stress(
   const int& vtype,
   const double *h2osoi_liqvol,
   const double *rootfr,
-  const double *rootfr_unf,
   const double *t_soisno,
   const double& tc_stress,
   const double *sucsat,
   const double *watsat,
-  const double *h2osoi_vol,
   const double *bsw,
   const double *smpso,
   const double *smpsc,
   const double *eff_porosity,
+  const int& altmax_indx,
+  const int& altmax_lastyear_indx,
 
   double *rootr,
-  double *rresis,
   double& btran)
 {
-  double s_node, smp_node, smp_node_lf;
+  double s_node, smp_node;
   const double btran0 = 0.0;
+  double rootfr_unf[nlevgrnd] = {0.0}; // unfrozen root fraction
+  double rresis[nlevgrnd] = {0.0}; // root soil water stress (resistance) by layer (0-1)
+
+  normalize_unfrozen_rootfr(t_soisno, rootfr, altmax_indx, altmax_lastyear_indx, rootfr_unf);
 
   for (int i = 0; i < nlevgrnd; i++) {
     // Root resistance factors
@@ -185,7 +187,7 @@ void calc_root_moist_stress(
       s_node = std::max(h2osoi_liqvol[nlevsno + i] / eff_porosity[i], 0.01);
       soil_suction(sucsat[i], s_node, bsw[i], smp_node);
       smp_node = std::max(smpsc[vtype], smp_node);
-      rresis[i] = std::min( (eff_porosity[i]/watsat[i]) * (smp_node - smpsc[vtype]) / (smpso[vtype] - smpsc[vtype]), 1.0);
+      rresis[i] = std::min((eff_porosity[i]/watsat[i]) * (smp_node - smpsc[vtype]) / (smpso[vtype] - smpsc[vtype]), 1.0);
 
       if (!perchroot && !perchroot_alt) {
         rootr[i] = rootfr[i] * rresis[i];
@@ -194,9 +196,6 @@ void calc_root_moist_stress(
       }
 
       btran += std::max(rootr[i], 0.0);
-      s_node = h2osoi_vol[i] / watsat[i];
-      soil_suction(sucsat[i], s_node, bsw[i], smp_node_lf);
-      smp_node_lf = std::max(smpsc[vtype], smp_node_lf);
     }
   }
   // Normalize root resistances to get layer contribution to ET

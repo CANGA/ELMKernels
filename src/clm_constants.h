@@ -71,7 +71,7 @@ static const double ELM_RWV     = ELM_RGAS/ELM_MWWV;          // Water vapor gas
 
 
 //from clm_varcon.F90
-static const double snw_rds_min = 54.526;               //minimum allowed snow effective radius (also "fresh snow" value) [microns]
+static const double snw_rds_min = 54.526;               // minimum allowed snow effective radius (also "fresh snow" value) [microns]
 static const double zlnd = 0.01;                        // Roughness length for soil [m]
 static const double zsno = 0.0024;                      // Roughness length for snow [m]
 static const double spval = 1.0e36;                     // special value for real data
@@ -83,10 +83,11 @@ static const double hvap   = 2.501e6;                   // Latent heat of evap f
 static const double hfus   = 3.337e5;                   // Latent heat of fusion for ice [J/kg]
 static const double hsub   = hvap + hfus;               // Latent heat of sublimation    [J/kg]
 static const double grav   = 9.80616;                   // gravity constant [m/s2]
-static const double roverg = ELM_RWV/grav*1000.0; // Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
+static const double roverg = ELM_RWV/grav*1000.0;       // Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
 static const double vkc    = 0.4;                       // von Karman constant [-]
 static const double cpair  = 1.00464e3;                 // specific heat of dry air   ~ J/kg/K
-
+static const double tlsai_crit = 2.0;                   // critical value of elai+esai for which aerodynamic parameters are maximum
+static const double sb = 5.67e-8;                       // Stefan-Boltzmann constant ~ W/m^2/K^4
 
 
 static const bool perchroot = false;     // calculate root function only in unfrozen soil, based on instantaneous temp

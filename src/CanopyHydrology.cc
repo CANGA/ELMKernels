@@ -276,8 +276,8 @@ OUTPUTS:
 snow_depth                   [double] snow height (m)
 h2osno                       [double] snow water (mm H2O)
 int_snow                     [double] integrated snowfall [mm]
-h2osoi_liq[nlevgrnd+nlevsno] [double] ice lens (kg/m2)                       
-h2osoi_ice[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
 t_soisno[nlevgrnd+nlevsno]   [double] soil temperature (Kelvin)
 frac_iceoldnlevgrnd+nlevsno] [double] fraction of ice relative to the tot water
 snl                          [int] number of snow layers

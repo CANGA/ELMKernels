@@ -303,7 +303,6 @@ potential temp and wind speed.
 
 INPUTS:
 Land                         [LandType] struct containing information about landtype
-vtype                        [int] vegetation type
 snl                          [int] number of snow layers
 frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 forc_th                      [double] atmospheric potential temperature (Kelvin)
@@ -337,7 +336,6 @@ cgrndl                       [double] deriv. of soil latent heat flux wrt soil t
 */
   void GroundProperties(
     const LandType& Land,
-    const bool& vtype,
     const int& snl,
     const double& frac_sno,
     const double& forc_th,
@@ -399,8 +397,8 @@ cgrndl                       [double] deriv. of soil latent heat flux wrt soil t
       }
       z0hg = z0mg;            // initial set only
       z0qg = z0mg;            // initial set only
-      z0m = z0mr[vtype] * htop;
-      displa = displar[vtype] * htop;
+      z0m = z0mr[Land.vtype] * htop;
+      displa = displar[Land.vtype] * htop;
   
       // vegetation roughness lengths
       z0mv = z0m;

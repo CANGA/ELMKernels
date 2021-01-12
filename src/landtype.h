@@ -2,10 +2,10 @@
 #define LANDTYPE_H_
 
 struct LandType {
-  int ltype;
-  int ctype;
-  bool urbpoi;
-  bool lakpoi;
+  // land unit, urban unit, vegetation unit
+  int ltype, ctype, vtype;
+  // urban point, lake point
+  bool urbpoi, lakpoi;
 };
 
 #endif

@@ -167,8 +167,6 @@ forc_rho                   [double] density (kg/m**3)
 soilbeta                   [double] soil wetness relative to field capacity
 dqgdT                      [double] temperature derivative of "qg"
 htvp                       [double] latent heat of vapor of water (or sublimation) [j/kg]
-forc_u                     [double] atmospheric wind speed in east direction (m/s)
-forc_v                     [double] atmospheric wind speed in north direction (m/s)
 forc_q                     [double] atmospheric specific humidity (kg/kg)
 thm                        [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 t_h2osfc                   [double] surface water temperature
@@ -178,12 +176,9 @@ qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
 t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 
 OUTPUTS:
-ram1                       [double] aerodynamical resistance (s/m)
 cgrnds                     [double] deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
 cgrndl                     [double] deriv of soil latent heat flux wrt soil temp [w/m**2/k]
 cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
-taux                       [double] wind (shear) stress: e-w (kg/m/s**2)
-tauy                       [double] wind (shear) stress: n-s (kg/m/s**2)
 eflx_sh_grnd               [double] sensible heat flux from ground (W/m**2) [+ to atm]
 eflx_sh_tot                [double] total sensible heat flux (W/m**2) [+ to atm]
 eflx_sh_snow               [double] sensible heat flux from snow (W/m**2) [+ to atm]
@@ -203,8 +198,6 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
     const double& soilbeta,
     const double& dqgdT,
     const double& htvp,
-    const double& forc_u,
-    const double& forc_v,
     const double& forc_q,
     const double& thm,
     const double& t_h2osfc,
@@ -212,12 +205,9 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
     const double& qg_soil,
     const double& qg_h2osfc,
     const double *t_soisno,
-    double& ram1,
     double& cgrnds,  
     double& cgrndl,
     double& cgrnd,
-    double& taux,
-    double& tauy,
     double& eflx_sh_grnd,
     double& eflx_sh_tot,
     double& eflx_sh_snow,
@@ -231,9 +221,8 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
     
     if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
       
-      double ram, rah, raw, raih, raiw;
+      double rah, raw, raih, raiw;
       // Determine aerodynamic resistances
-      ram  = 1.0 / (ustar * ustar / um);
       rah  = 1.0 / (temp1 * ustar);
       raw  = 1.0 / (temp2 * ustar);
       raih = forc_rho * cpair / rah;
@@ -245,7 +234,6 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
         // Lee and Pielke 1992 beta is applied
         raiw = soilbeta * forc_rho / raw;
       }
-      ram1 = ram;  // pass value to global variable (driver)
   
       // Output to pft-level data structures
       // Derivative of fluxes with respect to ground temperature
@@ -255,8 +243,6 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
   
       // Surface fluxes of momentum, sensible and latent heat
       // using ground temperatures from previous time step
-      taux          = -forc_rho * forc_u / ram;
-      tauy          = -forc_rho * forc_v / ram;
       eflx_sh_grnd  = -raih * dth;
       eflx_sh_tot   = eflx_sh_grnd;
   
