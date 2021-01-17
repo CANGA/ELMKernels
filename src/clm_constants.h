@@ -1,5 +1,5 @@
-#ifndef CLM_CONSTANTS_HH_
-#define CLM_CONSTANTS_HH_
+#ifndef CLM_CONSTANTS_H_
+#define CLM_CONSTANTS_H_
 
 // from landunit_varcon.F90
 static const int istsoil    = 1;
@@ -52,6 +52,8 @@ static const int nlevsno = 5; // this should be set by driver
 static const int nlevgrnd = 15;
 static const int nlevurb = 5; // number of urban layers
 static const int numrad = 2; // number of solar radiation bands: vis, nir
+static const int nlevcan = 1; // number of leaf layers in canopy layer
+static const int numpft = 16; // number of pfts - (use_crop ? 24 : 16)
 
 //from column_varcon.F90
 static const int icol_roof        = isturb_MIN*10 + 1;
