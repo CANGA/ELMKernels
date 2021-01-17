@@ -1,8 +1,12 @@
 /* functions derived from CanopyFluxesMod.F90
 DESCRIPTION:
-1. Calculates the leaf temperature:
-2. Calculates the leaf fluxes, transpiration, photosynthesis and updates the dew accumulation due to evaporation.
+Calculates leaf temperature leaf fluxes, transpiration, photosynthesis and updates the dew accumulation due to evaporation.
+Also calculates the irrigation rate.
 
+The member functions should be called in the following order:
+                     InitializeFlux()
+       StabilityIteration()   Irrigation()
+ComputeFlux()
 */
 #include <algorithm>
 #include <cmath>
@@ -58,7 +62,6 @@ private:
   double temp1; // relation for potential temperature profile
   double temp2; // relation for specific humidity profile
   double tlbef; // leaf temperature from previous iteration [K]
-  double ram; // aerodynamical resistance (s/m)
   double delq; // temporary
   double dt_veg; // change in t_veg, last iteration (Kelvin)
 
@@ -455,7 +458,6 @@ void StabilityIteration(
 
 
   double& btran,
-  
   double& qflx_tran_veg_out,
   double& qflx_evap_veg_out,
   double& eflx_sh_veg_out
@@ -465,7 +467,6 @@ void StabilityIteration(
 // we operate on single cells, so we will replace the filter criteria with something else
 {
   forc_rho = forc_rho_in;
-
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
     bool stop = false;
     int itmax = 40;       // maximum number of iteration [-]
@@ -792,7 +793,7 @@ void ComputeFlux(
     // Determine total photosynthesis -- need to implement
     // PhotosynthesisTotal(fn, filterp, atm2lnd_vars, cnstate_vars, canopystate_vars, photosyns_vars)
 
-    // evaluate error and write??
+    // evaluate error and write?? -- best way to write?
     //  if (abs(err(p)) > 0.1_r8)
 
 
