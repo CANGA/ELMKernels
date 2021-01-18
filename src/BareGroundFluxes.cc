@@ -124,7 +124,7 @@ z0qg             [double] roughness length over ground, latent heat [m]
     double thvstar; // virtual potential temperature scaling parameter
     double wc ;     // convective velocity [m/s]
     double zeta;    // dimensionless height used in Monin-Obukhov theory
-    const double niters = 3; // number of iterations
+    static const int niters = 3; // number of iterations
   
     for (int i = 0; i < niters; i++) {
   
@@ -260,6 +260,6 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
       qflx_ev_soil   = -raiw * (forc_q - qg_soil);
       qflx_ev_h2osfc = -raiw * (forc_q - qg_h2osfc);
     }
-  } // Flux
+  } // ComputeFlux
 
 };
