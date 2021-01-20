@@ -16,6 +16,8 @@ ComputeFlux()
 #include "landtype.h"
 #include "frictionvelocity.h"
 #include "SoilMoistStress.hh"
+#include "photosynthesis.h"
+#include "vegproperties.h"
 
 
 class CanopyFluxes {
@@ -457,6 +459,17 @@ void StabilityIteration(
   const double& htop,
   const double t_soisno[nlevgrnd+nlevsno],
 
+  const VegProperties& veg,
+  const int& nrad,
+  const double& t10,
+  const double tlai_z[nlevcan],
+  const double& vcmaxcintsha,
+  const double& vcmaxcintsun,
+  const double parsha_z[nlevcan],
+  const double parsun_z[nlevcan],
+  const double laisha_z[nlevcan],
+  const double laisun_z[nlevcan],
+
 
 
   double& btran,
@@ -533,6 +546,8 @@ void StabilityIteration(
 
       // call photosynthesis
       // Photosynthesis(phase=sun); need to implement
+      Photosynthesis(veg, Land.vtype, nrad, forc_pbot, t_veg, t10, svpts, eah, o2, co2, rb, btran, 
+        dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) { btran = std::min(1.0, btran * 1.25); }
 

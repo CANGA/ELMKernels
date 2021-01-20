@@ -1,7 +1,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
-#include "photosynthesis.h"
+#include "vegproperties.h"
 #include "clm_constants.h"
 
 namespace Photosynthesis {
@@ -31,30 +31,30 @@ void TimeStepInit()
 void ci_func(
   const double& ci,  // intracellular leaf CO2 (Pa)
   double& fval, // return function of the value f(ci)
-  const int& iv, // canopy index
+  //const int& iv, // canopy index
   const double& gb_mol,  // leaf boundary layer conductance (umol H2O/m**2/s)
   const double& je,  // electron transport rate (umol electrons/m**2/s)
   const double& cair,  // Atmospheric CO2 partial pressure (Pa)
   const double& oair,  // Atmospheric O2 partial pressure (Pa)
-  const double& lmr_z,  // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-  const double& par_z,  // par absorbed per unit lai for canopy layer (w/m**2)
-  const double& rh_can,  // canopy air realtive humidity
+  const double& lmr_z,  // (single canopy layer) leaf maintenance respiration rate (umol CO2/m**2/s)
+  const double& par_z,  // (single canopy layer) par absorbed per unit lai for canopy layer (w/m**2)
+  const double& rh_can,  // canopy air relative humidity
   double& gs_mol, // leaf stomatal conductance (umol H2O/m**2/s)
 
-  const double *vcmax_z, // [length of nlevcan & nrad)]  maximum rate of carboxylation (umol co2/m**2/s)
+  const double& vcmax_z, // (single canopy layer)  maximum rate of carboxylation (umol co2/m**2/s)
   const double& forc_pbot, // atmospheric pressure (Pa)
   const bool& c3flag, // true if C3 and false if C4
-  double *ac,        //  [length of nlevcan & nrad)] Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
-  double *aj,        //  [length of nlevcan & nrad)] RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
-  double *ap,        //  [length of nlevcan & nrad)] product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
-  double *ag,        //  [length of nlevcan & nrad)] co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
-  double *an,        //  [length of nlevcan & nrad)] net leaf photosynthesis (umol CO2/m**2/s)                                               
+  double& ac,        //  (single canopy layer) Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
+  double& aj,        //  (single canopy layer) RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
+  double& ap,        //  (single canopy layer) product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
+  double& ag,        //  (single canopy layer) co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
+  double& an,        //  (single canopy layer) net leaf photosynthesis (umol CO2/m**2/s)                                               
   const double& cp,        //  CO2 compensation point (Pa)                                           
   const double& kc,        //  Michaelis-Menten constant for CO2 (Pa)                                
   const double& ko,        //  Michaelis-Menten constant for O2 (Pa)                                 
   const double& qe,        //  quantum efficiency, used only for C4 (mol CO2 / mol photons)          
-  const double *tpu_z,     //  triose phosphate utilization rate (umol CO2/m**2/s)                 
-  const double *kp_z,      //  initial slope of CO2 response curve (C4 plants)                     
+  const double& tpu_z,     //  (single canopy layer) triose phosphate utilization rate (umol CO2/m**2/s)                 
+  const double& kp_z,      //  (single canopy layer) initial slope of CO2 response curve (C4 plants)                     
   const double& theta_cj,  //  empirical curvature parameter for ac, aj photosynthesis co-limitation 
   const double& bbb,       //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)                 
   const double& mbb)       //  Ball-Berry slope of conductance-photosynthesis relationship           
@@ -64,52 +64,52 @@ void ci_func(
 
   if (c3flag) {
     // C3: Rubisco-limited photosynthesis
-    ac[iv] = vcmax_z[iv] * std::max(ci - cp, 0.0) / (ci + kc * (1.0 + oair / ko));
+    ac = vcmax_z * std::max(ci - cp, 0.0) / (ci + kc * (1.0 + oair / ko));
     // C3: RuBP-limited photosynthesis
-    aj[iv] = je * std::max(ci - cp, 0.0) / (4.0 * ci + 8.0 * cp);
+    aj = je * std::max(ci - cp, 0.0) / (4.0 * ci + 8.0 * cp);
     // C3: Product-limited photosynthesis 
-    ap[iv] = 3.0 * tpu_z[iv];
+    ap = 3.0 * tpu_z;
   } else {
     // C4: Rubisco-limited photosynthesis
-    ac[iv] = vcmax_z[iv];
+    ac = vcmax_z;
     // C4: RuBP-limited photosynthesis
-    aj[iv] = qe * par_z * 4.6;
+    aj = qe * par_z * 4.6;
     // C4: PEP carboxylase-limited (CO2-limited)
-    ap[iv] = kp_z[iv] * std::max(ci, 0.0) / forc_pbot;
+    ap = kp_z * std::max(ci, 0.0) / forc_pbot;
   }
 
   // Gross photosynthesis. First co-limit ac and aj. Then co-limit ap
   double aquad = theta_cj; // terms for quadratic equations
-  double bquad = -(ac[iv] + aj[iv]);
-  double cquad = ac[iv] * aj[iv];
+  double bquad = -(ac + aj);
+  double cquad = ac * aj;
   quadratic(aquad, bquad, cquad, r1, r2);
   double ai = std::min(r1,r2); // intermediate co-limited photosynthesis (umol CO2/m**2/s)
 
   aquad = theta_ip;
-  bquad = -(ai + ap[iv]);
-  cquad = ai * ap[iv];
+  bquad = -(ai + ap);
+  cquad = ai * ap;
   quadratic(aquad, bquad, cquad, r1, r2);
-  ag[iv] = std::min(r1,r2);
+  ag = std::min(r1,r2);
 
   // Net photosynthesis. Exit iteration if an < 0
-  an[iv] = ag[iv] - lmr_z;
-  if (an[iv] < 0.0) {
+  an = ag - lmr_z;
+  if (an < 0.0) {
      fval = 0.0;
      return;
   }
 
   // Quadratic gs_mol calculation with an known. Valid for an >= 0.
   // With an <= 0, then gs_mol = bbb
-  double cs = cair - 1.4 / gb_mol * an[iv] * forc_pbot; // CO2 partial pressure at leaf surface (Pa)
+  double cs = cair - 1.4 / gb_mol * an * forc_pbot; // CO2 partial pressure at leaf surface (Pa)
   cs = std::max(cs, 1.e-6);
   aquad = cs;
-  bquad = cs * (gb_mol - bbb) - mbb * an[iv] * forc_pbot;
-  cquad = -gb_mol * (cs * bbb + mbb * an[iv] * forc_pbot * rh_can);
+  bquad = cs * (gb_mol - bbb) - mbb * an * forc_pbot;
+  cquad = -gb_mol * (cs * bbb + mbb * an * forc_pbot * rh_can);
   quadratic(aquad, bquad, cquad, r1, r2);
   gs_mol = std::max(r1, r2);
 
   // Derive new estimate for ci
-  fval = ci - cair + an[iv] * forc_pbot * (1.4 * gs_mol + 1.6 * gb_mol) / (gb_mol * gs_mol);
+  fval = ci - cair + an * forc_pbot * (1.4 * gs_mol + 1.6 * gb_mol) / (gb_mol * gs_mol);
 } // ci_func
 
 
@@ -123,30 +123,30 @@ void brent (
   const double& f1,
   const double& f2,
   const double& tol, // the error tolerance
-  const int& iv, // canopy index
+  //const int& iv, // canopy index
   const double& gb_mol,  // leaf boundary layer conductance (umol H2O/m**2/s)
   const double& je,  // electron transport rate (umol electrons/m**2/s)
   const double& cair,  // Atmospheric CO2 partial pressure (Pa)
   const double& oair,  // Atmospheric O2 partial pressure (Pa)
-  const double& lmr_z,  // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-  const double& par_z,  // par absorbed per unit lai for canopy layer (w/m**2)
+  const double& lmr_z,  // (single canopy layer) canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
+  const double& par_z,  // (single canopy layer) par absorbed per unit lai for canopy layer (w/m**2)
   const double& rh_can,  // canopy air realtive humidity
   double& gs_mol, // leaf stomatal conductance (umol H2O/m**2/s)
 
-  const double *vcmax_z, // [length of nlevcan & nrad)]  maximum rate of carboxylation (umol co2/m**2/s)
+  const double& vcmax_z, // (single canopy layer)  maximum rate of carboxylation (umol co2/m**2/s)
   const double& forc_pbot, // atmospheric pressure (Pa)
   const bool& c3flag, // true if C3 and false if C4
-  double *ac,        //  [length of nlevcan & nrad)] Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
-  double *aj,        //  [length of nlevcan & nrad)] RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
-  double *ap,        //  [length of nlevcan & nrad)] product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
-  double *ag,        //  [length of nlevcan & nrad)] co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
-  double *an,        //  [length of nlevcan & nrad)] net leaf photosynthesis (umol CO2/m**2/s)                                               
+  double& ac,        //  (single canopy layer) Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
+  double& aj,        //  (single canopy layer) RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
+  double& ap,        //  (single canopy layer) product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
+  double& ag,        //  (single canopy layer) co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
+  double& an,        //  (single canopy layer) net leaf photosynthesis (umol CO2/m**2/s)                                               
   const double& cp,        //  CO2 compensation point (Pa)                                           
   const double& kc,        //  Michaelis-Menten constant for CO2 (Pa)                                
   const double& ko,        //  Michaelis-Menten constant for O2 (Pa)                                 
   const double& qe,        //  quantum efficiency, used only for C4 (mol CO2 / mol photons)          
-  const double *tpu_z,     //  triose phosphate utilization rate (umol CO2/m**2/s)                 
-  const double *kp_z,      //  initial slope of CO2 response curve (C4 plants)                     
+  const double& tpu_z,     //  (single canopy layer) triose phosphate utilization rate (umol CO2/m**2/s)                 
+  const double& kp_z,      //  (single canopy layer) initial slope of CO2 response curve (C4 plants)                     
   const double& theta_cj,  //  empirical curvature parameter for ac, aj photosynthesis co-limitation 
   const double& bbb,       //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)                 
   const double& mbb)       //  Ball-Berry slope of conductance-photosynthesis relationship
@@ -217,7 +217,7 @@ void brent (
       b = b + copysign(tol1,xm);
     }
 
-    ci_func(b, fb, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
+    ci_func(b, fb, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
       ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
 
     if (fb == 0.0) { break; }
@@ -232,30 +232,30 @@ void brent (
 // and the bisection approach implemented with the Brent's method to guarrantee convergence.
 void hybrid(
   double& x0,  // initial guess and final value of the solution
-  const int& iv, // canopy index
+  //const int& iv, // canopy index
   const double& gb_mol,  // leaf boundary layer conductance (umol H2O/m**2/s)
   const double& je,  // electron transport rate (umol electrons/m**2/s)
   const double& cair,  // Atmospheric CO2 partial pressure (Pa)
   const double& oair,  // Atmospheric O2 partial pressure (Pa)
-  const double& lmr_z,  // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-  const double& par_z,  // par absorbed per unit lai for canopy layer (w/m**2)
+  const double& lmr_z,  // (single canopy layer) canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
+  const double& par_z,  // (single canopy layer) par absorbed per unit lai for canopy layer (w/m**2)
   const double& rh_can,  // canopy air realtive humidity
   double& gs_mol, // leaf stomatal conductance (umol H2O/m**2/s)
 
-  const double *vcmax_z, // [length of nlevcan & nrad)]  maximum rate of carboxylation (umol co2/m**2/s)
+  const double& vcmax_z, // (single canopy layer)  maximum rate of carboxylation (umol co2/m**2/s)
   const double& forc_pbot, // atmospheric pressure (Pa)
   const bool& c3flag, // true if C3 and false if C4
-  double *ac,        //  [length of nlevcan & nrad)] Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
-  double *aj,        //  [length of nlevcan & nrad)] RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
-  double *ap,        //  [length of nlevcan & nrad)] product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
-  double *ag,        //  [length of nlevcan & nrad)] co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
-  double *an,        //  [length of nlevcan & nrad)] net leaf photosynthesis (umol CO2/m**2/s)                                               
+  double& ac,        //  (single canopy layer) Rubisco-limited gross photosynthesis (umol CO2/m**2/s)              
+  double& aj,        //  (single canopy layer) RuBP-limited gross photosynthesis (umol CO2/m**2/s)                 
+  double& ap,        //  (single canopy layer) product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
+  double& ag,        //  (single canopy layer) co-limited gross leaf photosynthesis (umol CO2/m**2/s)              
+  double& an,        //  (single canopy layer) net leaf photosynthesis (umol CO2/m**2/s)                                               
   const double& cp,        //  CO2 compensation point (Pa)                                           
   const double& kc,        //  Michaelis-Menten constant for CO2 (Pa)                                
   const double& ko,        //  Michaelis-Menten constant for O2 (Pa)                                 
   const double& qe,        //  quantum efficiency, used only for C4 (mol CO2 / mol photons)          
-  const double *tpu_z,     //  triose phosphate utilization rate (umol CO2/m**2/s)                 
-  const double *kp_z,      //  initial slope of CO2 response curve (C4 plants)                     
+  const double& tpu_z,     //  (single canopy layer) triose phosphate utilization rate (umol CO2/m**2/s)                 
+  const double& kp_z,      //  (single canopy layer) initial slope of CO2 response curve (C4 plants)                     
   const double& theta_cj,  //  empirical curvature parameter for ac, aj photosynthesis co-limitation 
   const double& bbb,       //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)                 
   const double& mbb)       //  Ball-Berry slope of conductance-photosynthesis relationship
@@ -265,7 +265,7 @@ void hybrid(
   static const int itmax = 40;          // maximum number of iterations
   double x1, f0, f1, x, dx, tol, minx, minf;
 
-  ci_func(x0, f0, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
+  ci_func(x0, f0, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
       ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
 
   if (f0 == 0.0) { return; }
@@ -273,7 +273,7 @@ void hybrid(
   minf = f0;
   x1 = x0 * 0.99;
 
-  ci_func(x1, f1, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
+  ci_func(x1, f1, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
       ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
 
   if(f1 == 0.0) {
@@ -300,7 +300,7 @@ void hybrid(
     f0 = f1;
     x1 = x;
 
-    ci_func(x1, f1, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
+    ci_func(x1, f1, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
       ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
 
     if (f1 < minf) {
@@ -314,7 +314,7 @@ void hybrid(
 
     // if a root zone is found, use the brent method for a robust backup strategy
     if (f1 * f0 < 0.0) {
-      brent(x, x0, x1, f0, f1, tol, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, 
+      brent(x, x0, x1, f0, f1, tol, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, 
         forc_pbot, c3flag, ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
       x0 = x;
       break;
@@ -325,7 +325,7 @@ void hybrid(
       // stop at the minimum function
       // this happens because of some other issues besides the stomatal conductance calculation
       // and it happens usually in very dry places and more likely with c4 plants.
-      ci_func(minx, f1, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
+      ci_func(minx, f1, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
         ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
       break;
     }
@@ -351,20 +351,62 @@ double fth25(const double& hd, const double& se) {
 
 /*
 
-
+t10           => temperature_vars%t_a10_patch             , & ! Input:  [real(r8) (:)   ]  10-day running mean of the 2 m temperature (K)
 
 
 */
 void Photosynthesis(
   const VegProperties& veg,
+  const int& vtype,
+  const int& nrad,
+  const double& forc_pbot,
+  const double& t_veg,
+  const double& t10,
   const double& esat_tv,
   const double& eair,
   const double& oair,
   const double& cair,
   const double& rb,
   const double& btran,
-  const double& dayl_factor) 
+  const double& dayl_factor,
+  const double thm,
+  const double tlai_z[nlevcan],
+  const double& vcmaxcint,
+  const double par_z[nlevcan],
+  const double lai_z[nlevcan],
+
+  double& rs) 
 {
+  // vars from PhotosynthesisType - not used anywhere else, so keep local
+  bool c3flag;           // true if C3 and false if C4                        
+  double ci_z[nlevcan];           // intracellular leaf CO2 (Pa)                                                                     
+  double rs_z[nlevcan];           // canopy layer: leaf stomatal resistance (s/m)                        
+  double lmr;            // leaf maintenance respiration rate (umol CO2/m**2/s)                   
+  double lmr_z[nlevcan];          // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)   
+  double psn;            // foliage photosynthesis (umol co2 /m**2/ s) [always +]                 
+  double psn_z[nlevcan];          // canopy layer: foliage photosynthesis (umol co2 /m**2/ s) [always +] 
+  double psn_wc;         // Rubisco-limited foliage photosynthesis (umol co2 /m**2/ s) [always +] 
+  double psn_wj;         // RuBP-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]    
+  double psn_wp;         // product-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
+  double ac[nlevcan];             // patch Rubisco-limited gross photosynthesis (umol CO2/m**2/s)
+  double aj[nlevcan];             // patch RuBP-limited gross photosynthesis (umol CO2/m**2/s)
+  double ap[nlevcan];             // patch product-limited (C3) or CO2-limited (C4) gross photosynthesis (umol CO2/m**2/s)
+  double ag[nlevcan];             // patch co-limited gross leaf photosynthesis (umol CO2/m**2/s)
+  double an[nlevcan];             // patch net leaf photosynthesis (umol CO2/m**2/s)
+  double vcmax_z[nlevcan];        // maximum rate of carboxylation (umol co2/m**2/s)
+  double gb_mol;         // leaf boundary layer conductance (umol H2O/m**2/s)                     
+  double gs_mol[nlevcan];         // leaf stomatal conductance (umol H2O/m**2/s)
+  double cp;             // patch CO2 compensation point (Pa)
+  double kc;             // patch Michaelis-Menten constant for CO2 (Pa)
+  double ko;             // patch Michaelis-Menten constant for O2 (Pa)
+  double qe;             // patch quantum efficiency, used only for C4 (mol CO2 / mol photons)
+  double tpu_z[nlevcan]; // patch triose phosphate utilization rate (umol CO2/m**2/s)
+  double kp_z[nlevcan];  // patch initial slope of CO2 response curve (C4 plants)
+  double theta_cj;       // patch empirical curvature parameter for ac, aj photosynthesis co-limitation
+  double bbb;            // patch Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
+  double mbb;            // patch Ball-Berry slope of conductance-photosynthesis relationship
+  double rh_leaf;        // fractional humidity at leaf surface (dimensionless)
+
   // Leaf photosynthesis parameters
   double jmax_z[nlevcan];   // maximum electron transport rate (umol electrons/m**2/s)
   double lnc;               // leaf N concentration (gN leaf/m^2)
@@ -412,11 +454,6 @@ void Photosynthesis(
   double gs;                //  leaf stomatal conductance (m/s)
   double hs;                //  fractional humidity at leaf surface (dimensionless)
   double sco;               //  relative specificity of rubisco
-  double tl;                //  leaf temperature in photosynthesis temperature function (K)
-  double ha;                //  activation energy in photosynthesis temperature function (J/mol)
-  double hd;                //  deactivation energy in photosynthesis temperature function (J/mol)
-  double se;                //  entropy term in photosynthesis temperature function (J/mol/K)
-  double scaleFactor;       //  scaling factor for high temperature inhibition (25 C = 1.0)
   double ciold;             //  previous value of Ci for convergence check
   double gs_mol_err;        //  gs_mol for error check
   double je;                //  electron transport rate (umol electrons/m**2/s)
@@ -427,7 +464,6 @@ void Photosynthesis(
   double fnr;               //  (gRubisco/gN in Rubisco)
   double act25;             //  (umol/mgRubisco/min) Rubisco activity at 25 C
   double nscaler;           //  leaf nitrogen scaling coefficient
-  double ai;                //  intermediate co-limited photosynthesis (umol CO2/m**2/s)
   double psn_wc_z[nlevcan]; // Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
   double psn_wj_z[nlevcan]; // RuBP-limited contribution to psn_z (umol CO2/m**2/s)
   double psn_wp_z[nlevcan]; // product-limited contribution to psn_z (umol CO2/m**2/s)
@@ -443,20 +479,6 @@ void Photosynthesis(
   // Photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
   static const double fnps = 0.15; // fraction of light absorbed by non-photosynthetic pigments
   static const double theta_psii = 0.7; // empirical curvature parameter for electron transport rate
-  static const double theta_ip = 0.95; // empirical curvature parameter for ap photosynthesis co-limitation
-
-
-
-
-
-
-
-  
-  
-  
-  
-
-
 
   // vcmax25 parameters, from CN
   fnr = veg.fnr[vtype];
@@ -611,7 +633,7 @@ void Photosynthesis(
   // Leaf-level photosynthesis and stomatal conductance
   rsmax0 = 2.0e4;
   // Leaf boundary layer conductance, umol/m**2/s
-  cf = forc_pbot / (ELM_RGAS * 1.0e-3 * tgcm) * 1.e06;
+  cf = forc_pbot / (ELM_RGAS * 1.0e-3 * thm) * 1.e06;
   gb = 1.0 / rb;
   gb_mol = gb * cf;
 
@@ -653,8 +675,8 @@ void Photosynthesis(
       ciold = ci_z[iv]; // Save old ci
 
       // find ci and stomatal conductance
-      hybrid(ciold, iv, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag,
-      ac, aj, ap, ag, an, cp, kc, ko, qe, tpu_z, kp_z, theta_cj, bbb, mbb);
+      hybrid(ciold, gb_mol, je, cair, oair, lmr_z[iv], par_z[iv], rh_can, gs_mol[iv], vcmax_z[iv], forc_pbot, c3flag,
+      ac[iv], aj[iv], ap[iv], ag[iv], an[iv], cp, kc, ko, qe, tpu_z[iv], kp_z[iv], theta_cj, bbb, mbb);
 
       // End of ci iteration.  Check for an < 0, in which case gs_mol = bbb
       if (an[iv] < 0.0) { gs_mol[iv] = bbb; }
@@ -701,30 +723,58 @@ void Photosynthesis(
   gscan = 0.0;
   laican = 0.0;
   for (int iv = 0; iv < nrad; iv++) {
-    psncan = psncan + psn_z[iv] * lai_z[iv];
-    psncan_wc = psncan_wc + psn_wc_z[iv] * lai_z[iv];
-    psncan_wj = psncan_wj + psn_wj_z[iv] * lai_z[iv];
-    psncan_wp = psncan_wp + psn_wp_z[iv] * lai_z[iv];
-    lmrcan = lmrcan + lmr_z[iv] * lai_z[iv];
-    gscan = gscan + lai_z[iv] / (rb + rs_z[iv]);
-    laican = laican + lai_z[iv];
+    psncan += psn_z[iv] * lai_z[iv];
+    psncan_wc += psn_wc_z[iv] * lai_z[iv];
+    psncan_wj += psn_wj_z[iv] * lai_z[iv];
+    psncan_wp += psn_wp_z[iv] * lai_z[iv];
+    lmrcan += lmr_z[iv] * lai_z[iv];
+    gscan += lai_z[iv] / (rb + rs_z[iv]);
+    laican += + lai_z[iv];
   }
-  if (laican > 0.0) {
+  if (laican > 0.0) { // these variables get used in CN mode, but not in physics (except for rs) -- pass out?? diagnostics maybe??
     psn = psncan / laican;
     psn_wc = psncan_wc / laican;
     psn_wj = psncan_wj / laican;
     psn_wp = psncan_wp / laican;
-    lmr = lmrcan / laican;
+    //lmr = lmrcan / laican;
     rs = laican / gscan - rb;
   } else {
     psn =  0.0;
     psn_wc =  0.0;
     psn_wj =  0.0;
     psn_wp =  0.0;
-    lmr = 0.0;
+    //lmr = 0.0;
     rs = 0.0;
   }
 } // void PhotoSynthesis
+
+
+/* none of these variables do anything - diagnostics maybe??
+
+
+
+*/
+void PhotosynthesisTotal(
+  const double& psnsun,
+  const double& psnsun_wc,
+  const double& psnsun_wj,
+  const double& psnsun_wp,
+  const double& laisun,
+  const double& psnsha,
+  const double& psnsha_wc,
+  const double& psnsha_wj,
+  const double& psnsha_wp,
+  const double& laisha,
+  double& fpsn,
+  double& fpsn_wc,
+  double& fpsn_wj,
+  double& fpsn_wp)
+{
+  fpsn = psnsun * laisun + psnsha * laisha;
+  fpsn_wc = psnsun_wc * laisun + psnsha_wc * laisha;
+  fpsn_wj = psnsun_wj * laisun + psnsha_wj * laisha;
+  fpsn_wp = psnsun_wp * laisun + psnsha_wp * laisha;
+}
 
 
 
