@@ -3,7 +3,48 @@
 
 */
 #include "clm_constants.h"
-#include "qsat.h"
+
+// For water vapor (temperature range 0C-100C)
+static const double a0 =  6.11213476;
+static const double a1 =  0.444007856;
+static const double a2 =  0.143064234e-01;
+static const double a3 =  0.264461437e-03;
+static const double a4 =  0.305903558e-05;
+static const double a5 =  0.196237241e-07;
+static const double a6 =  0.892344772e-10;
+static const double a7 = -0.373208410e-12;
+static const double a8 =  0.209339997e-15;
+// For derivative:water vapor
+static const double b0 =  0.444017302;
+static const double b1 =  0.286064092e-01;
+static const double b2 =  0.794683137e-03;
+static const double b3 =  0.121211669e-04;
+static const double b4 =  0.103354611e-06;
+static const double b5 =  0.404125005e-09;
+static const double b6 = -0.788037859e-12;
+static const double b7 = -0.114596802e-13;
+static const double b8 =  0.381294516e-16;
+// For ice (temperature range -75C-0C)
+static const double c0 =  6.11123516;
+static const double c1 =  0.503109514;
+static const double c2 =  0.188369801e-01;
+static const double c3 =  0.420547422e-03;
+static const double c4 =  0.614396778e-05;
+static const double c5 =  0.602780717e-07;
+static const double c6 =  0.387940929e-09;
+static const double c7 =  0.149436277e-11;
+static const double c8 =  0.262655803e-14;
+// For derivative:ice
+static const double d0 =  0.503277922;
+static const double d1 =  0.377289173e-01;
+static const double d2 =  0.126801703e-02;
+static const double d3 =  0.249468427e-04;
+static const double d4 =  0.313703411e-06;
+static const double d5 =  0.257180651e-08;
+static const double d6 =  0.133268878e-10;
+static const double d7 =  0.394116744e-13;
+static const double d8 =  0.498070196e-16;
+
 
 void QSat(
   const double& T,

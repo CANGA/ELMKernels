@@ -12,6 +12,7 @@ It is not the same as the displa calculated in CanopyTemperature
 #include "clm_constants.h"
 #include "landtype.h"
 #include "frictionvelocity.h"
+#include "qsat.h"
 
 class BareGroundFluxes {
 
@@ -25,7 +26,19 @@ private:
   double um;      // wind speed including the stablity effect [m/s]
   double temp1;   // relation for potential temperature profile  
   double temp2;   // relation for specific humidity profile
+  double temp12m; // relation for potential temperature profile applied at 2-m
+  double temp22m; // relation for specific humidity profile applied at 2-m
   double ustar;   // friction velocity [m/s]
+
+  // local vars
+  double frac_veg_nosno;
+  double forc_q;
+  double forc_th;
+  double forc_hgt_u_patch;
+  double thm;
+  double thv;
+  double z0mg;
+
 
 public:
 
@@ -34,18 +47,18 @@ DESCRIPTION:
 initialize fluxes and call MoninObukIni()
 
 INPUTS:
-Land             [LandType] struct containing information about landtype 
-frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-forc_u           [double] atmospheric wind speed in east direction (m/s)
-forc_v           [double] atmospheric wind speed in north direction (m/s)
-forc_q           [double] atmospheric specific humidity (kg/kg)
-forc_th          [double] atmospheric potential temperature (Kelvin)
-forc_hgt_u_patch [double] observational height of wind at pft level [m]
-thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-thv              [double] virtual potential temperature (kelvin)
-t_grnd           [double] ground temperature (Kelvin)
-qg               [double] ground specific humidity [kg/kg]         
-z0mg             [double] roughness length over ground, momentum [m]
+Land                [LandType] struct containing information about landtype 
+frac_veg_nosno_in   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
+forc_u              [double] atmospheric wind speed in east direction (m/s)
+forc_v              [double] atmospheric wind speed in north direction (m/s)
+forc_q_in           [double] atmospheric specific humidity (kg/kg)
+forc_th_in          [double] atmospheric potential temperature (Kelvin)
+forc_hgt_u_patch_in [double] observational height of wind at pft level [m]
+thm_in              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+thv_in              [double] virtual potential temperature (kelvin)
+t_grnd              [double] ground temperature (Kelvin)
+qg                  [double] ground specific humidity [kg/kg]         
+z0mg_in             [double] roughness length over ground, momentum [m]
 
 OUTPUTS:
 dlrad            [double] downward longwave radiation below the canopy [W/m2]
@@ -53,20 +66,28 @@ ulrad            [double] upward longwave radiation above the canopy [W/m2]
 */
   void InitializeFlux(
     const LandType& Land,
-    const int& frac_veg_nosno,
+    const int& frac_veg_nosno_in,
     const double& forc_u,
     const double& forc_v,
-    const double& forc_q,
-    const double& forc_th,
-    const double& forc_hgt_u_patch,
-    const double& thm,
-    const double& thv,
+    const double& forc_q_in,
+    const double& forc_th_in,
+    const double& forc_hgt_u_patch_in,
+    const double& thm_in,
+    const double& thv_in,
     const double& t_grnd,
     const double& qg,
-    const double& z0mg,
+    const double& z0mg_in,
     double& dlrad,
     double& ulrad)
   {
+    frac_veg_nosno = frac_veg_nosno_in;
+    forc_q = forc_q_in;
+    forc_th = forc_th_in;
+    forc_hgt_u_patch = forc_hgt_u_patch_in;
+    thm = thm_in;
+    thv = thv_in;
+    z0mg = z0mg_in;
+
     if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
       ur = std::max(1.0, std::sqrt(forc_u * forc_u + forc_v * forc_v));
       dth = thm - t_grnd;
@@ -131,6 +152,8 @@ z0qg             [double] roughness length over ground, latent heat [m]
       FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
       FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hg, temp1);
       FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
+      FrictionVelocityTemperature2m(obu, z0hg, temp12m);
+      FrictionVelocityHumidity2m(obu, z0hg, z0qg, temp12m, temp22m);
   
       if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
         tstar = temp1 * dth;
@@ -174,6 +197,7 @@ qg_snow                    [double] specific humidity at snow surface [kg/kg]
 qg_soil                    [double] specific humidity at soil surface [kg/kg]
 qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
 t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+forc_pbot                  [double]  atmospheric pressure (Pa)
 
 OUTPUTS:
 cgrnds                     [double] deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
@@ -189,6 +213,11 @@ qflx_evap_tot              [double] qflx_evap_soi + qflx_evap_can + qflx_tran_ve
 qflx_ev_snow               [double] evaporation flux from snow (W/m**2) [+ to atm]  
 qflx_ev_soil               [double] evaporation flux from soil (W/m**2) [+ to atm]  
 qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to atm]
+t_ref2m                    [double]  2 m height surface air temperature (Kelvin)
+t_ref2m_r                  [double]  Rural 2 m height surface air temperature (Kelvin)
+q_ref2m                    [double]  2 m height surface specific humidity (kg/kg)
+rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
+rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
   void ComputeFlux(
     const LandType& Land,
@@ -205,6 +234,7 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
     const double& qg_soil,
     const double& qg_h2osfc,
     const double *t_soisno,
+    const double& forc_pbot,
     double& cgrnds,  
     double& cgrndl,
     double& cgrnd,
@@ -217,11 +247,17 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
     double& qflx_evap_tot,
     double& qflx_ev_snow,
     double& qflx_ev_soil,
-    double& qflx_ev_h2osfc) {
+    double& qflx_ev_h2osfc,
+    double& t_ref2m,
+    double& t_ref2m_r,
+    double& q_ref2m,
+    double& rh_ref2m,
+    double& rh_ref2m_r) {
     
     if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
       
       double rah, raw, raih, raiw;
+      double e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT; 
       // Determine aerodynamic resistances
       rah  = 1.0 / (temp1 * ustar);
       raw  = 1.0 / (temp2 * ustar);
@@ -259,6 +295,22 @@ qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to 
       qflx_ev_snow   = -raiw * (forc_q - qg_snow);
       qflx_ev_soil   = -raiw * (forc_q - qg_soil);
       qflx_ev_h2osfc = -raiw * (forc_q - qg_h2osfc);
+
+      // 2 m height air temperature
+      t_ref2m = thm + temp1 * dth * (1.0 / temp12m - 1.0 / temp1);
+
+      // 2 m height specific humidity
+      q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
+
+      // 2 m height relative humidity
+      QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+
+      rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m * 100.0));
+
+      if (Land.ltype == istsoil || Land.ltype == istcrop) {
+        rh_ref2m_r = rh_ref2m;
+        t_ref2m_r = t_ref2m;
+      }
     }
   } // ComputeFlux
 

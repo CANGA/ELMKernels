@@ -61,6 +61,8 @@ private:
   double zldis; // reference height "minus" zero displacement height [m]
   double temp1; // relation for potential temperature profile
   double temp2; // relation for specific humidity profile
+  double temp12m; // relation for potential temperature profile applied at 2-m
+  double temp22m; // relation for specific humidity profile applied at 2-m
   double tlbef; // leaf temperature from previous iteration [K]
   double delq; // temporary
   double dt_veg; // change in t_veg, last iteration (Kelvin)
@@ -484,6 +486,8 @@ void StabilityIteration(
       FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
       FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hv, temp1);
       FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hv, z0qv, temp1, temp2);
+      FrictionVelocityTemperature2m(obu, z0hv, temp12m);
+      FrictionVelocityHumidity2m(obu, z0hv, z0qv, temp12m, temp22m);
 
       // save leaf temp and leaf temp delta from previous iteration
       tlbef = t_veg;
@@ -714,7 +718,12 @@ dlrad               [double] downward longwave radiation below the canopy [W/m2]
 ulrad               [double] upward longwave radiation above the canopy [W/m2]
 cgrnds                     [double] deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
 cgrndl                     [double] deriv of soil latent heat flux wrt soil temp [w/m**2/k]
-cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k] 
+cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
+t_ref2m                    [double]  2 m height surface air temperature (Kelvin)
+t_ref2m_r                  [double]  Rural 2 m height surface air temperature (Kelvin)
+q_ref2m                    [double]  2 m height surface specific humidity (kg/kg)
+rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
+rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 void ComputeFlux(
   const LandType& Land,
@@ -747,22 +756,29 @@ void ComputeFlux(
   double& ulrad,
   double& cgrnds, 
   double& cgrndl,
-  double& cgrnd
-  )
+  double& cgrnd,
+  double& t_ref2m,
+  double& t_ref2m_r,
+  double& q_ref2m,
+  double& rh_ref2m,
+  double& rh_ref2m_r)
 {
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
 
     t_veg_out = t_veg;
+    double e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT;
 
     // Energy balance check in canopy
     double lw_grnd = (frac_sno * pow(t_soisno[nlevsno-snl], 4.0) + (1.0 - frac_sno - frac_h2osfc) * 
       pow(t_soisno[nlevsno], 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
     double err = sabv + air + bir * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) + cir * lw_grnd - 
       eflx_sh_veg - hvap * qflx_evap_veg;
+
     // Fluxes from ground to canopy space
     double delt = wtal * t_grnd - wtl0 * t_veg - wta0 * thm;
     eflx_sh_grnd = cpair * forc_rho * wtg * delt;
+
     // compute individual sensible heat fluxes
     double delt_snow = wtal * t_soisno[nlevsno-snl] - wtl0 * t_veg - wta0 * thm;
     eflx_sh_snow = cpair * forc_rho * wtg * delt_snow;
@@ -771,6 +787,7 @@ void ComputeFlux(
     double delt_h2osfc  = wtal * t_h2osfc - wtl0 * t_veg - wta0 * thm;
     eflx_sh_h2osfc = cpair * forc_rho * wtg * delt_h2osfc;
     qflx_evap_soi = forc_rho * wtgq * delq;
+
     // compute individual latent heat fluxes
     double delq_snow = wtalq * qg_snow - wtlq0 * qsatl - wtaq0 * forc_q;
     qflx_ev_snow = forc_rho * wtgq * delq_snow;
@@ -778,6 +795,17 @@ void ComputeFlux(
     qflx_ev_soil = forc_rho * wtgq * delq_soil;
     double delq_h2osfc = wtalq * qg_h2osfc - wtlq0 * qsatl - wtaq0 * forc_q;
     qflx_ev_h2osfc = forc_rho * wtgq * delq_h2osfc;
+
+    // 2 m height air temperature
+    t_ref2m = thm + temp1 * dth * (1.0 / temp12m - 1.0 / temp1);
+    t_ref2m_r = t_ref2m;
+    // 2 m height specific humidity
+    q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
+    // 2 m height relative humidity
+    QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+    rh_ref2m = std::min(100.0, q_ref2m / qsat_ref2m * 100.0);
+    rh_ref2m_r = rh_ref2m;
+
     // Downward longwave radiation below the canopy
     dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * sb * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);
     // Upward longwave radiation above the canopy
@@ -795,8 +823,6 @@ void ComputeFlux(
 
     // evaluate error and write?? -- best way to write?
     //  if (abs(err(p)) > 0.1_r8)
-
-
 
 
   }

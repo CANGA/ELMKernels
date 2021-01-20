@@ -1,7 +1,6 @@
 /* functions from FrictionVelocityMod.F90
 FrictionVelocity:
-Split into 3 functions - wind, temperature, humidity
-!!DON'T NEED 2-meter variables, they are only used as feedbacks to ATM model and don't affect LSM and subsurface calculations!
+Split into 5 functions - wind, temperature, humidity, 2-m temp, 2-m humidity
 Also don't need u10 variables, they are used for dust model
 
 The friction velocity scheme is based on the work of Zeng et al. (1998):
@@ -43,7 +42,7 @@ void MoninObukIni(
   double rib;          // bulk Richardson number
   double zeta;         // dimensionless height used in Monin-Obukhov theory
   // double ustar = 0.06; // friction velocity [m/s] -- in CLM, but not used
-  double wc = 0.5;     // convective velocity [m/s]
+  const double wc = 0.5;     // convective velocity [m/s]
 
   // wind speed
   if (dthv >= 0.0) {
@@ -108,9 +107,9 @@ void FrictionVelocityWind(
   const double& z0m,
   double& ustar)
 {
-  double zetam = 1.574; // transition point of flux-gradient relation (wind profile)
-  double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
-  double zeta = zldis / obu; // dimensionless height used in Monin-Obukhov theory
+  const double zetam = 1.574; // transition point of flux-gradient relation (wind profile)
+  const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
+  const double zeta = zldis / obu; // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetam)) {
     ustar = vkc * um / (std::log(-zetam * obu / z0m) - StabilityFunc1(-zetam) + 
@@ -145,9 +144,9 @@ void FrictionVelocityTemperature(
   const double& z0h,
   double& temp1)
 {
-  double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
-  double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
-  double zeta = zldis / obu; // dimensionless height used in Monin-Obukhov theory
+  const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+  const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
+  const double zeta = zldis / obu; // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetat)) {
     temp1 = vkc / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + 
@@ -187,7 +186,7 @@ void FrictionVelocityHumidity(
   const double& temp1,
   double& temp2)
 {
-  double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+  const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
 
   if (forc_hgt_q_patch == forc_hgt_t_patch && z0q == z0h) {
     temp2 = temp1;
@@ -207,3 +206,66 @@ void FrictionVelocityHumidity(
   }
 }
 
+/* Temperature profile applied at 2-m
+INPUTS:
+obu              [double] monin-obukhov length (m)
+z0h              [double] roughness length over vegetation, sensible heat [m]
+
+OUTPUTS:
+temp12m          [double] relation for potential temperature profile applied at 2-m
+*/
+void FrictionVelocityTemperature2m(
+  const double& obu,
+  const double& z0h,
+  double& temp12m)
+{
+  const double zldis = 2.0 + z0h;
+  const double zeta = zldis / obu;
+  const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+
+  if (zeta < -zetat) {
+    temp12m = vkc / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) 
+      + 0.8 * (pow(zetat, -0.333) - pow(-zeta, -0.333)));
+  } else if (zeta < 0.0) {
+    temp12m = vkc / (std::log(zldis / z0h) - StabilityFunc2(zeta) + StabilityFunc2(z0h / obu));
+  } else if (zeta <=  1.0) {
+    temp12m = vkc / (std::log(zldis / z0h) + 5.0 * zeta - 5.0 * z0h / obu);
+  } else {
+    temp12m = vkc / (std::log(obu / z0h) + 5.0 - 5.0 * (z0h / obu) + (5.0 * std::log(zeta) + zeta - 1.0));
+  }
+}
+
+/* Humidity profile applied at 2-m
+INPUTS:
+obu              [double] monin-obukhov length (m)
+z0h              [double] roughness length over vegetation, sensible heat [m]
+z0q              [double] roughness length over vegetation, latent heat [m]
+
+OUTPUTS:
+relation for specific humidity profile applied at 2-m
+*/
+void FrictionVelocityHumidity2m(
+  const double& obu,
+  const double& z0h,
+  const double& z0q,
+  const double& temp12m,
+  double& temp22m)
+{
+  if (z0q == z0h) {
+    temp22m = temp12m;
+  } else {
+    const double zldis = 2.0 + z0q;
+    const double zeta = zldis / obu;
+    const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+    if (zeta < -zetat) {
+      temp22m = vkc / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) 
+        + 0.8 * (pow(zetat, -0.333) - pow(-zeta, -0.333)));
+    } else if (zeta < 0.0) {
+      temp22m = vkc / (std::log(zldis / z0q) - StabilityFunc2(zeta) + StabilityFunc2(z0q / obu));
+    } else if (zeta <= 1.0) {
+      temp22m = vkc / (std::log(zldis / z0q) + 5.0 * zeta - 5.0 * z0q / obu);
+    } else {
+      temp22m = vkc / (std::log(obu / z0q) + 5.0 - 5.0 * z0q / obu + (5.0 * std::log(zeta) + zeta - 1.0));
+    }
+  }
+}
