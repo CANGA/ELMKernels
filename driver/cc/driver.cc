@@ -1,8 +1,8 @@
+#include <string>
 #include "clm_constants.h"
 #include "landtype.h"
 #include "BareGroundFluxes.h"
 #include "array.hh"
-
 
 
 using ArrayD1 = ELM::Array<double,1>;
@@ -27,7 +27,7 @@ Array_t create(const std::string& name, int D0, int D1, int D2) {
 
 template<class Array_t, typename Scalar_t>
 void assign(Array_t& arr, Scalar_t val) {
-  arr = val;
+  ELM::deep_copy(arr, val);
 }
 
 int main(int argc, char** argv)
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", ncells);
   auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
   auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
-  auto eflux_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
+  auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
   auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
   auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", ncells);
   auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
   auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", ncells);
 
   // initialize
-  auto bg_fluxes = create<Kokkos::View<ELM::BareGroundFluxes*> >("bg_fluxes", ncells);
+  auto bg_fluxes = create<ELM::Array<ELM::BareGroundFluxes,1> >("bg_fluxes", ncells);
 
   // iterate in time
   for (int time=0; time!=ntimes; ++time) {

@@ -460,6 +460,40 @@ deep_copy(Array_type& arr, const Array<T,4>& arr_in)
   }
 }
 
+template<typename T>
+void
+deep_copy(Array<T,1>& arr, T val)
+{
+  for (int i=0; i!=arr.extent(0); ++i)
+    arr(i) = val;
+}
+template<typename T>
+void
+deep_copy(Array<T,2>& arr, T val)
+{
+  for (int i=0; i!=arr.extent(0); ++i)
+    for (int j=0; j!=arr.extent(0); ++j)
+      arr(i,j) = val;
+}
+template<typename T>
+void
+deep_copy(Array<T,3>& arr, T val)
+{
+  for (int i=0; i!=arr.extent(0); ++i)
+    for (int j=0; j!=arr.extent(0); ++j)
+      for (int k=0; k!=arr.extent(0); ++k)
+        arr(i,j,k) = val;
+}
+template<typename T>
+void
+deep_copy(Array<T,4>& arr, T val)
+{
+  for (int i=0; i!=arr.extent(0); ++i)
+    for (int j=0; j!=arr.extent(0); ++j)
+      for (int k=0; k!=arr.extent(0); ++k)
+        for (int l=0; l!=arr.extent(0); ++l)
+          arr(i,j,k,l) = val;
+}
 
 } // namespace ELM
 
