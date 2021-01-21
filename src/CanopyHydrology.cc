@@ -9,6 +9,8 @@ functions derived from CanopyHydrologyMod.F90
 #include "clm_constants.h"
 #include "landtype.h"
 
+namespace ELM {
+
 class CanopyHydrology {
 
 private:
@@ -536,3 +538,5 @@ frac_h2osfc                  [double] fractional area with surface water greater
   } // FracH2OSfc
 
 }; // CanopyHydrology
+
+} // namespace ELM

@@ -13,6 +13,8 @@ Vol. 11, 2628-2644.
 #include <cmath>
 #include "clm_constants.h"
 
+namespace ELM {
+
 /* MoninObukIni()
 DESCRIPTION: Initialization of the Monin-Obukhov length. The scheme is based on the work of 
 Zeng et al. (1998): Intercomparison of bulk aerodynamic algorithms for the computation of sea 
@@ -269,3 +271,5 @@ void FrictionVelocityHumidity2m(
     }
   }
 }
+
+} // namespace ELM

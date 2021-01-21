@@ -3,6 +3,9 @@
 
 */
 #include "clm_constants.h"
+#include "QSat.h"
+
+namespace ELM {
 
 // For water vapor (temperature range 0C-100C)
 static const double a0 =  6.11213476;
@@ -83,3 +86,5 @@ void QSat(
   qs    = es    * vp1;             // kg/kg
   qsdT  = esdT  * vp2 * p;         // 1 / K
 }
+
+} // namespace ELM

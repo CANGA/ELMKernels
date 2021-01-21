@@ -12,13 +12,14 @@ ComputeFlux()
 #include <cmath>
 #include <assert.h>
 #include "clm_constants.h"
-#include "qsat.h"
+#include "QSat.h"
 #include "landtype.h"
 #include "frictionvelocity.h"
 #include "SoilMoistStress.hh"
-#include "photosynthesis.h"
+#include "Photosynthesis.h"
 #include "vegproperties.h"
 
+namespace ELM {
 
 class CanopyFluxes {
 
@@ -858,3 +859,4 @@ void ComputeFlux(
 
 };
 
+} // namespace ELM

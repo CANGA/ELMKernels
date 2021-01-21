@@ -1,5 +1,6 @@
-#ifndef FRICTION_VELOCITY_H_
-#define FRICTION_VELOCITY_H_
+#pragma once
+
+namespace ELM {
 
 void MoninObukIni(const double& ur, const double& thv, const double& dthv, const double& zldis, const double& z0m, double& um,
 double& obu);
@@ -17,5 +18,4 @@ void FrictionVelocityTemperature2m(const double& obu, const double& z0h, double&
 
 void FrictionVelocityHumidity2m(const double& obu, const double& z0h, const double& z0q, const double& temp12m, double& temp22m);
 
-#endif
-
+} // namespace ELM

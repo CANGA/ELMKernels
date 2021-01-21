@@ -7,6 +7,8 @@
 #include "qsat.h"
 #include "landtype.h"
 
+namespace ELM {
+
 class CanopyTemperature {
 
 private:
@@ -543,3 +545,5 @@ qflx_tran_veg    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
   } // InitializeEnergyFluxes
 
 };
+
+} // namespace ELM

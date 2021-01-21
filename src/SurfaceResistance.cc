@@ -5,6 +5,8 @@
 #include "clm_constants.h"
 #include "landtype.h"
 
+namespace ELM {
+
 /* calc_soilevap_stress()
 DESCRIPTION:
 Compute the Lee-Pielke beta factor to scale actual soil evaporation from potential evaporation.
@@ -93,3 +95,5 @@ double getlblcef(const double& rho, const double& temp) {
   double result = 2.0 / vkc * pow(sc/prandtl, 2.0/3.0);
   return result;
 }
+
+} // namespace ELM

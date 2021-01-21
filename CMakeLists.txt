@@ -4,10 +4,11 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
-project(ELM_physics CXX)
+project(ELM CXX)
+
 
 # need netcdf
-list(APPEND CMAKE_MODULE_PATH "${ELM_physics_SOURCE_DIR}/config/cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/config/cmake")
 include(AddImportedLibrary)
 
 if (BUILD_SHARED_LIBS)

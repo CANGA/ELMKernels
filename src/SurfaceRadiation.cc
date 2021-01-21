@@ -13,6 +13,7 @@ SurfRadReflected
 #include "clm_constants.h"
 #include "landtype.h"
 
+namespace ELM {
 
 class SurfaceRadiation {
 
@@ -411,3 +412,5 @@ fsun                [double] sunlit fraction of canopy
 
 
 };
+
+} // namespace ELM

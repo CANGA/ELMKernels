@@ -15,6 +15,8 @@ micro_sigma [double] microtopography pdf sigma (m)
 #include <cmath>
 #include "clm_constants.h"
 
+namespace ELM {
+
 void TopoSlopes(const double& topo_slope_in,
     double& topo_slope_out)
 {
@@ -44,3 +46,5 @@ void ColdStartMicroTopo(const int& ltype,
     double slope0 = pow(slopemax, (-1.0 / slopebeta));
     micro_sigma = pow((topo_slope + slope0), -slopebeta);
 }
+
+} // namespace ELM

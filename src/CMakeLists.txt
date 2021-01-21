@@ -1,3 +1,5 @@
-add_library (physics physics_dummy.cc CanopyHydrology.cc coldstart_topography.cc coldstart_snow.cc SurfaceRadiation.cc SurfaceResistance.cc QSat.cc CanopyTemperature.cc FrictionVelocity.cc BareGroundFluxes.cc CanopyFluxes.cc Photosynthesis.cc)
-target_include_directories (physics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-install(TARGETS physics)
+project(ELM_PHYSICS)
+
+add_library (elm_physics FrictionVelocity.cc QSat.cc BareGroundFluxes.cc)
+target_include_directories (elm_physics PUBLIC ${ELM_PHYSICS_SOURCE_DIR})
+install(TARGETS elm_physics)

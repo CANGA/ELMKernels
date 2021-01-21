@@ -11,10 +11,13 @@ normalize_unfrozen_rootfr(), which calls array_normalization() -- note: rootfr_u
 calc_root_moist_stress_clm45default(), which calls soil_water_retention_curve%soil_suction()
 
 */
+#pragma once
+
 #include <algorithm>
 #include <cmath>
 #include "clm_constants.h"
 
+namespace ELM {
 
 void array_normalization (double *arr_inout)
 {
@@ -207,3 +210,5 @@ void calc_root_moist_stress(
     }
   }
 }
+
+} // namespace ELM

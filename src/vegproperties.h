@@ -1,5 +1,5 @@
-#ifndef VEGPROPERTIES_H_
-#define VEGPROPERTIES_H_
+#pragma once
+
 #include "clm_constants.h"
 
 struct VegProperties {
@@ -29,4 +29,3 @@ double fnitr[numpft];  //    foliage nitrogen limitation factor (-)
 
 };
 
-#endif
