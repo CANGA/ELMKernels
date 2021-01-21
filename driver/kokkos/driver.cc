@@ -1,41 +1,45 @@
 #include "clm_constants.h"
 #include "landtype.h"
 #include "BareGroundFluxes.h"
-#include "array.hh"
+#include "Kokkos_Core.hpp"
 
 
+using ArrayD1 = Kokkos::View<double*>;
+using ArrayI1 = Kokkos::View<int*>;
+using ArrayD2 = Kokkos::View<double**>;
 
-using ArrayD1 = ELM::Array<double,1>;
-using ArrayI1 = ELM::Array<int,1>;
-using ArrayD2 = ELM::Array<double,2>;
-
-template<class Array_t>
+template<typename Array_t>
 Array_t create(const std::string& name, int D0) {
-  return Array_t(D0);
+  return Array_t(name, D0);
 }
 
-template<class Array_t>
+template<typename Array_t>
 Array_t create(const std::string& name, int D0, int D1) {
-  return Array_t(D0, D1);
+  return Array_t(name, D0, D1);
 }
 
-template<class Array_t>
+template<typename Array_t>
 Array_t create(const std::string& name, int D0, int D1, int D2) {
-  return Array_t(D0, D1, D2);
+  return Array_t(name, D0, D1, D2);
 }
-
 
 template<class Array_t, typename Scalar_t>
 void assign(Array_t& arr, Scalar_t val) {
-  arr = val;
+  Kokkos::deep_copy(arr, val);
 }
+
+
+
+
 
 int main(int argc, char** argv)
 {
+  Kokkos::initialize( argc, argv);
+
   const int ncells = 3;
   const int ntimes = 2;
 
-
+  { // scope to make Kokkos happy
   // instantiate data
   ELM::LandType land;
   auto frac_vec_nosno_in = create<ArrayI1>("frac_vec_nosno_in", ncells);
@@ -80,7 +84,7 @@ int main(int argc, char** argv)
   auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", ncells);
   auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
   auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
-  auto eflux_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
+  auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
   auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
   auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", ncells);
   auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
@@ -93,68 +97,71 @@ int main(int argc, char** argv)
   auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", ncells);
 
   // initialize
-  auto bg_fluxes = create<Kokkos::View<ELM::BareGroundFluxes*> >("bg_fluxes", ncells);
+  Kokkos::View<ELM::BareGroundFluxes*> bg_fluxes("bare ground fluxes", ncells);
 
   // iterate in time
   for (int time=0; time!=ntimes; ++time) {
-    for (int c=0; c!=ncells; ++c) {
-      bg_fluxes[c].InitializeFlux(land,
-              frac_vec_nosno_in[c],
-              forc_u[c],
-              forc_v[c],
-              forc_q_in[c],
-              forc_th_in[c],
-              forc_hgt_u_patch_in[c],
-              thm_in[c],
-              thv_in[c],
-              t_grnd[c],
-              qg[c],
-              z0mg_in[c],
-              dlrad[c],
-              ulrad[c]);
+    Kokkos::parallel_for("BareGroundFluxes", ncells,
+                         KOKKOS_LAMBDA(const int& c) {
+                           bg_fluxes[c].InitializeFlux(land,
+                                   frac_vec_nosno_in[c],
+                                   forc_u[c],
+                                   forc_v[c],
+                                   forc_q_in[c],
+                                   forc_th_in[c],
+                                   forc_hgt_u_patch_in[c],
+                                   thm_in[c],
+                                   thv_in[c],
+                                   t_grnd[c],
+                                   qg[c],
+                                   z0mg_in[c],
+                                   dlrad[c],
+                                   ulrad[c]);
 
-      bg_fluxes[c].StabilityIteration(land,
-              forc_hgt_t_patch[c],
-              forc_hgt_q_patch[c],
-              z0mg[c],
-              zii[c],
-              beta[c],
-              z0hg[c],
-              z0qg[c]);
+                           bg_fluxes[c].StabilityIteration(land,
+                                   forc_hgt_t_patch[c],
+                                   forc_hgt_q_patch[c],
+                                   z0mg[c],
+                                   zii[c],
+                                   beta[c],
+                                   z0hg[c],
+                                   z0qg[c]);
 
-      bg_fluxes[c].ComputeFlux(land,
-              snl[c],
-              forc_rho[c],
-              soilbeta[c],
-              dqgdT[c],
-              htvp[c],
-              t_h2osfc[c],
-              qg_snow[c],
-              qg_soil[c],
-              qg_h2osfc[c],
-              t_soisno[c],
-              forc_pbot[c],
-              cgrnds[c],
-              cgrndl[c],
-              cgrnd[c],
-              eflx_sh_grnd[c],
-              eflx_sh_tot[c],
-              eflx_sh_snow[c],
-              eflx_sh_soil[c],
-              eflx_sh_h2osfc[c],
-              qflx_evap_soi[c],
-              qflx_evap_tot[c],
-              qflx_ev_snow[c],
-              qflx_ev_soil[c],
-              qflx_ev_h2osfc[c],
-              t_ref2m[c],
-              t_ref2m_r[c],
-              q_ref2m[c],
-              rh_ref2m[c],
-              rh_ref2m_r[c]);
-    }
+                           bg_fluxes[c].ComputeFlux(land,
+                                   snl[c],
+                                   forc_rho[c],
+                                   soilbeta[c],
+                                   dqgdT[c],
+                                   htvp[c],
+                                   t_h2osfc[c],
+                                   qg_snow[c],
+                                   qg_soil[c],
+                                   qg_h2osfc[c],
+                                   Kokkos::subview(t_soisno, c, Kokkos::ALL),
+                                   forc_pbot[c],
+                                   cgrnds[c],
+                                   cgrndl[c],
+                                   cgrnd[c],
+                                   eflx_sh_grnd[c],
+                                   eflx_sh_tot[c],
+                                   eflx_sh_snow[c],
+                                   eflx_sh_soil[c],
+                                   eflx_sh_h2osfc[c],
+                                   qflx_evap_soi[c],
+                                   qflx_evap_tot[c],
+                                   qflx_ev_snow[c],
+                                   qflx_ev_soil[c],
+                                   qflx_ev_h2osfc[c],
+                                   t_ref2m[c],
+                                   t_ref2m_r[c],
+                                   q_ref2m[c],
+                                   rh_ref2m[c],
+                                   rh_ref2m_r[c]);
+                         });
+  } // loop in time
+
   }
-
+  Kokkos::finalize();
   return 0;
 }
 

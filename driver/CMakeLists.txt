@@ -1,6 +1,12 @@
 add_subdirectory(utils)
-add_subdirectory(cc)
 
+if (ENABLE_CC)
+  add_subdirectory(cc)
+endif()
+
+if (ENABLE_Kokkos)
+  add_subdirectory(kokkos)
+endif()
 
 # include_directories(${NetCDF_INCLUDE_DIR})
 # add_executable (ELM_driver driver.cc)

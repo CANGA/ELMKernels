@@ -18,6 +18,7 @@ sample configure/build/test looks like:
         -DBUILD_SHARED_LIBS:BOOL=true \
         -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install-dir
         -DCMAKE_BUILD_TYPE:STRING=Debug \
+        -DENABLE_KOKKOS:BOOL=true \
       `pwd`/../ELM_Kernels
       
     make
