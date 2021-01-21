@@ -4,7 +4,6 @@
 #include "vegproperties.h"
 #include "clm_constants.h"
 
-namespace Photosynthesis {
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
 void quadratic(const double& a, const double& b, const double& c, double& r1, double& r2) {
@@ -356,7 +355,7 @@ t10           => temperature_vars%t_a10_patch             , & ! Input:  [real(r8
 
 */
 void Photosynthesis(
-  const VegProperties& veg,
+  const VegProperties& veg, // struct containing information about landtype
   const int& vtype,
   const int& nrad,
   const double& forc_pbot,
@@ -477,8 +476,8 @@ void Photosynthesis(
   double rh_can;            //  canopy air relative humidity
 
   // Photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
-  static const double fnps = 0.15; // fraction of light absorbed by non-photosynthetic pigments
-  static const double theta_psii = 0.7; // empirical curvature parameter for electron transport rate
+  const double fnps = 0.15; // fraction of light absorbed by non-photosynthetic pigments
+  const double theta_psii = 0.7; // empirical curvature parameter for electron transport rate
 
   // vcmax25 parameters, from CN
   fnr = veg.fnr[vtype];
@@ -775,8 +774,3 @@ void PhotosynthesisTotal(
   fpsn_wj = psnsun_wj * laisun + psnsha_wj * laisha;
   fpsn_wp = psnsun_wp * laisun + psnsha_wp * laisha;
 }
-
-
-
-
-} // namespace Photosynthesis

@@ -111,14 +111,10 @@ calculate Monin-Obukhov length and wind speed
 
 INPUTS:
 Land             [LandType] struct containing information about landtype
-frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-] 
-forc_hgt_u_patch [double] observational height of wind at pft level [m]
 forc_hgt_t_patch [double] observational height of temperature at pft level [m]
 forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
 z0mg             [double] roughness length over ground, momentum [m]
 zii              [double] convective boundary height [m]
-forc_q           [double] atmospheric specific humidity (kg/kg)
-forc_th          [double] atmospheric potential temperature (Kelvin)
 beta             [double] coefficient of convective velocity [-]
 
 OUTPUTS:
@@ -127,15 +123,10 @@ z0qg             [double] roughness length over ground, latent heat [m]
 */
   void StabilityIteration(
     const LandType& Land,
-    const int& frac_veg_nosno,
-    const double& forc_hgt_u_patch,
     const double& forc_hgt_t_patch,
     const double& forc_hgt_q_patch,
     const double& z0mg,
     const double& zii,
-    const double& forc_q,
-    const double& forc_th,
-    const double& thv,
     const double& beta,
     double& z0hg,
     double& z0qg) {  
@@ -184,14 +175,11 @@ calculated bare ground water and energy fluxes
 
 INPUTS:
 Land                       [LandType] struct containing information about landtype
-frac_veg_nosno             [int] fraction of vegetation not covered by snow (0 OR 1) [-]
 snl                        [int] number of snow layers
 forc_rho                   [double] density (kg/m**3)
 soilbeta                   [double] soil wetness relative to field capacity
 dqgdT                      [double] temperature derivative of "qg"
 htvp                       [double] latent heat of vapor of water (or sublimation) [j/kg]
-forc_q                     [double] atmospheric specific humidity (kg/kg)
-thm                        [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 t_h2osfc                   [double] surface water temperature
 qg_snow                    [double] specific humidity at snow surface [kg/kg]
 qg_soil                    [double] specific humidity at soil surface [kg/kg]
@@ -221,14 +209,11 @@ rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
   void ComputeFlux(
     const LandType& Land,
-    const int& frac_veg_nosno,
     const int& snl,
     const double& forc_rho,
     const double& soilbeta,
     const double& dqgdT,
     const double& htvp,
-    const double& forc_q,
-    const double& thm,
     const double& t_h2osfc,
     const double& qg_snow,
     const double& qg_soil,

@@ -23,7 +23,7 @@ ComputeFlux()
 class CanopyFluxes {
 
 private:
-  double btran0 = 0.0;
+  double btran0 = 0.0; // hardwired??
   double rssun; // leaf sunlit stomatal resistance (s/m) (output from Photosynthesis)
   double rssha; // leaf shaded stomatal resistance (s/m) (output from Photosynthesis)
   double lbl_rsc_h2o; // laminar boundary layer resistance for h2o
@@ -406,7 +406,11 @@ void InitializeFlux(
 }
 
 
-/*
+/* CanopyFluxes::StabilityIteration()
+DESCRIPTION:
+calculate Monin-Obukhov length and wind speed, call photosynthesis, calculate ET & SH flux
+Iterates until convergence, up to 40 iterations, calling friction velocity functions, then 
+photosynthesis for sun & shade. 
 
 INPUTS:
 Land             [LandType] struct containing information about landtype
@@ -428,7 +432,17 @@ h2ocan                     [double] canopy water (mm H2O)
 htop               [double] canopy top(m)
 t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 
-
+added for photosynthesis:
+veg                [VegProperties] struct containing vegetation constant parameters
+nrad                [int]  number of canopy layers above snow for radiative transfer
+t10                  [double] 10-day running mean of the 2 m temperature (K)
+tlai_z[nlevcan]       [double] pft total leaf area index for canopy layer
+vcmaxcintsha          [double] leaf to canopy scaling coefficient - shade
+vcmaxcintsun          [double] leaf to canopy scaling coefficient - sun
+parsha_z[nlevcan]     [double] par absorbed per unit lai for canopy layer (w/m**2) - shade
+parsun_z[nlevcan]     [double] par absorbed per unit lai for canopy layer (w/m**2) - sun
+laisha_z[nlevcan]     [double] leaf area index for canopy layer, sunlit or shaded - shade
+laisun_z[nlevcan]     [double] leaf area index for canopy layer, sunlit or shaded - sun
 
 
 OUTPUTS:
@@ -436,8 +450,6 @@ btran            [double]  transpiration wetness factor (0 to 1)
 qflx_tran_veg_out    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
 qflx_evap_veg_out    [double] vegetation evaporation (mm H2O/s) (+ = to atm)
 eflx_sh_veg_out      [double] sensible heat flux from leaves (W/m**2) [+ to atm]
-
-
 */
 void StabilityIteration(
   const LandType& Land,
@@ -470,14 +482,11 @@ void StabilityIteration(
   const double laisha_z[nlevcan],
   const double laisun_z[nlevcan],
 
-
-
   double& btran,
   double& qflx_tran_veg_out,
   double& qflx_evap_veg_out,
-  double& eflx_sh_veg_out
-  
-  )
+  double& eflx_sh_veg_out)
+
 // clm uses a decreasing index filter to act as a stop criteria
 // we operate on single cells, so we will replace the filter criteria with something else
 {
@@ -494,6 +503,7 @@ void StabilityIteration(
     double snow_depth_c, fsno_dl, elai_dl, rdl, rppdry, efpot, rpp;
     double dc1, dc2, efsh, erre, err, efeold, lw_grnd, dels, ecidif;
     double tstar, qstar, thvstar, wc, zeta, wtaq, wtlq, dele, det;
+
     while (itlef <= itmax && !stop) {
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
       FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
@@ -544,15 +554,15 @@ void StabilityIteration(
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) { btran = std::min(1.0, btran * 1.25); }
 
-      // call photosynthesis
-      // Photosynthesis(phase=sun); need to implement
+      // call photosynthesis (phase=sun)
       Photosynthesis(veg, Land.vtype, nrad, forc_pbot, t_veg, t10, svpts, eah, o2, co2, rb, btran, 
         dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) { btran = std::min(1.0, btran * 1.25); }
 
-      // call photosynthesis
-      // Photosynthesis(phase=shade); need to implement
+      // call photosynthesis (phase=shade)
+      Photosynthesis(veg, Land.vtype, nrad, forc_pbot, t_veg, t10, svpts, eah, o2, co2, rb, btran, 
+        dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, rssha);
 
       // Sensible heat conductance for air, leaf and ground
       wta   = 1.0 / rah[0];             // air
@@ -818,7 +828,7 @@ void ComputeFlux(
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
     // 2 m height relative humidity
     QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
-    rh_ref2m = std::min(100.0, q_ref2m / qsat_ref2m * 100.0);
+    rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m) * 100.0);
     rh_ref2m_r = rh_ref2m;
 
     // Downward longwave radiation below the canopy
@@ -833,7 +843,7 @@ void ComputeFlux(
     // Update dew accumulation (kg/m2)
     h2ocan = std::max(0.0, h2ocan + (qflx_tran_veg - qflx_evap_veg) * dtime);
 
-    // Determine total photosynthesis -- need to implement
+    // Determine total photosynthesis -- need to implement -- vars don't get used - diagnostics, maybe??
     // PhotosynthesisTotal(fn, filterp, atm2lnd_vars, cnstate_vars, canopystate_vars, photosyns_vars)
 
     // evaluate error and write?? -- best way to write?
