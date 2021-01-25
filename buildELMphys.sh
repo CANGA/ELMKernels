@@ -1,10 +1,20 @@
+#!/bin/bash
+
 if [ -d "build" ]; then 
   rm -rf "build"
 fi
+if [ -d "install" ]; then 
+  rm -rf "install"
+fi
 ORIGIN_DIR=${pwd}
-mkdir "build" ; cd "build"
-cmake .. \
-  -DCMAKE_CXX_FLAGS="-W -Wall -Wextra"
+mkdir "install" ; mkdir "build" ; cd "build"
+cmake ..\
+    -DBUILD_SHARED_LIBS:BOOL=true \
+    -DCMAKE_CXX_COMPILER:STRING=g++ \
+    -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install \
+    -DCMAKE_BUILD_TYPE:STRING=Debug \
+    -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
+    -DENABLE_KOKKOS:BOOL=true 
 make VERBOSE=1
 make install
 cd $ORIGIN_DIR

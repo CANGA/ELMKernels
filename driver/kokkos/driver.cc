@@ -2,6 +2,7 @@
 #include "landtype.h"
 #include "BareGroundFluxes.h"
 #include "Kokkos_Core.hpp"
+#include "Kokkos_functors.hh"
 
 
 using ArrayD1 = Kokkos::View<double*>;
@@ -36,8 +37,8 @@ int main(int argc, char** argv)
 {
   Kokkos::initialize( argc, argv);
 
-  const int ncells = 3;
-  const int ntimes = 2;
+  const int ncells = 300000;
+  const int ntimes = 2000000;
 
   { // scope to make Kokkos happy
   // instantiate data
@@ -74,7 +75,7 @@ int main(int argc, char** argv)
   auto qg_soil = create<ArrayD1>("qg_soil", ncells);
   auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", ncells);
 
-  auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno+1); // is this correct?  This is required by BareGroundFluxes_impl.hh:108
+  auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
   auto forc_pbot = create<ArrayD1>("forc_pbot", ncells);
 
   auto cgrnds = create<ArrayD1>("cgrnds", ncells);
@@ -99,66 +100,18 @@ int main(int argc, char** argv)
   // initialize
   Kokkos::View<ELM::BareGroundFluxes*> bg_fluxes("bare ground fluxes", ncells);
 
-  // iterate in time
+  BGFCaller bgf_caller(bg_fluxes, land, frac_vec_nosno_in, forc_u, forc_v, forc_q_in, forc_th_in, forc_hgt_u_patch_in, 
+    thm_in, thv_in, t_grnd, qg, z0mg_in, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, z0mg, zii, beta, 
+    z0hg, z0qg, snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno, forc_pbot, 
+    cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil, eflx_sh_h2osfc, qflx_evap_soi, 
+    qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc, t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r);
+
   for (int time=0; time!=ntimes; ++time) {
-    Kokkos::parallel_for("BareGroundFluxes", ncells,
-                         KOKKOS_LAMBDA(const int& c) {
-                           bg_fluxes[c].InitializeFlux(land,
-                                   frac_vec_nosno_in[c],
-                                   forc_u[c],
-                                   forc_v[c],
-                                   forc_q_in[c],
-                                   forc_th_in[c],
-                                   forc_hgt_u_patch_in[c],
-                                   thm_in[c],
-                                   thv_in[c],
-                                   t_grnd[c],
-                                   qg[c],
-                                   z0mg_in[c],
-                                   dlrad[c],
-                                   ulrad[c]);
-
-                           bg_fluxes[c].StabilityIteration(land,
-                                   forc_hgt_t_patch[c],
-                                   forc_hgt_q_patch[c],
-                                   z0mg[c],
-                                   zii[c],
-                                   beta[c],
-                                   z0hg[c],
-                                   z0qg[c]);
-
-                           bg_fluxes[c].ComputeFlux(land,
-                                   snl[c],
-                                   forc_rho[c],
-                                   soilbeta[c],
-                                   dqgdT[c],
-                                   htvp[c],
-                                   t_h2osfc[c],
-                                   qg_snow[c],
-                                   qg_soil[c],
-                                   qg_h2osfc[c],
-                                   Kokkos::subview(t_soisno, c, Kokkos::ALL),
-                                   forc_pbot[c],
-                                   cgrnds[c],
-                                   cgrndl[c],
-                                   cgrnd[c],
-                                   eflx_sh_grnd[c],
-                                   eflx_sh_tot[c],
-                                   eflx_sh_snow[c],
-                                   eflx_sh_soil[c],
-                                   eflx_sh_h2osfc[c],
-                                   qflx_evap_soi[c],
-                                   qflx_evap_tot[c],
-                                   qflx_ev_snow[c],
-                                   qflx_ev_soil[c],
-                                   qflx_ev_h2osfc[c],
-                                   t_ref2m[c],
-                                   t_ref2m_r[c],
-                                   q_ref2m[c],
-                                   rh_ref2m[c],
-                                   rh_ref2m_r[c]);
-                         });
-  } // loop in time
+   
+   // parallel functor call
+    Kokkos::parallel_for(ncells, bgf_caller);
+    std::cout << "running, t = " << time << std::endl;
+  }
 
   }
   Kokkos::finalize();

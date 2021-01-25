@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 enable_testing()
 
 project(ELM CXX)
+enable_language(C)
 
 
 # need netcdf
@@ -29,7 +30,7 @@ message("Found NetCDF = ${NetCDF_C_LIBRARIES}")
 
 # options for drivers
 option(ENABLE_CC "Enable building with default C-style driver" ON)
-option(ENABLE_Kokkos "Enable building with Kokkos driver" OFF)
+option(ENABLE_Kokkos "Enable building with Kokkos driver" ON)
 if (ENABLE_Kokkos)
   find_package(Kokkos REQUIRED)
 endif()

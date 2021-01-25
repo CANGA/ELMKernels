@@ -3,6 +3,7 @@
 #include "landtype.h"
 #include "BareGroundFluxes.h"
 #include "array.hh"
+#include <iostream>
 
 
 using ArrayD1 = ELM::Array<double,1>;
@@ -33,7 +34,7 @@ void assign(Array_t& arr, Scalar_t val) {
 int main(int argc, char** argv)
 {
   const int ncells = 3;
-  const int ntimes = 2;
+  const int ntimes = 2000;
 
 
   // instantiate data
@@ -153,6 +154,7 @@ int main(int argc, char** argv)
               rh_ref2m[c],
               rh_ref2m_r[c]);
     }
+    std::cout << "running, t= " << time << std::endl;
   }
 
   return 0;
