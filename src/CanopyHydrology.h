@@ -3,14 +3,16 @@ DESCRIPTION:
 functions derived from CanopyHydrologyMod.F90
 
 */
+#pragma once
 
 #include <algorithm>
 #include <cmath>
 #include "clm_constants.h"
 #include "landtype.h"
-#include "CanopyHydrology.h"
 
 namespace ELM {
+
+
 
 /* CanopyHydrology::Interception()
 DESCRIPTION:
@@ -50,63 +52,7 @@ fracrain          [double]   frac of precipitation that is rain [-]
     double& qflx_through_snow,
     double& qflx_through_rain,
     double& fracsnow,
-    double& fracrain) {
-
-    if (!Land.lakpoi) {
-      //Canopy interception/storage and throughfall
-      //Add precipitation to leaf water
-      if (Land.ltype == istsoil || Land.ltype == istwet || Land.urbpoi || Land.ltype == istcrop) {
-        qflx_candrip = 0.0;      // rate of canopy runoff
-        qflx_through_snow = 0.0; // rain precipitation direct through canopy
-        qflx_through_rain = 0.0; // snow precipitation direct through canopy
-        double qflx_prec_intr = 0.0;    // total intercepted precipitation
-        fracsnow = 0.0;          // fraction of input precip that is snow
-        fracrain = 0.0;          // fraction of input precip that is rain
-
-        if (Land.ctype != icol_sunwall && Land.ctype != icol_shadewall) {
-          if (frac_veg_nosno == 1 && (forc_rain + forc_snow) > 0.0) {
-            // determine fraction of input precipitation that is snow and rain
-            fracsnow = forc_snow/(forc_snow + forc_rain);
-            fracrain = forc_rain/(forc_snow + forc_rain);
-            // The leaf water capacities for solid and liquid are different,
-            // generally double for snow, but these are of somewhat less
-            // significance for the water budget because of lower evap. rate at
-            // lower temperature.  Hence, it is reasonable to assume that
-            // vegetation storage of solid water is the same as liquid water.
-            double h2ocanmx = dewmx * (elai + esai);
-            // Coefficient of interception
-            // set fraction of potential interception to max 0.25
-            double fpi = 0.25 * (1.0 - exp(-0.5*(elai + esai)));
-            // Direct throughfall
-            qflx_through_snow = forc_snow * (1.0-fpi);
-            qflx_through_rain = forc_rain * (1.0-fpi);
-            // Intercepted precipitation [mm/s]
-            qflx_prec_intr = (forc_snow + forc_rain) * fpi;
-            // Water storage of intercepted precipitation and dew
-            h2ocan = std::max(0.0, (h2ocan + dtime*qflx_prec_intr));
-            // Initialize rate of canopy runoff and snow falling off canopy
-            qflx_candrip = 0.0;
-            // Excess water that exceeds the leaf capacity
-            double xrun = (h2ocan - h2ocanmx)/dtime;
-            // Test on maximum dew on leaf
-            // Note if xrun > 0 then h2ocan must be at least h2ocanmx
-            if (xrun > 0.0) {
-              qflx_candrip = xrun;
-              h2ocan = h2ocanmx;
-            }
-          }
-        }
-      } else if (Land.ltype == istice || Land.ltype == istice_mec) {
-        h2ocan            = 0.0;
-        qflx_candrip      = 0.0;
-        qflx_through_snow = 0.0;
-        qflx_through_rain = 0.0;
-        double qflx_prec_intr    = 0.0;
-        fracsnow          = 0.0;
-        fracrain          = 0.0;
-      }
-    }
-  } // Interception
+    double& fracrain);
 
 
 /* CanopyHydrology::Irrigation()
@@ -126,16 +72,7 @@ qflx_irrig         [double]   irrigation amount (mm/s)
     const LandType& Land,
     const double& irrig_rate,
     int& n_irrig_steps_left,
-    double& qflx_irrig) {
-    if (!Land.lakpoi) {
-      if (n_irrig_steps_left > 0) {
-        qflx_irrig = irrig_rate;
-        n_irrig_steps_left -= 1;
-      } else {
-        qflx_irrig = 0.0;
-      }
-    }
-  } // Irrigation
+    double& qflx_irrig);
 
 
 /* CanopyHydrology::GroundFlux()
@@ -179,42 +116,7 @@ qflx_rain_grnd    [double]   rain on ground after interception (mm H2O/s) [+]
     double& qflx_snwcp_liq,
     double& qflx_snwcp_ice,
     double& qflx_snow_grnd,
-    double& qflx_rain_grnd) {
-    
-    if (!Land.lakpoi) {
-      double qflx_prec_grnd_snow, qflx_prec_grnd_rain; 
-      // Precipitation onto ground (kg/(m2 s))
-      if ((Land.ctype != icol_sunwall) && (Land.ctype != icol_shadewall)) {
-        if (frac_veg_nosno == 0) {
-          qflx_prec_grnd_snow = forc_snow;
-          qflx_prec_grnd_rain = forc_rain;
-        } else {
-          qflx_prec_grnd_snow = qflx_through_snow + (qflx_candrip * fracsnow);
-          qflx_prec_grnd_rain = qflx_through_rain + (qflx_candrip * fracrain);
-        }
-      } else {
-      // Urban sunwall and shadewall have no intercepted precipitation
-        qflx_prec_grnd_snow = 0.0;
-        qflx_prec_grnd_rain = 0.0;
-      }
-      // Add irrigation water directly onto ground (bypassing canopy interception)
-      qflx_prec_grnd_rain = qflx_prec_grnd_rain + qflx_irrig;
-      // Total water onto ground
-      qflx_prec_grnd = qflx_prec_grnd_snow + qflx_prec_grnd_rain;
-      
-      if (do_capsnow) {
-        qflx_snwcp_liq = qflx_prec_grnd_rain;
-        qflx_snwcp_ice = qflx_prec_grnd_snow;
-        qflx_snow_grnd = 0.0;
-        qflx_rain_grnd = 0.0;
-      } else {
-        qflx_snwcp_liq = 0.0;
-        qflx_snwcp_ice = 0.0;
-        qflx_snow_grnd = qflx_prec_grnd_snow; // ice onto ground (mm/s)
-        qflx_rain_grnd = qflx_prec_grnd_rain; // liquid water onto ground (mm/s)
-      }
-    }
-  } // GroundFlux
+    double& qflx_rain_grnd);
 
 
 /* CanopyHydrology::FracWet()
@@ -246,27 +148,98 @@ fdry           [double]   fraction of foliage that is green and dry [-] (new)
     const double& esai,
     const double& h2ocan,
     double& fwet,
-    double& fdry) {
-
-    if (!Land.lakpoi) {
-      if (frac_veg_nosno == 1) {
-        if (h2ocan > 0.0) {
-          double vegt = frac_veg_nosno * (elai + esai);
-          double dewmxi = 1.0 / dewmx;
-          fwet = pow(((dewmxi/vegt)*h2ocan), 2.0/3.0);
-          fwet = std::min(fwet, 1.0);  //Check for maximum limit of fwet
-        } else {
-          fwet = 0.0;
-        }
-        fdry = (1.0 - fwet) * elai / (elai + esai);
-      } else {
-        fwet = 0.0;
-        fdry = 0.0;
-      }
-    }
-  } // FracWet
+    double& fdry);
 
 
+/* CanopyHydrology::SnowInit()
+DESCRIPTION:
+Initialization snow layer(s) if the snow accumulation exceeds 10 mm.
 
+INPUTS:
+Land                         [LandType] struct containing information about landtype 
+dtime                        [double] time step length (sec)
+do_capsnow                   [bool] true => do snow capping
+oldfflag                     [int]  use old fsno parameterization
+forc_t                       [double] atmospheric temperature (Kelvin)
+t_grnd                       [double] ground temperature (Kelvin)
+qflx_snow_grnd               [double]   snow on ground after interception (mm H2O/s) [+]
+qflx_rain_grnd               [double]   rain on ground after interception (mm H2O/s) [+]
+n_melt                       [double]   SCA shape parameter [-]
+
+OUTPUTS:
+snow_depth                   [double] snow height (m)
+h2osno                       [double] snow water (mm H2O)
+int_snow                     [double] integrated snowfall [mm]
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+t_soisno[nlevgrnd+nlevsno]   [double] soil temperature (Kelvin)
+frac_iceold[nlevgrnd+nlevsno] [double] fraction of ice relative to the tot water
+snl                          [int] number of snow layers
+dz                           [double] layer thickness (m)
+z                            [double] layer cell center elevation (m)
+zi                           [double] layer interface elevation (m)
+snw_rds[nlevsno]             [double] snow grain radius [m^-6, microns]
+qflx_snow_h2osfc             [double] snow falling on surface water (mm/s)
+frac_sno_eff                 [double] fraction of ground covered by snow (0 to 1)
+frac_sno                     [double] fraction of ground covered by snow (0 to 1)
+*/
+  template<class dArray_type>
+  void SnowInit(
+    const LandType& Land,
+    const double& dtime,
+    const bool& do_capsnow,                            
+    const int& oldfflag,
+    const double& forc_t,
+    const double& t_grnd,
+    const double& qflx_snow_grnd,
+    const double& qflx_snow_melt,
+    const double& n_melt,
+    
+    double& snow_depth,
+    double& h2osno,
+    double& int_snow,
+    dArray_type swe_old,
+    dArray_type h2osoi_liq,
+    dArray_type h2osoi_ice,
+    dArray_type t_soisno,
+    dArray_type frac_iceold,
+    int& snl,
+    dArray_type dz,
+    dArray_type z,
+    dArray_type zi,
+    dArray_type snw_rds,
+    double& qflx_snow_h2osfc,
+    double& frac_sno_eff,
+    double& frac_sno);
+
+/* CanopyHydrology::FracH2OSfc()
+DESCRIPTION:
+Determine fraction of land surfaces which are submerged  
+based on surface microtopography and surface water storage.
+
+INPUTS:
+Land                         [LandType] struct containing information about landtype 
+micro_sigma                  [double] microtopography pdf sigma (m)
+h2osno                       [double] snow water (mm H2O)
+no_update                    [bool] flag to make calculation w/o updating variables
+
+OUTPUTS:
+h2osfc                       [double] surface water (mm)
+h2osoi_liq[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+frac_sno                     [double] fraction of ground covered by snow (0 to 1)
+frac_sno_eff                 [double] effective fraction of ground covered by snow (0 to 1)
+frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)
+*/
+  template<class dArray_type>
+  void FracH2OSfc(
+    const LandType& Land,
+    const double& micro_sigma,
+    const double& h2osno,
+
+    double& h2osfc,
+    dArray_type h2osoi_liq,
+    double& frac_sno,
+    double& frac_sno_eff,
+    double& frac_h2osfc);
 
 } // namespace ELM

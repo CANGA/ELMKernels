@@ -12,9 +12,10 @@ cmake ..\
     -DBUILD_SHARED_LIBS:BOOL=true \
     -DCMAKE_CXX_COMPILER:STRING=g++ \
     -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install \
-    -DCMAKE_BUILD_TYPE:STRING=Debug \
+    -DCMAKE_BUILD_TYPE:STRING=Release \
     -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
-    -DENABLE_KOKKOS:BOOL=true 
+    -DENABLE_Kokkos:BOOL=ON \
+    -DENABLE_CC:BOOL=ON
 make VERBOSE=1
 make install
 cd $ORIGIN_DIR
