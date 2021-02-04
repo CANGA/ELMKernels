@@ -2,6 +2,7 @@
 #include "landtype.h"
 #include "BareGroundFluxes.h"
 #include "CallCanopyHydrology.hh"
+#include "CallSurfaceRadiation.hh"
 #include "Kokkos_Core.hpp"
 #include "Kokkos_functors.hh"
 
@@ -44,7 +45,7 @@ int main(int argc, char** argv)
   { // scope to make Kokkos happy
   // instantiate data
   // for CanopyHydrology
-    ELM::LandType land;
+    ELM::LandType Land;
     double dtime = 0.5;
     auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", ncells);
     auto snl = create<ArrayI1>("snl", ncells); assign(snl, 5);
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
     // run CanopyHydrology functions
     int i = 0;
     while (i != ntimes) {
-    CanopyHydrologyInvoke(ncells, land, frac_veg_nosno, n_irrig_steps_left, snl, dtime, forc_rain, 
+    CanopyHydrologyInvoke(ncells, Land, frac_veg_nosno, n_irrig_steps_left, snl, dtime, forc_rain, 
       forc_snow, elai, esai, h2ocan, irrig_rate, qflx_irrig, qflx_prec_grnd, qflx_snwcp_liq, qflx_snwcp_ice, 
       qflx_snow_grnd, qflx_rain_grnd, fwet, fdry, forc_t, t_grnd, qflx_snow_melt, n_melt, micro_sigma, snow_depth, 
       h2osno, int_snow, qflx_snow_h2osfc, h2osfc, frac_h2osfc, frac_sno_eff, frac_sno, swe_old, h2osoi_liq, h2osoi_ice, 
@@ -97,6 +98,54 @@ int main(int argc, char** argv)
     i++;
     }
 
+    auto nrad = create<ArrayI1>("nrad", ncells);
+    auto fsr = create<ArrayD1>("fsr", ncells);
+    auto laisun = create<ArrayD1>("laisun", ncells);
+    auto laisha = create<ArrayD1>("laisha", ncells);
+    auto sabg_soil = create<ArrayD1>("sabg_soil", ncells);
+    auto sabg_snow = create<ArrayD1>("sabg_snow", ncells);
+    auto sabg = create<ArrayD1>("sabg", ncells);
+    auto sabv = create<ArrayD1>("sabv", ncells);
+    auto fsa = create<ArrayD1>("fsa", ncells);
+    auto tlai_z = create<ArrayD2>("tlai_z", ncells, ELM::nlevcan);
+    auto fsun_z = create<ArrayD2>("fsun_z", ncells, ELM::nlevcan);
+    auto forc_solad = create<ArrayD2>("forc_solad", ncells, ELM::numrad);
+    auto forc_solai = create<ArrayD2>("forc_solai", ncells, ELM::numrad);
+    auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", ncells, ELM::nlevcan);
+    auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", ncells, ELM::nlevcan);
+    auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", ncells, ELM::nlevcan);
+    auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", ncells, ELM::nlevcan);
+    auto parsun_z = create<ArrayD2>("parsun_z", ncells, ELM::nlevcan);
+    auto parsha_z = create<ArrayD2>("parsha_z", ncells, ELM::nlevcan);
+    auto laisun_z = create<ArrayD2>("laisun_z", ncells, ELM::nlevcan);
+    auto laisha_z = create<ArrayD2>("laisha_z", ncells, ELM::nlevcan);
+    auto sabg_lyr = create<ArrayD2>("sabg_lyr", ncells, ELM::nlevsno + 1);
+    auto ftdd = create<ArrayD2>("ftdd", ncells, ELM::numrad);
+    auto ftid = create<ArrayD2>("ftid", ncells, ELM::numrad);
+    auto ftii = create<ArrayD2>("ftii", ncells, ELM::numrad);
+    auto fabd = create<ArrayD2>("fabd", ncells, ELM::numrad);
+    auto fabi = create<ArrayD2>("fabi", ncells, ELM::numrad);
+    auto albsod = create<ArrayD2>("albsod", ncells, ELM::numrad);
+    auto albsoi = create<ArrayD2>("albsoi", ncells, ELM::numrad);
+    auto albsnd_hst = create<ArrayD2>("albsnd_hst", ncells, ELM::numrad);
+    auto albsni_hst = create<ArrayD2>("albsni_hst", ncells, ELM::numrad);
+    auto albgrd = create<ArrayD2>("albgrd", ncells, ELM::numrad);
+    auto albgri = create<ArrayD2>("albgri", ncells, ELM::numrad);
+    auto flx_absdv = create<ArrayD2>("flx_absdv", ncells, ELM::nlevsno + 1);
+    auto flx_absdn = create<ArrayD2>("flx_absdn", ncells, ELM::nlevsno + 1);
+    auto flx_absiv = create<ArrayD2>("flx_absiv", ncells, ELM::nlevsno + 1);
+    auto flx_absin = create<ArrayD2>("flx_absin", ncells, ELM::nlevsno + 1);
+    auto albd = create<ArrayD2>("albd", ncells, ELM::numrad);
+    auto albi = create<ArrayD2>("albi", ncells, ELM::numrad);
+    
+    i = 0;
+    while (i != ntimes) {
+    SurfaceRadiationInvoke(ncells, Land, nrad, snl, elai, snow_depth, fsr, laisun, laisha, sabg_soil, 
+      sabg_snow, sabg, sabv, fsa, tlai_z, fsun_z, forc_solad, forc_solai, fabd_sun_z, fabd_sha_z, fabi_sun_z, 
+      fabi_sha_z, parsun_z, parsha_z, laisun_z, laisha_z, sabg_lyr, ftdd, ftid, ftii, fabd, fabi, albsod, albsoi, 
+      albsnd_hst, albsni_hst, albgrd, albgri, flx_absdv, flx_absdn, flx_absiv, flx_absin, albd, albi);
+    i++;
+    }
 
 
 
@@ -158,7 +207,7 @@ int main(int argc, char** argv)
 //  // initialize
 //  Kokkos::View<ELM::BareGroundFluxes*> bg_fluxes("bare ground fluxes", ncells);
 //
-//  BGFCaller bgf_caller(bg_fluxes, land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, 
+//  BGFCaller bgf_caller(bg_fluxes, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, 
 //    thm, thv, t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, zii, beta, 
 //    z0hg, z0qg, snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno, forc_pbot, 
 //    cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil, eflx_sh_h2osfc, qflx_evap_soi, 
