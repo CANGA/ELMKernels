@@ -9,6 +9,7 @@ SurfRadReflected
 */
 #pragma once
 
+#include "SurfaceRadiation_impl.hh"
 #include "clm_constants.h"
 #include "landtype.h"
 #include <assert.h>

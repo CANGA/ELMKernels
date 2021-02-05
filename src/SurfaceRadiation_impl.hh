@@ -7,6 +7,7 @@ SurfRadAbsorbed()
 SurfRadLayers()
 SurfRadReflected
 */
+#pragma once
 
 #include "clm_constants.h"
 #include "landtype.h"

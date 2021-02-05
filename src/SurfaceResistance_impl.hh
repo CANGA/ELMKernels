@@ -1,5 +1,7 @@
 // functions from SurfaceResistanceMod.F90
 
+#pragma once
+
 #include "clm_constants.h"
 #include "landtype.h"
 #include <algorithm>
@@ -27,10 +29,10 @@ dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 OUTPUTS:
 soilbeta [double] factor that reduces ground evaporation
 */
-void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double *watsat,
-                          const double *watfc, const double *h2osoi_liq, const double *h2osoi_ice, const double *dz,
-
-                          double &soilbeta) {
+template <class dArray_type>
+void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
+                          const dArray_type watsat, const dArray_type watfc, const dArray_type h2osoi_liq,
+                          const dArray_type h2osoi_ice, const dArray_type dz, double &soilbeta) {
   if (!Land.lakpoi) {
 
     // local variables

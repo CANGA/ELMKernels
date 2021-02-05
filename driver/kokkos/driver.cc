@@ -1,13 +1,15 @@
 #include "BareGroundFluxes.h"
 #include "CallCanopyHydrology.hh"
+#include "CallCanopyTemperature.hh"
 #include "CallSurfaceRadiation.hh"
 #include "Kokkos_Core.hpp"
 #include "Kokkos_functors.hh"
 #include "clm_constants.h"
 #include "landtype.h"
 
-using ArrayD1 = Kokkos::View<double *>;
+using ArrayB1 = Kokkos::View<bool *>;
 using ArrayI1 = Kokkos::View<int *>;
+using ArrayD1 = Kokkos::View<double *>;
 using ArrayD2 = Kokkos::View<double **>;
 
 template <typename Array_t> Array_t create(const std::string &name, int D0) { return Array_t(name, D0); }
@@ -134,49 +136,103 @@ int main(int argc, char **argv) {
       i++;
     }
 
+    auto veg_active = create<ArrayB1>("veg_active", ncells);
+    auto t_h2osfc = create<ArrayD1>("t_h2osfc", ncells);
+    auto t_h2osfc_bef = create<ArrayD1>("t_h2osfc_bef", ncells);
+    auto smpmin = create<ArrayD1>("smpmin", ncells);
+    auto forc_q = create<ArrayD1>("forc_q", ncells);
+    auto forc_pbot = create<ArrayD1>("forc_pbot", ncells);
+    auto forc_th = create<ArrayD1>("forc_th", ncells);
+    auto htop = create<ArrayD1>("htop", ncells);
+    auto forc_hgt_u = create<ArrayD1>("forc_hgt_u", ncells);
+    auto forc_hgt_t = create<ArrayD1>("forc_hgt_t", ncells);
+    auto forc_hgt_q = create<ArrayD1>("forc_hgt_q", ncells);
+    auto z_0_town = create<ArrayD1>("z_0_town", ncells);
+    auto z_d_town = create<ArrayD1>("z_d_town", ncells);
+    auto soilalpha = create<ArrayD1>("soilalpha", ncells);
+    auto soilalpha_u = create<ArrayD1>("soilalpha_u", ncells);
+    auto soilbeta = create<ArrayD1>("soilbeta", ncells);
+    auto qg_snow = create<ArrayD1>("qg_snow", ncells);
+    auto qg_soil = create<ArrayD1>("qg_soil", ncells);
+    auto qg = create<ArrayD1>("qg", ncells);
+    auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", ncells);
+    auto dqgdT = create<ArrayD1>("dqgdT", ncells);
+    auto htvp = create<ArrayD1>("htvp", ncells);
+    auto emg = create<ArrayD1>("emg", ncells);
+    auto emv = create<ArrayD1>("emv", ncells);
+    auto z0mg = create<ArrayD1>("z0mg", ncells);
+    auto z0hg = create<ArrayD1>("z0hg", ncells);
+    auto z0qg = create<ArrayD1>("z0qg", ncells);
+    auto z0mv = create<ArrayD1>("z0mv", ncells);
+    auto z0hv = create<ArrayD1>("z0hv", ncells);
+    auto z0qv = create<ArrayD1>("z0qv", ncells);
+    auto beta = create<ArrayD1>("beta", ncells);
+    auto zii = create<ArrayD1>("zii", ncells);
+    auto thv = create<ArrayD1>("thv", ncells);
+    auto z0m = create<ArrayD1>("z0m", ncells);
+    auto displa = create<ArrayD1>("displa", ncells);
+    auto cgrnds = create<ArrayD1>("cgrnds", ncells);
+    auto cgrndl = create<ArrayD1>("cgrndl", ncells);
+    auto cgrnd = create<ArrayD1>("cgrnd", ncells);
+    auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", ncells);
+    auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", ncells);
+    auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", ncells);
+    auto thm = create<ArrayD1>("thm", ncells);
+    auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", ncells);
+    auto eflx_sh_tot_u = create<ArrayD1>("eflx_sh_tot_u", ncells);
+    auto eflx_sh_tot_r = create<ArrayD1>("eflx_sh_tot_r", ncells);
+    auto eflx_lh_tot = create<ArrayD1>("eflx_lh_tot", ncells);
+    auto eflx_lh_tot_u = create<ArrayD1>("eflx_lh_tot_u", ncells);
+    auto eflx_lh_tot_r = create<ArrayD1>("eflx_lh_tot_r", ncells);
+    auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", ncells);
+    auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", ncells);
+    auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", ncells);
+    auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", ncells);
+    auto tssbef = create<ArrayD2>("tssbef", ncells, ELM::nlevgrnd + ELM::nlevsno);
+    auto watsat = create<ArrayD2>("watsat", ncells, ELM::nlevgrnd);
+    auto sucsat = create<ArrayD2>("sucsat", ncells, ELM::nlevgrnd);
+    auto bsw = create<ArrayD2>("bsw", ncells, ELM::nlevgrnd);
+    auto watdry = create<ArrayD2>("watdry", ncells, ELM::nlevgrnd);
+    auto watopt = create<ArrayD2>("watopt", ncells, ELM::nlevgrnd);
+    auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", ncells, ELM::nlevgrnd);
+    auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", ncells, ELM::nlevgrnd);
+    auto watfc = create<ArrayD2>("watfc", ncells, ELM::nlevgrnd);
+    auto displar = create<ArrayD2>("displar", ncells, ELM::numpft);
+    auto z0mr = create<ArrayD2>("z0mr", ncells, ELM::numpft);
+
+    i = 0;
+    while (i != ntimes) {
+      canopyTemperatureInvoke(ncells, Land, veg_active, snl, frac_veg_nosno, t_h2osfc, t_h2osfc_bef, frac_sno_eff,
+                              frac_h2osfc, frac_sno, smpmin, forc_q, forc_pbot, forc_th, elai, esai, htop, forc_hgt_u,
+                              forc_hgt_t, forc_hgt_q, z_0_town, z_d_town, forc_t, t_grnd, soilalpha, soilalpha_u,
+                              soilbeta, qg_snow, qg_soil, qg, qg_h2osfc, dqgdT, emg, emv, htvp, z0mg, z0hg, z0qg, z0mv,
+                              z0hv, z0qv, beta, zii, thv, z0m, displa, cgrnd, cgrnds, cgrndl, forc_hgt_u_patch,
+                              forc_hgt_t_patch, forc_hgt_q_patch, thm, eflx_sh_tot, eflx_sh_tot_u, eflx_sh_tot_r,
+                              eflx_lh_tot, eflx_lh_tot_u, eflx_lh_tot_r, eflx_sh_veg, qflx_evap_tot, qflx_evap_veg,
+                              qflx_tran_veg, tssbef, t_soisno, h2osoi_liq, h2osoi_ice, dz, watsat, sucsat, bsw, watdry,
+                              watopt, rootfr_road_perv, rootr_road_perv, watfc, displar, z0mr);
+      i++;
+    }
+
     //
     //  auto forc_u = create<ArrayD1>("forc_u", ncells);
     //  auto forc_v = create<ArrayD1>("forc_v", ncells);
-    //  auto forc_q = create<ArrayD1>("forc_q", ncells);
-    //  auto forc_th = create<ArrayD1>("forc_th", ncells);
-    //  auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", ncells);
-    //  auto thm = create<ArrayD1>("thm", ncells);
-    //  auto thv = create<ArrayD1>("thv", ncells);
-    //  auto qg = create<ArrayD1>("qg", ncells);
-    //  auto z0mg = create<ArrayD1>("z0mg", ncells);
     //  auto dlrad = create<ArrayD1>("dlrad", ncells);
     //  auto ulrad = create<ArrayD1>("ulrad", ncells);
     //
-    //  auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", ncells);
-    //  auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", ncells);
-    //  auto zii = create<ArrayD1>("zii", ncells);
     //  auto beta = create<ArrayD1>("beta", ncells);
-    //  auto z0hg = create<ArrayD1>("z0hg", ncells);
-    //  auto z0qg = create<ArrayD1>("z0qg", ncells);
     //
     //
     //  auto forc_rho = create<ArrayD1>("forc_rho", ncells);
-    //  auto soilbeta = create<ArrayD1>("soilbeta", ncells);
-    //  auto dqgdT = create<ArrayD1>("dqgdT", ncells);
-    //  auto htvp = create<ArrayD1>("htvp", ncells);
-    //  auto t_h2osfc = create<ArrayD1>("t_h2osfc", ncells);
-    //  auto qg_snow = create<ArrayD1>("qg_snow", ncells);
-    //  auto qg_soil = create<ArrayD1>("qg_soil", ncells);
-    //  auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", ncells);
     //
     //  auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
     //  auto forc_pbot = create<ArrayD1>("forc_pbot", ncells);
     //
-    //  auto cgrnds = create<ArrayD1>("cgrnds", ncells);
-    //  auto cgrndl = create<ArrayD1>("cgrndl", ncells);
-    //  auto cgrnd = create<ArrayD1>("cgrnd", ncells);
     //  auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", ncells);
-    //  auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", ncells);
     //  auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
     //  auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
     //  auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
     //  auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
-    //  auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", ncells);
     //  auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
     //  auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", ncells);
     //  auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", ncells);
