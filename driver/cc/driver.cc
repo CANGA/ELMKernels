@@ -1,41 +1,25 @@
-#include <string>
-#include "clm_constants.h"
-#include "landtype.h"
 #include "BareGroundFluxes.h"
 #include "array.hh"
+#include "clm_constants.h"
+#include "landtype.h"
 #include <iostream>
+#include <string>
 
+using ArrayD1 = ELM::Array<double, 1>;
+using ArrayI1 = ELM::Array<int, 1>;
+using ArrayD2 = ELM::Array<double, 2>;
 
-using ArrayD1 = ELM::Array<double,1>;
-using ArrayI1 = ELM::Array<int,1>;
-using ArrayD2 = ELM::Array<double,2>;
+template <class Array_t> Array_t create(const std::string &name, int D0) { return Array_t(D0); }
 
-template<class Array_t>
-Array_t create(const std::string& name, int D0) {
-  return Array_t(D0);
-}
+template <class Array_t> Array_t create(const std::string &name, int D0, int D1) { return Array_t(D0, D1); }
 
-template<class Array_t>
-Array_t create(const std::string& name, int D0, int D1) {
-  return Array_t(D0, D1);
-}
+template <class Array_t> Array_t create(const std::string &name, int D0, int D1, int D2) { return Array_t(D0, D1, D2); }
 
-template<class Array_t>
-Array_t create(const std::string& name, int D0, int D1, int D2) {
-  return Array_t(D0, D1, D2);
-}
+template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t val) { ELM::deep_copy(arr, val); }
 
-
-template<class Array_t, typename Scalar_t>
-void assign(Array_t& arr, Scalar_t val) {
-  ELM::deep_copy(arr, val);
-}
-
-int main(int argc, char** argv)
-{
-  const int ncells = 3;
-  const int ntimes = 2000;
-
+int main(int argc, char **argv) {
+  const int ncells = 300000;
+  const int ntimes = 2000000;
 
   // instantiate data
   ELM::LandType land;
@@ -61,7 +45,8 @@ int main(int argc, char** argv)
   auto z0hg = create<ArrayD1>("z0hg", ncells);
   auto z0qg = create<ArrayD1>("z0qg", ncells);
 
-  auto snl = create<ArrayI1>("snl", ncells); assign(snl, 1); // fix me!
+  auto snl = create<ArrayI1>("snl", ncells);
+  assign(snl, 1); // fix me!
   auto forc_rho = create<ArrayD1>("forc_rho", ncells);
   auto soilbeta = create<ArrayD1>("soilbeta", ncells);
   auto dqgdT = create<ArrayD1>("dqgdT", ncells);
@@ -71,7 +56,8 @@ int main(int argc, char** argv)
   auto qg_soil = create<ArrayD1>("qg_soil", ncells);
   auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", ncells);
 
-  auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno+1); // is this correct?  This is required by BareGroundFluxes_impl.hh:108
+  auto t_soisno = create<ArrayD2>(
+      "t_soisno", ncells, ELM::nlevsno + 1); // is this correct?  This is required by BareGroundFluxes_impl.hh:108
   auto forc_pbot = create<ArrayD1>("forc_pbot", ncells);
 
   auto cgrnds = create<ArrayD1>("cgrnds", ncells);
@@ -94,69 +80,26 @@ int main(int argc, char** argv)
   auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", ncells);
 
   // initialize
-  auto bg_fluxes = create<ELM::Array<ELM::BareGroundFluxes,1> >("bg_fluxes", ncells);
+  auto bg_fluxes = create<ELM::Array<ELM::BareGroundFluxes, 1>>("bg_fluxes", ncells);
 
   // iterate in time
-  for (int time=0; time!=ntimes; ++time) {
-    for (int c=0; c!=ncells; ++c) {
-      bg_fluxes[c].InitializeFlux(land,
-              frac_vec_nosno_in[c],
-              forc_u[c],
-              forc_v[c],
-              forc_q_in[c],
-              forc_th_in[c],
-              forc_hgt_u_patch_in[c],
-              thm_in[c],
-              thv_in[c],
-              t_grnd[c],
-              qg[c],
-              z0mg_in[c],
-              dlrad[c],
-              ulrad[c]);
+  for (int time = 0; time != ntimes; ++time) {
+    for (int c = 0; c != ncells; ++c) {
+      bg_fluxes[c].InitializeFlux(land, frac_vec_nosno_in[c], forc_u[c], forc_v[c], forc_q_in[c], forc_th_in[c],
+                                  forc_hgt_u_patch_in[c], thm_in[c], thv_in[c], t_grnd[c], qg[c], z0mg_in[c], dlrad[c],
+                                  ulrad[c]);
 
-      bg_fluxes[c].StabilityIteration(land,
-              forc_hgt_t_patch[c],
-              forc_hgt_q_patch[c],
-              z0mg[c],
-              zii[c],
-              beta[c],
-              z0hg[c],
-              z0qg[c]);
+      bg_fluxes[c].StabilityIteration(land, forc_hgt_t_patch[c], forc_hgt_q_patch[c], z0mg[c], zii[c], beta[c], z0hg[c],
+                                      z0qg[c]);
 
-      bg_fluxes[c].ComputeFlux(land,
-              snl[c],
-              forc_rho[c],
-              soilbeta[c],
-              dqgdT[c],
-              htvp[c],
-              t_h2osfc[c],
-              qg_snow[c],
-              qg_soil[c],
-              qg_h2osfc[c],
-              t_soisno[c],
-              forc_pbot[c],
-              cgrnds[c],
-              cgrndl[c],
-              cgrnd[c],
-              eflx_sh_grnd[c],
-              eflx_sh_tot[c],
-              eflx_sh_snow[c],
-              eflx_sh_soil[c],
-              eflx_sh_h2osfc[c],
-              qflx_evap_soi[c],
-              qflx_evap_tot[c],
-              qflx_ev_snow[c],
-              qflx_ev_soil[c],
-              qflx_ev_h2osfc[c],
-              t_ref2m[c],
-              t_ref2m_r[c],
-              q_ref2m[c],
-              rh_ref2m[c],
-              rh_ref2m_r[c]);
+      bg_fluxes[c].ComputeFlux(land, snl[c], forc_rho[c], soilbeta[c], dqgdT[c], htvp[c], t_h2osfc[c], qg_snow[c],
+                               qg_soil[c], qg_h2osfc[c], t_soisno[c], forc_pbot[c], cgrnds[c], cgrndl[c], cgrnd[c],
+                               eflx_sh_grnd[c], eflx_sh_tot[c], eflx_sh_snow[c], eflx_sh_soil[c], eflx_sh_h2osfc[c],
+                               qflx_evap_soi[c], qflx_evap_tot[c], qflx_ev_snow[c], qflx_ev_soil[c], qflx_ev_h2osfc[c],
+                               t_ref2m[c], t_ref2m_r[c], q_ref2m[c], rh_ref2m[c], rh_ref2m_r[c]);
     }
     std::cout << "running, t= " << time << std::endl;
   }
 
   return 0;
 }
-

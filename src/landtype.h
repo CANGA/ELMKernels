@@ -4,12 +4,7 @@ namespace ELM {
 
 struct LandType {
 
-  LandType() :
-    ltype(0),
-    ctype(0),
-    vtype(0),
-    urbpoi(false),
-    lakpoi(false) {}
+  LandType() : ltype(0), ctype(0), vtype(0), urbpoi(false), lakpoi(false) {}
 
   // land unit, urban unit, vegetation unit
   int ltype, ctype, vtype;
@@ -17,5 +12,4 @@ struct LandType {
   bool urbpoi, lakpoi;
 };
 
-
-} // namespace
+} // namespace ELM

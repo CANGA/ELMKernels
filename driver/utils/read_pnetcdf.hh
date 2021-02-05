@@ -5,43 +5,31 @@
 // Generic readers/writers using sequential NETCDF
 //
 
-#include <string>
 #include <array>
 #include <iostream>
+#include <string>
 
+#include "array.hh"
 #include "mpi.h"
 #include "pnetcdf.h"
-#include "array.hh"
 #include "utils.hh"
 
-#define NC_HANDLE_ERROR( status, what )         \
-  do {                                          \
-    if ( status )                               \
-    {                                           \
-      std::cout                                 \
-          << __FILE__                           \
-          << ':'                                \
-          << __LINE__                           \
-          << ':'                                \
-          << what                               \
-          << " failed with rc = "               \
-          << status                             \
-          << ':'                                \
-          << ncmpi_strerror( status )              \
-          << '\n' ;                             \
-      abort() ;                                 \
-    }                                           \
-  } while ( 0 )
+#define NC_HANDLE_ERROR(status, what)                                                                                  \
+  do {                                                                                                                 \
+    if (status) {                                                                                                      \
+      std::cout << __FILE__ << ':' << __LINE__ << ':' << what << " failed with rc = " << status << ':'                 \
+                << ncmpi_strerror(status) << '\n';                                                                     \
+      abort();                                                                                                         \
+    }                                                                                                                  \
+  } while (0)
 
 namespace ELM {
 namespace IO {
 
-
 //
 // Generic readers/writers
 // -----------------------------------------------------------------------------
-inline void error(int status, const std::string& func, const std::string& file, const std::string& var="")
-{
+inline void error(int status, const std::string &func, const std::string &file, const std::string &var = "") {
   std::string what = func + " \"" + file + ":" + var + "\"";
   NC_HANDLE_ERROR(status, what);
 }
@@ -49,13 +37,11 @@ inline void error(int status, const std::string& func, const std::string& file, 
 //
 // Dimensions as they are in the file.
 //
-template<size_t D>
-inline std::array<GO,D>
-get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::string& varname)
-{
+template <size_t D>
+inline std::array<GO, D> get_dimensions(const MPI_Comm &comm, const std::string &filename, const std::string &varname) {
   MPI_Info info;
   MPI_Info_create(&info);
-  
+
   int nc_id = -1;
   auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
   error(status, "nc_open", filename);
@@ -73,11 +59,11 @@ get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::str
 
   assert(n_dims == D);
   std::array<GO, D> dims;
-  for (int i=0; i!=n_dims; ++i) {
+  for (int i = 0; i != n_dims; ++i) {
     MPI_Offset len_dim;
     status = ncmpi_inq_dimlen(nc_id, dim_ids[i], &len_dim);
     error(status, "ncmpi_inq_dimlen", filename, varname);
-    dims[i] = (size_t) len_dim;
+    dims[i] = (size_t)len_dim;
   }
 
   status = ncmpi_close(nc_id);
@@ -87,19 +73,12 @@ get_dimensions(const MPI_Comm& comm, const std::string& filename, const std::str
   return dims;
 }
 
-      
 //
 // Read some.
 //
-template<size_t D>
-inline void
-read(const MPI_Comm& comm,
-     const std::string& filename,
-     const std::string& varname,
-     const std::array<MPI_Offset,D>& start, 
-     const std::array<MPI_Offset,D>& count, 
-     double* arr)
-{
+template <size_t D>
+inline void read(const MPI_Comm &comm, const std::string &filename, const std::string &varname,
+                 const std::array<MPI_Offset, D> &start, const std::array<MPI_Offset, D> &count, double *arr) {
   int nc_id = -1;
   MPI_Info info;
   MPI_Info_create(&info);
@@ -121,11 +100,8 @@ read(const MPI_Comm& comm,
 //
 // open for writing
 //
-inline void
-init_writing(const std::string& filename,
-             const std::string& varname,
-             const Utils::DomainDecomposition<2>& dd)
-{
+inline void init_writing(const std::string &filename, const std::string &varname,
+                         const Utils::DomainDecomposition<2> &dd) {
   // NOTE: this can only happen on one rank!
   int nc_id = -1;
   MPI_Info info;
@@ -134,7 +110,7 @@ init_writing(const std::string& filename,
   error(status, "ncmpi_create", filename);
   MPI_Info_free(&info);
 
-  std::array<int,2> dim_ids;
+  std::array<int, 2> dim_ids;
   status = ncmpi_def_dim(nc_id, "lat", dd.n_global[0], &dim_ids[0]);
   error(status, "ncmpi_def_dim", filename, "lat");
   status = ncmpi_def_dim(nc_id, "lon", dd.n_global[1], &dim_ids[1]);
@@ -151,35 +127,26 @@ init_writing(const std::string& filename,
   error(status, "ncmpi_close", filename);
 }
 
-    
-
 //
 // Write all
 //
-template<size_t D>
-inline void
-write(const std::string& filename,
-      const std::string& varname,
-      const Utils::DomainDecomposition<D>& dd,
-      const Array<double,D>& arr)
-{
+template <size_t D>
+inline void write(const std::string &filename, const std::string &varname, const Utils::DomainDecomposition<D> &dd,
+                  const Array<double, D> &arr) {
   MPI_Info info;
   MPI_Info_create(&info);
   int nc_id = -1;
   auto status = ncmpi_open(dd.comm, filename.c_str(), NC_WRITE, info, &nc_id);
   error(status, "ncmpi_open", filename);
   MPI_Info_free(&info);
-  
+
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
   error(status, "ncmpi_inq_varid", filename, varname);
 
-  status = ncmpi_put_vara_double_all(nc_id, var_id, dd.start.data(), dd.n_local.data(),
-          (double*) arr.data());
+  status = ncmpi_put_vara_double_all(nc_id, var_id, dd.start.data(), dd.n_local.data(), (double *)arr.data());
   error(status, "ncmpi_put_vara_double", filename, varname);
-
 }
-
 
 } // namespace IO
 } // namespace ELM

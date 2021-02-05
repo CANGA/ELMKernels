@@ -6,32 +6,9 @@ Store and initialize canopy state variables
 
 struct CanopyState_type {
 
-frac_veg_nosno_patch = 0._r8
-tlai_patch      = 0._r8
-tsai_patch      = 0._r8
-elai_patch      = 0._r8
-esai_patch      = 0._r8
-htop_patch      = 0._r8
-hbot_patch      = 0._r8
-dewmx_patch     = 0.1_r8
-vegwp_patch[4]  = {-2.5e4, -2.5e4, -2.5e4, -2.5e4};
-
-
-
+  frac_veg_nosno_patch = 0._r8 tlai_patch = 0._r8 tsai_patch = 0._r8 elai_patch = 0._r8 esai_patch = 0._r8 htop_patch =
+      0._r8 hbot_patch = 0._r8 dewmx_patch = 0.1_r8 vegwp_patch[4] = {-2.5e4, -2.5e4, -2.5e4, -2.5e4};
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 subroutine InitCold(this, bounds)
     !

@@ -35,23 +35,11 @@ namespace ELM {
    dlrad            [double] downward longwave radiation below the canopy [W/m2]
    ulrad            [double] upward longwave radiation above the canopy [W/m2]
 */
-void
-BareGroundFluxes::InitializeFlux(
-  const LandType& Land,
-  const int& frac_veg_nosno_in,
-  const double& forc_u,
-  const double& forc_v,
-  const double& forc_q_in,
-  const double& forc_th_in,
-  const double& forc_hgt_u_patch_in,
-  const double& thm_in,
-  const double& thv_in,
-  const double& t_grnd,
-  const double& qg,
-  const double& z0mg_in,
-  double& dlrad,
-  double& ulrad)
-{
+void BareGroundFluxes::InitializeFlux(const LandType &Land, const int &frac_veg_nosno_in, const double &forc_u,
+                                      const double &forc_v, const double &forc_q_in, const double &forc_th_in,
+                                      const double &forc_hgt_u_patch_in, const double &thm_in, const double &thv_in,
+                                      const double &t_grnd, const double &qg, const double &z0mg_in, double &dlrad,
+                                      double &ulrad) {
   frac_veg_nosno = frac_veg_nosno_in;
   forc_q = forc_q_in;
   forc_th = forc_th_in;
@@ -68,14 +56,12 @@ BareGroundFluxes::InitializeFlux(
 
     double dthv = dth * (1.0 + 0.61 * forc_q) + 0.61 * forc_th * dqh;
     displa = 0.0;
-    dlrad  = 0.0;
-    ulrad  = 0.0;
+    dlrad = 0.0;
+    ulrad = 0.0;
 
     MoninObukIni(ur, thv, dthv, zldis, z0mg, um, obu);
   }
 } // InitializeFlux
-
-
 
 /* BareGroundFluxes::StabilityIteration()
    DESCRIPTION:
@@ -93,22 +79,15 @@ BareGroundFluxes::InitializeFlux(
    z0hg             [double] roughness length over ground, sensible heat [m]
    z0qg             [double] roughness length over ground, latent heat [m]
 */
-void
-BareGroundFluxes::StabilityIteration(
-  const LandType& Land,
-  const double& forc_hgt_t_patch,
-  const double& forc_hgt_q_patch,
-  const double& z0mg,
-  const double& zii,
-  const double& beta,
-  double& z0hg,
-  double& z0qg) {
+void BareGroundFluxes::StabilityIteration(const LandType &Land, const double &forc_hgt_t_patch,
+                                          const double &forc_hgt_q_patch, const double &z0mg, const double &zii,
+                                          const double &beta, double &z0hg, double &z0qg) {
 
-  double tstar;   // temperature scaling parameter
-  double qstar;   // moisture scaling parameter
-  double thvstar; // virtual potential temperature scaling parameter
-  double wc ;     // convective velocity [m/s]
-  double zeta;    // dimensionless height used in Monin-Obukhov theory
+  double tstar;                // temperature scaling parameter
+  double qstar;                // moisture scaling parameter
+  double thvstar;              // virtual potential temperature scaling parameter
+  double wc;                   // convective velocity [m/s]
+  double zeta;                 // dimensionless height used in Monin-Obukhov theory
   static const int niters = 3; // number of iterations
 
   for (int i = 0; i < niters; i++) {
@@ -125,7 +104,8 @@ BareGroundFluxes::StabilityIteration(
       thvstar = tstar * (1.0 + 0.61 * forc_q) + 0.61 * forc_th * qstar;
       z0hg = z0mg / exp(0.13 * pow((ustar * z0mg / 1.5e-5), 0.45));
       z0qg = z0hg;
-      zeta = zldis * vkc * grav * thvstar / (pow(ustar, 2.0) * thv); // dimensionless height used in Monin-Obukhov theory
+      zeta =
+          zldis * vkc * grav * thvstar / (pow(ustar, 2.0) * thv); // dimensionless height used in Monin-Obukhov theory
 
       if (zeta >= 0.0) { // stable
         zeta = std::min(2.0, std::max(zeta, 0.01));
@@ -140,6 +120,4 @@ BareGroundFluxes::StabilityIteration(
   }
 } // StabilityIteration
 
-
-
-} // namespace
+} // namespace ELM

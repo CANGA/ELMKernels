@@ -41,47 +41,24 @@ namespace ELM {
    rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
    rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
-template<class dArray_type>
-void
-BareGroundFluxes::ComputeFlux(
-  const LandType& Land,
-  const int& snl,
-  const double& forc_rho,
-  const double& soilbeta,
-  const double& dqgdT,
-  const double& htvp,
-  const double& t_h2osfc,
-  const double& qg_snow,
-  const double& qg_soil,
-  const double& qg_h2osfc,
-  const dArray_type t_soisno,
-  const double& forc_pbot,
-  double& cgrnds,
-  double& cgrndl,
-  double& cgrnd,
-  double& eflx_sh_grnd,
-  double& eflx_sh_tot,
-  double& eflx_sh_snow,
-  double& eflx_sh_soil,
-  double& eflx_sh_h2osfc,
-  double& qflx_evap_soi,
-  double& qflx_evap_tot,
-  double& qflx_ev_snow,
-  double& qflx_ev_soil,
-  double& qflx_ev_h2osfc,
-  double& t_ref2m,
-  double& t_ref2m_r,
-  double& q_ref2m,
-  double& rh_ref2m,
-  double& rh_ref2m_r) {
+template <class dArray_type>
+void BareGroundFluxes::ComputeFlux(const LandType &Land, const int &snl, const double &forc_rho, const double &soilbeta,
+                                   const double &dqgdT, const double &htvp, const double &t_h2osfc,
+                                   const double &qg_snow, const double &qg_soil, const double &qg_h2osfc,
+                                   const dArray_type t_soisno, const double &forc_pbot, double &cgrnds, double &cgrndl,
+                                   double &cgrnd, double &eflx_sh_grnd, double &eflx_sh_tot, double &eflx_sh_snow,
+                                   double &eflx_sh_soil, double &eflx_sh_h2osfc, double &qflx_evap_soi,
+                                   double &qflx_evap_tot, double &qflx_ev_snow, double &qflx_ev_soil,
+                                   double &qflx_ev_h2osfc, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
+                                   double &rh_ref2m, double &rh_ref2m_r) {
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
 
     double rah, raw, raih, raiw;
     double e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT;
     // Determine aerodynamic resistances
-    rah  = 1.0 / (temp1 * ustar);
-    raw  = 1.0 / (temp2 * ustar);
+    rah = 1.0 / (temp1 * ustar);
+    raw = 1.0 / (temp2 * ustar);
     raih = forc_rho * cpair / rah;
 
     // Soil evaporation resistance - changed by K.Sakaguchi. Soilbeta is used for evaporation
@@ -96,25 +73,25 @@ BareGroundFluxes::ComputeFlux(
     // Derivative of fluxes with respect to ground temperature
     cgrnds = raih;
     cgrndl = raiw * dqgdT;
-    cgrnd  = cgrnds + htvp * cgrndl;
+    cgrnd = cgrnds + htvp * cgrndl;
 
     // Surface fluxes of momentum, sensible and latent heat
     // using ground temperatures from previous time step
-    eflx_sh_grnd  = -raih * dth;
-    eflx_sh_tot   = eflx_sh_grnd;
+    eflx_sh_grnd = -raih * dth;
+    eflx_sh_tot = eflx_sh_grnd;
 
     // compute sensible heat fluxes individually
-    eflx_sh_snow   = -raih * (thm - t_soisno[nlevsno-snl]);
-    eflx_sh_soil   = -raih * (thm - t_soisno[nlevsno]);
+    eflx_sh_snow = -raih * (thm - t_soisno[nlevsno - snl]);
+    eflx_sh_soil = -raih * (thm - t_soisno[nlevsno]);
     eflx_sh_h2osfc = -raih * (thm - t_h2osfc);
 
     // water fluxes from soil
-    qflx_evap_soi  = -raiw * dqh;
-    qflx_evap_tot  = qflx_evap_soi;
+    qflx_evap_soi = -raiw * dqh;
+    qflx_evap_tot = qflx_evap_soi;
 
     // compute latent heat fluxes individually
-    qflx_ev_snow   = -raiw * (forc_q - qg_snow);
-    qflx_ev_soil   = -raiw * (forc_q - qg_soil);
+    qflx_ev_snow = -raiw * (forc_q - qg_snow);
+    qflx_ev_soil = -raiw * (forc_q - qg_soil);
     qflx_ev_h2osfc = -raiw * (forc_q - qg_h2osfc);
 
     // 2 m height air temperature
@@ -134,6 +111,5 @@ BareGroundFluxes::ComputeFlux(
     }
   }
 } // ComputeFlux
-
 
 } // namespace ELM
