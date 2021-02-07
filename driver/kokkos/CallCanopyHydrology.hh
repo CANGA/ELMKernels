@@ -1,5 +1,6 @@
 // CallCanopyHydrology.hh
 #pragma once
+
 #include "CanopyHydrology.h"
 #include "Kokkos_Core.hpp"
 #include "clm_constants.h"
@@ -79,7 +80,7 @@ private:
   double dtime;
 };
 
-void CanopyHydrologyInvoke(const int &ncells, ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_,
+void canopyHydrologyInvoke(const int &ncells, ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_,
                            ArrayI1 &n_irrig_steps_left_, ArrayI1 &snl_, double &dtime_, ArrayD1 &forc_rain_,
                            ArrayD1 &forc_snow_, ArrayD1 &elai_, ArrayD1 &esai_, ArrayD1 &h2ocan_, ArrayD1 &irrig_rate_,
                            ArrayD1 &qflx_irrig_, ArrayD1 &qflx_prec_grnd_, ArrayD1 &qflx_snwcp_liq_,

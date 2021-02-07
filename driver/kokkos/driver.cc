@@ -1,9 +1,8 @@
-#include "BareGroundFluxes.h"
+#include "CallBareGroundFluxes.hh"
 #include "CallCanopyHydrology.hh"
 #include "CallCanopyTemperature.hh"
 #include "CallSurfaceRadiation.hh"
 #include "Kokkos_Core.hpp"
-#include "Kokkos_functors.hh"
 #include "clm_constants.h"
 #include "landtype.h"
 
@@ -77,7 +76,7 @@ int main(int argc, char **argv) {
     // run CanopyHydrology functions
     int i = 0;
     while (i != ntimes) {
-      CanopyHydrologyInvoke(ncells, Land, frac_veg_nosno, n_irrig_steps_left, snl, dtime, forc_rain, forc_snow, elai,
+      canopyHydrologyInvoke(ncells, Land, frac_veg_nosno, n_irrig_steps_left, snl, dtime, forc_rain, forc_snow, elai,
                             esai, h2ocan, irrig_rate, qflx_irrig, qflx_prec_grnd, qflx_snwcp_liq, qflx_snwcp_ice,
                             qflx_snow_grnd, qflx_rain_grnd, fwet, fdry, forc_t, t_grnd, qflx_snow_melt, n_melt,
                             micro_sigma, snow_depth, h2osno, int_snow, qflx_snow_h2osfc, h2osfc, frac_h2osfc,
@@ -128,7 +127,7 @@ int main(int argc, char **argv) {
 
     i = 0;
     while (i != ntimes) {
-      SurfaceRadiationInvoke(ncells, Land, nrad, snl, elai, snow_depth, fsr, laisun, laisha, sabg_soil, sabg_snow, sabg,
+      surfaceRadiationInvoke(ncells, Land, nrad, snl, elai, snow_depth, fsr, laisun, laisha, sabg_soil, sabg_snow, sabg,
                              sabv, fsa, tlai_z, fsun_z, forc_solad, forc_solai, fabd_sun_z, fabd_sha_z, fabi_sun_z,
                              fabi_sha_z, parsun_z, parsha_z, laisun_z, laisha_z, sabg_lyr, ftdd, ftid, ftii, fabd, fabi,
                              albsod, albsoi, albsnd_hst, albsni_hst, albgrd, albgri, flx_absdv, flx_absdn, flx_absiv,
@@ -214,49 +213,36 @@ int main(int argc, char **argv) {
       i++;
     }
 
-    //
-    //  auto forc_u = create<ArrayD1>("forc_u", ncells);
-    //  auto forc_v = create<ArrayD1>("forc_v", ncells);
-    //  auto dlrad = create<ArrayD1>("dlrad", ncells);
-    //  auto ulrad = create<ArrayD1>("ulrad", ncells);
-    //
-    //  auto beta = create<ArrayD1>("beta", ncells);
-    //
-    //
-    //  auto forc_rho = create<ArrayD1>("forc_rho", ncells);
-    //
-    //  auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
-    //  auto forc_pbot = create<ArrayD1>("forc_pbot", ncells);
-    //
-    //  auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", ncells);
-    //  auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
-    //  auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
-    //  auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
-    //  auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
-    //  auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
-    //  auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", ncells);
-    //  auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", ncells);
-    //  auto t_ref2m = create<ArrayD1>("t_ref2m", ncells);
-    //  auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", ncells);
-    //  auto q_ref2m = create<ArrayD1>("q_ref2m", ncells);
-    //  auto rh_ref2m = create<ArrayD1>("rh_ref2m", ncells);
-    //  auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", ncells);
-    //
-    //  // initialize
-    //  Kokkos::View<ELM::BareGroundFluxes*> bg_fluxes("bare ground fluxes", ncells);
-    //
-    //  BGFCaller bgf_caller(bg_fluxes, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch,
-    //    thm, thv, t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, zii, beta,
-    //    z0hg, z0qg, snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno, forc_pbot,
-    //    cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil, eflx_sh_h2osfc, qflx_evap_soi,
-    //    qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc, t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r);
-    //
-    //  for (int time=0; time!=ntimes; ++time) {
-    //
-    //   // parallel functor call
-    //    Kokkos::parallel_for(ncells, bgf_caller);
-    //    std::cout << "running, t = " << time << std::endl;
-    //  }
+    auto forc_u = create<ArrayD1>("forc_u", ncells);
+    auto forc_v = create<ArrayD1>("forc_v", ncells);
+    auto dlrad = create<ArrayD1>("dlrad", ncells);
+    auto ulrad = create<ArrayD1>("ulrad", ncells);
+    auto forc_rho = create<ArrayD1>("forc_rho", ncells);
+    auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", ncells);
+    auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
+    auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
+    auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
+    auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
+    auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
+    auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", ncells);
+    auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", ncells);
+    auto t_ref2m = create<ArrayD1>("t_ref2m", ncells);
+    auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", ncells);
+    auto q_ref2m = create<ArrayD1>("q_ref2m", ncells);
+    auto rh_ref2m = create<ArrayD1>("rh_ref2m", ncells);
+    auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", ncells);
+
+    i = 0;
+    while (i != ntimes) {
+      bareGroundFluxesInvoke(ncells, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, thm, thv,
+                             t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, zii, beta, z0hg, z0qg,
+                             snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno,
+                             forc_pbot, cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil,
+                             eflx_sh_h2osfc, qflx_evap_soi, qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc,
+                             t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r);
+      std::cout << "running, t = " << i << std::endl;
+      i++;
+    }
   }
   Kokkos::finalize();
   return 0;

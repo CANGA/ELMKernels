@@ -15,7 +15,7 @@ cmake ..\
     -DCMAKE_BUILD_TYPE:STRING=Release \
     -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
     -DENABLE_Kokkos:BOOL=ON \
-    -DENABLE_CC:BOOL=ON
+    -DENABLE_CC:BOOL=OFF
 make VERBOSE=1
 make install
 cd $ORIGIN_DIR

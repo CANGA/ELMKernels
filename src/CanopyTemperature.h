@@ -3,7 +3,6 @@
 */
 #pragma once
 
-#include "CanopyTemperature_impl.hh"
 #include "clm_constants.h"
 #include "landtype.h"
 #include <algorithm>
@@ -228,3 +227,5 @@ void InitializeEnergyFluxes(const LandType &Land, double &eflx_sh_tot, double &e
                             double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg);
 
 } // namespace ELM
+
+#include "CanopyTemperature_impl.hh"

@@ -177,3 +177,5 @@ void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h
                 double &h2osfc, dArray_type h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc);
 
 } // namespace ELM
+
+#include "CanopyHydrology_impl.hh"

@@ -73,7 +73,7 @@ private:
       albgri, flx_absdv, flx_absdn, flx_absiv, flx_absin, albd, albi;
 };
 
-void SurfaceRadiationInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &nrad_, ArrayI1 &snl_, ArrayD1 &elai_,
+void surfaceRadiationInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &nrad_, ArrayI1 &snl_, ArrayD1 &elai_,
                             ArrayD1 &snow_depth_, ArrayD1 &fsr_, ArrayD1 &laisun_, ArrayD1 &laisha_,
                             ArrayD1 &sabg_soil_, ArrayD1 &sabg_snow_, ArrayD1 &sabg_, ArrayD1 &sabv_, ArrayD1 &fsa_,
                             ArrayD2 &tlai_z_, ArrayD2 &fsun_z_, ArrayD2 &forc_solad_, ArrayD2 &forc_solai_,

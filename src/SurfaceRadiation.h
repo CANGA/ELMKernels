@@ -9,7 +9,6 @@ SurfRadReflected
 */
 #pragma once
 
-#include "SurfaceRadiation_impl.hh"
 #include "clm_constants.h"
 #include "landtype.h"
 #include <assert.h>
@@ -155,3 +154,5 @@ void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double
                              dArray_type laisun_z, dArray_type laisha_z, double &laisun, double &laisha);
 
 } // namespace ELM
+
+#include "SurfaceRadiation_impl.hh"
