@@ -20,7 +20,7 @@ qg_snow                    [double] specific humidity at snow surface [kg/kg]
 qg_soil                    [double] specific humidity at soil surface [kg/kg]
 qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
 t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
-forc_pbot                  [double]  atmospheric pressure (Pa)
+forc_pbot                  [double] atmospheric pressure (Pa)
 dth                        [double] diff of virtual temp. between ref. height and surface
 dqh                        [double] diff of humidity between ref. height and surface
 temp1                      [double] relation for potential temperature profile

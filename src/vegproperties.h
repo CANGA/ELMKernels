@@ -1,7 +1,7 @@
 #pragma once
 
 #include "clm_constants.h"
-
+namespace ELM {
 struct VegProperties {
   double fnr[numpft];      //      fraction of nitrogen in RuBisCO
   double act25[numpft];    //    (umol/mgRubisco/min) Rubisco activity at 25 C
@@ -27,3 +27,5 @@ struct VegProperties {
   double flnr[numpft];     //     fraction of leaf N in the Rubisco enzyme (gN Rubisco / gN leaf)
   double fnitr[numpft];    //    foliage nitrogen limitation factor (-)
 };
+
+} // namespace ELM
