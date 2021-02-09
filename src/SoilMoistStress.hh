@@ -121,7 +121,7 @@ vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
 */
 template <class dArray_type>
 void calc_volumetric_h2oliq(const dArray_type eff_por, const dArray_type h2osoi_liq, const dArray_type dz,
-                            dArray_type vol_liq) {
+                            double *vol_liq) {
 
   for (int i = 0; i < nlevgrnd; i++) {
     // volume of liquid is no greater than effective void space
@@ -149,7 +149,7 @@ rootr[nlevgrnd]                 [double] effective fraction of roots in each soi
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 template <class dArray_type>
-void calc_root_moist_stress(const int &vtype, const dArray_type h2osoi_liqvol, const dArray_type rootfr,
+void calc_root_moist_stress(const int &vtype, const double *h2osoi_liqvol, const dArray_type rootfr,
                             const dArray_type t_soisno, const double &tc_stress, const dArray_type sucsat,
                             const dArray_type watsat, const dArray_type bsw, const dArray_type smpso,
                             const dArray_type smpsc, const dArray_type eff_porosity, const int &altmax_indx,

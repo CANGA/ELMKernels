@@ -54,7 +54,6 @@ z0qv                            [double] roughness length over vegetation, laten
 displa                          [double]  displacement height (m)
 rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
 eff_porosity[nlevgrnd]          [double] effective soil porosity
-h2osoi_liqvol[nlevgrnd+nlevsno] [double] liquid volumetric moisture
 dayl_factor                     [double] scalar (0-1) for daylength effect on Vcmax
 air                             [double] atmos. radiation temporay set
 bir                             [double] atmos. radiation temporay set
@@ -83,9 +82,9 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
                         const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
                         const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
                         double &btran, double &displa, double &z0mv, double &z0hv, double &z0qv, dArray_type rootr,
-                        dArray_type eff_porosity, dArray_type h2osoi_liqvol, double &dayl_factor, double &air,
-                        double &bir, double &cir, double &el, double &qsatl, double &qsatldT, double &taf, double &qaf,
-                        double &um, double &ur, double &obu, double &zldis, double &delq, double &t_veg);
+                        dArray_type eff_porosity, double &dayl_factor, double &air, double &bir, double &cir,
+                        double &el, double &qsatl, double &qsatldT, double &taf, double &qaf, double &um, double &ur,
+                        double &obu, double &zldis, double &delq, double &t_veg);
 
 /* StabilityIteration_Can()
 DESCRIPTION:

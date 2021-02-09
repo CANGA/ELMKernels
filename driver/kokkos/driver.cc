@@ -8,6 +8,7 @@
 #include "Kokkos_Core.hpp"
 #include "clm_constants.h"
 #include "landtype.h"
+#include "vegproperties.h"
 
 using ArrayB1 = Kokkos::View<bool *>;
 using ArrayI1 = Kokkos::View<int *>;
@@ -34,6 +35,7 @@ int main(int argc, char **argv) {
     // instantiate data
     // for CanopyHydrology
     ELM::LandType Land;
+    ELM::VegProperties Veg;
     double dtime = 0.5;
     auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", ncells);
     auto snl = create<ArrayI1>("snl", ncells);
@@ -243,6 +245,45 @@ int main(int argc, char **argv) {
                              forc_pbot, cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil,
                              eflx_sh_h2osfc, qflx_evap_soi, qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc,
                              t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r);
+      std::cout << "running, t = " << i << std::endl;
+      i++;
+    }
+
+    auto altmax_indx = create<ArrayI1>("altmax_indx", ncells);
+    auto altmax_lastyear_indx = create<ArrayI1>("altmax_lastyear_indx", ncells);
+
+    auto max_dayl = create<ArrayD1>("max_dayl", ncells);
+    auto dayl = create<ArrayD1>("dayl", ncells);
+    auto tc_stress = create<ArrayD1>("tc_stres", ncells);
+    auto forc_lwrad = create<ArrayD1>("forc_lwrad", ncells);
+    auto t10 = create<ArrayD1>("t10", ncells);
+    auto vcmaxcintsha = create<ArrayD1>("vcmaxcintsha", ncells);
+    auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", ncells);
+    auto forc_pco2 = create<ArrayD1>("forc_pco2", ncells);
+    auto forc_po2 = create<ArrayD1>("forc_po2", ncells);
+    auto btran = create<ArrayD1>("btran", ncells);
+    auto t_veg = create<ArrayD1>("t_veg", ncells);
+
+    auto rootfr = create<ArrayD2>("rootfr", ncells, ELM::nlevgrnd);
+    auto smpso = create<ArrayD2>("smpso", ncells, ELM::numpft);
+    auto smpsc = create<ArrayD2>("smpsc", ncells, ELM::numpft);
+    auto dleaf = create<ArrayD2>("dleaf", ncells, ELM::numpft);
+    auto rootr = create<ArrayD2>("rootr", ncells, ELM::nlevgrnd);
+    auto eff_porosity = create<ArrayD2>("eff_porosity", ncells, ELM::nlevgrnd);
+
+    i = 0;
+    while (i != ntimes) {
+
+      canopyFluxesInvoke(
+          ncells, Land, Veg, t_soisno, h2osoi_ice, h2osoi_liq, dz, rootfr, sucsat, watsat, bsw, smpso, smpsc, dleaf,
+          parsha_z, parsun_z, laisha_z, laisun_z, tlai_z, rootr, eff_porosity, nrad, snl, frac_veg_nosno, altmax_indx,
+          altmax_lastyear_indx, frac_sno, forc_hgt_u_patch, thm, thv, max_dayl, dayl, tc_stress, elai, esai, emv, emg,
+          qg, t_grnd, forc_t, forc_pbot, forc_lwrad, forc_u, forc_v, forc_q, forc_th, z0mg, dtime, forc_hgt_t_patch,
+          forc_hgt_q_patch, fwet, fdry, laisun, laisha, forc_rho, snow_depth, soilbeta, frac_h2osfc, t_h2osfc, sabv,
+          h2ocan, htop, t10, vcmaxcintsha, vcmaxcintsun, forc_pco2, forc_po2, qg_snow, qg_soil, qg_h2osfc, dqgdT, htvp,
+          eflx_sh_grnd, eflx_sh_snow, eflx_sh_soil, eflx_sh_h2osfc, qflx_evap_soi, qflx_ev_snow, qflx_ev_soil,
+          qflx_ev_h2osfc, dlrad, ulrad, cgrnds, cgrndl, cgrnd, t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r,
+          qflx_tran_veg, qflx_evap_veg, eflx_sh_veg, btran, displa, z0mv, z0hv, z0qv, t_veg);
       std::cout << "running, t = " << i << std::endl;
       i++;
     }
