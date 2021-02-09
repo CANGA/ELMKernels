@@ -58,7 +58,8 @@ altmax_lastyear_indx       [int] index corresponding to maximum active layer dep
 OUTPUTS:
 rootfr_unf[nlevgrnd]       [double] root fraction defined for unfrozen layers only
 */
-void normalize_unfrozen_rootfr(const double *t_soisno, const double *rootfr, const int &altmax_indx,
+template <class dArray_type>
+void normalize_unfrozen_rootfr(const dArray_type t_soisno, const dArray_type rootfr, const int &altmax_indx,
                                const int &altmax_lastyear_indx, double *rootfr_unf) {
 
   if (perchroot || perchroot_alt) { // Define rootfraction for unfrozen soil only
@@ -94,7 +95,9 @@ dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 OUTPUTS:
 eff_porosity[nlevgrnd]       [double] effective soil porosity
 */
-void calc_effective_soilporosity(const double *watsat, const double *h2osoi_ice, const double *dz, double *eff_por) {
+template <class dArray_type>
+void calc_effective_soilporosity(const dArray_type watsat, const dArray_type h2osoi_ice, const dArray_type dz,
+                                 dArray_type eff_por) {
 
   double vol_ice;
   for (int i = 0; i < nlevgrnd; i++) {
@@ -116,7 +119,9 @@ dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 OUTPUTS:
 vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
 */
-void calc_volumetric_h2oliq(const double *eff_por, const double *h2osoi_liq, const double *dz, double *vol_liq) {
+template <class dArray_type>
+void calc_volumetric_h2oliq(const dArray_type eff_por, const dArray_type h2osoi_liq, const dArray_type dz,
+                            dArray_type vol_liq) {
 
   for (int i = 0; i < nlevgrnd; i++) {
     // volume of liquid is no greater than effective void space
@@ -143,12 +148,12 @@ OUTPUTS:
 rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
-void calc_root_moist_stress(const int &vtype, const double *h2osoi_liqvol, const double *rootfr, const double *t_soisno,
-                            const double &tc_stress, const double *sucsat, const double *watsat, const double *bsw,
-                            const double *smpso, const double *smpsc, const double *eff_porosity,
-                            const int &altmax_indx, const int &altmax_lastyear_indx,
-
-                            double *rootr, double &btran) {
+template <class dArray_type>
+void calc_root_moist_stress(const int &vtype, const dArray_type h2osoi_liqvol, const dArray_type rootfr,
+                            const dArray_type t_soisno, const double &tc_stress, const dArray_type sucsat,
+                            const dArray_type watsat, const dArray_type bsw, const dArray_type smpso,
+                            const dArray_type smpsc, const dArray_type eff_porosity, const int &altmax_indx,
+                            const int &altmax_lastyear_indx, dArray_type rootr, double &btran) {
   double s_node, smp_node;
   const double btran0 = 0.0;
   double rootfr_unf[nlevgrnd] = {0.0}; // unfrozen root fraction

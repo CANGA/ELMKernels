@@ -1,8 +1,13 @@
+
+#pragma once
+
 #include "clm_constants.h"
 #include "vegproperties.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+
+namespace ELM {
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
 void quadratic(const double &a, const double &b, const double &c, double &r1, double &r2) {
@@ -16,7 +21,7 @@ void quadratic(const double &a, const double &b, const double &c, double &r1, do
     q = -0.5 * (b - std::sqrt(b * b - 4.0 * a * c));
   }
   r1 = q / a;
-  if (q /= 0.0) {
+  if (q != 0.0) {
     r2 = c / q;
   } else {
     r2 = 1.0e36;
@@ -360,18 +365,17 @@ m temperature (K)
 
 
 */
-void Photosynthesis(const VegProperties &veg, // struct containing information about landtype
-                    const int &vtype, const int &nrad, const double &forc_pbot, const double &t_veg, const double &t10,
-                    const double &esat_tv, const double &eair, const double &oair, const double &cair, const double &rb,
-                    const double &btran, const double &dayl_factor, const double thm, const double tlai_z[nlevcan],
-                    const double &vcmaxcint, const double par_z[nlevcan], const double lai_z[nlevcan],
-
-                    double &rs) {
+template <class dArray_type>
+void Photosynthesis(const VegProperties &veg, const int &vtype, const int &nrad, const double &forc_pbot,
+                    const double &t_veg, const double &t10, const double &esat_tv, const double &eair,
+                    const double &oair, const double &cair, const double &rb, const double &btran,
+                    const double &dayl_factor, const double &thm, const dArray_type tlai_z, const double &vcmaxcint,
+                    const dArray_type par_z, const dArray_type lai_z, double &rs) {
   // vars from PhotosynthesisType - not used anywhere else, so keep local
-  bool c3flag;             // true if C3 and false if C4
-  double ci_z[nlevcan];    // intracellular leaf CO2 (Pa)
-  double rs_z[nlevcan];    // canopy layer: leaf stomatal resistance (s/m)
-  double lmr;              // leaf maintenance respiration rate (umol CO2/m**2/s)
+  bool c3flag;          // true if C3 and false if C4
+  double ci_z[nlevcan]; // intracellular leaf CO2 (Pa)
+  double rs_z[nlevcan]; // canopy layer: leaf stomatal resistance (s/m)
+  // double lmr;              // leaf maintenance respiration rate (umol CO2/m**2/s)
   double lmr_z[nlevcan];   // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
   double psn;              // foliage photosynthesis (umol co2 /m**2/ s) [always +]
   double psn_z[nlevcan];   // canopy layer: foliage photosynthesis (umol co2 /m**2/ s) [always +]
@@ -761,3 +765,5 @@ void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const do
   fpsn_wj = psnsun_wj * laisun + psnsha_wj * laisha;
   fpsn_wp = psnsun_wp * laisun + psnsha_wp * laisha;
 }
+
+} // namespace ELM

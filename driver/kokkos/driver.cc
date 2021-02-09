@@ -1,7 +1,10 @@
+
 #include "CallBareGroundFluxes.hh"
+#include "CallCanopyFluxes.hh"
 #include "CallCanopyHydrology.hh"
 #include "CallCanopyTemperature.hh"
 #include "CallSurfaceRadiation.hh"
+
 #include "Kokkos_Core.hpp"
 #include "clm_constants.h"
 #include "landtype.h"

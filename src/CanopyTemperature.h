@@ -5,8 +5,6 @@
 
 #include "clm_constants.h"
 #include "landtype.h"
-#include <algorithm>
-#include <cmath>
 
 namespace ELM {
 
