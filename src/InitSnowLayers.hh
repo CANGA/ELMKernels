@@ -24,8 +24,8 @@ zi[nlevgrnd + nlevsno]  [double]  interface level below a "z" level (m)
 namespace ELM {
 
 template <class dArray_type>
-void Init_SnowLayers(const double &snow_depth, const bool &lakpoi, int &snl, dArray_type dz, dArray_type z,
-                     dArray_type zi) {
+void InitSnowLayers(const double &snow_depth, const bool &lakpoi, int &snl, dArray_type dz, dArray_type z,
+                    dArray_type zi) {
 
   for (int i = 0; i < nlevsno; i++) {
     dz[i] = spval;

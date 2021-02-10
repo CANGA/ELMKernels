@@ -91,6 +91,7 @@ static const double cpair = 1.00464e3;                // specific heat of dry ai
 static const double tlsai_crit = 2.0; // critical value of elai+esai for which aerodynamic parameters are maximum
 static const double sb = 5.67e-8;     // Stefan-Boltzmann constant ~ W/m^2/K^4
 static const double h2osno_max = 1000.0; // max allowed snow thickness (mm H2O)
+static const double bdsno = 250.0;       // bulk density snow (kg/m**3)
 
 static const bool perchroot = false;     // calculate root function only in unfrozen soil, based on instantaneous temp
 static const bool perchroot_alt = false; // calculate root function only in active layer - estimated from past 2 years

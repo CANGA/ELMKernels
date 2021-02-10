@@ -18,14 +18,13 @@ micro_sigma [double] microtopography pdf sigma (m)
 
 namespace ELM {
 
-void TopoSlopes(const double &topo_slope_in, double &topo_slope_out) {
+void InitTopoSlope(double &topo_slope) {
   // check for near zero slopes, set minimum value
-  topo_slope_out = std::max(topo_slope_in, 0.2);
+  topo_slope = std::max(topo_slope, 0.2);
 }
 
-void ColdStartMicroTopo(const int &ltype, const double &topo_slope, const double &topo_std,
-
-                        double &n_melt, double &micro_sigma) {
+void InitMicroTopo(const int &ltype, const double &topo_slope, const double &topo_std, double &n_melt,
+                   double &micro_sigma) {
   if (ltype == istice_mec) {
     /* ice_mec columns already account for subgrid topographic variability through
     their use of multiple elevation classes; thus, to avoid double-accounting for
