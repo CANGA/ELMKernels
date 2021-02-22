@@ -35,6 +35,7 @@ if (ENABLE_Kokkos)
   find_package(Kokkos REQUIRED)
 endif()
 
+add_subdirectory (driver/utils)
 add_subdirectory (src)
 add_subdirectory (driver)
 

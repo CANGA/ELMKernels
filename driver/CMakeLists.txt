@@ -1,4 +1,3 @@
-add_subdirectory(utils)
 
 if (ENABLE_CC)
   add_subdirectory(cc)

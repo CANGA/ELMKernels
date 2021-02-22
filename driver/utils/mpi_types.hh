@@ -1,6 +1,8 @@
 #ifndef ELM_MPI_TYPES_HH_
 #define ELM_MPI_TYPES_HH_
 
+#include <cstddef>
+
 #ifdef HAVE_MPI
 
 #include "mpi.h"
@@ -14,7 +16,8 @@ using GO = size_t;
 
 #else
 
-using Comm_type = int;
+using MPI_Comm = int;
+using Comm_type = MPI_Comm;
 using GO = size_t;
 
 #endif

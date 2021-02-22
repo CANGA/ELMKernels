@@ -45,9 +45,9 @@ DomainDecomposition<1> create_domain_decomposition_1D(int nprocs, GO n_global, i
 
 DomainDecomposition<2> create_domain_decomposition_2D(std::array<int, 2> n_procs, std::array<GO, 2> n_global,
                                                       std::array<int, 2> proc_index) {
-  // std::cout << "Creating with: n_procs = " << n_procs[0] << "," << n_procs[1] << std::endl
-  //           << "              n_global = " << n_global[0] << "," << n_global[1] << std::endl
-  //           << "              proc_ind = " << proc_index[0] << "," << proc_index[1] << std::endl;
+  std::cout << "Creating with: n_procs = " << n_procs[0] << "," << n_procs[1] << std::endl
+            << "              n_global = " << n_global[0] << "," << n_global[1] << std::endl
+            << "              proc_ind = " << proc_index[0] << "," << proc_index[1] << std::endl;
 
   auto dd0 = create_domain_decomposition_1D(n_procs[0], n_global[0], proc_index[0]);
   auto dd1 = create_domain_decomposition_1D(n_procs[1], n_global[1], proc_index[1]);

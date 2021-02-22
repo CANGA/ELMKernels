@@ -38,10 +38,14 @@ inline std::tuple<int, int, int> to_date(int year, int doy) {
 struct Date {
   int year;
   int doy;
+  int sec;
+  const int sec_per_day = 86400;
 
-  Date(int year_, int doy_) : year(year_), doy(doy_) {}
+  Date(int year_, int doy_) : year(year_), doy(doy_), sec(0) {}
 
   Date(int year_, int month, int day) : Date(year_, to_doy(month, day)) {}
+
+  Date(int year_, int month, int day, int sec_) : Date(year_, to_doy(month, day)) { sec = sec_; }
 
   Date(int year_) : Date(year_, 0) {}
   Date() : Date(0, 0) {}
@@ -65,6 +69,14 @@ struct Date {
     for (size_t m = 0; m != months; ++m) {
       auto d = date();
       operator+=(dy_per_mo[std::get<1>(d) - 1]);
+    }
+    return *this;
+  }
+  Date &increment_seconds(size_t seconds = 1800) {
+    sec += (int)seconds;
+    while (sec >= sec_per_day) {
+      operator+=(1);
+      sec = sec % sec_per_day;
     }
     return *this;
   }
