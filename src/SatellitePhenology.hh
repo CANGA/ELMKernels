@@ -15,17 +15,20 @@ void readMonthlyVegetation(const std::string &data_dir, const std::string &basen
   const int n_months = 2;
 
   // -- read lai
-  ELM::IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_LAI", time, n_months, dd, mlai);
+  IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_LAI", time, n_months, dd, mlai);
   // -- read sai
-  ELM::IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_SAI", time, n_months, dd, msai);
+  IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_SAI", time, n_months, dd, msai);
   // -- read max veg height
-  ELM::IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_HEIGHT_TOP", time, n_months, dd, mhgtt);
+  IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_HEIGHT_TOP", time, n_months, dd, mhgtt);
   // -- read min veg height
-  ELM::IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_HEIGHT_BOT", time, n_months, dd, mhgtb);
+  IO::read_and_reshape_phenology(data_dir, basename_phen, "MONTHLY_HEIGHT_BOT", time, n_months, dd, mhgtb);
 }
 
 /*
 Determine if 2 new months of data are to be read.
+
+serial - should only run on each node's rank == 0
+grid cell loop could be parallelized
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 void interpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
@@ -82,10 +85,16 @@ void interpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
   }
 }
 
+/*
+Ecosystem dynamics: phenology, vegetation
+Calculates leaf areas (tlai, elai),  stem areas (tsai, esai) and height (htop).
+
+can be run in parallel
+
+*/
 template <typename ArrayD1>
 void SatellitePhenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1 &mhvt, const ArrayD1 &mhvb,
                         const ArrayD1 &timwt, const int &vtype, const double &snow_depth, const double &frac_sno,
-
                         double &tlai, double &tsai, double &htop, double &hbot, double &elai, double &esai,
                         int &frac_veg_nosno_alb) {
 
@@ -98,14 +107,14 @@ void SatellitePhenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1 
   // Set leaf and stem areas based on day of year
   // Interpolate leaf area index, stem area index, and vegetation heights
   // between two monthly
-  // The weights below (timwt(1) and timwt(2)) were obtained by a call to
-  // routine InterpMonthlyVeg in subroutine NCARlsm.
+  // The weights below (timwt[0] and timwt[1]) were obtained by a call to
+  // routine interpMonthlyVeg.
   //                 Field   Monthly Values
   //                -------------------------
-  // leaf area index LAI  <- mlai1 and mlai2
-  // leaf area index SAI  <- msai1 and msai2
-  // top height      HTOP <- mhvt1 and mhvt2
-  // bottom height   HBOT <- mhvb1 and mhvb2
+  // leaf area index tlai  <- mlai1 and mlai2
+  // leaf area index tsai  <- msai1 and msai2
+  // top height      htop <- mhvt1 and mhvt2
+  // bottom height   hbot <- mhvb1 and mhvb2
 
   tlai = timwt[0] * mlai[0] + timwt[1] * mlai[1];
   tsai = timwt[0] * msai[0] + timwt[1] * msai[1];

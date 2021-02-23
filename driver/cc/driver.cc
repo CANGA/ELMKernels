@@ -9,6 +9,8 @@
 #include <iostream>
 #include <string>
 
+#include "ReadAtmInput.hh"
+
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
@@ -133,6 +135,24 @@ int main(int argc, char **argv) {
 
   std::cout << "::: " << tlai[0] << " " << tsai[0] << " " << htop[0] << " " << hbot[0] << " " << elai[0] << " "
             << esai[0] << std::endl;
+
+  auto forc_zbot = create<ArrayD2>("forc_zbot", ntimes, n_grid_cells);
+  auto forc_tbot = create<ArrayD2>("forc_tbot", ntimes, n_grid_cells);
+  auto forc_rh = create<ArrayD2>("forc_rh", ntimes, n_grid_cells);
+  auto forc_wind = create<ArrayD2>("forc_wind", ntimes, n_grid_cells);
+  auto forc_fsds = create<ArrayD2>("forc_fsds", ntimes, n_grid_cells);
+  auto forc_flds = create<ArrayD2>("forc_flds", ntimes, n_grid_cells);
+  auto forc_psrf = create<ArrayD2>("forc_psrf", ntimes, n_grid_cells);
+  auto forc_prec = create<ArrayD2>("forc_prec", ntimes, n_grid_cells);
+
+  ReadAtmData(data_dir, basename_forc, start, dd, n_months, forc_zbot, forc_tbot, forc_rh, forc_wind, forc_fsds,
+              forc_flds, forc_psrf, forc_prec);
+
+  for (int i = 0; i < 1488; ++i) {
+    std::cout << "::: " << forc_zbot(i, 0) << " " << forc_tbot(i, 0) << " " << forc_rh(i, 0) << " " << forc_wind(i, 0)
+              << " " << forc_fsds(i, 0) << " " << forc_flds(i, 0) << " " << forc_psrf(i, 0) << " " << forc_prec(i, 0)
+              << std::endl;
+  }
 
   // instantiate data
   ELM::LandType Land;

@@ -72,7 +72,7 @@ struct Date {
     }
     return *this;
   }
-  Date &increment_seconds(size_t seconds = 1800) {
+  Date &increment_seconds(size_t seconds) {
     sec += (int)seconds;
     while (sec >= sec_per_day) {
       operator+=(1);
