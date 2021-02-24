@@ -8,7 +8,7 @@ namespace ELM {
 Read monthly vegetation data for two consec. months.
 */
 template <typename Array_t>
-void readMonthlyVegetation(const std::string &data_dir, const std::string &basename_phen, const Utils::Date &time,
+void ReadMonthlyVegetation(const std::string &data_dir, const std::string &basename_phen, const Utils::Date &time,
                            const Utils::DomainDecomposition<2> &dd, Array_t &mlai, Array_t &msai, Array_t &mhgtt,
                            Array_t &mhgtb) {
 
@@ -26,12 +26,14 @@ void readMonthlyVegetation(const std::string &data_dir, const std::string &basen
 
 /*
 Determine if 2 new months of data are to be read.
+should be run every timestep to determine time weights for SatellitePhenology()
+new data is only read if needed (InterpMonths1 != months[0])
 
 serial - should only run on each node's rank == 0
 grid cell loop could be parallelized
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void interpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
+void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
                       const std::string &basename, const Utils::DomainDecomposition<2> &dd, const ArrayI1 &vtype,
                       ArrayD1 &timwt, ArrayD2 &mlai2t, ArrayD2 &msai2t, ArrayD2 &mhvt2t, ArrayD2 &mhvb2t) {
   int it[2];     //  month 1 and month 2 (step 1)
@@ -70,7 +72,7 @@ void interpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
     Array<double, 3> mhgtt(2, n_grid_cells, n_pfts);
     Array<double, 3> mhgtb(2, n_grid_cells, n_pfts);
 
-    readMonthlyVegetation(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
+    ReadMonthlyVegetation(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
     InterpMonths1 = months[0];
 
     for (int i = 0; i < n_grid_cells; ++i) {

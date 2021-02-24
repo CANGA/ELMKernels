@@ -7,10 +7,10 @@ namespace ELM {
 
 // serial I/O function
 template <typename Array_t>
-void ReadAtmData(const std::string &data_dir, const std::string &basename_atm, const Utils::Date &time,
-                 const Utils::DomainDecomposition<2> &dd, const int n_months, Array_t &atm_zbot, Array_t &atm_tbot,
-                 Array_t &atm_rh, Array_t &atm_wind, Array_t &atm_fsds, Array_t &atm_flds, Array_t &atm_psrf,
-                 Array_t &atm_prec) {
+void ReadAtmForcing(const std::string &data_dir, const std::string &basename_atm, const Utils::Date &time,
+                    const Utils::DomainDecomposition<2> &dd, const int n_months, Array_t &atm_zbot, Array_t &atm_tbot,
+                    Array_t &atm_rh, Array_t &atm_wind, Array_t &atm_fsds, Array_t &atm_flds, Array_t &atm_psrf,
+                    Array_t &atm_prec) {
 
   IO::read_and_reshape_forcing(data_dir, basename_atm, "ZBOT", time, n_months, dd, atm_zbot);
   IO::read_and_reshape_forcing(data_dir, basename_atm, "TBOT", time, n_months, dd, atm_tbot);
@@ -42,6 +42,7 @@ double esati(const double &t) {
 }
 
 /*
+
 skipping time interpolation for now, will need to include later
 currently assumed that model timesteps will be the same as the forcing data, with timestep centered around forcing time
 
@@ -53,12 +54,12 @@ forc_hgt_grc is hardwired as 30m in lnd_import_export.F90 - should it be here? w
 
 */
 template <typename ArrayD1>
-void InitAtmTimestep(const double &atm_tbot, const double &atm_psrf, const double &atm_rh, const double &atm_flds,
-                     const double &atm_fsds, const double &atm_prec, const double &atm_wind, double &forc_t,
-                     double &forc_th, double &forc_pbot, double &forc_q, double &forc_lwrad, double &forc_rain,
-                     double &forc_snow, double &forc_u, double &forc_v, double &forc_rh, double &forc_rho,
-                     double &forc_po2, double &forc_pco2, double &forc_hgt_u, double &forc_hgt_t, double &forc_hgt_q,
-                     ArrayD1 forc_solad, ArrayD1 forc_solai) {
+void GetAtmTimestep(const double &atm_tbot, const double &atm_psrf, const double &atm_rh, const double &atm_flds,
+                    const double &atm_fsds, const double &atm_prec, const double &atm_wind, double &forc_t,
+                    double &forc_th, double &forc_pbot, double &forc_q, double &forc_lwrad, double &forc_rain,
+                    double &forc_snow, double &forc_u, double &forc_v, double &forc_rh, double &forc_rho,
+                    double &forc_po2, double &forc_pco2, double &forc_hgt_u, double &forc_hgt_t, double &forc_hgt_q,
+                    ArrayD1 forc_solad, ArrayD1 forc_solai) {
 
   double e;
 
@@ -134,9 +135,9 @@ void InitAtmTimestep(const double &atm_tbot, const double &atm_psrf, const doubl
 
   // forcing height
   double forc_hgt = 30.0; // hardwired? what about zbot from forcing file?
-  forc_hgt_u = forc_hgt; // observational height of wind [m]
-  forc_hgt_t = forc_hgt; // observational height of temperature [m]
-  forc_hgt_q = forc_hgt; // observational height of humidity [m]
+  forc_hgt_u = forc_hgt;  // observational height of wind [m]
+  forc_hgt_t = forc_hgt;  // observational height of temperature [m]
+  forc_hgt_q = forc_hgt;  // observational height of humidity [m]
 
   // rho, pO2, pCO2
   double forc_vp = forc_q * forc_pbot / (0.622 + 0.378 * forc_q);

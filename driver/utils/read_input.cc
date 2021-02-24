@@ -108,6 +108,21 @@ std::array<GO, 4> get_phenology_dimensions(const Comm_type &comm, const std::str
 }
 
 //
+// Readers for pft constants data.
+// -----------------------------------------------------------------------------
+
+//
+// Returns maxpfts in a pft_constants file
+//
+std::array<GO, 1> get_maxpfts(const Comm_type &comm, const std::string &dir, const std::string &basename,
+                              const std::string &varname) {
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  auto maxpfts = get_dimensions<1>(comm, fname_full.str(), varname);
+  return maxpfts;
+}
+
+//
 // Read a phenology file.
 //
 // Requires shape(arr) == { N_TIMES, N_PFTS, N_LAT_LOCAL, N_LON_LOCAL }

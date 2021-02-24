@@ -86,8 +86,8 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
                            const double &zii, const double &beta, const double &zldis, const double &displa,
                            const double &dth, const double &dqh, const double &ur, const double &forc_q,
-                           const double &forc_th, const double thv, double &z0hg, double &z0qg, double &obu, double &um,
-                           double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar);
+                           const double &forc_th, const double &thv, double &z0hg, double &z0qg, double &obu,
+                           double &um, double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar);
 /* ComputeFlux_BG()
 DESCRIPTION:
 calculated bare ground water and energy fluxes

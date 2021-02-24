@@ -9,10 +9,13 @@
 #include <iostream>
 #include <string>
 
-#include "ReadAtmInput.hh"
+#include "ReadAtmosphere.hh"
+#include "ReadPFTConstants.hh"
+#include "read_netcdf.hh"
 
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
+using ArrayS1 = ELM::Array<std::string, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
 
@@ -58,6 +61,24 @@ int main(int argc, char **argv) {
   const std::string data_dir("/home/jbeisman/Software/elm_test_input");
   const std::string basename_forc("");
   const std::string basename_phen("surfdata_1x1pt_US-Brw_simyr1850_c360x720_c20190221.nc");
+  const std::string basename_pfts("clm_params.nc");
+
+  const auto maxpfts = ELM::IO::get_maxpfts(MPI_COMM_WORLD, data_dir, basename_pfts, "z0mr");
+  std::cout << " maxpfts: " << maxpfts[0] << std::endl;
+  auto pftnames = create<ArrayS1>("pftnames", maxpfts[0]);
+  auto z0mr = create<ArrayD1>("pftnames", maxpfts[0]);
+  auto displar = create<ArrayD1>("displar", maxpfts[0]);
+  auto dleaf = create<ArrayD1>("dleaf", maxpfts[0]);
+  auto c3psn = create<ArrayD1>("c3psn", maxpfts[0]);
+
+  // auto rhol = create<ArrayD2>("rhol", 2, maxpfts[0]); //numrad
+  // ELM::IO::read_names(data_dir, basename_pfts, "pftname", 40, pftnames);
+  ELM::ReadPFTConstants(data_dir, basename_pfts, maxpfts[0], pftnames, z0mr, displar, dleaf, c3psn);
+
+  for (int j = 0; j < 25; j++) {
+    std::cout << "pftname: " << pftnames[j] << std::endl;
+    std::cout << "z0mr: " << z0mr[j] << std::endl;
+  }
 
   const auto forc_dims =
       ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, data_dir, basename_forc, "PRECTmms", start, n_months);
@@ -85,10 +106,6 @@ int main(int argc, char **argv) {
   }
 
   // allocate 2 months of LAI, SAI, HTOP, HBOT
-  // ELM::Array<double,2> mlai2t(n_grid_cells, 2);
-  // ELM::Array<double,2> msai2t(n_grid_cells, 2);
-  // ELM::Array<double,2> mhvt2t(n_grid_cells, 2);
-  // ELM::Array<double,2> mhvb2t(n_grid_cells, 2);
   auto mlai2t = create<ArrayD2>("mlai2t", n_grid_cells, 2);
   auto msai2t = create<ArrayD2>("msai2t", n_grid_cells, 2);
   auto mhvt2t = create<ArrayD2>("mhvt2t", n_grid_cells, 2);
@@ -98,7 +115,7 @@ int main(int argc, char **argv) {
   assign(vtype, 4);
 
   // calculate monthly weights; read 2 months of LAI, SAI, HTOP, HBOT if required
-  ELM::interpMonthlyVeg(start, dt, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t, mhvb2t);
+  ELM::InterpMonthlyVeg(start, dt, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t, mhvb2t);
 
   auto tlai = create<ArrayD1>("tlai", n_grid_cells);
   auto tsai = create<ArrayD1>("tsai", n_grid_cells);
@@ -113,9 +130,8 @@ int main(int argc, char **argv) {
 
   int idx = 0;
   ELM::SatellitePhenology(mlai2t[idx], msai2t[idx], mhvt2t[idx], mhvb2t[idx], timwt, vtype[idx], snow_depth[idx],
-                          frac_sno[idx],
-
-                          tlai[idx], tsai[idx], htop[idx], hbot[idx], elai[idx], esai[idx], frac_veg_nosno_alb[idx]);
+                          frac_sno[idx], tlai[idx], tsai[idx], htop[idx], hbot[idx], elai[idx], esai[idx],
+                          frac_veg_nosno_alb[idx]);
 
   for (int mon = 0; mon < 2; ++mon) {
     for (int i = 0; i != n_grid_cells; i++) {
@@ -147,8 +163,8 @@ int main(int argc, char **argv) {
   auto atm_psrf = create<ArrayD2>("atm_psrf", ntimes, n_grid_cells);
   auto atm_prec = create<ArrayD2>("atm_prec", ntimes, n_grid_cells);
 
-  ELM::ReadAtmData(data_dir, basename_forc, start, dd, n_months, atm_zbot, atm_tbot, atm_rh, atm_wind, atm_fsds,
-                   atm_flds, atm_psrf, atm_prec);
+  ELM::ReadAtmForcing(data_dir, basename_forc, start, dd, n_months, atm_zbot, atm_tbot, atm_rh, atm_wind, atm_fsds,
+                      atm_flds, atm_psrf, atm_prec);
 
   //  for (int t = 0; t < 1488; ++t) {
   //    std::cout << "::: " << atm_zbot(t, 0) << " " << atm_tbot(t, 0) << " " << atm_rh(t, 0) << " " << atm_wind(t, 0)
@@ -177,17 +193,20 @@ int main(int argc, char **argv) {
   auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, 2);
 
   for (int t = 0; t < 1488; ++t) {
-    ELM::InitAtmTimestep(atm_tbot(t, idx), atm_psrf(t, idx), atm_rh(t, idx), atm_flds(t, idx), atm_fsds(t, idx),
-                         atm_prec(t, idx), atm_wind(t, idx), forc_t[0], forc_th[0], forc_pbot[0], forc_q[0],
-                         forc_lwrad[0], forc_rain[0], forc_snow[0], forc_u[0], forc_v[0], forc_rh[0], forc_rho[0],
-                         forc_po2[0], forc_pco2[0], forc_hgt_u[0], forc_hgt_t[0], forc_hgt_q[0], forc_solad[0],
-                         forc_solai[0]);
+    ELM::GetAtmTimestep(atm_tbot(t, idx), atm_psrf(t, idx), atm_rh(t, idx), atm_flds(t, idx), atm_fsds(t, idx),
+                        atm_prec(t, idx), atm_wind(t, idx), forc_t[0], forc_th[0], forc_pbot[0], forc_q[0],
+                        forc_lwrad[idx], forc_rain[idx], forc_snow[idx], forc_u[idx], forc_v[idx], forc_rh[idx],
+                        forc_rho[idx], forc_po2[idx], forc_pco2[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
+                        forc_solad[idx], forc_solai[idx]);
 
-    std::cout << t << " ::: " << forc_lwrad[0] << " " << forc_u[0] << " " << forc_rh[0] << " " << forc_t[0] << " "
-              << forc_th[0] << " " << forc_rho[0] << " " << forc_solad[0][0] << " " << forc_solad[0][1] << " "
-              << forc_solai[0][0] << " " << forc_solai[0][1] << " " << forc_rain[0] << " " << forc_snow[0] << std::endl;
-    // std::cout << "forc_rho: " << forc_rho[0] << " " << forc_pbot[0] << " " << forc_q[0] << " " << forc_rh[0] <<
-    // std::endl;
+    //  std::cout << t << " ::: " << forc_lwrad[idx] << " " << forc_u[idx] << " " << forc_rh[idx] << " " << forc_t[idx]
+    //  << " "
+    //            << forc_th[idx] << " " << forc_rho[idx] << " " << forc_solad[idx][0] << " " << forc_solad[idx][1] << "
+    //            "
+    //            << forc_solai[idx][0] << " " << forc_solai[idx][1] << " " << forc_rain[idx] << " " << forc_snow[idx]
+    //            << std::endl;
+    // std::cout << "forc_rho: " << forc_rho[idx] << " " << forc_pbot[idx] << " " << forc_q[idx] << " " << forc_rh[idx]
+    // << std::endl;
   }
 
   // instantiate data
@@ -198,8 +217,6 @@ int main(int argc, char **argv) {
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   assign(snl, 5);
   auto n_irrig_steps_left = create<ArrayI1>("n_irrig_steps_left", n_grid_cells);
-  // auto elai = create<ArrayD1>("elai", n_grid_cells);
-  // auto esai = create<ArrayD1>("esai", n_grid_cells);
   auto h2ocan = create<ArrayD1>("h2ocan", n_grid_cells);
   auto irrig_rate = create<ArrayD1>("irrig_rate", n_grid_cells);
   auto qflx_irrig = create<ArrayD1>("qflx_irrig", n_grid_cells);

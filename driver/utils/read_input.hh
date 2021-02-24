@@ -6,6 +6,8 @@
 #endif
 
 #include "mpi_types.hh"
+#include <stdio.h>
+#include <string.h>
 
 #ifdef HAVE_PNETCDF
 #include "read_pnetcdf.hh"
@@ -63,6 +65,16 @@ inline void read_and_reshape_forcing(const std::string &dir, const std::string &
                                      const Utils::DomainDecomposition<2> &dd, Array_t &arr);
 
 #endif // HAVE_LEGION
+
+//
+// Readers for pft constants data.
+// -----------------------------------------------------------------------------
+
+//
+// Returns maxpfts in a pft_constants file
+//
+std::array<GO, 1> get_maxpfts(const Comm_type &comm, const std::string &dir, const std::string &basename,
+                              const std::string &varname);
 
 //
 // Readers for phenology data.
@@ -178,6 +190,53 @@ inline void read_and_reshape_forcing(const std::string &dir, const std::string &
 #endif // HAVE_LEGION
 
 #ifndef HAVE_LEGION
+
+//
+// Read a variable from the pft constant file.
+//
+// Requires shape(arr) == { MAXPFTS }
+//
+template <class Array_t>
+inline void read_pft_var(const std::string &dir, const std::string &basename, const std::string &varname,
+                         Array_t &arr) {
+  Array<double, 1> arr_for_read(arr.extent(0));
+  int comm;
+  std::array<GO, 1> start = {0};
+  std::array<GO, 1> count = {(GO)arr.extent(0)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  // read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    arr(i) = arr_for_read(i);
+  }
+}
+
+//
+// Read entire string variable from the forcing files.
+//
+// Requires shape(arr) == { MAX_PFTS }
+//
+template <class Array_t>
+inline void read_names(const std::string &dir, const std::string &basename, const std::string &varname,
+                       const int strlen, Array_t &arr) {
+  char arr_for_read[strlen * arr.extent(0) + 1]; // raw memory for c string - padding?
+  std::array<GO, 2> start = {0, 0};
+  std::array<GO, 2> count = {(GO)arr.extent(0), (GO)strlen};
+  int comm;
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read_nc_string(comm, fname_full.str(), varname, start, count, arr_for_read);
+  // ugly c string parsing
+  char *token = strtok(arr_for_read, " ");
+  arr[0] = token;
+  int i = 1;
+  while (token != NULL && i != arr.extent(0)) {
+    token = strtok(NULL, " ");
+    arr[i] = token;
+    i++;
+  }
+}
 
 //
 // Read a variable from the forcing files.
