@@ -186,6 +186,8 @@ int main(int argc, char **argv) {
     std::cout << t << " ::: " << forc_lwrad[0] << " " << forc_u[0] << " " << forc_rh[0] << " " << forc_t[0] << " "
               << forc_th[0] << " " << forc_rho[0] << " " << forc_solad[0][0] << " " << forc_solad[0][1] << " "
               << forc_solai[0][0] << " " << forc_solai[0][1] << " " << forc_rain[0] << " " << forc_snow[0] << std::endl;
+    // std::cout << "forc_rho: " << forc_rho[0] << " " << forc_pbot[0] << " " << forc_q[0] << " " << forc_rh[0] <<
+    // std::endl;
   }
 
   // instantiate data

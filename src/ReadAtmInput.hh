@@ -66,7 +66,27 @@ void InitAtmTimestep(const double &atm_tbot, const double &atm_psrf, const doubl
   forc_t = std::min(atm_tbot, 323.0);
   forc_th = forc_t;
   forc_pbot = std::max(atm_psrf, 4.0e4);
-  forc_q = std::max(atm_rh, 1.0e-9);
+
+  // vapor pressure
+  // if given "RH" in forcing file
+  forc_rh = std::max(atm_rh, 1.0e-9);
+  if (forc_t > tfrz) {
+    e = esatw(tdc(forc_t));
+  } else {
+    e = esati(tdc(forc_t));
+  }
+  double qsat = 0.622 * e / (forc_pbot - 0.378 * e);
+  forc_q = qsat * forc_rh / 100.0;
+
+  // if given "QBOT" in forcing file
+  // forc_q = std::max(atm_rh, 1.0e-9);
+  // if (forc_t > tfrz) {
+  //  e = esatw(tdc(forc_t));
+  //} else {
+  //  e = esati(tdc(forc_t));
+  //}
+  // double qsat = 0.622 * e / (forc_pbot - 0.378 * e);
+  // forc_rh = 100.0 * (forc_q / qsat);
 
   // forc_lwrad
   if (atm_flds <= 50.0 || atm_flds >= 600.0) {
@@ -118,20 +138,13 @@ void InitAtmTimestep(const double &atm_tbot, const double &atm_psrf, const doubl
   forc_hgt_t = forc_hgt; // observational height of temperature [m]
   forc_hgt_q = forc_hgt; // observational height of humidity [m]
 
-  // vapor pressure - rh, rho, pO2, pCO2
+  // rho, pO2, pCO2
   double forc_vp = forc_q * forc_pbot / (0.622 + 0.378 * forc_q);
   forc_rho = (forc_pbot - 0.378 * forc_vp) / (rair * forc_t);
   forc_po2 = o2_molar_const * forc_pbot;
   forc_pco2 = co2_ppmv * 1.0e-6 * forc_pbot;
   // forc_rain = forc_rainc + forc_rainl;
   // forc_snow = forc_snowc + forc_snowl;
-  if (forc_t > tfrz) {
-    e = esatw(tdc(forc_t));
-  } else {
-    e = esati(tdc(forc_t));
-  }
-  double qsat = 0.622 * e / (forc_pbot - 0.378 * e);
-  forc_rh = 100.0 * (forc_q / qsat);
 }
 
 // double szenith() {} later?
