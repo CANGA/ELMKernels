@@ -76,10 +76,10 @@ void interpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
     for (int i = 0; i < n_grid_cells; ++i) {
       veg_type = vtype[i];
       for (int month = 0; month < 2; ++month) {
-        mlai2t(i, month) = mlai(month, i, veg_type);
-        msai2t(i, month) = msai(month, i, veg_type);
-        mhvt2t(i, month) = mhgtt(month, i, veg_type);
-        mhvb2t(i, month) = mhgtb(month, i, veg_type);
+        mlai2t[i][month] = mlai(month, i, veg_type);
+        msai2t[i][month] = msai(month, i, veg_type);
+        mhvt2t[i][month] = mhgtt(month, i, veg_type);
+        mhvb2t[i][month] = mhgtb(month, i, veg_type);
       }
     }
   }

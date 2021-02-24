@@ -111,9 +111,11 @@ int main(int argc, char **argv) {
   auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
   auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
 
-  ELM::SatellitePhenology(mlai2t[0], msai2t[0], mhvt2t[0], mhvb2t[0], timwt, vtype[0], snow_depth[0], frac_sno[0],
+  int idx = 0;
+  ELM::SatellitePhenology(mlai2t[idx], msai2t[idx], mhvt2t[idx], mhvb2t[idx], timwt, vtype[idx], snow_depth[idx],
+                          frac_sno[idx],
 
-                          tlai[0], tsai[0], htop[0], hbot[0], elai[0], esai[0], frac_veg_nosno_alb[0]);
+                          tlai[idx], tsai[idx], htop[idx], hbot[idx], elai[idx], esai[idx], frac_veg_nosno_alb[idx]);
 
   for (int mon = 0; mon < 2; ++mon) {
     for (int i = 0; i != n_grid_cells; i++) {
@@ -133,25 +135,57 @@ int main(int argc, char **argv) {
     }
   }
 
-  std::cout << "::: " << tlai[0] << " " << tsai[0] << " " << htop[0] << " " << hbot[0] << " " << elai[0] << " "
-            << esai[0] << std::endl;
+  std::cout << "::: " << tlai[idx] << " " << tsai[idx] << " " << htop[idx] << " " << hbot[idx] << " " << elai[idx]
+            << " " << esai[idx] << std::endl;
 
-  auto forc_zbot = create<ArrayD2>("forc_zbot", ntimes, n_grid_cells);
-  auto forc_tbot = create<ArrayD2>("forc_tbot", ntimes, n_grid_cells);
-  auto forc_rh = create<ArrayD2>("forc_rh", ntimes, n_grid_cells);
-  auto forc_wind = create<ArrayD2>("forc_wind", ntimes, n_grid_cells);
-  auto forc_fsds = create<ArrayD2>("forc_fsds", ntimes, n_grid_cells);
-  auto forc_flds = create<ArrayD2>("forc_flds", ntimes, n_grid_cells);
-  auto forc_psrf = create<ArrayD2>("forc_psrf", ntimes, n_grid_cells);
-  auto forc_prec = create<ArrayD2>("forc_prec", ntimes, n_grid_cells);
+  auto atm_zbot = create<ArrayD2>("atm_zbot", ntimes, n_grid_cells);
+  auto atm_tbot = create<ArrayD2>("atm_tbot", ntimes, n_grid_cells);
+  auto atm_rh = create<ArrayD2>("atm_rh", ntimes, n_grid_cells);
+  auto atm_wind = create<ArrayD2>("atm_wind", ntimes, n_grid_cells);
+  auto atm_fsds = create<ArrayD2>("atm_fsds", ntimes, n_grid_cells);
+  auto atm_flds = create<ArrayD2>("atm_flds", ntimes, n_grid_cells);
+  auto atm_psrf = create<ArrayD2>("atm_psrf", ntimes, n_grid_cells);
+  auto atm_prec = create<ArrayD2>("atm_prec", ntimes, n_grid_cells);
 
-  ReadAtmData(data_dir, basename_forc, start, dd, n_months, forc_zbot, forc_tbot, forc_rh, forc_wind, forc_fsds,
-              forc_flds, forc_psrf, forc_prec);
+  ELM::ReadAtmData(data_dir, basename_forc, start, dd, n_months, atm_zbot, atm_tbot, atm_rh, atm_wind, atm_fsds,
+                   atm_flds, atm_psrf, atm_prec);
 
-  for (int i = 0; i < 1488; ++i) {
-    std::cout << "::: " << forc_zbot(i, 0) << " " << forc_tbot(i, 0) << " " << forc_rh(i, 0) << " " << forc_wind(i, 0)
-              << " " << forc_fsds(i, 0) << " " << forc_flds(i, 0) << " " << forc_psrf(i, 0) << " " << forc_prec(i, 0)
-              << std::endl;
+  //  for (int t = 0; t < 1488; ++t) {
+  //    std::cout << "::: " << atm_zbot(t, 0) << " " << atm_tbot(t, 0) << " " << atm_rh(t, 0) << " " << atm_wind(t, 0)
+  //              << " " << atm_fsds(t, 0) << " " << atm_flds(t, 0) << " " << atm_psrf(t, 0) << " " << atm_prec(t, 0)
+  //              << std::endl;
+  //  }
+
+  auto forc_t = create<ArrayD1>("forc_t", n_grid_cells);
+  auto forc_th = create<ArrayD1>("forc_th", n_grid_cells);
+  auto forc_pbot = create<ArrayD1>("forc_pbot", n_grid_cells);
+  auto forc_q = create<ArrayD1>("forc_q", n_grid_cells);
+  auto forc_lwrad = create<ArrayD1>("forc_lwrad", n_grid_cells);
+  auto forc_rain = create<ArrayD1>("forc_rain", n_grid_cells);
+  auto forc_snow = create<ArrayD1>("forc_snow", n_grid_cells);
+  auto forc_u = create<ArrayD1>("forc_u", n_grid_cells);
+  auto forc_v = create<ArrayD1>("forc_v", n_grid_cells);
+  auto forc_rh = create<ArrayD1>("forc_rh", n_grid_cells);
+  auto forc_rho = create<ArrayD1>("forc_rho", n_grid_cells);
+  auto forc_po2 = create<ArrayD1>("forc_po2", n_grid_cells);
+  auto forc_pco2 = create<ArrayD1>("forc_pco2", n_grid_cells);
+  auto forc_hgt_u = create<ArrayD1>("forc_hgt_u", n_grid_cells);
+  auto forc_hgt_t = create<ArrayD1>("forc_hgt_t", n_grid_cells);
+  auto forc_hgt_q = create<ArrayD1>("forc_hgt_q", n_grid_cells);
+
+  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, 2);
+  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, 2);
+
+  for (int t = 0; t < 1488; ++t) {
+    ELM::InitAtmTimestep(atm_tbot(t, idx), atm_psrf(t, idx), atm_rh(t, idx), atm_flds(t, idx), atm_fsds(t, idx),
+                         atm_prec(t, idx), atm_wind(t, idx), forc_t[0], forc_th[0], forc_pbot[0], forc_q[0],
+                         forc_lwrad[0], forc_rain[0], forc_snow[0], forc_u[0], forc_v[0], forc_rh[0], forc_rho[0],
+                         forc_po2[0], forc_pco2[0], forc_hgt_u[0], forc_hgt_t[0], forc_hgt_q[0], forc_solad[0],
+                         forc_solai[0]);
+
+    std::cout << t << " ::: " << forc_lwrad[0] << " " << forc_u[0] << " " << forc_rh[0] << " " << forc_t[0] << " "
+              << forc_th[0] << " " << forc_rho[0] << " " << forc_solad[0][0] << " " << forc_solad[0][1] << " "
+              << forc_solai[0][0] << " " << forc_solai[0][1] << " " << forc_rain[0] << " " << forc_snow[0] << std::endl;
   }
 
   // instantiate data
@@ -162,8 +196,6 @@ int main(int argc, char **argv) {
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   assign(snl, 5);
   auto n_irrig_steps_left = create<ArrayI1>("n_irrig_steps_left", n_grid_cells);
-  auto forc_rain = create<ArrayD1>("forc_rain", n_grid_cells);
-  auto forc_snow = create<ArrayD1>("forc_snow", n_grid_cells);
   // auto elai = create<ArrayD1>("elai", n_grid_cells);
   // auto esai = create<ArrayD1>("esai", n_grid_cells);
   auto h2ocan = create<ArrayD1>("h2ocan", n_grid_cells);
@@ -176,7 +208,6 @@ int main(int argc, char **argv) {
   auto qflx_rain_grnd = create<ArrayD1>("qflx_rain_grnd", n_grid_cells);
   auto fwet = create<ArrayD1>("fwet", n_grid_cells);
   auto fdry = create<ArrayD1>("fdry", n_grid_cells);
-  auto forc_t = create<ArrayD1>("forc_t", n_grid_cells);
   auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
   auto qflx_snow_melt = create<ArrayD1>("qflx_snow_melt", n_grid_cells);
   auto n_melt = create<ArrayD1>("n_melt", n_grid_cells);

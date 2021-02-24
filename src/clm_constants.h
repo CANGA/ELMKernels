@@ -47,6 +47,7 @@ static const int nsoybeanirrig = 25;
 
 // from clm_varctl.F90
 static const int subgridflag = 0;
+static const double co2_ppmv = 355.0; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
 // from clm_varpar.F90
 static const int nlevsno = 5; // this should be set by driver
