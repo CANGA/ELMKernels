@@ -206,7 +206,6 @@ inline void read_pft_var(const std::string &dir, const std::string &basename, co
   std::stringstream fname_full;
   fname_full << dir << "/" << basename;
   read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
-  // read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
   for (int i = 0; i != arr.extent(0); ++i) {
     arr(i) = arr_for_read(i);
   }

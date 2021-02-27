@@ -1,8 +1,10 @@
 #pragma once
 
 #include "clm_constants.h"
+#include "cmath"
 #include "read_input.hh"
 #include "utils.hh"
+
 namespace ELM {
 
 // serial I/O function

@@ -111,9 +111,7 @@ inline void read(const Comm_type &comm, const std::string &filename, const std::
 template <size_t D>
 inline void read_nc_string(const Comm_type &comm, const std::string &filename, const std::string &varname,
                            const std::array<size_t, D> &start, const std::array<size_t, D> &count, char data[]) {
-
   int nc_id = -1;
-  ;
   auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
   error(status, "nc_open", filename);
 
