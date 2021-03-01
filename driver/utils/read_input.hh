@@ -225,7 +225,7 @@ inline void read_names(const std::string &dir, const std::string &basename, cons
   int comm;
   std::stringstream fname_full;
   fname_full << dir << "/" << basename;
-  read_nc_string(comm, fname_full.str(), varname, start, count, arr_for_read);
+  read(comm, fname_full.str(), varname, start, count, arr_for_read);
   // ugly c string parsing
   char *token = strtok(arr_for_read, " ");
   arr[0] = token;
@@ -234,6 +234,68 @@ inline void read_names(const std::string &dir, const std::string &basename, cons
     token = strtok(NULL, " ");
     arr[i] = token;
     i++;
+  }
+}
+
+// read distributed scalar variable
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL } && shape(arr_for_read) == {local_x_gridcells, local_y_gridcells} 
+//
+template <typename T, typename Array_t>
+inline void read_distributed_scalar(const std::string &dir, const std::string &basename, const std::string &varname,
+                        const Utils::DomainDecomposition<2> &dd, Array_t &arr) {
+  
+  Array<T, 2> arr_for_read(dd.n_local[0], dd.n_local[1]);
+  // my slice in space
+  std::array<GO, 2> start = {dd.start[0], dd.start[1]};
+  std::array<GO, 2> count = {dd.n_local[0], dd.n_local[1]};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != dd.n_local[0]; ++i) {
+    for (int j = 0; j != dd.n_local[1]; ++j) {
+      arr[i * dd.n_local[1] + j] = arr_for_read(i, j);
+    }
+  }
+}
+
+// read distributed scalar variable
+// Assumes shape(arr) == { DIM1 } && shape(arr_for_read) == {DIM1} 
+//
+template <typename T, typename Array_t>
+inline void read_distributed_scalar(const std::string &dir, const std::string &basename, const std::string &varname,
+                        Array_t &arr) {
+  
+  Array<T, 1> arr_for_read(arr.extent(0));
+  int comm;
+  // my slice in space
+  std::array<GO, 1> start = {0};
+  std::array<GO, 1> count = {(GO)arr.extent(0)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    arr[i] = arr_for_read(i);
+  }
+}
+
+// read distributed array variable
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
+//
+template <typename T, typename Array_t>
+inline void read_distributed_array(const std::string &dir, const std::string &basename, const std::string &varname,
+                        const Utils::DomainDecomposition<2> &dd, Array_t &arr) {
+  
+  Array<T, 2> arr_for_read(arr.extent(0), arr.extent(1));
+  // my slice in space
+  std::array<GO, 2> start = {0, 0};
+  std::array<GO, 2> count = {(GO)arr.extent(0), (GO)arr.extent(1)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    for (int j = 0; j != arr.extent(1); ++j) {
+      arr(i, j) = arr_for_read(i, j);
+    }
   }
 }
 

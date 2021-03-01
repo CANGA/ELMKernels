@@ -85,7 +85,7 @@ inline void read(const Comm_type &comm, const std::string &filename, const std::
 }
 
 //
-// Read some of the dataset into some of the array.
+// Read some of the double dataset into some of the double array.
 //
 template <size_t D>
 inline void read(const Comm_type &comm, const std::string &filename, const std::string &varname,
@@ -106,10 +106,31 @@ inline void read(const Comm_type &comm, const std::string &filename, const std::
 }
 
 //
-// Read entire string variable into char array.
+// Read some of the integer dataset into some of the int array.
 //
 template <size_t D>
-inline void read_nc_string(const Comm_type &comm, const std::string &filename, const std::string &varname,
+inline void read(const Comm_type &comm, const std::string &filename, const std::string &varname,
+                 const std::array<size_t, D> &start, const std::array<size_t, D> &count, int *arr) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int var_id = -1;
+  status = nc_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  status = nc_get_vara_int(nc_id, var_id, start.data(), count.data(), arr);
+  error(status, "nc_get_vara_int", filename, varname);
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+}
+
+//
+// Read some of the string variable into some of the char array.
+//
+template <size_t D>
+inline void read(const Comm_type &comm, const std::string &filename, const std::string &varname,
                            const std::array<size_t, D> &start, const std::array<size_t, D> &count, char data[]) {
   int nc_id = -1;
   auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);

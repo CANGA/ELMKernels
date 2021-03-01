@@ -12,6 +12,7 @@
 #include "InitTimestep.hh"
 #include "ReadAtmosphere.hh"
 #include "ReadPFTConstants.hh"
+#include "ReadTestData.hh"
 #include "SatellitePhenology.hh"
 #include "clm_constants.h"
 #include "landtype.h"
@@ -48,6 +49,7 @@ int main(int argc, char **argv) {
   const std::string data_dir("/home/jbeisman/Software/elm_test_input");
   const std::string basename_forc("");
   const std::string basename_phen("surfdata_1x1pt_US-Brw_simyr1850_c360x720_c20190221.nc");
+  const std::string basename_init("ForATS_AK-BEOG_ICB1850CNPRDCTCBC.elm.r.0609-01-01-00000.nc");
   const std::string basename_pfts("clm_params.nc");
 
   const auto forc_dims =
@@ -135,7 +137,7 @@ int main(int argc, char **argv) {
                         lmrha, vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt, nstor, br_xr,
                         tc_stress, rhol[0], rhol[1], rhos[0], rhos[1], taul[0], taul[1], taus[0], taus[1]);
 
-  for (int j = 0; j < 25; j++) {
+  for (int j = 0; j != maxpfts[0]; j++) {
     std::cout << "pftname: " << pftnames[j] << std::endl;
     std::cout << "rhol[0], rhol[1]: " << rhol[0][j] << " " << rhol[1][j] << std::endl;
     std::cout << "rhos[0], rhos[1]: " << rhos[0][j] << " " << rhos[1][j] << std::endl;
@@ -166,8 +168,8 @@ int main(int argc, char **argv) {
   auto hbot = create<ArrayD1>("hbot", n_grid_cells);
   auto frac_veg_nosno_alb = create<ArrayI1>("frac_veg_nosno_alb", n_grid_cells);
 
-  auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells); // NEED VALUES!
-  auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);     // NEED VALUES!
+  auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells); // NEED VALUES! -- use init nc file for now
+  auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);     // NEED VALUES! -- use init nc file for now
 
   int idx = 0;
   ELM::SatellitePhenology(mlai2t[idx], msai2t[idx], mhvt2t[idx], mhvb2t[idx], timwt, vtype[idx], snow_depth[idx],
@@ -246,7 +248,7 @@ int main(int argc, char **argv) {
   bool do_capsnow(false);
   auto h2osno = create<ArrayD1>("h2osno", n_grid_cells);         // need value
   auto veg_active = create<ArrayB1>("veg_active", n_grid_cells); // need value
-  auto snl = create<ArrayI1>("snl", n_grid_cells);
+  auto snl = create<ArrayI1>("snl", 17);
   auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd); // need value
   auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd); // need value
 
@@ -257,10 +259,25 @@ int main(int argc, char **argv) {
   auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", n_grid_cells);
   auto frac_iceold = create<ArrayD2>("frac_iceold", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
 
-  ELM::InitSnowLayers(snow_depth[idx], lakpoi, snl[idx], dz[idx], z[idx], zi[idx]);
-  ELM::InitTimestep(lakpoi, h2osno[idx], veg_active[idx], snl[idx], h2osoi_ice[idx], h2osoi_liq[idx],
-                    frac_veg_nosno_alb[idx], h2osno_old[idx], do_capsnow, eflx_bot[idx], qflx_glcice[idx],
-                    frac_veg_nosno[idx], frac_iceold[idx]);
+//  ELM::InitSnowLayers(snow_depth[idx], lakpoi, snl[idx], dz[idx], z[idx], zi[idx]);
+//  ELM::InitTimestep(lakpoi, h2osno[idx], veg_active[idx], snl[idx], h2osoi_ice[idx], h2osoi_liq[idx],
+//                    frac_veg_nosno_alb[idx], h2osno_old[idx], do_capsnow, eflx_bot[idx], qflx_glcice[idx],
+//                    frac_veg_nosno[idx], frac_iceold[idx]);
+
+
+
+
+  auto topo_slope = create<ArrayD1>("topo_slope", n_grid_cells);
+  auto topo_std = create<ArrayD1>("topo_std", n_grid_cells);
+  ELM::ReadLandData(data_dir, basename_phen, dd, topo_slope, topo_std);
+  std::cout << topo_slope[0] << " " << topo_std[0] << std::endl;
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  ELM::ReadTestInitData(data_dir, basename_init, dd, t_soisno, snl);
+
+  for (int i = 0; i < 17; i++) {
+  std::cout << snl[i] << std::endl;
+}
+
 
   // instantiate data
   ELM::LandType Land;
@@ -289,7 +306,6 @@ int main(int argc, char **argv) {
   auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", n_grid_cells);
   auto swe_old = create<ArrayD2>("swe_old", n_grid_cells, ELM::nlevsno);
 
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
 
   auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno);
 
