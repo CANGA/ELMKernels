@@ -3,9 +3,11 @@
 DESCRIPTION:
 Choose number of snow layers (max 5) based on depth of snow. Initialize snow layer thickness, depth, interface depth.
 
-CLM uses negative indexing for the snow model - snl is the negative of the number of snow layers - i=0 is layer next to
-soil, i = snl+1 is top layer. Here we use a positive snl - i=0 corresponds to snl = nlevsno & i = nlevsno-1 is the layer
-adjacent to the ground surface
+CLM uses negative indexing for the snow model -- snl is the negative of the number of snow layers - i=0 is layer next to
+soil, i = snl+1 is top layer.
+
+Here we use a positive snl -- i=0 corresponds to snl = nlevsno & i = nlevsno-1 is the layer
+adjacent to the ground surface & i = [nlevsno-snl] is the top active snow layer
 
 INPUTS:
 snow_depth [double] snow height (m)

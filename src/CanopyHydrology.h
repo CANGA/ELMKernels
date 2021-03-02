@@ -166,7 +166,7 @@ no_update                    [bool] flag to make calculation w/o updating variab
 
 OUTPUTS:
 h2osfc                       [double] surface water (mm)
-h2osoi_liq[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
 frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 frac_sno_eff                 [double] effective fraction of ground covered by snow (0 to 1)
 frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)

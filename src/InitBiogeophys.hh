@@ -24,29 +24,28 @@ void InitBiogeophys() {
 /*
   ! Initialize urban constants
 
-    call urbanparams_vars%Init(bounds_proc)
+    call urbanparams_vars%Init(bounds_proc) -- don't need yet
 
     ! Initialize ecophys constants
 
-    call veg_vp%Init()
+    call veg_vp%Init() - don't need at all
 
     ! Initialize soil order related constants
 
-    call soilorderconInit()
+    call soilorderconInit() - don't need at all, should probably be in biogeochem
 
     ! Initialize lake constants
 
-    call LakeConInit()
+    call LakeConInit() - don't need yet? at all?
 
     ! Initialize surface albedo constants
 
-    call SurfaceAlbedoInitTimeConst(bounds_proc)
+    call SurfaceAlbedoInitTimeConst(bounds_proc) - need this for albsat albsat albdry albdry
 
     ! Initialize vertical data components
 
-    call initVertical(bounds_proc,               &
-         snow_depth_col(begc:endc),              &
-         urbanparams_vars%thick_wall(begl:endl), &
+    call initVertical(bounds_proc,               & -- already have snow and microtopography, don't need anything else
+  yet snow_depth_col(begc:endc),              & urbanparams_vars%thick_wall(begl:endl), &
          urbanparams_vars%thick_roof(begl:endl))
 
     ! Initialize clm->drv and drv->clm data structures
@@ -54,7 +53,7 @@ void InitBiogeophys() {
     call atm2lnd_vars%Init( bounds_proc )
     call lnd2atm_vars%Init( bounds_proc )
 
-    ! Initialize glc2lnd and lnd2glc even if running without create_glacier_mec_landunit,
+    ! Initialize glc2lnd and lnd2glc even if running without create_glacier_mec_landunit, -- don't need
     ! because at least some variables (such as the icemask) are referred to in code that
     ! is executed even when running without glc_mec.
     call glc2lnd_vars%Init( bounds_proc )

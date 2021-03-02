@@ -110,13 +110,15 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
 
   for (int i = 0; i < niters; i++) {
 
-    FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
-    FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hg, temp1);
-    FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
-    FrictionVelocityTemperature2m(obu, z0hg, temp12m);
-    FrictionVelocityHumidity2m(obu, z0hg, z0qg, temp12m, temp22m);
-
     if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
+
+      // friction velocity calls
+      FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
+      FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hg, temp1);
+      FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
+      FrictionVelocityTemperature2m(obu, z0hg, temp12m);
+      FrictionVelocityHumidity2m(obu, z0hg, z0qg, temp12m, temp22m);
+
       tstar = temp1 * dth;
       qstar = temp2 * dqh;
       thvstar = tstar * (1.0 + 0.61 * forc_q) + 0.61 * forc_th * qstar;
