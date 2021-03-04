@@ -278,6 +278,25 @@ inline void read_distributed_scalar(const std::string &dir, const std::string &b
   }
 }
 
+// TEMPORARY FOR TESTING
+// Assumes shape(arr) == { DIM1 } && shape(arr_for_read) == {DIM1} && start == {INDEX}
+//
+template <typename T, typename Array_t>
+inline void read_distributed_scalar(const std::string &dir, const std::string &basename, const std::string &varname,
+                                    const int &idx, Array_t &arr) {
+
+  Array<T, 1> arr_for_read(arr.extent(0));
+  int comm;
+  // my slice in space
+  std::array<GO, 1> start = {(GO)idx};
+  std::array<GO, 1> count = {(GO)arr.extent(0)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    arr[i] = arr_for_read(i);
+  }
+}
 // read distributed array variable
 // Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
 //

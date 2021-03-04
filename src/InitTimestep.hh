@@ -55,7 +55,7 @@ void InitTimestep(const bool &lakpoi, const double &h2osno, const bool &veg_acti
   // Ice fraction of snow at previous time step
   if (!lakpoi) {
     for (int i = 0; i < nlevsno; i++) {
-      if (i <= nlevsno - snl) {
+      if (i >= nlevsno - snl) {
         frac_iceold[i] = h2osoi_ice[i] / (h2osoi_liq[i] + h2osoi_ice[i]);
       }
     }
