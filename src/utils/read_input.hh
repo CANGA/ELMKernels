@@ -324,18 +324,42 @@ inline void read_distributed_scalar(const std::string &dir, const std::string &b
 //
 template <typename T, typename Array_t>
 inline void read_distributed_array(const std::string &dir, const std::string &basename, const std::string &varname,
-                        const Utils::DomainDecomposition<2> &dd, Array_t &arr) {
-  
+                                   Array_t &arr) {
+
   Array<T, 2> arr_for_read(arr.extent(0), arr.extent(1));
   // my slice in space
   std::array<GO, 2> start = {0, 0};
   std::array<GO, 2> count = {(GO)arr.extent(0), (GO)arr.extent(1)};
   std::stringstream fname_full;
   fname_full << dir << "/" << basename;
-  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  int comm;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
   for (int i = 0; i != arr.extent(0); ++i) {
     for (int j = 0; j != arr.extent(1); ++j) {
       arr(i, j) = arr_for_read(i, j);
+    }
+  }
+}
+
+// read distributed array variable
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM} && shape(arr_for_read) == {DIM, local_x_gridcells,
+// local_y_gridcells} reshapes!!
+template <typename T, typename Array_t>
+inline void read_distributed_array(const std::string &dir, const std::string &basename, const std::string &varname,
+                                   const Utils::DomainDecomposition<2> &dd, Array_t &arr) {
+
+  Array<T, 3> arr_for_read(arr.extent(1), dd.n_local[0], dd.n_local[1]);
+  // my slice in space
+  std::array<GO, 3> start = {0, dd.start[0], dd.start[1]};
+  std::array<GO, 3> count = {(GO)arr.extent(1), dd.n_local[0], dd.n_local[1]};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(1); ++i) {
+    for (int j = 0; j != dd.n_local[0]; ++j) {
+      for (int k = 0; k != dd.n_local[1]; ++k) {
+        arr(j * dd.n_local[1] + k, i) = arr_for_read(i, j, k);
+      }
     }
   }
 }

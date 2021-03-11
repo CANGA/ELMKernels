@@ -159,9 +159,9 @@ int main(int argc, char **argv) {
   //ELM::IO::read_bottom<double>(data_dir, fname_h1_start.str(), "SOILICE", dd, 0, h2osoi_ice);
   //ELM::IO::read_bottom<double>(data_dir, fname_h1_start.str(), "SOILLIQ", dd, 0, h2osoi_liq);
 
-  ELM::IO::read_distributed_array<double>(data_dir, fname_r.str(), "H2OSOI_LIQ", dd, h2osoi_liq);
-  ELM::IO::read_distributed_array<double>(data_dir, fname_r.str(), "H2OSOI_ICE", dd, h2osoi_ice);
-  
+  ELM::IO::read_distributed_array<double>(data_dir, fname_r.str(), "H2OSOI_LIQ", h2osoi_liq);
+  ELM::IO::read_distributed_array<double>(data_dir, fname_r.str(), "H2OSOI_ICE", h2osoi_ice);
+
   for (int i = 0; i < 20; i ++) {
   std::cout << "i: " << i << " " << h2osoi_ice[0][i] << " " << h2osoi_liq[0][i] << std::endl;
   }

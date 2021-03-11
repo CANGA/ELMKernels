@@ -10,6 +10,7 @@
 #include "BareGroundFluxes.h"
 #include "InitSnowLayers.hh"
 #include "InitTimestep.hh"
+#include "InitTopography.hh"
 #include "ReadAtmosphere.hh"
 #include "ReadPFTConstants.hh"
 #include "ReadTestData.hh"
@@ -18,8 +19,8 @@
 #include "landtype.h"
 
 #include "CanopyHydrology.h"
+#include "CanopyTemperature.h"
 #include "SurfaceRadiation.h"
-#include "InitTopography.hh"
 
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
@@ -81,7 +82,8 @@ int main(int argc, char **argv) {
   static const double dewmx = 0.1;                     // hardwired
   auto vtype = create<ArrayI1>("vtype", n_grid_cells); // pft type
   assign(vtype, 2);                                    // dummy variable for now
-  assign(dz, 1.0);                                     // doesn't work for this 2d variable
+  assign(dz, 1.0);                                     // hardwired for simple testing
+
   std::cout << vtype[0] << std::endl;
 
   // increment seconds based timestep:
@@ -170,8 +172,13 @@ int main(int argc, char **argv) {
   auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno);
   auto int_snow = create<ArrayD1>("int_snow", n_grid_cells); // need value
 
-  ELM::ReadLandData(data_dir, basename_phen, dd, topo_slope, topo_std);
+  auto sand3d = create<ArrayD2>("sand3d", n_grid_cells, ELM::nlevsoi); // should change name from sand3d, clay3d
+  auto clay3d = create<ArrayD2>("clay3d", n_grid_cells, ELM::nlevsoi);
+  ELM::ReadLandData(data_dir, basename_phen, dd, topo_slope, topo_std, sand3d, clay3d);
   std::cout << topo_slope[0] << " " << topo_std[0] << std::endl;
+  for (int i = 0; i < ELM::nlevsoi; ++i) {
+    std::cout << "sand3d & clay3d: " << i << " " << sand3d[0][i] << " " << clay3d[0][i] << std::endl;
+  }
 
   ELM::ReadTestInitData(data_dir, basename_init, dd, t_soisno, snl, snow_depth, h2ocan, h2osoi_liq, h2osoi_ice, h2osno,
                         snw_rds, int_snow);
@@ -264,20 +271,21 @@ int main(int argc, char **argv) {
                         forc_rho[idx], forc_po2[idx], forc_pco2[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
                         forc_solad[idx], forc_solai[idx]);
 
-      std::cout << t << " ::: " << forc_lwrad[idx] << " " << forc_u[idx] << " " << forc_rh[idx] << " " << forc_t[idx]
-      << " "
-        << forc_th[idx] << " " << forc_rho[idx] << "forc_solad0: " << forc_solad[idx][0] << "forc_solad1: " << forc_solad[idx][1] << 
-        "forc_solai0: "
-        << forc_solai[idx][0] << "forc_solai1: " << forc_solai[idx][1] << " " << forc_rain[idx] << " " << forc_snow[idx]
-        << std::endl;
-     std::cout << "forc_rho: " << forc_rho[idx] << " " << forc_pbot[idx] << " " << forc_q[idx] << " " << forc_rh[idx]
-     << std::endl;
+    //  std::cout << t << " ::: " << forc_lwrad[idx] << " " << forc_u[idx] << " " << forc_rh[idx] << " " << forc_t[idx]
+    //  << " "
+    //    << forc_th[idx] << " " << forc_rho[idx] << "forc_solad0: " << forc_solad[idx][0] << "forc_solad1: " <<
+    //    forc_solad[idx][1] << "forc_solai0: "
+    //    << forc_solai[idx][0] << "forc_solai1: " << forc_solai[idx][1] << " " << forc_rain[idx] << " " <<
+    //    forc_snow[idx]
+    //    << std::endl;
+    // std::cout << "forc_rho: " << forc_rho[idx] << " " << forc_pbot[idx] << " " << forc_q[idx] << " " << forc_rh[idx]
+    // << std::endl;
   }
 
   const bool lakpoi(false);
   bool do_capsnow(false);
   auto veg_active = create<ArrayB1>("veg_active", n_grid_cells); // need value
-
+  assign(veg_active, true);                                      // hardwired
   auto h2osno_old = create<ArrayD1>("h2osno_old", n_grid_cells);
   auto eflx_bot = create<ArrayD1>("eflx_bot", n_grid_cells);
   auto qflx_glcice = create<ArrayD1>("qflx_glcice", n_grid_cells);
@@ -476,7 +484,7 @@ int main(int argc, char **argv) {
    ELM::SurfRadZeroFluxes(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
                           sabg_lyr[idx]);
 
-   { // scope for some local vars
+   {                          // scope for some local vars
      double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
      double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
       ELM::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
@@ -503,13 +511,89 @@ int main(int argc, char **argv) {
                           forc_solad[idx], forc_solai[idx],
                           fsr[idx]);
     std::cout << "SurfRadReflected: " << fsr[0] <<  std::endl;
-
-
-
-
    }
 
+   // variables for CanopyTemperature
+   auto t_h2osfc = create<ArrayD1>("t_h2osfc", n_grid_cells);
+   assign(t_h2osfc, 255.315686526596);
+   auto t_h2osfc_bef = create<ArrayD1>("t_h2osfc_bef", n_grid_cells);
+   auto smpmin = create<ArrayD1>("smpmin", n_grid_cells);
+   assign(smpmin, -1.0e8); // gets init to this value in SoilStateType.F90
+   auto z_0_town = create<ArrayD1>("z_0_town", n_grid_cells);
+   auto z_d_town = create<ArrayD1>("z_d_town", n_grid_cells);
+   auto soilalpha = create<ArrayD1>("soilalpha", n_grid_cells);
+   auto soilalpha_u = create<ArrayD1>("soilalpha_u", n_grid_cells);
+   auto soilbeta = create<ArrayD1>("soilbeta", n_grid_cells);
+   auto qg_snow = create<ArrayD1>("qg_snow", n_grid_cells);
+   auto qg_soil = create<ArrayD1>("qg_soil", n_grid_cells);
+   auto qg = create<ArrayD1>("qg", n_grid_cells);
+   auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", n_grid_cells);
+   auto dqgdT = create<ArrayD1>("dqgdT", n_grid_cells);
+   auto htvp = create<ArrayD1>("htvp", n_grid_cells);
+   auto emg = create<ArrayD1>("emg", n_grid_cells);
+   auto emv = create<ArrayD1>("emv", n_grid_cells);
+   auto z0mg = create<ArrayD1>("z0mg", n_grid_cells);
+   auto z0hg = create<ArrayD1>("z0hg", n_grid_cells);
+   auto z0qg = create<ArrayD1>("z0qg", n_grid_cells);
+   auto z0mv = create<ArrayD1>("z0mv", n_grid_cells);
+   auto z0hv = create<ArrayD1>("z0hv", n_grid_cells);
+   auto z0qv = create<ArrayD1>("z0qv", n_grid_cells);
+   auto beta = create<ArrayD1>("beta", n_grid_cells);
+   auto zii = create<ArrayD1>("zii", n_grid_cells);
+   auto thv = create<ArrayD1>("thv", n_grid_cells);
+   auto z0m = create<ArrayD1>("z0m", n_grid_cells);
+   auto displa = create<ArrayD1>("displa", n_grid_cells);
+   auto cgrnds = create<ArrayD1>("cgrnds", n_grid_cells);
+   auto cgrndl = create<ArrayD1>("cgrndl", n_grid_cells);
+   auto cgrnd = create<ArrayD1>("cgrnd", n_grid_cells);
+   auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", n_grid_cells);
+   auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", n_grid_cells);
+   auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", n_grid_cells);
+   auto thm = create<ArrayD1>("thm", n_grid_cells);
+   auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", n_grid_cells);
+   auto eflx_sh_tot_u = create<ArrayD1>("eflx_sh_tot_u", n_grid_cells);
+   auto eflx_sh_tot_r = create<ArrayD1>("eflx_sh_tot_r", n_grid_cells);
+   auto eflx_lh_tot = create<ArrayD1>("eflx_lh_tot", n_grid_cells);
+   auto eflx_lh_tot_u = create<ArrayD1>("eflx_lh_tot_u", n_grid_cells);
+   auto eflx_lh_tot_r = create<ArrayD1>("eflx_lh_tot_r", n_grid_cells);
+   auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", n_grid_cells);
+   auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", n_grid_cells);
+   auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", n_grid_cells);
+   auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", n_grid_cells);
+   auto tssbef = create<ArrayD2>("tssbef", n_grid_cells, ELM::nlevgrnd + ELM::nlevsno);
+   auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);       // comes from SoilStateType.F90
+   auto watdry = create<ArrayD2>("watdry", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto watopt = create<ArrayD2>("watopt", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto rootfr_road_perv =
+       create<ArrayD2>("rootfr_road_perv", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto rootr_road_perv =
+       create<ArrayD2>("rootr_road_perv", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+   auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);  // comes from SoilStateType.F90
 
+   ELM::SaveGroundTemp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
 
-  return 0;
+   std::cout << "SaveGroundTemp: " << t_h2osfc_bef[idx] << std::endl;
+   for (int i = 0; i < ELM::nlevgrnd + ELM::nlevsno; ++i)
+     std::cout << i << " " << tssbef[idx][i] << std::endl;
+
+   ELM::CalculateGroundTemp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
+                            t_grnd[idx]);
+   std::cout << "CalculateGroundTemp: " << t_grnd[idx] << std::endl;
+
+   double qred, hr;
+   // need vars from SoilStateType.F90 (InitSoil.hh) to be meaningful for next three calls
+   ELM::CalculateSoilAlpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+                           dz[idx], t_soisno[idx], watsat[idx], sucsat[idx], bsw[idx], watdry[idx], watopt[idx],
+                           rootfr_road_perv[idx], rootr_road_perv[idx], qred, hr, soilalpha[idx], soilalpha_u[idx]);
+
+   ELM::CalculateSoilBeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
+                          h2osoi_ice[idx], dz[idx], soilbeta[idx]);
+
+   ELM::CalculateHumidities(Land, snl[idx], forc_q[idx], forc_pbot[idx], t_h2osfc[idx], t_grnd[idx], frac_sno[idx],
+                            frac_sno_eff[idx], frac_h2osfc[idx], qred, hr, t_soisno[idx], qg_snow[idx], qg_soil[idx],
+                            qg[idx], qg_h2osfc[idx], dqgdT[idx]);
+
+   return 0;
 }

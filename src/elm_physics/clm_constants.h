@@ -56,7 +56,7 @@ static const int nlevurb = 5; // number of urban layers
 static const int numrad = 2;  // number of solar radiation bands: vis, nir
 static const int nlevcan = 1; // number of leaf layers in canopy layer
 static const int numpft = 16; // number of pfts - (use_crop ? 24 : 16)
-static const int nlevsoi = 15; // number of soil layers (hydrologically active)
+static const int nlevsoi = 10; // number of soil layers (hydrologically active)
 static const int nlevbed = 15; // number of layers to bedrock (hydrologically inactive below)
 
 // from column_varcon.F90
