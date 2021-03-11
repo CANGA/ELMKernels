@@ -18,6 +18,7 @@
 #include "landtype.h"
 
 #include "CanopyHydrology.h"
+#include "SurfaceRadiation.h"
 #include "InitTopography.hh"
 
 using ArrayB1 = ELM::Array<bool, 1>;
@@ -263,14 +264,14 @@ int main(int argc, char **argv) {
                         forc_rho[idx], forc_po2[idx], forc_pco2[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
                         forc_solad[idx], forc_solai[idx]);
 
-    //  std::cout << t << " ::: " << forc_lwrad[idx] << " " << forc_u[idx] << " " << forc_rh[idx] << " " << forc_t[idx]
-    //  << " "
-    //            << forc_th[idx] << " " << forc_rho[idx] << " " << forc_solad[idx][0] << " " << forc_solad[idx][1] << "
-    //            "
-    //            << forc_solai[idx][0] << " " << forc_solai[idx][1] << " " << forc_rain[idx] << " " << forc_snow[idx]
-    //            << std::endl;
-    // std::cout << "forc_rho: " << forc_rho[idx] << " " << forc_pbot[idx] << " " << forc_q[idx] << " " << forc_rh[idx]
-    // << std::endl;
+      std::cout << t << " ::: " << forc_lwrad[idx] << " " << forc_u[idx] << " " << forc_rh[idx] << " " << forc_t[idx]
+      << " "
+        << forc_th[idx] << " " << forc_rho[idx] << "forc_solad0: " << forc_solad[idx][0] << "forc_solad1: " << forc_solad[idx][1] << 
+        "forc_solai0: "
+        << forc_solai[idx][0] << "forc_solai1: " << forc_solai[idx][1] << " " << forc_rain[idx] << " " << forc_snow[idx]
+        << std::endl;
+     std::cout << "forc_rho: " << forc_rho[idx] << " " << forc_pbot[idx] << " " << forc_q[idx] << " " << forc_rh[idx]
+     << std::endl;
   }
 
   const bool lakpoi(false);
@@ -322,8 +323,10 @@ int main(int argc, char **argv) {
   auto n_melt = create<ArrayD1>("n_melt", n_grid_cells);
   auto micro_sigma = create<ArrayD1>("micro_sigma", n_grid_cells);
   ELM::InitMicroTopo(Land.ltype, topo_slope[idx], topo_std[idx], n_melt[idx], micro_sigma[idx]);
+  std::cout << "n_melt: " << n_melt[idx] << std::endl;
 
   {                                  // canopyhydrology calls
+    // local vars - these need to be thread local in parallel runs
     static const double dewmx = 0.1; // hardwired
     // static const bool do_capsnow = false; // hardwired
     static const int oldfflag = 1; // hardwired
@@ -370,6 +373,143 @@ int main(int argc, char **argv) {
     std::cout << micro_sigma[idx] << " " << h2osno[idx] << " " << h2osfc[idx] << " " << frac_sno[idx] << " "
               << frac_sno_eff[idx] << " " << frac_h2osfc[idx] << std::endl;
   }
+
+
+  // surface radiation variables
+  // these will all be calculated eventually
+  // for now, just manually hardwire in data values 
+  auto nrad = create<ArrayI1>("nrad", n_grid_cells);
+  assign(nrad, 1); // hardwired for nlevcan == 1; gets initialized in SurfaceAlbedoType.F90 & recalculated in SurfaceAlbedoMod.F90
+  auto fsr = create<ArrayD1>("fsr", n_grid_cells); // output
+  auto laisun = create<ArrayD1>("laisun", n_grid_cells); // output
+  auto laisha = create<ArrayD1>("laisha", n_grid_cells); // output
+  auto sabg_soil = create<ArrayD1>("sabg_soil", n_grid_cells); // output
+  auto sabg_snow = create<ArrayD1>("sabg_snow", n_grid_cells); // output
+  auto sabg = create<ArrayD1>("sabg", n_grid_cells); // output
+  auto sabv = create<ArrayD1>("sabv", n_grid_cells); // output
+  auto fsa = create<ArrayD1>("fsa", n_grid_cells); // output
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
+  assign(tlai_z, 0.303834600280739);
+  auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, ELM::nlevcan);
+  //assign(fsun_z, 0.0);
+  assign(fsun_z,  0.554991699703339);
+  //auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, ELM::numrad);
+  //auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, ELM::numrad);
+  auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, ELM::nlevcan);
+  //assign(fabd_sun_z, 0.0);
+  assign(fabd_sun_z, 0.652531958249706);
+  auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan);
+  //assign(fabd_sha_z, 0.0);
+  assign(fabd_sha_z, 0.0626477498888005);
+  auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan);
+  //assign(fabi_sun_z, 0.0);
+  assign(fabi_sun_z, 0.477194066186709);
+  auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan);
+  //assign(fabi_sha_z, 0.0);
+  assign(fabi_sha_z, 0.341279365789308);
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, ELM::nlevcan); // output
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, ELM::nlevcan); // output
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, ELM::nlevcan); // output
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, ELM::nlevcan); // output
+  auto sabg_lyr = create<ArrayD2>("sabg_lyr", n_grid_cells, ELM::nlevsno + 1);
+  auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, ELM::numrad);
+  //assign(ftdd, 0.0);
+  ftdd[0][0] = 0.266879726153718;
+  ftdd[0][1] = 0.266879726153718;
+  auto ftid = create<ArrayD2>("ftid", n_grid_cells, ELM::numrad);
+  //assign(ftid, 0.0);
+  ftid[0][0] = 0.048196184434411;
+  ftid[0][1] = 0.228995902545678;
+  auto ftii = create<ArrayD2>("ftii", n_grid_cells, ELM::numrad);
+  //assign(ftii, 0.0);
+  ftii[0][0] = 0.247622223576231;
+  ftii[0][1] = 0.420713437119143;
+  auto fabd = create<ArrayD2>("fabd", n_grid_cells, ELM::numrad);
+  //assign(fabd, 0.0);
+  fabd[0][0] = 0.666823073554822;
+  fabd[0][1] = 0.374008118438534;
+  auto fabi = create<ArrayD2>("fabi", n_grid_cells, ELM::numrad);
+  //assign(fabi, 0.0);
+  fabi[0][0] = 0.712441211538226;
+  fabi[0][1] = 0.391710336687883;
+  auto albsod = create<ArrayD2>("albsod", n_grid_cells, ELM::numrad);
+  assign(albsod, 0.2);
+  auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, ELM::numrad);
+  assign(albsoi, 0.2);
+  auto albsnd_hst = create<ArrayD2>("albsnd_hst", n_grid_cells, ELM::numrad);
+  assign(albsnd_hst, 0.6);
+  auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, ELM::numrad);
+  assign(albsni_hst, 0.6);
+  auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad);
+  assign(albgrd, 0.0);
+  auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad);
+  assign(albgri, 0.0);
+  auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno + 1);
+  assign(flx_absdv, 0.0);
+  auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno + 1);
+  assign(flx_absdn, 0.0);
+  auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno + 1);
+  assign(flx_absiv, 0.0);
+  auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno + 1);
+  assign(flx_absin, 0.0);
+  auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad);
+  albd[0][0] = 0.13;
+  albd[0][0] = 0.26;
+  auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad);
+  albi[0][0] = 0.13;
+  albi[0][0] = 0.26;
+
+
+
+  ELM::CanopySunShadeFractions(
+        Land, nrad[idx], elai[idx], tlai_z[idx], fsun_z[idx],
+        forc_solad[idx], forc_solai[idx],
+        fabd_sun_z[idx], fabd_sha_z[idx],
+        fabi_sun_z[idx], fabi_sha_z[idx],
+        parsun_z[idx], parsha_z[idx],
+        laisun_z[idx], laisha_z[idx], laisun[idx], laisha[idx]);
+  std::cout << laisun[idx] << " " << laisha[idx] << std::endl;
+    std::cout << "CanopySunShadeFractions: " << parsun_z[0][0] << " " <<parsha_z[0][0] << " " << 
+      laisun_z[0][0] << " " << laisha_z[0][0] << std::endl;
+
+
+   ELM::SurfRadZeroFluxes(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
+                          sabg_lyr[idx]);
+
+   { // scope for some local vars
+     double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
+     double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
+      ELM::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
+         ftii[idx], forc_solad[idx],
+         forc_solai[idx], fabd[idx],
+         fabi[idx], albsod[idx],
+         albsoi[idx], albsnd_hst[idx],
+         albsni_hst[idx], albgrd[idx],
+         albgri[idx], sabv[idx], fsa[idx], sabg[idx], sabg_soil[idx], sabg_snow[idx],
+         trd, tri);
+
+      std::cout << "SurfRadAbsorbed: " << sabv[idx] << " " << fsa[idx] << " " << sabg[idx] << " " << sabg_soil[idx] << " " << sabg_snow[idx]  << " " <<
+      trd[0]  << " " << trd[1]  << " " << tri[0]  << " " << tri[1] << std::endl;
+
+     ELM::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
+                       flx_absdn[idx], flx_absiv[idx],
+                       flx_absin[idx], trd, tri, sabg_lyr[idx]);
+
+     std::cout << "SurfRadLayers, with snl =: " << snl[0] << std::endl;
+     for (int i = 0; i < ELM::nlevsno + 1; ++i)
+      std::cout << sabg_lyr[0][i] << std::endl;
+
+    ELM::SurfRadReflected(Land, albd[idx], albi[idx],
+                          forc_solad[idx], forc_solai[idx],
+                          fsr[idx]);
+    std::cout << "SurfRadReflected: " << fsr[0] <<  std::endl;
+
+
+
+
+   }
+
+
 
   return 0;
 }
