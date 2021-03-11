@@ -352,20 +352,20 @@ template <typename T> void deep_copy(Array<T, 1> &arr, T val) {
 }
 template <typename T> void deep_copy(Array<T, 2> &arr, T val) {
   for (int i = 0; i != arr.extent(0); ++i)
-    for (int j = 0; j != arr.extent(0); ++j)
+    for (int j = 0; j != arr.extent(1); ++j)
       arr(i, j) = val;
 }
 template <typename T> void deep_copy(Array<T, 3> &arr, T val) {
   for (int i = 0; i != arr.extent(0); ++i)
-    for (int j = 0; j != arr.extent(0); ++j)
-      for (int k = 0; k != arr.extent(0); ++k)
+    for (int j = 0; j != arr.extent(1); ++j)
+      for (int k = 0; k != arr.extent(2); ++k)
         arr(i, j, k) = val;
 }
 template <typename T> void deep_copy(Array<T, 4> &arr, T val) {
   for (int i = 0; i != arr.extent(0); ++i)
-    for (int j = 0; j != arr.extent(0); ++j)
-      for (int k = 0; k != arr.extent(0); ++k)
-        for (int l = 0; l != arr.extent(0); ++l)
+    for (int j = 0; j != arr.extent(1); ++j)
+      for (int k = 0; k != arr.extent(2); ++k)
+        for (int l = 0; l != arr.extent(3); ++l)
           arr(i, j, k, l) = val;
 }
 
