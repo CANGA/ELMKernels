@@ -39,3 +39,6 @@ endif()
 add_subdirectory (src)
 add_subdirectory (driver)
 
+add_subdirectory (test)
+enable_testing ()
+add_test (NAME CanopyHydrology COMMAND test_CanHydro)

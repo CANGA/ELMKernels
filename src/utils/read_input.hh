@@ -297,6 +297,28 @@ inline void read_distributed_scalar(const std::string &dir, const std::string &b
     arr[i] = arr_for_read(i);
   }
 }
+
+// TEMPORARY FOR TESTING
+// Assumes shape(arr) == { DIM1 } && shape(arr_for_read) == {DIM1} && start == {IDX1, IDX2}
+//
+template <typename T, typename Array_t>
+inline void read_distributed_scalar(const std::string &dir, const std::string &basename, const std::string &varname,
+                                    const int &idx1, const int &idx2, Array_t &arr) {
+
+  Array<T, 1> arr_for_read(arr.extent(0));
+  int comm;
+  // my slice in space
+  std::array<GO, 2> start = {(GO)idx1, (GO)idx2};
+  std::array<GO, 2> count = {1, (GO)arr.extent(0)}; // hardwired for testing
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    arr[i] = arr_for_read(i);
+  }
+}
+
+
 // read distributed array variable
 // Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
 //
@@ -313,6 +335,48 @@ inline void read_distributed_array(const std::string &dir, const std::string &ba
   read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
   for (int i = 0; i != arr.extent(0); ++i) {
     for (int j = 0; j != arr.extent(1); ++j) {
+      arr(i, j) = arr_for_read(i, j);
+    }
+  }
+}
+
+// read distributed array variable defined in subsurface, put into above+below ground array-- hardwired for annoying shape
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
+// ncdata is in (time(1), levgrnd(15), ncells) format
+template <typename T, typename Array_t>
+inline void read_bottom(const std::string &dir, const std::string &basename, const std::string &varname,
+                        const Utils::DomainDecomposition<2> &dd, const int idx, Array_t &arr) {
+  
+  Array<T, 2> arr_for_read(arr.extent(0), 15);
+  // my slice in space
+  std::array<GO, 3> start = {0, 0, 0};
+  std::array<GO, 3> count = {1, 15, (GO)arr.extent(0)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    for (int j = 5; j != arr.extent(1); ++j) {
+      arr(i, j) = arr_for_read(i, j-5);
+    }
+  }
+}
+
+// read distributed array variable defined in surface and subsurface, put into above+below ground array-- hardwired for annoying shape
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
+// ncdata is in (time(1), levsno(5), ncells) format -- not tested yet!!
+template <typename T, typename Array_t>
+inline void read_top(const std::string &dir, const std::string &basename, const std::string &varname,
+                        const Utils::DomainDecomposition<2> &dd, const int idx, Array_t &arr) {
+  
+  Array<T, 2> arr_for_read(arr.extent(0), 5);
+  // my slice in space
+  std::array<GO, 3> start = {0, 0, 0};
+  std::array<GO, 3> count = {1, 5, (GO)arr.extent(0)};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  read(dd.comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int i = 0; i != arr.extent(0); ++i) {
+    for (int j = 0; j != 5; ++j) {
       arr(i, j) = arr_for_read(i, j);
     }
   }
