@@ -1,6 +1,9 @@
-/* functions derived from BareGroundFluxesMod.F90
+/*! \file BareGroundFluxes.h 
+\brief Functions derived from BareGroundFluxesMod.F90
+
 Compute sensible and latent fluxes and their derivatives with respect
 to ground temperature using ground temperatures from previous time step.
+Contains
 
 Note:
 the "displa" displacement height variable used here is local to these functions.
@@ -16,49 +19,46 @@ It is not the same as the displa calculated in CanopyTemperature
 
 namespace ELM {
 
-/* InitializeFlux_BG()
+/*! InitializeFlux_BG()
 DESCRIPTION:
 initialize fluxes and call MoninObukIni()
 
-INPUTS:
-Land                [LandType] struct containing information about landtype
-frac_veg_nosno      [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-forc_u              [double] atmospheric wind speed in east direction (m/s)
-forc_v              [double] atmospheric wind speed in north direction (m/s)
-forc_q              [double] atmospheric specific humidity (kg/kg)
-forc_th             [double] atmospheric potential temperature (Kelvin)
-forc_hgt_u_patch    [double] observational height of wind at pft level [m]
-thm                 [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-thv                 [double] virtual potential temperature (kelvin)
-t_grnd              [double] ground temperature (Kelvin)
-qg                  [double] ground specific humidity [kg/kg]
-z0mg                [double] roughness length over ground, momentum [m]
-
-
-OUTPUTS:
-dlrad            [double] downward longwave radiation below the canopy [W/m2]
-ulrad            [double] upward longwave radiation above the canopy [W/m2]
-zldis            [double] reference height "minus" zero displacement height [m]
-displa           [double] displacement height [m]
-dth              [double] diff of virtual temp. between ref. height and surface
-dqh              [double] diff of humidity between ref. height and surface
-obu              [double] Monin-Obukhov length (m)
-ur               [double] wind speed at reference height [m/s]
-um               [double] wind speed including the stablity effect [m/s]
+\param[in]  Land             [LandType] struct containing information about landtype
+\param[in]  frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
+\param[in]  forc_u           [double] atmospheric wind speed in east direction (m/s)
+\param[in]  forc_v           [double] atmospheric wind speed in north direction (m/s)
+\param[in]  forc_q           [double] atmospheric specific humidity (kg/kg)
+\param[in]  forc_th          [double] atmospheric potential temperature (Kelvin)
+\param[in]  forc_hgt_u_patch [double] observational height of wind at pft level [m]
+\param[in]  thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+\param[in]  thv              [double] virtual potential temperature (kelvin)
+\param[in]  t_grnd           [double] ground temperature (Kelvin)
+\param[in]  qg               [double] ground specific humidity [kg/kg]
+\param[in]  z0mg             [double] roughness length over ground, momentum [m]
+\param[out] dlrad           [double] downward longwave radiation below the canopy [W/m2]
+\param[out] ulrad           [double] upward longwave radiation above the canopy [W/m2]
+\param[out] zldis           [double] reference height "minus" zero displacement height [m]
+\param[out] displa          [double] displacement height [m]
+\param[out] dth             [double] diff of virtual temp. between ref. height and surface
+\param[out] dqh             [double] diff of humidity between ref. height and surface
+\param[out] obu             [double] Monin-Obukhov length (m)
+\param[out] ur              [double] wind speed at reference height [m/s]
+\param[out] um              [double] wind speed including the stablity effect [m/s]
 */
+/** test text */
 void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
                        const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
                        const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
                        double &ulrad, double &zldis, double &displa, double &dth, double &dqh, double &obu, double &ur,
                        double &um);
 
-/* StabilityIteration_BG()
+/*! StabilityIteration_BG()
 DESCRIPTION:
 calculate Monin-Obukhov length and wind speed
 
 INPUTS:
 Land             [LandType] struct containing information about landtype
-frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
+\param frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
 forc_hgt_t_patch [double] observational height of temperature at pft level [m]
 forc_hgt_u_patch [double] observational height of wind at pft level [m]
 forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]

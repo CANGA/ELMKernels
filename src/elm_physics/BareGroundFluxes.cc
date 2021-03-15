@@ -13,36 +13,6 @@
 
 namespace ELM {
 
-/* InitializeFlux_BG()
-DESCRIPTION:
-initialize fluxes and call MoninObukIni()
-
-INPUTS:
-Land                [LandType] struct containing information about landtype
-frac_veg_nosno      [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-forc_u              [double] atmospheric wind speed in east direction (m/s)
-forc_v              [double] atmospheric wind speed in north direction (m/s)
-forc_q              [double] atmospheric specific humidity (kg/kg)
-forc_th             [double] atmospheric potential temperature (Kelvin)
-forc_hgt_u_patch    [double] observational height of wind at pft level [m]
-thm                 [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-thv                 [double] virtual potential temperature (kelvin)
-t_grnd              [double] ground temperature (Kelvin)
-qg                  [double] ground specific humidity [kg/kg]
-z0mg                [double] roughness length over ground, momentum [m]
-
-
-OUTPUTS:
-dlrad            [double] downward longwave radiation below the canopy [W/m2]
-ulrad            [double] upward longwave radiation above the canopy [W/m2]
-zldis            [double] reference height "minus" zero displacement height [m]
-displa           [double] displacement height [m]
-dth              [double] diff of virtual temp. between ref. height and surface
-dqh              [double] diff of humidity between ref. height and surface
-obu              [double] Monin-Obukhov length (m)
-ur               [double] wind speed at reference height [m/s]
-um               [double] wind speed including the stablity effect [m/s]
-*/
 void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
                        const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
                        const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
