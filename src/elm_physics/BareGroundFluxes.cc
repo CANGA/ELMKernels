@@ -34,36 +34,6 @@ void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const do
   }
 } // InitializeFlux_BG()
 
-/* StabilityIteration_BG()
-DESCRIPTION:
-calculate Monin-Obukhov length and wind speed
-
-INPUTS:
-Land             [LandType] struct containing information about landtype
-frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-forc_hgt_t_patch [double] observational height of temperature at pft level [m]
-forc_hgt_u_patch [double] observational height of wind at pft level [m]
-forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
-z0mg             [double] roughness length over ground, momentum [m]
-zii              [double] convective boundary height [m]
-beta             [double] coefficient of convective velocity [-]
-zldis            [double] reference height "minus" zero displacement height [m]
-displa           [double] displacement height [m]
-dth              [double] diff of virtual temp. between ref. height and surface
-dqh              [double] diff of humidity between ref. height and surface
-ur               [double] wind speed at reference height [m/s]
-
-OUTPUTS:
-z0hg             [double] roughness length over ground, sensible heat [m]
-z0qg             [double] roughness length over ground, latent heat [m]
-obu              [double] Monin-Obukhov length (m)
-um               [double] wind speed including the stablity effect [m/s]
-temp1            [double] relation for potential temperature profile
-temp2            [double] relation for specific humidity profile
-temp12m          [double] relation for potential temperature profile applied at 2-m
-temp22m          [double] relation for specific humidity profile applied at 2-m
-ustar            [double] friction velocity [m/s]
-*/
 void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
                            const double &zii, const double &beta, const double &zldis, const double &displa,
