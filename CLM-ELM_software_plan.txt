@@ -1,17 +1,17 @@
-CLM/ELM functional physics library plan:
+ELM functional physics library plan:
 
-CLM/ELM is the land surface model component of CESM/E3SM. This document 
-presents a plan for the creation of a functional physics library from CLM/ELM 
+ELM is the land surface model component of E3SM. This document 
+presents a plan for the creation of a functional physics library from ELM 
 source code that could be called from a driver other than a coupled ESM 
-(eg a numerical hydrology model). In addition to decoupling CLM/ELM from the ESM
+(eg a numerical hydrology model). In addition to decoupling ELM from the E3SM
 framework in which it currently resides, a goal of this project is to break 
 apart the large (relative) original functions into numerous smaller 
 (relative) functions. This will provide more opportunity for enhancement of
 computational performance through utilization of a task-parallel framework.
 
 Ideally, the resultant functions will be logically separated based on physics
-functionality. In reality, the structure of CLM/ELM's source code is also a 
-major factor in determing the functional granularity in this library.
+functionality. In reality, the structure of ELM's source code is also a 
+major factor in determining the functional granularity in this library.
 
 INITIALIZATION:
 ...

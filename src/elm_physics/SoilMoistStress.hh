@@ -2,7 +2,7 @@
 functions derived from SoilMoistStressMod.F90
 
 These functions get called from CanopyFluxes.
-CLM calc_root_moist_stress() call tree:
+ELM calc_root_moist_stress() call tree:
 calc_root_moist_stress() -> normalize_unfrozen_rootfr() -> array_normalization()
                             >
                               calc_root_moist_stress_clm45default() -> soil_water_retention_curve%soil_suction()

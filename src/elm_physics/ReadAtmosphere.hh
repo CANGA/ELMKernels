@@ -1,3 +1,6 @@
+/*! \file ReadAtmosphere.hh
+\brief need to split and document - time interpolation?
+*/
 #pragma once
 
 #include "ELMConstants.h"
