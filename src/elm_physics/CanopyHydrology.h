@@ -3,6 +3,8 @@
 
 Compute interception, canopy fluxes to ground, fraction vegetation wet/dry, fraction of surface covered by H2O, FSCA,
 initialize new snow layers.
+
+Call sequence: Interception() -> Irrigation() -> GroundFlux() -> FracWet() -> SnowInit() -> FracH2OSfc()
 */
 #pragma once
 

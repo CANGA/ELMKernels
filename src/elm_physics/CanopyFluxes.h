@@ -1,4 +1,11 @@
+/*! \file CanopyFluxes.h 
+\brief Functions derived from CanopyFluxesMod.F90
 
+Calculate leaf temperature, leaf fluxes, transpiration, photosynthesis and update the dew accumulation due to
+evaporation. Also calculates the irrigation rate (not currently active). Irrigation() can be called anytime after InitializeFlux()
+
+Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_Can()
+*/
 #pragma once
 
 #include "clm_constants.h"
@@ -7,68 +14,66 @@
 
 namespace ELM {
 
-/* InitializeFlux_Can()
-INPUTS:
-Land                            [LandType] struct containing information about landtype
-snl                             [int] number of snow layers
-frac_veg_nosno                  [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
-frac_sno                        [double] fraction of ground covered by snow (0 to 1)
-forc_hgt_u_patch                [double] observational height of wind at pft level [m]
-thm                             [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-thv                             [double] virtual potential temperature (kelvin)
-max_dayl                        [double] maximum daylength for this grid cell (s)
-dayl                            [double] daylength (seconds)
-altmax_indx                     [int] index corresponding to maximum active layer depth from current year
-altmax_lastyear_indx            [int] index corresponding to maximum active layer depth from prior year
-t_soisno[nlevgrnd+nlevsno]      [double] col soil temperature (Kelvin)
-h2osoi_ice[nlevgrnd+nlevsno]    [double] ice lens (kg/m2)
-h2osoi_liq[nlevgrnd+nlevsno]    [double] liquid water (kg/m2)
-dz[nlevgrnd+nlevsno]            [double] layer thickness (m)
-rootfr[nlevgrnd]                [double] fraction of roots in each soil layer
-tc_stress                       [double] critical soil temperature for soil water stress (C)
-sucsat[nlevgrnd]                [double] minimum soil suction (mm)
-watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
-bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
-smpso[numpft]                   [double] soil water potential at full stomatal opening (mm)
-smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
-elai                            [double] one-sided leaf area index with burying by snow
-esai                            [double] one-sided stem area index with burying by snow
-emv                             [double] vegetation emissivity
-emg                             [double] ground emissivity
-qg                              [double] ground specific humidity [kg/kg]
-t_grnd                          [double] ground temperature (Kelvin)
-forc_t                          [double] atmospheric temperature (Kelvin)
-forc_pbot                       [double] atmospheric pressure (Pa)
-forc_lwrad                      [double] downward infrared (longwave) radiation (W/m**2)
-forc_u                          [double] atmospheric wind speed in east direction (m/s)
-forc_v                          [double] atmospheric wind speed in north direction (m/s)
-forc_q                          [double] atmospheric specific humidity (kg/kg)
-forc_th                         [double] atmospheric potential temperature (Kelvin)
-z0mg                            [double] roughness length over ground, momentum [m]
+/*! Initialize variables for photosynthesis and call MoninObukIni() for vegetated cells.
 
-OUTPUTS:
-btran                           [double]  transpiration wetness factor (0 to 1)
-z0mv                            [double] roughness length over vegetation, momentum [m]
-z0hv                            [double] roughness length over vegetation, sensible heat [m]
-z0qv                            [double] roughness length over vegetation, latent heat [m]
-displa                          [double]  displacement height (m)
-rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
-eff_porosity[nlevgrnd]          [double] effective soil porosity
-dayl_factor                     [double] scalar (0-1) for daylength effect on Vcmax
-air                             [double] atmos. radiation temporay set
-bir                             [double] atmos. radiation temporay set
-cir                             [double] atmos. radiation temporay set
-el                              [double] vapor pressure on leaf surface [pa]
-qsatl                           [double] leaf specific humidity [kg/kg]
-qsatldT                         [double] derivative of "qsatl" on "t_veg"
-taf                             [double] air temperature within canopy space [K]
-qaf                             [double] humidity of canopy air [kg/kg]
-um                              [double] wind speed including the stablity effect [m/s]
-ur                              [double] wind speed at reference height [m/s]
-obu                             [double] Monin-Obukhov length (m)
-zldis                           [double] reference height "minus" zero displacement height [m]
-delq                            [double] temporary
-t_veg                           [double]  vegetation temperature (Kelvin)
+\param[in]  Land                            [LandType] struct containing information about landtype
+\param[in]  snl                             [int] number of snow layers
+\param[in]  frac_veg_nosno                  [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
+\param[in]  frac_sno                        [double] fraction of ground covered by snow (0 to 1)
+\param[in]  forc_hgt_u_patch                [double] observational height of wind at pft level [m]
+\param[in]  thm                             [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+\param[in]  thv                             [double] virtual potential temperature (kelvin)
+\param[in]  max_dayl                        [double] maximum daylength for this grid cell (s)
+\param[in]  dayl                            [double] daylength (seconds)
+\param[in]  altmax_indx                     [int] index corresponding to maximum active layer depth from current year
+\param[in]  altmax_lastyear_indx            [int] index corresponding to maximum active layer depth from prior year
+\param[in]  t_soisno[nlevgrnd+nlevsno]      [double] col soil temperature (Kelvin)
+\param[in]  h2osoi_ice[nlevgrnd+nlevsno]    [double] ice lens (kg/m2)
+\param[in]  h2osoi_liq[nlevgrnd+nlevsno]    [double] liquid water (kg/m2)
+\param[in]  dz[nlevgrnd+nlevsno]            [double] layer thickness (m)
+\param[in]  rootfr[nlevgrnd]                [double] fraction of roots in each soil layer
+\param[in]  tc_stress                       [double] critical soil temperature for soil water stress (C)
+\param[in]  sucsat[nlevgrnd]                [double] minimum soil suction (mm)
+\param[in]  watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
+\param[in]  bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
+\param[in]  smpso[numpft]                   [double] soil water potential at full stomatal opening (mm)
+\param[in]  smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
+\param[in]  elai                            [double] one-sided leaf area index with burying by snow
+\param[in]  esai                            [double] one-sided stem area index with burying by snow
+\param[in]  emv                             [double] vegetation emissivity
+\param[in]  emg                             [double] ground emissivity
+\param[in]  qg                              [double] ground specific humidity [kg/kg]
+\param[in]  t_grnd                          [double] ground temperature (Kelvin)
+\param[in]  forc_t                          [double] atmospheric temperature (Kelvin)
+\param[in]  forc_pbot                       [double] atmospheric pressure (Pa)
+\param[in]  forc_lwrad                      [double] downward infrared (longwave) radiation (W/m**2)
+\param[in]  forc_u                          [double] atmospheric wind speed in east direction (m/s)
+\param[in]  forc_v                          [double] atmospheric wind speed in north direction (m/s)
+\param[in]  forc_q                          [double] atmospheric specific humidity (kg/kg)
+\param[in]  forc_th                         [double] atmospheric potential temperature (Kelvin)
+\param[in]  z0mg                            [double] roughness length over ground, momentum [m]
+\param[out] btran                           [double]  transpiration wetness factor (0 to 1)
+\param[out] z0mv                            [double] roughness length over vegetation, momentum [m]
+\param[out] z0hv                            [double] roughness length over vegetation, sensible heat [m]
+\param[out] z0qv                            [double] roughness length over vegetation, latent heat [m]
+\param[out] displa                          [double]  displacement height (m)
+\param[out] rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
+\param[out] eff_porosity[nlevgrnd]          [double] effective soil porosity
+\param[out] dayl_factor                     [double] scalar (0-1) for daylength effect on Vcmax
+\param[out] air                             [double] atmos. radiation temporay set
+\param[out] bir                             [double] atmos. radiation temporay set
+\param[out] cir                             [double] atmos. radiation temporay set
+\param[out] el                              [double] vapor pressure on leaf surface [pa]
+\param[out] qsatl                           [double] leaf specific humidity [kg/kg]
+\param[out] qsatldT                         [double] derivative of "qsatl" on "t_veg"
+\param[out] taf                             [double] air temperature within canopy space [K]
+\param[out] qaf                             [double] humidity of canopy air [kg/kg]
+\param[out] um                              [double] wind speed including the stablity effect [m/s]
+\param[out] ur                              [double] wind speed at reference height [m/s]
+\param[out] obu                             [double] Monin-Obukhov length (m)
+\param[out] zldis                           [double] reference height "minus" zero displacement height [m]
+\param[out] delq                            [double] temporary
+\param[out] t_veg                           [double]  vegetation temperature (Kelvin)
 */
 template <class dArray_type>
 void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
@@ -86,98 +91,93 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
                         double &el, double &qsatl, double &qsatldT, double &taf, double &qaf, double &um, double &ur,
                         double &obu, double &zldis, double &delq, double &t_veg);
 
-/* StabilityIteration_Can()
-DESCRIPTION:
-calculate Monin-Obukhov length and wind speed, call photosynthesis, calculate ET & SH flux
+/*! Calculate Monin-Obukhov length and wind speed, call photosynthesis, calculate ET & SH flux
 Iterates until convergence, up to 40 iterations, calling friction velocity functions, then
-photosynthesis for sun & shade.
+photosynthesis for both sun & shade.
 
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-dtime                      [double] timestep size (sec)
-snl                        [int] number of snow layers
-frac_veg_nosno             [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
-frac_sno                   [double] fraction of ground covered by snow (0 to 1)
-forc_hgt_u_patch           [double] observational height of wind at pft level [m]
-forc_hgt_t_patch           [double] observational height of temperature at pft level [m]
-forc_hgt_q_patch           [double] observational height of specific humidity at pft level [m]
-dleaf[numpft]              [double] characteristic leaf dimension (m)
-fwet                       [double] fraction of canopy that is wet (0 to 1)
-fdry                       [double] fraction of foliage that is green and dry [-]
-laisun                     [double] sunlit leaf area
-laisha                     [double] shaded leaf area
-forc_rho                   [double] air density (kg/m**3)
-snow_depth                 [double] snow height (m)
-soilbeta                   [double] soil wetness relative to field capacity
-frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
-t_h2osfc                   [double] surface water temperature
-sabv                       [double] solar radiation absorbed by vegetation (W/m**2)
-h2ocan                     [double] canopy water (mm H2O)
-htop                       [double] canopy top(m)
-t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
-air                        [double] atmos. radiation temporay set
-bir                        [double] atmos. radiation temporay set
-cir                        [double] atmos. radiation temporay set
-ur                         [double] wind speed at reference height [m/s]
-zldis                      [double] reference height "minus" zero displacement height [m]
-displa                     [double]  displacement height (m)
-elai                       [double] one-sided leaf area index with burying by snow
-esai                       [double] one-sided stem area index with burying by snow
-t_grnd                     [double] ground temperature (Kelvin)
-forc_pbot                  [double]  atmospheric pressure (Pa)
-forc_q                     [double] atmospheric specific humidity (kg/kg)
-forc_th                    [double] atmospheric potential temperature (Kelvin)
-z0mg                       [double] roughness length over ground, momentum [m]
-z0mv                       [double] roughness length over vegetation, momentum [m]
-z0hv                       [double] roughness length over vegetation, sensible heat [m]
-z0qv                       [double] roughness length over vegetation, latent heat [m]
-thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-thv                        [double] virtual potential temperature (kelvin)
-qg                         [double] ground specific humidity [kg/kg]
-veg                        [VegProperties] struct containing vegetation constant parameters
-nrad                       [int]  number of canopy layers above snow for radiative transfer
-t10                        [double] 10-day running mean of the 2 m temperature (K)
-tlai_z[nlevcan]            [double] pft total leaf area index for canopy layer
-vcmaxcintsha               [double] leaf to canopy scaling coefficient - shade
-vcmaxcintsun               [double] leaf to canopy scaling coefficient - sun
-parsha_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - shade
-parsun_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - sun
-laisha_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - shade
-laisun_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - sun
-forc_pco2                  [double]  partial pressure co2 (Pa)
-forc_po2                   [double]  partial pressure o2 (Pa))
-dayl_factor                [double] scalar (0-1) for daylength effect on Vcmax
-
-OUTPUTS:
-btran                      [double]  transpiration wetness factor (0 to 1)
-qflx_tran_veg              [double] vegetation transpiration (mm H2O/s) (+ = to atm)
-qflx_evap_veg              [double] vegetation evaporation (mm H2O/s) (+ = to atm)
-eflx_sh_veg                [double] sensible heat flux from leaves (W/m**2) [+ to atm]
-wtg                        [double] heat conductance for ground [m/s]
-wtl0                       [double] normalized heat conductance for leaf [-]
-wta0                       [double] normalized heat conductance for air [-]
-wtal                       [double] normalized heat conductance for air and leaf [-]
-el                         [double] vapor pressure on leaf surface [pa]
-qsatl                      [double] leaf specific humidity [kg/kg]
-qsatldT                    [double] derivative of "qsatl" on "t_veg"
-taf                        [double] air temperature within canopy space [K]
-qaf                        [double] humidity of canopy air [kg/kg]
-um                         [double] wind speed including the stablity effect [m/s]
-dth                        [double] diff of virtual temp. between ref. height and surface
-dqh                        [double] diff of humidity between ref. height and surface
-obu                        [double] Monin-Obukhov length (m)
-temp1                      [double] relation for potential temperature profile
-temp2                      [double] relation for specific humidity profile
-temp12m                    [double] relation for potential temperature profile applied at 2-m
-temp22m                    [double] relation for specific humidity profile applied at 2-m
-tlbef                      [double] leaf temperature from previous iteration [K]
-delq                       [double] temporary
-dt_veg                     [double] change in t_veg, last iteration (Kelvin)
-t_veg                      [double]  vegetation temperature (Kelvin)
-wtgq                       [double] latent heat conductance for ground [m/s]
-wtalq                      [double] normalized latent heat cond. for air and leaf [-]
-wtlq0                      [double] normalized latent heat conductance for leaf [-]
-wtaq0                      [double] normalized latent heat conductance for air [-]
+\param[in]  Land                       [LandType] struct containing information about landtype
+\param[in]  dtime                      [double] timestep size (sec)
+\param[in]  snl                        [int] number of snow layers
+\param[in]  frac_veg_nosno             [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
+\param[in]  frac_sno                   [double] fraction of ground covered by snow (0 to 1)
+\param[in]  forc_hgt_u_patch           [double] observational height of wind at pft level [m]
+\param[in]  forc_hgt_t_patch           [double] observational height of temperature at pft level [m]
+\param[in]  forc_hgt_q_patch           [double] observational height of specific humidity at pft level [m]
+\param[in]  dleaf[numpft]              [double] characteristic leaf dimension (m)
+\param[in]  fwet                       [double] fraction of canopy that is wet (0 to 1)
+\param[in]  fdry                       [double] fraction of foliage that is green and dry [-]
+\param[in]  laisun                     [double] sunlit leaf area
+\param[in]  laisha                     [double] shaded leaf area
+\param[in]  forc_rho                   [double] air density (kg/m**3)
+\param[in]  snow_depth                 [double] snow height (m)
+\param[in]  soilbeta                   [double] soil wetness relative to field capacity
+\param[in]  frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
+\param[in]  t_h2osfc                   [double] surface water temperature
+\param[in]  sabv                       [double] solar radiation absorbed by vegetation (W/m**2)
+\param[in]  h2ocan                     [double] canopy water (mm H2O)
+\param[in]  htop                       [double] canopy top(m)
+\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  air                        [double] atmos. radiation temporay set
+\param[in]  bir                        [double] atmos. radiation temporay set
+\param[in]  cir                        [double] atmos. radiation temporay set
+\param[in]  ur                         [double] wind speed at reference height [m/s]
+\param[in]  zldis                      [double] reference height "minus" zero displacement height [m]
+\param[in]  displa                     [double]  displacement height (m)
+\param[in]  elai                       [double] one-sided leaf area index with burying by snow
+\param[in]  esai                       [double] one-sided stem area index with burying by snow
+\param[in]  t_grnd                     [double] ground temperature (Kelvin)
+\param[in]  forc_pbot                  [double]  atmospheric pressure (Pa)
+\param[in]  forc_q                     [double] atmospheric specific humidity (kg/kg)
+\param[in]  forc_th                    [double] atmospheric potential temperature (Kelvin)
+\param[in]  z0mg                       [double] roughness length over ground, momentum [m]
+\param[in]  z0mv                       [double] roughness length over vegetation, momentum [m]
+\param[in]  z0hv                       [double] roughness length over vegetation, sensible heat [m]
+\param[in]  z0qv                       [double] roughness length over vegetation, latent heat [m]
+\param[in]  thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+\param[in]  thv                        [double] virtual potential temperature (kelvin)
+\param[in]  qg                         [double] ground specific humidity [kg/kg]
+\param[in]  veg                        [VegProperties] struct containing vegetation constant parameters
+\param[in]  nrad                       [int]  number of canopy layers above snow for radiative transfer
+\param[in]  t10                        [double] 10-day running mean of the 2 m temperature (K)
+\param[in]  tlai_z[nlevcan]            [double] pft total leaf area index for canopy layer
+\param[in]  vcmaxcintsha               [double] leaf to canopy scaling coefficient - shade
+\param[in]  vcmaxcintsun               [double] leaf to canopy scaling coefficient - sun
+\param[in]  parsha_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - shade
+\param[in]  parsun_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - sun
+\param[in]  laisha_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - shade
+\param[in]  laisun_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - sun
+\param[in]  forc_pco2                  [double]  partial pressure co2 (Pa)
+\param[in]  forc_po2                   [double]  partial pressure o2 (Pa))
+\param[in]  dayl_factor                [double] scalar (0-1) for daylength effect on Vcmax
+\param[out] btran                      [double]  transpiration wetness factor (0 to 1)
+\param[out] qflx_tran_veg              [double] vegetation transpiration (mm H2O/s) (+ = to atm)
+\param[out] qflx_evap_veg              [double] vegetation evaporation (mm H2O/s) (+ = to atm)
+\param[out] eflx_sh_veg                [double] sensible heat flux from leaves (W/m**2) [+ to atm]
+\param[out] wtg                        [double] heat conductance for ground [m/s]
+\param[out] wtl0                       [double] normalized heat conductance for leaf [-]
+\param[out] wta0                       [double] normalized heat conductance for air [-]
+\param[out] wtal                       [double] normalized heat conductance for air and leaf [-]
+\param[out] el                         [double] vapor pressure on leaf surface [pa]
+\param[out] qsatl                      [double] leaf specific humidity [kg/kg]
+\param[out] qsatldT                    [double] derivative of "qsatl" on "t_veg"
+\param[out] taf                        [double] air temperature within canopy space [K]
+\param[out] qaf                        [double] humidity of canopy air [kg/kg]
+\param[out] um                         [double] wind speed including the stablity effect [m/s]
+\param[out] dth                        [double] diff of virtual temp. between ref. height and surface
+\param[out] dqh                        [double] diff of humidity between ref. height and surface
+\param[out] obu                        [double] Monin-Obukhov length (m)
+\param[out] temp1                      [double] relation for potential temperature profile
+\param[out] temp2                      [double] relation for specific humidity profile
+\param[out] temp12m                    [double] relation for potential temperature profile applied at 2-m
+\param[out] temp22m                    [double] relation for specific humidity profile applied at 2-m
+\param[out] tlbef                      [double] leaf temperature from previous iteration [K]
+\param[out] delq                       [double] temporary
+\param[out] dt_veg                     [double] change in t_veg, last iteration (Kelvin)
+\param[out] t_veg                      [double]  vegetation temperature (Kelvin)
+\param[out] wtgq                       [double] latent heat conductance for ground [m/s]
+\param[out] wtalq                      [double] normalized latent heat cond. for air and leaf [-]
+\param[out] wtlq0                      [double] normalized latent heat conductance for leaf [-]
+\param[out] wtaq0                      [double] normalized latent heat conductance for air [-]
 */
 template <class dArray_type>
 void StabilityIteration_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
@@ -201,77 +201,75 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
                             double &temp2, double &temp12m, double &temp22m, double &tlbef, double &delq,
                             double &dt_veg, double &t_veg, double &wtgq, double &wtalq, double &wtlq0, double &wtaq0);
 
-/* ComputeFlux_Can()
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-dtime                      [double] timestep size (sec)
-snl                        [int] number of snow layers
-frac_veg_nosno             [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
-frac_sno                   [double] fraction of ground covered by snow (0 to 1)
-t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
-frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
-t_h2osfc                   [double] surface water temperature
-sabv                       [double] solar radiation absorbed by vegetation (W/m**2)
-qg_snow                    [double] specific humidity at snow surface [kg/kg]
-qg_soil                    [double] specific humidity at soil surface [kg/kg]
-qg_h2osfc                  [double] specific humidity at h2osfc [kg/kg]
-dqgdT                      [double] d(qg)/dT
-htvp                       [double] latent heat of vapor of water (or sublimation) [j/kg]
-wtg                        [double] heat conductance for ground [m/s]
-wtl0                       [double]  normalized heat conductance for leaf [-]
-wta0                       [double] normalized heat conductance for air [-]
-wtal                       [double] normalized heat conductance for air and leaf [-]
-air                        [double] atmos. radiation temporay set
-bir                        [double] atmos. radiation temporay set
-cir                        [double] atmos. radiation temporay set
-qsatl                      [double] leaf specific humidity [kg/kg]
-qsatldT                    [double] derivative of "qsatl" on "t_ve
-dth                        [double] diff of virtual temp. between ref. height and surface
-dqh                        [double] diff of humidity between ref. height and surface
-temp1                      [double] relation for potential temperature profile
-temp2                      [double] relation for specific humidity profile
-temp12m                    [double] relation for potential temperature profile applied at 2-m
-temp22m                    [double] relation for specific humidity profile applied at 2-m
-tlbef                      [double] leaf temperature from previous iteration [K]
-delq                       [double] temporary
-dt_veg                     [double] change in t_veg, last iteration (Kelvin)
-t_veg                      [double]  vegetation temperature (Kelvin)
-t_grnd                     [double] ground temperature (Kelvin)
-forc_pbot                  [double]  atmospheric pressure (Pa)
-qflx_tran_veg              [double] vegetation transpiration (mm H2O/s) (+ = to atm)
-qflx_evap_veg              [double] vegetation evaporation (mm H2O/s) (+ = to atm)
-eflx_sh_veg                [double] sensible heat flux from leaves (W/m**2) [+ to atm]
-forc_q                     [double] atmospheric specific humidity (kg/kg)
-forc_rho                   [double] air density (kg/m**3)
-thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-emv                        [double] vegetation emissivity
-emg                        [double] ground emissivity
-forc_lwrad                 [double]  downward infrared (longwave) radiation (W/m**2)
-wtgq                       [double] latent heat conductance for ground [m/s]
-wtalq                      [double] normalized latent heat cond. for air and leaf [-]
-wtlq0                      [double] normalized latent heat conductance for leaf [-]
-wtaq0                      [double] normalized latent heat conductance for air [-]
+/*! Calculate water and energy fluxes for vegetated surfaces. 
 
-OUTPUTS:
-h2ocan                     [double] canopy water (mm H2O)
-eflx_sh_grnd               [double] sensible heat flux from ground (W/m**2) [+ to atm]
-eflx_sh_snow               [double] sensible heat flux from snow (W/m**2) [+ to atm]
-eflx_sh_soil               [double] sensible heat flux from soil (W/m**2) [+ to atm]
-eflx_sh_h2osfc             [double] sensible heat flux from h2osfc (W/m**2) [+ to atm]
-qflx_evap_soi              [double] soil evaporation (mm H2O/s) (+ = to atm)
-qflx_ev_snow               [double] evaporation flux from snow (W/m**2) [+ to atm]
-qflx_ev_soil               [double] evaporation flux from soil (W/m**2) [+ to atm]
-qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to atm]
-dlrad                      [double] downward longwave radiation below the canopy [W/m2]
-ulrad                      [double] upward longwave radiation above the canopy [W/m2]
-cgrnds                     [double] deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
-cgrndl                     [double] deriv of soil latent heat flux wrt soil temp [w/m**2/k]
-cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
-t_ref2m                    [double]  2 m height surface air temperature (Kelvin)
-t_ref2m_r                  [double]  Rural 2 m height surface air temperature (Kelvin)
-q_ref2m                    [double]  2 m height surface specific humidity (kg/kg)
-rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
-rh_ref2m                   [double]  2 m height surface relative humidity (%)
+\param[in]  Land                       [LandType] struct containing information about landtype
+\param[in]  dtime                      [double] timestep size (sec)
+\param[in]  snl                        [int] number of snow layers
+\param[in]  frac_veg_nosno             [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
+\param[in]  frac_sno                   [double] fraction of ground covered by snow (0 to 1)
+\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
+\param[in]  t_h2osfc                   [double] surface water temperature
+\param[in]  sabv                       [double] solar radiation absorbed by vegetation (W/m**2)
+\param[in]  qg_snow                    [double] specific humidity at snow surface [kg/kg]
+\param[in]  qg_soil                    [double] specific humidity at soil surface [kg/kg]
+\param[in]  qg_h2osfc                  [double] specific humidity at h2osfc [kg/kg]
+\param[in]  dqgdT                      [double] d(qg)/dT
+\param[in]  htvp                       [double] latent heat of vapor of water (or sublimation) [j/kg]
+\param[in]  wtg                        [double] heat conductance for ground [m/s]
+\param[in]  wtl0                       [double]  normalized heat conductance for leaf [-]
+\param[in]  wta0                       [double] normalized heat conductance for air [-]
+\param[in]  wtal                       [double] normalized heat conductance for air and leaf [-]
+\param[in]  air                        [double] atmos. radiation temporay set
+\param[in]  bir                        [double] atmos. radiation temporay set
+\param[in]  cir                        [double] atmos. radiation temporay set
+\param[in]  qsatl                      [double] leaf specific humidity [kg/kg]
+\param[in]  qsatldT                    [double] derivative of "qsatl" on "t_ve
+\param[in]  dth                        [double] diff of virtual temp. between ref. height and surface
+\param[in]  dqh                        [double] diff of humidity between ref. height and surface
+\param[in]  temp1                      [double] relation for potential temperature profile
+\param[in]  temp2                      [double] relation for specific humidity profile
+\param[in]  temp12m                    [double] relation for potential temperature profile applied at 2-m
+\param[in]  temp22m                    [double] relation for specific humidity profile applied at 2-m
+\param[in]  tlbef                      [double] leaf temperature from previous iteration [K]
+\param[in]  delq                       [double] temporary
+\param[in]  dt_veg                     [double] change in t_veg, last iteration (Kelvin)
+\param[in]  t_veg                      [double]  vegetation temperature (Kelvin)
+\param[in]  t_grnd                     [double] ground temperature (Kelvin)
+\param[in]  forc_pbot                  [double]  atmospheric pressure (Pa)
+\param[in]  qflx_tran_veg              [double] vegetation transpiration (mm H2O/s) (+ = to atm)
+\param[in]  qflx_evap_veg              [double] vegetation evaporation (mm H2O/s) (+ = to atm)
+\param[in]  eflx_sh_veg                [double] sensible heat flux from leaves (W/m**2) [+ to atm]
+\param[in]  forc_q                     [double] atmospheric specific humidity (kg/kg)
+\param[in]  forc_rho                   [double] air density (kg/m**3)
+\param[in]  thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
+\param[in]  emv                        [double] vegetation emissivity
+\param[in]  emg                        [double] ground emissivity
+\param[in]  forc_lwrad                 [double]  downward infrared (longwave) radiation (W/m**2)
+\param[in]  wtgq                       [double] latent heat conductance for ground [m/s]
+\param[in]  wtalq                      [double] normalized latent heat cond. for air and leaf [-]
+\param[in]  wtlq0                      [double] normalized latent heat conductance for leaf [-]
+\param[in]  wtaq0                      [double] normalized latent heat conductance for air [-]
+\param[out] h2ocan                     [double] canopy water (mm H2O)
+\param[out] eflx_sh_grnd               [double] sensible heat flux from ground (W/m**2) [+ to atm]
+\param[out] eflx_sh_snow               [double] sensible heat flux from snow (W/m**2) [+ to atm]
+\param[out] eflx_sh_soil               [double] sensible heat flux from soil (W/m**2) [+ to atm]
+\param[out] eflx_sh_h2osfc             [double] sensible heat flux from h2osfc (W/m**2) [+ to atm]
+\param[out] qflx_evap_soi              [double] soil evaporation (mm H2O/s) (+ = to atm)
+\param[out] qflx_ev_snow               [double] evaporation flux from snow (W/m**2) [+ to atm]
+\param[out] qflx_ev_soil               [double] evaporation flux from soil (W/m**2) [+ to atm]
+\param[out] qflx_ev_h2osfc             [double] evaporation flux from h2osfc (W/m**2) [+ to atm]
+\param[out] dlrad                      [double] downward longwave radiation below the canopy [W/m2]
+\param[out] ulrad                      [double] upward longwave radiation above the canopy [W/m2]
+\param[out] cgrnds                     [double] deriv, of soil sensible heat flux wrt soil temp [w/m2/k]
+\param[out] cgrndl                     [double] deriv of soil latent heat flux wrt soil temp [w/m**2/k]
+\param[out] cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
+\param[out] t_ref2m                    [double]  2 m height surface air temperature (Kelvin)
+\param[out] t_ref2m_r                  [double]  Rural 2 m height surface air temperature (Kelvin)
+\param[out] q_ref2m                    [double]  2 m height surface specific humidity (kg/kg)
+\param[out] rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
+\param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 template <class dArray_type>
 void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
