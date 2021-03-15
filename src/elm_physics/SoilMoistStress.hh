@@ -13,7 +13,7 @@ normalize_unfrozen_rootfr(), which calls array_normalization() -- note: rootfr_u
 */
 #pragma once
 
-#include "clm_constants.h"
+#include "ELMConstants.h"
 #include <algorithm>
 #include <cmath>
 

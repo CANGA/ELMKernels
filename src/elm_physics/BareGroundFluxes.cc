@@ -8,8 +8,8 @@
 */
 
 #include "BareGroundFluxes.h"
-#include "FrictionVelocity.h"
-#include "QSat.h"
+#include "FrictionVelocity.hh"
+#include "QSat.hh"
 
 namespace ELM {
 

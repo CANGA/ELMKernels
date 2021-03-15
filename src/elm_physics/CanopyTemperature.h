@@ -9,8 +9,8 @@ GroundProperties() -> CalculateForcingHeight() -> InitializeEnergyFluxes()
 */
 #pragma once
 
-#include "clm_constants.h"
-#include "landtype.h"
+#include "ELMConstants.h"
+#include "LandType.h"
 
 namespace ELM {
 

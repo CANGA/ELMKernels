@@ -5,9 +5,9 @@
 #include "CallCanopyTemperature.hh"
 #include "CallSurfaceRadiation.hh"
 
+#include "ELMConstants.h"
 #include "Kokkos_Core.hpp"
-#include "clm_constants.h"
-#include "landtype.h"
+#include "LandType.h"
 #include "vegproperties.h"
 
 using ArrayB1 = Kokkos::View<bool *>;

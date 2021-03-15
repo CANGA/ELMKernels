@@ -2,9 +2,9 @@
 
 #pragma once
 
+#include "ELMConstants.h"
+#include "LandType.h"
 #include "SurfaceResistance_impl.hh"
-#include "clm_constants.h"
-#include "landtype.h"
 #include <algorithm>
 #include <cmath>
 

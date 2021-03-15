@@ -1,7 +1,7 @@
 // functions derived from CanopyTemperatureMod.F90
 
-#include "clm_constants.h"
-#include "landtype.h"
+#include "ELMConstants.h"
+#include "LandType.h"
 #include <algorithm>
 #include <cmath>
 

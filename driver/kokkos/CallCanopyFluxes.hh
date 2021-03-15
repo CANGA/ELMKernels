@@ -2,9 +2,9 @@
 #pragma once
 
 #include "CanopyFluxes.h"
+#include "ELMConstants.h"
 #include "Kokkos_Core.hpp"
-#include "clm_constants.h"
-#include "landtype.h"
+#include "LandType.h"
 #include "vegproperties.h"
 
 using ArrayI1 = Kokkos::View<int *>;

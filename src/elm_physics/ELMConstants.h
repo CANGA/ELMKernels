@@ -52,10 +52,10 @@ static const double co2_ppmv = 355.0; // atmospheric CO2 molar ratio (by volume)
 // from clm_varpar.F90
 static const int nlevsno = 5; // this should be set by driver
 static const int nlevgrnd = 15;
-static const int nlevurb = 5; // number of urban layers
-static const int numrad = 2;  // number of solar radiation bands: vis, nir
-static const int nlevcan = 1; // number of leaf layers in canopy layer
-static const int numpft = 16; // number of pfts - (use_crop ? 24 : 16)
+static const int nlevurb = 5;  // number of urban layers
+static const int numrad = 2;   // number of solar radiation bands: vis, nir
+static const int nlevcan = 1;  // number of leaf layers in canopy layer
+static const int numpft = 16;  // number of pfts - (use_crop ? 24 : 16)
 static const int nlevsoi = 10; // number of soil layers (hydrologically active)
 static const int nlevbed = 15; // number of layers to bedrock (hydrologically inactive below)
 
@@ -89,8 +89,8 @@ static const double grav = 9.80616;       // gravity constant [m/s2]
 static const double roverg = ELM_RWV / grav * 1000.0; // Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
 static const double vkc = 0.4;                        // von Karman constant [-]
 static const double cpair = 1.00464e3;                // specific heat of dry air   ~ J/kg/K
-static const double tlsai_crit = 2.0; // critical value of elai+esai for which aerodynamic parameters are maximum
-static const double sb = 5.67e-8;     // Stefan-Boltzmann constant ~ W/m^2/K^4
+static const double tlsai_crit = 2.0;    // critical value of elai+esai for which aerodynamic parameters are maximum
+static const double sb = 5.67e-8;        // Stefan-Boltzmann constant ~ W/m^2/K^4
 static const double h2osno_max = 1000.0; // max allowed snow thickness (mm H2O)
 static const double bdsno = 250.0;       // bulk density snow (kg/m**3)
 static const double ELM_MWDAIR = 28.966; // molecular weight dry air ~ kg/kmole

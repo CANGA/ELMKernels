@@ -1,6 +1,6 @@
 #pragma once
 
-#include "clm_constants.h"
+#include "ELMConstants.h"
 namespace ELM {
 struct VegProperties {
   double fnr[numpft];      //      fraction of nitrogen in RuBisCO

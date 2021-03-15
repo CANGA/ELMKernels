@@ -8,15 +8,15 @@
 #include <string>
 
 #include "BareGroundFluxes.h"
+#include "ELMConstants.h"
 #include "InitSnowLayers.hh"
 #include "InitTimestep.hh"
 #include "InitTopography.hh"
+#include "LandType.h"
 #include "ReadAtmosphere.hh"
 #include "ReadPFTConstants.hh"
 #include "ReadTestData.hh"
 #include "SatellitePhenology.hh"
-#include "clm_constants.h"
-#include "landtype.h"
 
 #include "CanopyHydrology.h"
 #include "CanopyTemperature.h"

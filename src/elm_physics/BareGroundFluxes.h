@@ -13,8 +13,8 @@ It is not the same as the displa calculated in CanopyTemperature
 
 #pragma once
 
-#include "clm_constants.h"
-#include "landtype.h"
+#include "ELMConstants.h"
+#include "LandType.h"
 #include <algorithm>
 #include <cmath>
 

@@ -8,8 +8,8 @@ Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_C
 */
 #pragma once
 
-#include "clm_constants.h"
-#include "landtype.h"
+#include "ELMConstants.h"
+#include "LandType.h"
 #include "vegproperties.h"
 
 namespace ELM {

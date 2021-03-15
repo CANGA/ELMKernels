@@ -1,7 +1,7 @@
 /* functions from FrictionVelocityMod.F90
 FrictionVelocity:
 Split into 5 functions - wind, temperature, humidity, 2-m temp, 2-m humidity
-Also don't need u10 variables, they are used for dust model
+Don't need u10 variables, they are used for dust model
 
 The friction velocity scheme is based on the work of Zeng et al. (1998):
 Intercomparison of bulk aerodynamic algorithms for the computation
@@ -9,29 +9,12 @@ of sea surface fluxes using TOGA CORE and TAO data. J. Climate,
 Vol. 11, 2628-2644.
 */
 
-#include "clm_constants.h"
+#include "ELMConstants.h"
 #include <algorithm>
 #include <cmath>
 
 namespace ELM {
 
-/* MoninObukIni()
-DESCRIPTION: Initialization of the Monin-Obukhov length. The scheme is based on the work of
-Zeng et al. (1998): Intercomparison of bulk aerodynamic algorithms for the computation of sea
-surface fluxes using TOGA CORE and TAO data. J. Climate, Vol. 11, 2628-2644.
-
-INPUTS:
-ur        [double]  wind speed at reference height [m/s]
-thv       [double]  virtual potential temperature (kelvin)
-dthv      [double]  diff of vir. poten. temp. between ref. height and surface
-zldis     [double]  reference height "minus" zero displacement height [m]
-z0m       [double]  roughness length, momentum [m]
-
-OUTPUTS:
-um       [double]  wind speed including the stability effect [m/s]
-obu      [double]  monin-obukhov length (m)
-
-*/
 void MoninObukIni(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
                   double &um, double &obu) {
   double rib;  // bulk Richardson number
@@ -77,19 +60,6 @@ double StabilityFunc2(double zeta) {
   return retval;
 }
 
-/* FrictionVelocityWind()
-DESCRIPTION:
-Calculation of the friction velocity of surface boundary layer.
-INPUTS:
-forc_hgt_u_patch [double] observational height of wind at pft level [m]
-displa           [double] displacement height (m)
-um               [double] wind speed including the stability effect [m/s]
-obu              [double] monin-obukhov length (m)
-z0m              [double] roughness length over vegetation, momentum [m]
-
-OUTPUTS:
-ustar            [double] friction velocity [m/s]
-*/
 void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
                           const double &z0m, double &ustar) {
   const double zetam = 1.574;                     // transition point of flux-gradient relation (wind profile)
@@ -109,20 +79,6 @@ void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, 
   }
 }
 
-/* FrictionVelocityTemperature()
-DESCRIPTION:
-Calculation of the relation for potential temperature of surface boundary layer.
-INPUTS:
-forc_hgt_t_patch [double] observational height of temperature at pft level [m]
-displa           [double] displacement height (m)
-obu              [double] monin-obukhov length (m)
-z0h              [double] roughness length over vegetation, sensible heat [m]
-
-
-OUTPUTS:
-temp1            [double] relation for potential temperature profile
-
-*/
 void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &displa, const double &obu,
                                  const double &z0h, double &temp1) {
   const double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
@@ -141,21 +97,6 @@ void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &d
   }
 }
 
-/* FrictionVelocityHumidity()
-DESCRIPTION:
-Calculation of the relation for potential humidity of surface boundary layer.
-INPUTS:
-forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
-forc_hgt_t_patch [double] observational height of temperature at pft level
-displa           [double] displacement height (m)
-obu              [double] monin-obukhov length (m)
-z0h              [double] roughness length over vegetation, sensible heat [m]
-z0q              [double] roughness length over vegetation, latent heat [m]
-temp1            [double] relation for potential temperature profile
-
-OUTPUTS:
-temp2            [double] relation for specific humidity profile
-*/
 void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
                               const double &obu, const double &z0h, const double &z0q, const double &temp1,
                               double &temp2) {
@@ -179,14 +120,6 @@ void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc
   }
 }
 
-/* Temperature profile applied at 2-m
-INPUTS:
-obu              [double] monin-obukhov length (m)
-z0h              [double] roughness length over vegetation, sensible heat [m]
-
-OUTPUTS:
-temp12m          [double] relation for potential temperature profile applied at 2-m
-*/
 void FrictionVelocityTemperature2m(const double &obu, const double &z0h, double &temp12m) {
   const double zldis = 2.0 + z0h;
   const double zeta = zldis / obu;
@@ -204,15 +137,6 @@ void FrictionVelocityTemperature2m(const double &obu, const double &z0h, double 
   }
 }
 
-/* Humidity profile applied at 2-m
-INPUTS:
-obu              [double] monin-obukhov length (m)
-z0h              [double] roughness length over vegetation, sensible heat [m]
-z0q              [double] roughness length over vegetation, latent heat [m]
-
-OUTPUTS:
-relation for specific humidity profile applied at 2-m
-*/
 void FrictionVelocityHumidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
                                 double &temp22m) {
   if (z0q == z0h) {

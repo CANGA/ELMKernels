@@ -10,12 +10,12 @@ ComputeFlux_Can()
 
 Irrigation() can be called anytime after InitializeFlux()
 */
-#include "FrictionVelocity.h"
+#include "ELMConstants.h"
+#include "FrictionVelocity.hh"
+#include "LandType.h"
 #include "Photosynthesis.hh"
-#include "QSat.h"
+#include "QSat.hh"
 #include "SoilMoistStress.hh"
-#include "clm_constants.h"
-#include "landtype.h"
 #include "vegproperties.h"
 #include <algorithm>
 #include <assert.h>

@@ -1,9 +1,9 @@
 // CallSurfaceRadiation.hh
 #pragma once
+#include "ELMConstants.h"
 #include "Kokkos_Core.hpp"
+#include "LandType.h"
 #include "SurfaceRadiation.h"
-#include "clm_constants.h"
-#include "landtype.h"
 
 using ArrayD1 = Kokkos::View<double *>;
 using ArrayI1 = Kokkos::View<int *>;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "QSat.h"
+#include "QSat.hh"
 
 namespace ELM {
 

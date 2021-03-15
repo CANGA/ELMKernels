@@ -1,6 +1,6 @@
 // clm_inst_biogeophys
 
-#include "clm_constants.h"
+#include "ELMConstants.h"
 
 void InitBiogeophys() {
 
