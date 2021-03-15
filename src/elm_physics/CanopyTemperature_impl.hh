@@ -1,6 +1,5 @@
-/* functions derived from CanopyTemperatureMod.F90
+// functions derived from CanopyTemperatureMod.F90
 
-*/
 #pragma once
 
 #include "QSat.h"
@@ -12,18 +11,6 @@
 
 namespace ELM {
 
-/* SaveGroundTemp()
-DESCRIPTION: Record t_h2osfc and t_soisno prior to updating.
-
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-t_h2osfc                   [double] surface water temperature
-t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
-
-OUTPUTS:
-t_h2osfc_bef               [double] saved surface water temperature
-tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update
-*/
 template <class dArray_type>
 void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_type t_soisno, double &t_h2osfc_bef,
                     dArray_type tssbef) {
@@ -41,20 +28,6 @@ void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_t
   }
 } // SaveGroundTemp
 
-/* CalculateGroundTemp()
-DESCRIPTION: Calculate average ground temp.
-
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-snl                        [int] number of snow layers
-frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
-frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
-t_h2osfc                   [double] surface water temperature
-t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
-
-OUTPUTS:
-t_grnd                     [double] ground temperature (Kelvin)
-*/
 template <class dArray_type>
 void CalculateGroundTemp(const LandType &Land, const int &snl, const double &frac_sno_eff, const double &frac_h2osfc,
                          const double &t_h2osfc, const dArray_type t_soisno, double &t_grnd) {
@@ -69,33 +42,6 @@ void CalculateGroundTemp(const LandType &Land, const int &snl, const double &fra
   }
 } // CalculateGroundTemp
 
-/* CalculateSoilAlpha()
-DESCRIPTION: Calculate soilalpha factor that reduces ground saturated specific humidity.
-It looks like soilalpha doesn't get used in maint-1.0 branch, but both qred and hr do.
-
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-frac_sno                   [double] fraction of ground covered by snow (0 to 1)
-frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
-smpmin [double] restriction for min of soil potential (mm)
-h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
-t_soisno[nlevgrnd+nlevsno]   [double] col soil temperature (Kelvin)
-watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-sucsat[nlevgrnd]             [double] minimum soil suction (mm)
-bsw[nlevgrnd]                [double] Clapp and Hornberger "b"
-watdry[nlevgrnd]             [double] btran parameter for btran = 0
-watopt[nlevgrnd]             [double] btran parameter for btran = 1
-rootfr_road_perv[nlevgrnd]   [double] fraction of roots in each soil layer for urban pervious road
-
-OUTPUTS:
-rootr_road_perv[nlevgrnd]    [double] effective fraction of roots in each soil layer for urban pervious road
-qred                         [double] soil surface relative humidity
-hr                           [double] relative humidity
-soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
-soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
-*/
 template <class dArray_type>
 void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double &smpmin,
                         const dArray_type h2osoi_liq, const dArray_type h2osoi_ice, const dArray_type dz,
@@ -166,20 +112,6 @@ void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const doub
   }
 } // CalculateSoilAlpha
 
-/* CalculateSoilBeta()
-INPUTS:
-Land                         [LandType] struct containing information about landtypet
-frac_sno                     [double] fraction of ground covered by snow (0 to 1)
-frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
-watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-watfc[nlevgrnd]              [double] volumetric soil water at field capacity
-h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
-
-OUTPUTS:
-soilbeta [double] factor that reduces ground evaporation
-*/
 template <class dArray_type>
 void CalculateSoilBeta(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
                        const dArray_type watsat, const dArray_type watfc, const dArray_type h2osoi_liq,
@@ -188,31 +120,6 @@ void CalculateSoilBeta(const LandType &Land, const double &frac_sno, const doubl
   calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz, soilbeta);
 } // CalculateSoilBeta()
 
-/* CalculateHumidities()
-DESCRIPTION: Saturated vapor pressure, specific humidity and their derivatives at ground surface.
-Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
-
-INPUTS:
-Land                       [LandType] struct containing information about landtype
-snl                        [int] number of snow layers
-forc_q                     [double] atmospheric specific humidity (kg/kg)
-forc_pbot                  [double] atmospheric pressure (Pa)
-t_h2osfc                   [double] surface water temperature
-t_grnd                     [double] ground temperature (Kelvin)
-frac_sno                   [double] fraction of ground covered by snow (0 to 1)
-frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
-frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
-qred                       [double] soil surface relative humidity
-hr                         [double] relative humidity
-t_soisno[nlevgrnd+nlevsno] [double] soil temperature (Kelvin)
-
-OUTPUTS:
-qg_snow                    [double] specific humidity at snow surface [kg/kg]
-qg_soil                    [double] specific humidity at soil surface [kg/kg]
-qg                         [double] ground specific humidity [kg/kg]
-qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
-dqgdT                      [double] d(qg)/dT
-*/
 template <class dArray_type>
 void CalculateHumidities(const LandType &Land, const int &snl, const double &forc_q, const double &forc_pbot,
                          const double &t_h2osfc, const double &t_grnd, const double &frac_sno,
@@ -272,43 +179,6 @@ void CalculateHumidities(const LandType &Land, const int &snl, const double &for
   }
 } // CalculateHumidities
 
-/* GroundProperties()
-DESCRIPTION: Calculate ground emissivity, latent heat constant, roughness lengths,
-potential temp and wind speed.
-
-INPUTS:
-Land                         [LandType] struct containing information about landtype
-snl                          [int] number of snow layers
-frac_sno                     [double] fraction of ground covered by snow (0 to 1)
-forc_th                      [double] atmospheric potential temperature (Kelvin)
-forc_q                       [double] atmospheric specific humidity (kg/kg)
-elai                         [double] one-sided leaf area index with burying by snow
-esai                         [double] one-sided stem area index with burying by snow
-htop                         [double] canopy top (m)
-displar[numpft]              [double] ratio of displacement height to canopy top height (-)
-z0mr[numpft]                 [double] ratio of momentum roughness length to canopy top height (-)
-h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-
-OUTPUTS:
-emg                          [double] ground emissivity
-emv                          [double] vegetation emissivity
-htvp                         [double] latent heat of vapor of water (or sublimation) [j/kg]
-z0mg                         [double] roughness length over ground, momentum [m]
-z0hg                         [double] roughness length over ground, sensible heat [m]
-z0qg                         [double] roughness length over ground, latent heat [m]
-z0mv                         [double] roughness length over vegetation, momentum [m]
-z0hv                         [double] roughness length over vegetation, sensible heat [m]
-z0qv                         [double] roughness length over vegetation, latent heat [m]
-beta                         [double] coefficient of convective velocity [-]
-zii                          [double] convective boundary height [m]
-thv                          [double] virtual potential temperature (kelvin)
-z0m                          [double] momentum roughness length (m)
-displa                       [double] displacement height (m)
-cgrnd                        [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
-cgrnds                       [double] deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
-cgrndl                       [double] deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
-*/
 template <class dArray_type>
 void GroundProperties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
                       const double &forc_q, const double &elai, const double &esai, const double &htop,

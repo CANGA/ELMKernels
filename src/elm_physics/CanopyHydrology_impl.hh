@@ -1,40 +1,9 @@
+// functions derived from CanopyHydrologyMod.F90
 
 #pragma once
 
 namespace ELM {
 
-/* CanopyHydrology::SnowInit()
-DESCRIPTION:
-Initialization snow layer(s) if the snow accumulation exceeds 10 mm.
-
-INPUTS:
-Land                         [LandType] struct containing information about landtype
-dtime                        [double] time step length (sec)
-do_capsnow                   [bool] true => do snow capping
-oldfflag                     [int]  use old fsno parameterization
-forc_t                       [double] atmospheric temperature (Kelvin)
-t_grnd                       [double] ground temperature (Kelvin)
-qflx_snow_grnd               [double]   snow on ground after interception (mm H2O/s) [+]
-qflx_rain_grnd               [double]   rain on ground after interception (mm H2O/s) [+]
-n_melt                       [double]   SCA shape parameter [-]
-
-OUTPUTS:
-snow_depth                   [double] snow height (m)
-h2osno                       [double] snow water (mm H2O)
-int_snow                     [double] integrated snowfall [mm]
-h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-t_soisno[nlevgrnd+nlevsno]   [double] soil temperature (Kelvin)
-frac_iceold[nlevgrnd+nlevsno][double] fraction of ice relative to the tot water
-snl                          [int] number of snow layers
-dz                           [double] layer thickness (m)
-z                            [double] layer cell center elevation (m)
-zi                           [double] layer interface elevation (m)
-snw_rds[nlevsno]             [double] snow grain radius [m^-6, microns]
-qflx_snow_h2osfc             [double] snow falling on surface water (mm/s)
-frac_sno_eff                 [double] fraction of ground covered by snow (0 to 1)
-frac_sno                     [double] fraction of ground covered by snow (0 to 1)
-*/
 template <class dArray_type>
 void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
               const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
@@ -198,24 +167,6 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
   }
 } // SnowInit
 
-/* CanopyHydrology::FracH2OSfc()
-DESCRIPTION:
-Determine fraction of land surfaces which are submerged
-based on surface microtopography and surface water storage.
-
-INPUTS:
-Land                         [LandType] struct containing information about landtype
-micro_sigma                  [double] microtopography pdf sigma (m)
-h2osno                       [double] snow water (mm H2O)
-no_update                    [bool] flag to make calculation w/o updating variables
-
-OUTPUTS:
-h2osfc                       [double] surface water (mm)
-h2osoi_liq[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-frac_sno                     [double] fraction of ground covered by snow (0 to 1)
-frac_sno_eff                 [double] effective fraction of ground covered by snow (0 to 1)
-frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)
-*/
 template <class dArray_type>
 void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
 

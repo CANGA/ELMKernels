@@ -1,6 +1,4 @@
-/* functions derived from CanopyTemperatureMod.F90
-
-*/
+// functions derived from CanopyTemperatureMod.F90
 
 #include "clm_constants.h"
 #include "landtype.h"
@@ -9,29 +7,6 @@
 
 namespace ELM {
 
-/* CalculateForcingHeight()
-DESCRIPTION: Calculate roughness length, displacement height, and forcing height for wind , temp, and humidity.
-
-INPUTS:
-Land             [LandType] struct containing information about landtype
-veg_active       [bool] true => landunit is an urban point
-frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-forc_hgt_u       [double] observational height of wind [m]
-forc_hgt_t       [double] observational height of temperature [m]
-forc_hgt_q       [double] observational height of specific humidity [m]
-z0m              [double] momentum roughness length (m)
-z0mg             [double] roughness length over ground, momentum [m]
-z_0_town         [double] momentum roughness length of urban landunit (
-z_d_town         [double] displacement height of urban landunit (m)
-forc_t           [double] atmospheric temperature (Kelvin)
-displa           [double] displacement height (m)
-
-OUTPUTS:
-forc_hgt_u_patch [double] observational height of wind at pft level [m]
-forc_hgt_t_patch [double] observational height of temperature at pft level [m]
-forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
-thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
-*/
 void CalculateForcingHeight(const LandType &Land, const bool &veg_active, const int &frac_veg_nosno,
                             const double &forc_hgt_u, const double &forc_hgt_t, const double &forc_hgt_q,
                             const double &z0m, const double &z0mg, const double &z_0_town, const double &z_d_town,
@@ -68,24 +43,6 @@ void CalculateForcingHeight(const LandType &Land, const bool &veg_active, const 
   thm = forc_t + 0.0098 * forc_hgt_t_patch;
 } // CalculateForcingHeight
 
-/* InitializeEnergyFluxes()
-DESCRIPTION: Set energy flux terms to 0.0 before calculation.
-
-INPUTS:
-Land             [LandType] struct containing information about landtype
-
-OUTPUTS:
-eflx_sh_tot      [double] total sensible heat flux (W/m**2) [+ to atm]
-eflx_sh_tot_u    [double] urban total sensible heat flux (W/m**2) [+ to atm]
-eflx_sh_tot_r    [double] rural total sensible heat flux (W/m**2) [+ to atm]
-eflx_lh_tot      [double] total latent heat flux (W/m**2)  [+ to atm]
-eflx_lh_tot_u    [double] urban total latent heat flux (W/m**2)  [+ to atm]
-eflx_lh_tot_r    [double] rural total latent heat flux (W/m**2)  [+ to atm]
-eflx_sh_veg      [double] sensible heat flux from leaves (W/m**2) [+ to atm]
-qflx_evap_tot    [double] qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-qflx_evap_veg    [double] vegetation evaporation (mm H2O/s) (+ = to atm)
-qflx_tran_veg    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
-*/
 void InitializeEnergyFluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_sh_tot_u, double &eflx_sh_tot_r,
                             double &eflx_lh_tot, double &eflx_lh_tot_u, double &eflx_lh_tot_r, double &eflx_sh_veg,
                             double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg) {

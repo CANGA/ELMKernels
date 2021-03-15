@@ -1,8 +1,10 @@
-/*! \file BareGroundFluxes.h 
+/*! \file BareGroundFluxes.h
 \brief Functions derived from BareGroundFluxesMod.F90
 
 Compute sensible and latent fluxes and their derivatives with respect
 to ground temperature using ground temperatures from previous time step.
+
+Call sequence: InitializeFlux_BG() -> StabilityIteration_BG() -> ComputeFlux_BG()
 
 Note:
 the "displa" displacement height variable used here is local to these functions.
