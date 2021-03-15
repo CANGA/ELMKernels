@@ -178,7 +178,7 @@ DESCRIPTION: Calculate roughness length, displacement height, and forcing height
 
 INPUTS:
 Land             [LandType] struct containing information about landtype
-veg_active       [bool] true => landunit is an urban point
+veg_active       [bool] true => cell contains active vegetation
 frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
 forc_hgt_u       [double] observational height of wind [m]
 forc_hgt_t       [double] observational height of temperature [m]
