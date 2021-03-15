@@ -48,3 +48,5 @@ void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const do
 double getlblcef(const double &rho, const double &temp);
 
 } // namespace ELM
+
+#include <SurfaceResistance_impl.hh>
