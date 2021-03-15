@@ -11,9 +11,9 @@
 
 namespace ELM {
 
-template <class dArray_type>
-void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_type t_soisno, double &t_h2osfc_bef,
-                    dArray_type tssbef) {
+template <class ArrayD1>
+void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
+                    ArrayD1 tssbef) {
 
   if (!Land.lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
@@ -28,9 +28,9 @@ void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_t
   }
 } // SaveGroundTemp
 
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateGroundTemp(const LandType &Land, const int &snl, const double &frac_sno_eff, const double &frac_h2osfc,
-                         const double &t_h2osfc, const dArray_type t_soisno, double &t_grnd) {
+                         const double &t_h2osfc, const ArrayD1 t_soisno, double &t_grnd) {
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
   if (!Land.lakpoi) {
     if (snl > 0) {
@@ -42,12 +42,12 @@ void CalculateGroundTemp(const LandType &Land, const int &snl, const double &fra
   }
 } // CalculateGroundTemp
 
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double &smpmin,
-                        const dArray_type h2osoi_liq, const dArray_type h2osoi_ice, const dArray_type dz,
-                        const dArray_type t_soisno, const dArray_type watsat, const dArray_type sucsat,
-                        const dArray_type bsw, const dArray_type watdry, const dArray_type watopt,
-                        const dArray_type rootfr_road_perv, dArray_type rootr_road_perv, double &qred, double &hr,
+                        const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                        const ArrayD1 t_soisno, const ArrayD1 watsat, const ArrayD1 sucsat,
+                        const ArrayD1 bsw, const ArrayD1 watdry, const ArrayD1 watopt,
+                        const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double &qred, double &hr,
                         double &soilalpha, double &soilalpha_u) {
   qred = 1.0; // soil surface relative humidity
 
@@ -112,19 +112,19 @@ void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const doub
   }
 } // CalculateSoilAlpha
 
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateSoilBeta(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                       const dArray_type watsat, const dArray_type watfc, const dArray_type h2osoi_liq,
-                       const dArray_type h2osoi_ice, const dArray_type dz, double &soilbeta) {
+                       const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
+                       const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta) {
 
   calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz, soilbeta);
 } // CalculateSoilBeta()
 
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateHumidities(const LandType &Land, const int &snl, const double &forc_q, const double &forc_pbot,
                          const double &t_h2osfc, const double &t_grnd, const double &frac_sno,
                          const double &frac_sno_eff, const double &frac_h2osfc, const double &qred, const double &hr,
-                         const dArray_type t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
+                         const ArrayD1 t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
                          double &dqgdT) {
   if (!Land.lakpoi) {
 
@@ -179,11 +179,11 @@ void CalculateHumidities(const LandType &Land, const int &snl, const double &for
   }
 } // CalculateHumidities
 
-template <class dArray_type>
+template <class ArrayD1>
 void GroundProperties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
                       const double &forc_q, const double &elai, const double &esai, const double &htop,
-                      const dArray_type displar, const dArray_type z0mr, const dArray_type h2osoi_liq,
-                      const dArray_type h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
+                      const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
+                      const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
                       double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &beta, double &zii, double &thv,
                       double &z0m, double &displa, double &cgrnd, double &cgrnds, double &cgrndl) {
   if (!Land.lakpoi) {

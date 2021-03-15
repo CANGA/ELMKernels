@@ -9,9 +9,9 @@
 
 namespace ELM {
 
-template <class dArray_type>
+template <class ArrayD1>
 void SurfRadZeroFluxes(const LandType &Land, double &sabg_soil, double &sabg_snow, double &sabg, double &sabv,
-                       double &fsa, dArray_type sabg_lyr) {
+                       double &fsa, ArrayD1 sabg_lyr) {
 
   // Initialize fluxes
   if (!Land.urbpoi) {
@@ -27,12 +27,12 @@ void SurfRadZeroFluxes(const LandType &Land, double &sabg_soil, double &sabg_sno
   }
 }
 
-template <class dArray_type>
-void SurfRadAbsorbed(const LandType &Land, const int &snl, const dArray_type ftdd, const dArray_type ftid,
-                     const dArray_type ftii, const dArray_type forc_solad, const dArray_type forc_solai,
-                     const dArray_type fabd, const dArray_type fabi, const dArray_type albsod, const dArray_type albsoi,
-                     const dArray_type albsnd_hst, const dArray_type albsni_hst, const dArray_type albgrd,
-                     const dArray_type albgri, double &sabv, double &fsa, double &sabg, double &sabg_soil,
+template <class ArrayD1>
+void SurfRadAbsorbed(const LandType &Land, const int &snl, const ArrayD1 ftdd, const ArrayD1 ftid,
+                     const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
+                     const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
+                     const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
+                     const ArrayD1 albgri, double &sabv, double &fsa, double &sabg, double &sabg_soil,
                      double &sabg_snow, double *trd, double *tri) {
 
   double absrad, cad[numrad], cai[numrad];
@@ -70,11 +70,11 @@ void SurfRadAbsorbed(const LandType &Land, const int &snl, const dArray_type ftd
   }   // end if not urban
 }
 
-template <class dArray_type>
+template <class ArrayD1>
 void SurfRadLayers(const LandType &Land, const int &snl, const double &sabg, const double &sabg_snow,
-                   const double &snow_depth, const dArray_type flx_absdv, const dArray_type flx_absdn,
-                   const dArray_type flx_absiv, const dArray_type flx_absin, const double *trd, const double *tri,
-                   dArray_type sabg_lyr) {
+                   const double &snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
+                   const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double *trd, const double *tri,
+                   ArrayD1 sabg_lyr) {
 
   double err_sum = 0.0;
   double sabg_snl_sum;
@@ -168,9 +168,9 @@ void SurfRadLayers(const LandType &Land, const int &snl, const double &sabg, con
   }
 }
 
-template <class dArray_type>
-void SurfRadReflected(const LandType &Land, const dArray_type albd, const dArray_type albi,
-                      const dArray_type forc_solad, const dArray_type forc_solai, double &fsr) {
+template <class ArrayD1>
+void SurfRadReflected(const LandType &Land, const ArrayD1 albd, const ArrayD1 albi,
+                      const ArrayD1 forc_solad, const ArrayD1 forc_solai, double &fsr) {
 
   double fsr_vis_d, fsr_nir_d, fsr_vis_i, fsr_nir_i, rvis, rnir;
   // Radiation diagnostics
@@ -190,12 +190,12 @@ void SurfRadReflected(const LandType &Land, const dArray_type albd, const dArray
   }
 }
 
-template <class dArray_type>
-void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double &elai, const dArray_type tlai_z,
-                             const dArray_type fsun_z, const dArray_type forc_solad, const dArray_type forc_solai,
-                             const dArray_type fabd_sun_z, const dArray_type fabd_sha_z, const dArray_type fabi_sun_z,
-                             const dArray_type fabi_sha_z, dArray_type parsun_z, dArray_type parsha_z,
-                             dArray_type laisun_z, dArray_type laisha_z, double &laisun, double &laisha) {
+template <class ArrayD1>
+void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double &elai, const ArrayD1 tlai_z,
+                             const ArrayD1 fsun_z, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
+                             const ArrayD1 fabd_sun_z, const ArrayD1 fabd_sha_z, const ArrayD1 fabi_sun_z,
+                             const ArrayD1 fabi_sha_z, ArrayD1 parsun_z, ArrayD1 parsha_z,
+                             ArrayD1 laisun_z, ArrayD1 laisha_z, double &laisun, double &laisha) {
 
   if (!Land.urbpoi) {
     int ipar = 0; // The band index for PAR

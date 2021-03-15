@@ -365,12 +365,12 @@ m temperature (K)
 
 
 */
-template <class dArray_type>
+template <class ArrayD1>
 void Photosynthesis(const VegProperties &veg, const int &vtype, const int &nrad, const double &forc_pbot,
                     const double &t_veg, const double &t10, const double &esat_tv, const double &eair,
                     const double &oair, const double &cair, const double &rb, const double &btran,
-                    const double &dayl_factor, const double &thm, const dArray_type tlai_z, const double &vcmaxcint,
-                    const dArray_type par_z, const dArray_type lai_z, double &rs) {
+                    const double &dayl_factor, const double &thm, const ArrayD1 tlai_z, const double &vcmaxcint,
+                    const ArrayD1 par_z, const ArrayD1 lai_z, double &rs) {
   // vars from PhotosynthesisType - not used anywhere else, so keep local
   bool c3flag;          // true if C3 and false if C4
   double ci_z[nlevcan]; // intracellular leaf CO2 (Pa)

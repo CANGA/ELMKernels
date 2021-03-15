@@ -100,19 +100,19 @@ namespace ELM {
 //  } // if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0)
 //} // Irrigation
 
-template <class dArray_type>
+template <class ArrayD1>
 void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
                         const double &forc_hgt_u_patch, const double &thm, const double &thv, const double &max_dayl,
                         const double &dayl, const int &altmax_indx, const int &altmax_lastyear_indx,
-                        const dArray_type t_soisno, const dArray_type h2osoi_ice, const dArray_type h2osoi_liq,
-                        const dArray_type dz, const dArray_type rootfr, const double &tc_stress,
-                        const dArray_type sucsat, const dArray_type watsat, const dArray_type bsw,
-                        const dArray_type smpso, const dArray_type smpsc, const double &elai, const double &esai,
+                        const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
+                        const ArrayD1 dz, const ArrayD1 rootfr, const double &tc_stress,
+                        const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
+                        const ArrayD1 smpso, const ArrayD1 smpsc, const double &elai, const double &esai,
                         const double &emv, const double &emg, const double &qg, const double &t_grnd,
                         const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
                         const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
-                        double &btran, double &displa, double &z0mv, double &z0hv, double &z0qv, dArray_type rootr,
-                        dArray_type eff_porosity, double &dayl_factor, double &air, double &bir, double &cir,
+                        double &btran, double &displa, double &z0mv, double &z0hv, double &z0qv, ArrayD1 rootr,
+                        ArrayD1 eff_porosity, double &dayl_factor, double &air, double &bir, double &cir,
                         double &el, double &qsatl, double &qsatldT, double &taf, double &qaf, double &um, double &ur,
                         double &obu, double &zldis, double &delq, double &t_veg) {
   // -----------------------------------------------------------------
@@ -188,21 +188,21 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
   }
 } // InitializeFlux_Can()
 
-template <class dArray_type>
+template <class ArrayD1>
 void StabilityIteration_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
                             const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
-                            const double &forc_hgt_q_patch, const dArray_type dleaf, const double &fwet,
+                            const double &forc_hgt_q_patch, const ArrayD1 dleaf, const double &fwet,
                             const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
                             const double &snow_depth, const double &soilbeta, const double &frac_h2osfc,
                             const double &t_h2osfc, const double &sabv, const double &h2ocan, const double &htop,
-                            const dArray_type t_soisno, const double &air, const double &bir, const double &cir,
+                            const ArrayD1 t_soisno, const double &air, const double &bir, const double &cir,
                             const double &ur, const double &zldis, const double &displa, const double &elai,
                             const double &esai, const double &t_grnd, const double &forc_pbot, const double &forc_q,
                             const double &forc_th, const double &z0mg, const double &z0mv, const double &z0hv,
                             const double &z0qv, const double &thm, const double &thv, const double &qg,
-                            const VegProperties &veg, const int &nrad, const double &t10, const dArray_type tlai_z,
-                            const double &vcmaxcintsha, const double &vcmaxcintsun, const dArray_type parsha_z,
-                            const dArray_type parsun_z, const dArray_type laisha_z, const dArray_type laisun_z,
+                            const VegProperties &veg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
+                            const double &vcmaxcintsha, const double &vcmaxcintsun, const ArrayD1 parsha_z,
+                            const ArrayD1 parsun_z, const ArrayD1 laisha_z, const ArrayD1 laisun_z,
                             const double &forc_pco2, const double &forc_po2, const double &dayl_factor, double &btran,
                             double &qflx_tran_veg, double &qflx_evap_veg, double &eflx_sh_veg, double &wtg,
                             double &wtl0, double &wta0, double &wtal, double &el, double &qsatl, double &qsatldT,
@@ -453,9 +453,9 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
   }   // land type
 } // StabilityIteration_Can()
 
-template <class dArray_type>
+template <class ArrayD1>
 void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
-                     const double &frac_sno, const dArray_type t_soisno, const double &frac_h2osfc,
+                     const double &frac_sno, const ArrayD1 t_soisno, const double &frac_h2osfc,
                      const double &t_h2osfc, const double &sabv, const double &qg_snow, const double &qg_soil,
                      const double &qg_h2osfc, const double &dqgdT, const double &htvp, const double &wtg,
                      const double &wtl0, const double &wta0, const double &wtal, const double &air, const double &bir,

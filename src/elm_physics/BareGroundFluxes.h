@@ -127,10 +127,10 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
 \param[out] rh_ref2m_r                 [double] Rural 2 m height surface relative humidity (%)
 \param[out] rh_ref2m                   [double] 2 m height surface relative humidity (%)
 */
-template <class dArray_type>
+template <class ArrayD1>
 void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
                     const double &soilbeta, const double &dqgdT, const double &htvp, const double &t_h2osfc,
-                    const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const dArray_type t_soisno,
+                    const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const ArrayD1 t_soisno,
                     const double &forc_pbot, const double &dth, const double &dqh, const double &temp1,
                     const double &temp2, const double &temp12m, const double &temp22m, const double &ustar,
                     const double &forc_q, const double &thm, double &cgrnds, double &cgrndl, double &cgrnd,

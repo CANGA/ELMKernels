@@ -4,14 +4,14 @@
 
 namespace ELM {
 
-template <class dArray_type>
+template <class ArrayD1>
 void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
               const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
               const double &n_melt,
 
-              double &snow_depth, double &h2osno, double &int_snow, dArray_type swe_old, dArray_type h2osoi_liq,
-              dArray_type h2osoi_ice, dArray_type t_soisno, dArray_type frac_iceold, int &snl, dArray_type dz,
-              dArray_type z, dArray_type zi, dArray_type snw_rds, double &qflx_snow_h2osfc, double &frac_sno_eff,
+              double &snow_depth, double &h2osno, double &int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
+              ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int &snl, ArrayD1 dz,
+              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &qflx_snow_h2osfc, double &frac_sno_eff,
               double &frac_sno) {
 
   if (!Land.lakpoi) {
@@ -167,10 +167,10 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
   }
 } // SnowInit
 
-template <class dArray_type>
+template <class ArrayD1>
 void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
 
-                double &h2osfc, dArray_type h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc) {
+                double &h2osfc, ArrayD1 h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc) {
 
   if (!Land.lakpoi) {
     double d, fd, dfdd, sigma;

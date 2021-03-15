@@ -24,11 +24,11 @@ frac_iceold [double] fraction of ice relative to the tot water
 
 namespace ELM {
 
-template <class dArray_type>
+template <class ArrayD1>
 void InitTimestep(const bool &lakpoi, const double &h2osno, const bool &veg_active, const int &snl,
-                  const dArray_type h2osoi_ice, const dArray_type h2osoi_liq, const int &frac_veg_nosno_alb,
+                  const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq, const int &frac_veg_nosno_alb,
                   double &h2osno_old, bool &do_capsnow, double &eflx_bot, double &qflx_glcice, int &frac_veg_nosno,
-                  dArray_type frac_iceold) {
+                  ArrayD1 frac_iceold) {
   // Save snow mass at previous time step
   h2osno_old = h2osno;
 

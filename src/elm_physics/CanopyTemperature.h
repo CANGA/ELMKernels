@@ -22,9 +22,9 @@ namespace ELM {
 \param[out] t_h2osfc_bef               [double] saved surface water temperature
 \param[out] tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update
 */
-template <class dArray_type>
-void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_type t_soisno, double &t_h2osfc_bef,
-                    dArray_type tssbef);
+template <class ArrayD1>
+void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
+                    ArrayD1 tssbef);
 
 /*! Calculate average ground temp.
 
@@ -36,9 +36,9 @@ void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const dArray_t
 \param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 \param[out] t_grnd                     [double] ground temperature (Kelvin)
 */
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateGroundTemp(const LandType &Land, const int &snl, const double &frac_sno_eff, const double &frac_h2osfc,
-                         const double &t_h2osfc, const dArray_type t_soisno, double &t_grnd);
+                         const double &t_h2osfc, const ArrayD1 t_soisno, double &t_grnd);
 
 /*! Calculate soilalpha factor that reduces ground saturated specific humidity.
 It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and hr do.
@@ -63,12 +63,12 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[out] soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
 \param[out] soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
 */
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double &smpmin,
-                        const dArray_type h2osoi_liq, const dArray_type h2osoi_ice, const dArray_type dz,
-                        const dArray_type t_soisno, const dArray_type watsat, const dArray_type sucsat,
-                        const dArray_type bsw, const dArray_type watdry, const dArray_type watopt,
-                        const dArray_type rootfr_road_perv, dArray_type rootr_road_perv, double &qred, double &hr,
+                        const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                        const ArrayD1 t_soisno, const ArrayD1 watsat, const ArrayD1 sucsat,
+                        const ArrayD1 bsw, const ArrayD1 watdry, const ArrayD1 watopt,
+                        const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double &qred, double &hr,
                         double &soilalpha, double &soilalpha_u);
 
 /*! Calculate soilbeta parameter.
@@ -83,10 +83,10 @@ void CalculateSoilAlpha(const LandType &Land, const double &frac_sno, const doub
 \param[in]  dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 \param[out] soilbeta                     [double] factor that reduces ground evaporation
 */
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateSoilBeta(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                       const dArray_type watsat, const dArray_type watfc, const dArray_type h2osoi_liq,
-                       const dArray_type h2osoi_ice, const dArray_type dz, double &soilbeta);
+                       const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
+                       const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta);
 
 /*! Calculate saturated vapor pressure, specific humidity and their derivatives at ground surface.
 Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
@@ -109,11 +109,11 @@ Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
 \param[out] qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
 \param[out] dqgdT                      [double] d(qg)/dT
 */
-template <class dArray_type>
+template <class ArrayD1>
 void CalculateHumidities(const LandType &Land, const int &snl, const double &forc_q, const double &forc_pbot,
                          const double &t_h2osfc, const double &t_grnd, const double &frac_sno,
                          const double &frac_sno_eff, const double &frac_h2osfc, const double &qred, const double &hr,
-                         const dArray_type t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
+                         const ArrayD1 t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
                          double &dqgdT);
 
 /*! Calculate ground emissivity, latent heat constant, roughness lengths,
@@ -149,11 +149,11 @@ potential temp and wind speed.
 \param[out] cgrnds                       [double] deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
 \param[out] cgrndl                       [double] deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
 */
-template <class dArray_type>
+template <class ArrayD1>
 void GroundProperties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
                       const double &forc_q, const double &elai, const double &esai, const double &htop,
-                      const dArray_type displar, const dArray_type z0mr, const dArray_type h2osoi_liq,
-                      const dArray_type h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
+                      const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
+                      const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
                       double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &beta, double &zii, double &thv,
                       double &z0m, double &displa, double &cgrnd, double &cgrnds, double &cgrndl);
 
