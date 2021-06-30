@@ -18,8 +18,8 @@ void Interception(const LandType &Land, const int &frac_veg_nosno, const double 
     // Add precipitation to leaf water
     if (Land.ltype == istsoil || Land.ltype == istwet || Land.urbpoi || Land.ltype == istcrop) {
       qflx_candrip = 0.0;          // rate of canopy runoff
-      qflx_through_snow = 0.0;     // rain precipitation direct through canopy
-      qflx_through_rain = 0.0;     // snow precipitation direct through canopy
+      qflx_through_snow = 0.0;     // snow precipitation direct through canopy
+      qflx_through_rain = 0.0;     // rain precipitation direct through canopy
       double qflx_prec_intr = 0.0; // total intercepted precipitation
       fracsnow = 0.0;              // fraction of input precip that is snow
       fracrain = 0.0;              // fraction of input precip that is rain
