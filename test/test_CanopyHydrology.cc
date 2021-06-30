@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
                                                      {myrank / proc_decomp[1], myrank % proc_decomp[1]});
   auto n_grid_cells = dd.n_local[0] * dd.n_local[1];
 
-  const auto start = ELM::Utils::Date(2014, 7, 1, 1800);
+  const auto start = ELM::Utils::Date(2014, 7, 15, 1800);
   const int n_months = 1;
   const int ticks_per_day = 48; // 0.5-hourly data
   const int write_interval = 1;
@@ -145,15 +145,15 @@ int main(int argc, char **argv) {
   ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "TBOT", dd, forc_t);
   std::cout << forc_t[0] << std::endl;
 
-  ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "ELAI", 0, pfti, elai);
+  ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "elai", pfti, elai);
   std::cout << elai[0] << std::endl;
-  ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "ESAI", 0, pfti, esai);
+  ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "esai", pfti, esai);
   std::cout << esai[0] << std::endl;
-  ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "H2OCAN", 0, pfti, h2ocan);
+  ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "H2OCAN", pfti, h2ocan);
   std::cout << h2ocan[0] << std::endl;
   ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "TG", 0, columni, t_grnd);
   std::cout << t_grnd[0] << std::endl;
-  ELM::IO::read_distributed_scalar<double>(data_dir, fname_h1_start.str(), "H2OSNO", 0, columni, h2osno);
+  ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "H2OSNO", columni, h2osno);
   std::cout << h2osno[0] << std::endl;
 
   //ELM::IO::read_bottom<double>(data_dir, fname_h1_start.str(), "SOILICE", dd, 0, h2osoi_ice);
@@ -202,6 +202,7 @@ int main(int argc, char **argv) {
 
   ELM::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
                     frac_h2osfc[idx]);
+  std::cout << h2osfc[idx] << " " << frac_sno[idx] << " " << frac_sno_eff[idx] << " " << frac_h2osfc[idx] << std::endl;
 
   return 0;
 

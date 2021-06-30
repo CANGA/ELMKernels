@@ -46,7 +46,7 @@ static const int nsoybean = 24;
 static const int nsoybeanirrig = 25;
 
 // from clm_varctl.F90
-static const int subgridflag = 0;
+static const int subgridflag = 1;
 static const double co2_ppmv = 355.0; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
 // from clm_varpar.F90
