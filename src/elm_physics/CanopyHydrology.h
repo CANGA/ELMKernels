@@ -19,20 +19,20 @@ namespace ELM {
 into canopy storage, canopy runoff, rain and snow throughfall.
 Also calculates fraction of precipitation that is rain/snow.
 
-\param[in]  Land              [LandType] struct containing information about landtype
-\param[in]  frac_veg_nosno    [int]      fraction of veg not covered by snow (0/1 now) [-]
-\param[in]  forc_rain         [double]   rain rate (kg H2O/m**2/s, or mm liquid H2O/s)
-\param[in]  forc_snow         [double]   snow rate (kg H2O/m**2/s, or mm liquid H2O/s)
-\param[in]  dewmx             [double]   Maximum allowed dew [mm]
-\param[in]  elai              [double]   one-sided leaf area index with burying by snow
-\param[in]  esai              [double]   one-sided stem area index with burying by snow
-\param[in]  dtime             [double]   time step length (sec)
-\param[out] h2ocan            [double]   total canopy water (mm H2O)
-\param[out] qflx_candrip      [double]   rate of canopy runoff and snow falling off canopy [mm/s]
-\param[out] qflx_through_snow [double]   direct snow throughfall [mm/s]
-\param[out] qflx_through_rain [double]   direct rain throughfall [mm/s]
-\param[out] fracsnow          [double]   frac of precipitation that is snow [-]
-\param[out] fracrain          [double]   frac of precipitation that is rain [-]
+\param[in]     Land              [LandType] struct containing information about landtype
+\param[in]     frac_veg_nosno    [int]      fraction of veg not covered by snow (0/1 now) [-]
+\param[in]     forc_rain         [double]   rain rate (kg H2O/m**2/s, or mm liquid H2O/s)
+\param[in]     forc_snow         [double]   snow rate (kg H2O/m**2/s, or mm liquid H2O/s)
+\param[in]     dewmx             [double]   Maximum allowed dew [mm]
+\param[in]     elai              [double]   one-sided leaf area index with burying by snow
+\param[in]     esai              [double]   one-sided stem area index with burying by snow
+\param[in]     dtime             [double]   time step length (sec)
+\param[in,out] h2ocan            [double]   total canopy water (mm H2O)
+\param[out]    qflx_candrip      [double]   rate of canopy runoff and snow falling off canopy [mm/s]
+\param[out]    qflx_through_snow [double]   direct snow throughfall [mm/s]
+\param[out]    qflx_through_rain [double]   direct rain throughfall [mm/s]
+\param[out]    fracsnow          [double]   frac of precipitation that is snow [-]
+\param[out]    fracrain          [double]   frac of precipitation that is rain [-]
 */
 void Interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
                   const double &dewmx, const double &elai, const double &esai, const double &dtime, double &h2ocan,
@@ -96,29 +96,29 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
 /*! Initialize new snow layer if the snow accumulation exceeds 10 mm, compute fractional SCA.
 
 \param[in]  Land                          [LandType] struct containing information about landtype
-\param[in]  dtime                         [double] time step length (sec)
-\param[in]  do_capsnow                    [bool] true => do snow capping
-\param[in]  oldfflag                      [int]  use old fsno parameterization
-\param[in]  forc_t                        [double] atmospheric temperature (Kelvin)
-\param[in]  t_grnd                        [double] ground temperature (Kelvin)
-\param[in]  qflx_snow_grnd                [double]   snow on ground after interception (mm H2O/s) [+]
-\param[in]  qflx_rain_grnd                [double]   rain on ground after interception (mm H2O/s) [+]
-\param[in]  n_melt                        [double]   SCA shape parameter [-]
-\param[out] snow_depth                    [double] snow height (m)
-\param[out] h2osno                        [double] snow water (mm H2O)
-\param[out] int_snow                      [double] integrated snowfall [mm]
-\param[out] h2osoi_liq[nlevgrnd+nlevsno]  [double] liquid water (kg/m2)
-\param[out] h2osoi_ice[nlevgrnd+nlevsno]  [double] ice lens (kg/m2)
-\param[out] t_soisno[nlevgrnd+nlevsno]    [double] soil temperature (Kelvin)
-\param[out] frac_iceold[nlevgrnd+nlevsno] [double] fraction of ice relative to the tot water
-\param[out] snl                           [int] number of snow layers
-\param[out] dz                            [double] layer thickness (m)
-\param[out] z                             [double] layer cell center elevation (m)
-\param[out] zi                            [double] layer interface elevation (m)
-\param[out] snw_rds[nlevsno]              [double] snow grain radius [m^-6, microns]
-\param[out] qflx_snow_h2osfc              [double] snow falling on surface water (mm/s)
-\param[out] frac_sno_eff                  [double] fraction of ground covered by snow (0 to 1)
-\param[out] frac_sno                      [double] fraction of ground covered by snow (0 to 1)
+\param[in]     dtime                         [double] time step length (sec)
+\param[in]     do_capsnow                    [bool] true => do snow capping
+\param[in]     oldfflag                      [int]  use old fsno parameterization
+\param[in]     forc_t                        [double] atmospheric temperature (Kelvin)
+\param[in]     t_grnd                        [double] ground temperature (Kelvin)
+\param[in]     qflx_snow_grnd                [double]   snow on ground after interception (mm H2O/s) [+]
+\param[in]     qflx_rain_grnd                [double]   rain on ground after interception (mm H2O/s) [+]
+\param[in]     n_melt                        [double]   SCA shape parameter [-]
+\param[in,out] snow_depth                    [double] snow height (m)
+\param[in,out] h2osno                        [double] snow water (mm H2O)
+\param[in,out] int_snow                      [double] integrated snowfall [mm]
+\param[out]    h2osoi_liq[nlevgrnd+nlevsno]  [double] liquid water (kg/m2)
+\param[out]    h2osoi_ice[nlevgrnd+nlevsno]  [double] ice lens (kg/m2)
+\param[out]    t_soisno[nlevgrnd+nlevsno]    [double] soil temperature (Kelvin)
+\param[out]    frac_iceold[nlevgrnd+nlevsno] [double] fraction of ice relative to the tot water
+\param[out]    snl                           [int] number of snow layers
+\param[out]    dz                            [double] layer thickness (m)
+\param[out]    z                             [double] layer cell center elevation (m)
+\param[out]    zi                            [double] layer interface elevation (m)
+\param[out]    snw_rds[nlevsno]              [double] snow grain radius [m^-6, microns]
+\param[out]    qflx_snow_h2osfc              [double] snow falling on surface water (mm/s)
+\param[out]    frac_sno_eff                  [double] fraction of ground covered by snow (0 to 1)
+\param[out]    frac_sno                      [double] fraction of ground covered by snow (0 to 1)
 */
 template <class ArrayD1>
 void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
