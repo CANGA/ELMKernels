@@ -11,6 +11,7 @@
 
 #include "CanopyHydrology.h"
 
+
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayS1 = ELM::Array<std::string, 1>;
@@ -25,8 +26,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 template <typename T>
 bool IsAlmostEqual(const T a, const T b) {
     auto diff = std::abs(a - b);
-    auto reldiff = std::max(std::abs(a),std::abs(b)) * 1e-7;
-    if (diff > reldiff) {
+    auto maxreldiff = std::max(std::abs(a),std::abs(b)) * 1e-7;
+    if (diff > maxreldiff) {
         std::cout << "NOT EQUAL  a: " << a << " b: " << b << std::endl;
         return false;
     }
@@ -73,7 +74,25 @@ int main(int argc, char **argv) {
   const std::string basename_r("ForATS_AK-BEOG_ICB20TRELMBC.elm.r.");
   std::stringstream fname_h1, fname_r;
 
-  // hardwired
+  
+
+//from here on inside run loop
+
+  while (current.doy == start.doy) { // only run for 1 day
+
+    fname_h1.str(std::string{});
+    fname_h1 << basename_h1 << year << "-" << std::setw(2) << std::setfill('0') << month << "-" << 
+    std::setw(2) << std::setfill('0') << day << "-" << std::setw(5) << std::setfill('0') << current.sec <<".nc";
+
+    fname_r.str(std::string{});
+    fname_r << basename_r << year << "-" << std::setw(2) << std::setfill('0') << month << "-" << 
+    std::setw(2) << std::setfill('0') << day << "-" << std::setw(5) << std::setfill('0') << current.sec <<".nc";
+
+    std::cout << fname_h1.str() << std::endl;
+    std::cout << fname_r.str() << std::endl;
+
+{
+    // hardwired
   int columni = 0; //column
   int pfti = 12; // pft
   int idx = 0; // grid cell
@@ -135,21 +154,6 @@ int main(int argc, char **argv) {
   auto zi = create<ArrayD2>("zi", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd + 1);
 
 
-//from here on inside run loop
-
-  while (current.doy == start.doy) { // only run for 1 day
-
-    fname_h1.str(std::string{});
-    fname_h1 << basename_h1 << year << "-" << std::setw(2) << std::setfill('0') << month << "-" << 
-    std::setw(2) << std::setfill('0') << day << "-" << std::setw(5) << std::setfill('0') << current.sec <<".nc";
-
-    fname_r.str(std::string{});
-    fname_r << basename_r << year << "-" << std::setw(2) << std::setfill('0') << month << "-" << 
-    std::setw(2) << std::setfill('0') << day << "-" << std::setw(5) << std::setfill('0') << current.sec <<".nc";
-
-    std::cout << fname_h1.str() << std::endl;
-    std::cout << fname_r.str() << std::endl;
-
     
     // read input vars
     // most come from r file, but a few come from h file
@@ -179,7 +183,7 @@ int main(int argc, char **argv) {
     ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "INT_SNOW", columni, int_snow);
     std::cout << int_snow[0] << std::endl;
     ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "SNLSNO", columni, snl);
-    std::cout << snl[0] << std::endl;
+    std::cout << "SNL:: " << snl[0] << std::endl;
     ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "frac_sno", columni, frac_sno);
     std::cout << frac_sno[0] << std::endl;
     ELM::IO::read_distributed_scalar<double>(data_dir, fname_r.str(), "frac_sno_eff", columni, frac_sno_eff);
@@ -213,10 +217,10 @@ int main(int argc, char **argv) {
     std::cout << snow_depth[idx] << " " << h2osno[idx] << " " << int_snow[idx] << " " << snl[idx] << " "
                 << qflx_snow_h2osfc[idx] << " " << frac_sno_eff[idx] << " " << frac_sno[idx] << std::endl;
 
-      for (int i = 0; i < 20; i++) {
-        std::cout << i <<  " " << h2osoi_liq[idx][i] << " " << h2osoi_ice[idx][i] << " "
-                  << t_soisno[idx][i] << std::endl;
-  }
+     // for (int i = 0; i < 20; i++) {
+     //   std::cout << i <<  " " << h2osoi_liq[idx][i] << " " << h2osoi_ice[idx][i] << " "
+     //             << t_soisno[idx][i] << std::endl;
+     //           }
 
   ELM::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
                     frac_h2osfc[idx]);
@@ -277,6 +281,11 @@ int main(int argc, char **argv) {
 
 
       // need to read FRAC_ICEOLD, SOILLIQ, SOILICE, TSOI, SNO_T  - all are in time, levels, column format
+      ELM::IO::read_distributed_array_<double>(data_dir, fname_h1.str(), "FRAC_ICEOLD", FRAC_ICEOLD);
+      //ELM::IO::read_distributed_array_<double>(data_dir, fname_h1.str(), "FRAC_ICEOLD", FRAC_ICEOLD);
+      //ELM::IO::read_distributed_array_<double>(data_dir, fname_h1.str(), "FRAC_ICEOLD", FRAC_ICEOLD);
+      //ELM::IO::read_distributed_array_<double>(data_dir, fname_h1.str(), "FRAC_ICEOLD", FRAC_ICEOLD);
+      //ELM::IO::read_distributed_array_<double>(data_dir, fname_h1.str(), "FRAC_ICEOLD", FRAC_ICEOLD);
 
 
 
@@ -297,7 +306,7 @@ int main(int argc, char **argv) {
       IsAlmostEqual(frac_sno_eff[idx], FSNO_EFF[idx]);
 
 
-
+}
 
 
 

@@ -320,7 +320,7 @@ inline void read_distributed_scalar(const std::string &dir, const std::string &b
 
 
 // read distributed array variable
-// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2}
+// Assumes shape(arr) == { N_GRID_CELLS_LOCAL, DIM2 }
 //
 template <typename T, typename Array_t>
 inline void read_distributed_array(const std::string &dir, const std::string &basename, const std::string &varname,
@@ -338,6 +338,28 @@ inline void read_distributed_array(const std::string &dir, const std::string &ba
     for (int j = 0; j != arr.extent(1); ++j) {
       arr(i, j) = arr_for_read(i, j);
     }
+  }
+}
+
+
+// TEMPORARY FOR TESTING
+// shape(arr) = { N_GRID_CELLS_LOCAL, DIM2 }
+// shape(arr_for_read) == {1, DIM2, 16} currently (TIME, DIM2, COLUMN) for testing CanHydro!!
+// reshapes and hardwires i and k dimensions of arr_for_read
+template <typename T, typename Array_t>
+inline void read_distributed_array_(const std::string &dir, const std::string &basename, const std::string &varname,
+                                   Array_t &arr) {
+
+  Array<T, 3> arr_for_read(arr.extent(0), arr.extent(1), 16);
+  // my slice in space
+  std::array<GO, 3> start = {0, 0, 0};
+  std::array<GO, 3> count = {1, (GO)arr.extent(1), 16};
+  std::stringstream fname_full;
+  fname_full << dir << "/" << basename;
+  int comm;
+  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  for (int j = 0; j != arr.extent(1); ++j) {
+    arr(0, j) = arr_for_read(0, j, 0);
   }
 }
 

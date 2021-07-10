@@ -1,0 +1,66 @@
+ELM Kernels:                ELM:
+
+
+frac_veg_nosno              FRAC_VEG_NOSNO_ALB (r)
+forc_rain                   RAIN (h1)
+forc_snow                   SNOW (h1)
+
+Interception()
+h2ocan - H2OCAN (h1,r) [pft] - read input from r file, compare to output in h1 file
+
+GroundFlux()
+qflx_prec_grnd - QDRIP (h1) [pft]
+qflx_snwcp_liq - QSNWCPLIQ (h1) [pft]
+qflx_snwcp_ice - QSNWCPICE (h1) [] - ELM defines on the entire grid cell
+qflx_snow_grnd - QFLX_SNOW_GRND (h1) [pft]
+qflx_rain_grnd - QFLX_RAIN_GRND [pft]
+
+FracWet()
+fwet - FWET (h1)
+fdry - FDRY (h1)
+
+SnowInit()
+scalars (first index is assumed)
+snow_depth - SNOW_DEPTH (h1,r) [column] - read input from r file, compare to output in h1 file
+h2osno - H2OSNO (h1,r) [column] - read input from r file, compare to output in h1 file
+int_snow - INT_SNOW (h1,r) [column] - read input from r file, compare to output in h1 file
+snl - SNLSNO in r file, but ? in h files [column]
+!!! fracsno is different than frac_sno; fracsno is a temporary variable internal to CanopyHydrology subroutines
+
+arrays
+swe_old - SWE_OLD (h1) [levsno (5), column]
+h2osoi_liq[nlevsno+nlevgrnd] - H2OSOI_LIQ [column,nlevsno+nlevgrnd] in r file, compare subsurface to SOILLIQ[nlevgrnd (15), column] in h file
+h2osoi_ice[nlevsno+nlevgrnd] - H2OSOI_ICE [column,nlevsno+nlevgrnd] in r file, compare subsurface to SOILICE[nlevgrnd (15), column] in h file
+t_soisno - T_SOISNO [col, nlevgrnd+nlevsno] in r file, compare to TSOI[nlevgrnd,col] and SNO_T[nlevsno,col] in h file 
+frac_iceold - FRAC_ICEOLD [levgrnd, col] in h file
+dz - DZSOI[col,levgrnd] and DZSNO[col,levsno] in r file - same names for soil, can't find snow in h files
+z - ZSOI[col,levgrnd] and ZSNO[col,levsno] in r file - same names for soil, can't find snow in h files
+zi - ZISOI[col,levgrnd] and ZISNO[col,levsno] in r file - Can't find anything in h files
+
+
+FracH2OSfc()
+h2osfc[idx] frac_sno[idx] frac_sno_eff[idx] frac_h2osfc[idx]
+h2osfc - H2OSFC (r,h) [col]
+frac_sno - frac_sno (r) [column], FSNO(h1) [column] - read input from r file, compare to output in h1 file
+frac_sno_eff - frac_sno (r) [column], FSNO_EFF(h1) [column] - read input from r file, compare to output in h1 file
+frac_h2osfc - FH2OSFC (r,h) [column]
+
+array:
+h2osoi_liq[nlevsno+nlevgrnd] - H2OSOI_LIQ [column,nlevsno+nlevgrnd] in r file, compare subsurface to SOILLIQ[nlevgrnd (15), column] in h file  -- only compare h2osoi_liq[nlevsno] - top soil layer
+
+
+questions:
+snl is SNLSNO in r file, but can't find in h1 or h0
+need to verify dz,z,zi for snow layers - can't find in h1 files - maybe snow is only listed when present?
+SNOWLIQ and SNOWICE not in layers, but integrated?
+qflx_snow_h2osfc - not in files, could be removed from SnowInit() - always assigned 0.0
+
+
+t_grnd - TG in h file, T_GRND in r file
+
+need n_melt - uses STD_ELEV ELM input for topo_std in InitTopography.cc, we need STD_ELEV for topo_std - currently set at 20.0, which provides correct result for int_snow
+
+
+
+After much testing, I've concluded that there is an error in some of the outputs I was given. The first timestep passes all tests to single precision except the snow_depth is off in the 7th digit. 
+After that, agreement gets worse. In the second step, this model's h2ocan is exactly double that of the output value (odd?). Plugging the data in as inputs in pure ELM code doesn't match the next timestep - for example calculate FWET from dt 1800-3600. Using frac_veg_nosno, elai, esai, dewmx, and h2ocan from the restart or h1 files does not produce the same value shown as the correct output. I need to build E3SM and investigate. 
