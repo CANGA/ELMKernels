@@ -168,11 +168,11 @@ public:
 
   Array<T, 1> operator[](int i) {
     assert(0 <= i && i < M_);
-    return Array<T, 1>(N_, &d_[i * N_]);
+    return Array<T, 1>(name_, N_, &d_[i * N_]);
   }
   const Array<T, 1> operator[](int i) const {
     assert(0 <= i && i < M_);
-    return Array<T, 1>(N_, &d_[i * N_]);
+    return Array<T, 1>(name_, N_, &d_[i * N_]);
   }
 
   // shape
@@ -242,11 +242,11 @@ public:
 
   Array<T, 2> operator[](int i) {
     assert(0 <= i && i < M_);
-    return Array<T, 2>(N_, P_, &d_[i * N_ * P_]);
+    return Array<T, 2>(name_, N_, P_, &d_[i * N_ * P_]);
   }
   const Array<T, 2> operator[](int i) const {
     assert(0 <= i && i < M_);
-    return Array<T, 2>(N_, P_, &d_[i * N_ * P_]);
+    return Array<T, 2>(name_, N_, P_, &d_[i * N_ * P_]);
   }
 
   // shape
