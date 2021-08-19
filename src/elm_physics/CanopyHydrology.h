@@ -95,15 +95,15 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
 
 /*! Initialize new snow layer if the snow accumulation exceeds 10 mm, compute fractional SCA.
 
-\param[in]  Land                          [LandType] struct containing information about landtype
+\param[in]     Land                          [LandType] struct containing information about landtype
 \param[in]     dtime                         [double] time step length (sec)
 \param[in]     do_capsnow                    [bool] true => do snow capping
 \param[in]     oldfflag                      [int]  use old fsno parameterization
 \param[in]     forc_t                        [double] atmospheric temperature (Kelvin)
 \param[in]     t_grnd                        [double] ground temperature (Kelvin)
-\param[in]     qflx_snow_grnd                [double]   snow on ground after interception (mm H2O/s) [+]
-\param[in]     qflx_rain_grnd                [double]   rain on ground after interception (mm H2O/s) [+]
-\param[in]     n_melt                        [double]   SCA shape parameter [-]
+\param[in]     qflx_snow_grnd                [double] snow on ground after interception (mm H2O/s) [+]
+\param[in]     qflx_snow_melt                [double] snow melt from previous time step
+\param[in]     n_melt                        [double] SCA shape parameter [-]
 \param[in,out] snow_depth                    [double] snow height (m)
 \param[in,out] h2osno                        [double] snow water (mm H2O)
 \param[in,out] int_snow                      [double] integrated snowfall [mm]
@@ -136,7 +136,7 @@ based on surface microtopography and surface water storage.
 \param[in]  Land                         [LandType] struct containing information about landtype
 \param[in]  micro_sigma                  [double] microtopography pdf sigma (m)
 \param[in]  h2osno                       [double] snow water (mm H2O)
-\param[in]  no_update                    [bool] flag to make calculation w/o updating variables
+\param[in]  no_update                    [bool] flag to make calculation w/o updating variables -- optional, not assigned in ELM
 \param[out] h2osfc                       [double] surface water (mm)
 \param[out] h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
 \param[out] frac_sno                     [double] fraction of ground covered by snow (0 to 1)
