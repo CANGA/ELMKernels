@@ -25,7 +25,7 @@ namespace IO {
   }
 
   void ELMtestinput::printFile () {
-     std::cout << filename_ << " Contains: " << filestring_ << std::endl;
+     std::cout << filename_ << " Input file contains: " << filestring_ << std::endl;
   }
 
   std::string ELMtestinput::readInputFiletoString() {

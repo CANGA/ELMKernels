@@ -1,14 +1,24 @@
 /*! \file read_test_input.h
-\brief Contains utility class to read single-column inut data from ELM modules
+\brief Contains utility class to read single-column input data from ELM modules
 */
 
 #include <iterator>
 #include <assert.h>
 
 #include "array.hh"
+#include <iomanip>
+
 
 namespace ELM {
 namespace IO {
+
+template <typename T>
+bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-7, double abs_tol=1e-20) {
+  if (a == b) return true;
+  auto diff = std::abs(a - b);
+  auto maxreldiff = std::max(std::abs(a),std::abs(b)) * rel_tol;
+  return (diff <= maxreldiff || diff <= abs_tol);
+}
 
 /*! Class to read single-column inut data from ELM modules */
 class ELMtestinput {
@@ -37,7 +47,11 @@ public:
       if (namefromfile == namefromarr) {
         const std::size_t pos = line_ss.tellg();
         const auto len = std::distance(std::istream_iterator<std::string>(line_ss), std::istream_iterator<std::string>());
-        assert(len == arr.extent(0) && "INPUT ERROR: Array length != input data length");
+        if (len != arr.extent(0)) {
+          std::string err = "INPUT ERROR: Array length (" + std::to_string(arr.extent(0)) + ") != input data length (" + 
+          std::to_string(len) + ") for variable " + namefromarr;
+          throw std::runtime_error(err);
+        }
         line_ss.clear();
         line_ss.seekg(pos);
         for (auto& val : arr) {
@@ -49,6 +63,28 @@ public:
     std::string err = "INPUT ERROR: Can't find variable " + namefromarr + " in NSTEP " + std::to_string(nstep_);
     throw std::runtime_error(err);
   }
+
+  template <class Array_t>
+  void compareOutput(Array_t arr) {
+    using ArrType = typename Array_t::value_type;
+    auto filedata = Array<ArrType,1>(arr.getname(), arr.extent(0));
+    parseState(filedata);
+    bool same = true;
+    std::vector<std::tuple<int, ArrType, ArrType>> nomatch;
+    for (std::size_t i = 0; i < arr.extent(0); ++i) {
+      if (!IsAlmostEqual(arr(i),filedata(i))) {
+        same = false;
+        nomatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr(i), filedata(i)));
+      }
+    }
+    std::cout << std::boolalpha << arr.getname() << " from NSTEP " << nstep_ << " passes: " << same << std::endl;
+    if (!same) {
+      for (auto [i,a,f] : nomatch) {
+        std::cout<< std::setprecision (15) << "    [i, ELM Kernels, file]        " << i << "  " << a << "  " << f << std::endl;
+      }
+    }
+  }
+
 
 private:
 

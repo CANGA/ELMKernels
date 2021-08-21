@@ -119,6 +119,8 @@ public:
   // get variable name
   std::string getname() const { return {name_}; }
 
+  typedef T value_type;
+
 protected:
   using Impl::Data_<T>::len_;
   using Impl::Data_<T>::d_;
@@ -185,6 +187,8 @@ public:
 
   // get variable name
   std::string getname() const { return {name_}; }
+
+  typedef T value_type;
 
 protected:
   int M_, N_;
@@ -259,6 +263,8 @@ public:
 
   // get variable name
   std::string getname() const { return {name_}; }
+
+  typedef T value_type;
 
 protected:
   int M_, N_, P_;
