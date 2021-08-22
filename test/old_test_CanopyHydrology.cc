@@ -18,21 +18,25 @@ using ArrayS1 = ELM::Array<std::string, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
 
-template <class Array_t> Array_t create(const std::string &name, int D0) { return Array_t(D0); }
-template <class Array_t> Array_t create(const std::string &name, int D0, int D1) { return Array_t(D0, D1); }
+template <class Array_t> Array_t create(const std::string &name, int D0) { return Array_t(name, D0); }
+template <class Array_t> Array_t create(const std::string &name, int D0, int D1) { return Array_t(name, D0, D1); }
 template <class Array_t> Array_t create(const std::string &name, int D0, int D1, int D2) { return Array_t(D0, D1, D2); }
 template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t val) { ELM::deep_copy(arr, val); }
 
+
+template <class Array_t> Array_t createtest(const std::string &name, int D0) { return Array_t(name, D0); }
+
 template <typename T>
-bool IsAlmostEqual(const T a, const T b) {
-    auto diff = std::abs(a - b);
-    auto maxreldiff = std::max(std::abs(a),std::abs(b)) * 1e-7;
-    if (diff > maxreldiff) {
-        std::cout << "NOT EQUAL  a: " << a << " b: " << b << std::endl;
-        return false;
-    }
+bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-7, double abs_tol=1e-20) {
+  auto diff = std::abs(a - b);
+  auto maxreldiff = std::max(std::abs(a),std::abs(b)) * rel_tol;
+  if (diff > maxreldiff || diff > abs_tol) {
+    std::cout << "NOT EQUAL  a: " << a << " b: " << b << std::endl;
+    return false;
+  } else {
     std::cout << "EQUAL" << std::endl;
     return true;
+  }
 }
 
 int main(int argc, char **argv) {
@@ -67,6 +71,13 @@ int main(int argc, char **argv) {
   //ELM::IO::read_bottom<double>(data_dir, fname_h1.str(), "SOILLIQ", dd, 0, h2osoi_liq);
   //assign(snl, 0);
 
+  // test new array name
+  std::cout << "starting array test" << std::endl;
+  auto frac_veg_nosno = createtest<ArrayI1>("frac_veg_nosno", n_grid_cells);
+  auto copy = frac_veg_nosno;
+  std::cout << "array has been declared" << std::endl;
+  std::cout << "plz??! " << frac_veg_nosno.getname() << std::endl;
+  std::cout << "copy: " << copy.getname() << std::endl;
 
   // data files 
   const std::string data_dir("/home/jbeisman/Software/elm_test_input/test_CanHydro");
