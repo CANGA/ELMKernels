@@ -129,7 +129,7 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
       if (h2ocan > 0.0) {
         double vegt = frac_veg_nosno * (elai + esai);
         double dewmxi = 1.0 / dewmx;
-        fwet = pow(((dewmxi / vegt) * h2ocan), 2.0 / 3.0);
+        fwet = pow(((dewmxi / vegt) * h2ocan), 0.666666666666); //2.0 / 3.0); -- change ELM to 2./3. ?
         fwet = std::min(fwet, 1.0); // Check for maximum limit of fwet
       } else {
         fwet = 0.0;

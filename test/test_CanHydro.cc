@@ -248,6 +248,9 @@ int main(int argc, char **argv) {
     out.compareOutput(forc_rain);
     out.compareOutput(forc_snow);
     out.compareOutput(forc_t);
+    out.compareOutput(fwet);
+    out.compareOutput(fdry);
+
     out.compareOutput(dz[idx]);
     out.compareOutput(z[idx]);
     out.compareOutput(zi[idx]);
