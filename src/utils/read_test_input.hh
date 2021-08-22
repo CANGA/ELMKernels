@@ -2,6 +2,7 @@
 \brief Contains utility class to read single-column input data from ELM modules
 */
 
+#include <iostream>
 #include <iterator>
 #include <assert.h>
 
@@ -13,7 +14,7 @@ namespace ELM {
 namespace IO {
 
 template <typename T>
-bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-7, double abs_tol=1e-20) {
+bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-15, double abs_tol=1e-20) {
   if (a == b) return true;
   auto diff = std::abs(a - b);
   auto maxreldiff = std::max(std::abs(a),std::abs(b)) * rel_tol;
@@ -24,7 +25,7 @@ bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-7, double abs_tol=1e-
 class ELMtestinput {
 
 public:
-  ELMtestinput(const std::string filename) : filename_(filename) { filestring_ = readInputFiletoString(); }
+  ELMtestinput(const std::string& filename) : filename_(filename) { filestring_ = readInputFiletoString(); }
 
 /*! Get state for time nstep and store in class variable state_ */
   std::string getState (const int nstep);
@@ -67,20 +68,20 @@ public:
   template <class Array_t>
   void compareOutput(Array_t arr) {
     using ArrType = typename Array_t::value_type;
-    auto filedata = Array<ArrType,1>(arr.getname(), arr.extent(0));
-    parseState(filedata);
+    auto filearr = Array<ArrType, 1>(arr.getname(), arr.extent(0));
+    parseState(filearr);
     bool same = true;
-    std::vector<std::tuple<int, ArrType, ArrType>> nomatch;
+    std::vector<std::tuple<int, ArrType, ArrType>> mismatch;
     for (std::size_t i = 0; i < arr.extent(0); ++i) {
-      if (!IsAlmostEqual(arr(i),filedata(i))) {
+      if (!IsAlmostEqual(arr(i),filearr(i))) {
         same = false;
-        nomatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr(i), filedata(i)));
+        mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr(i), filearr(i)));
       }
     }
     std::cout << std::boolalpha << arr.getname() << " from NSTEP " << nstep_ << " passes: " << same << std::endl;
     if (!same) {
-      for (auto [i,a,f] : nomatch) {
-        std::cout<< std::setprecision (15) << "    [i, ELM Kernels, file]        " << i << "  " << a << "  " << f << std::endl;
+      for (const auto [i,a,f] : mismatch) {
+        std::cout << std::setprecision (15) << "    [i, ELM Kernels, file]        " << i << "  " << a << "  " << f << std::endl;
       }
     }
   }
