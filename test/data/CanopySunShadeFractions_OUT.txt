@@ -1,0 +1,931 @@
+NSTEP 0
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.8053261757113809
+laisha 0.7720932014310044
+tlai_z 1.5774193771423852
+fsun_z 0.5105339692037322
+fabd_sun_z 0.6624750819515256
+fabd_sha_z 0.055831871479275076
+fabi_sun_z 0.4618565236971096
+fabi_sha_z 0.3068816172070387
+parsun_z 63.6573699736975
+parsha_z 20.435672205532256
+laisun_z 0.8053261757113809
+laisha_z 0.7720932014310044
+forc_solad 56.879260000066616 78.70591543895462
+forc_solai 56.24317555563372 34.416520116745716
+!!! 0
+NSTEP 1
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.8053261757113809
+laisha 0.7720932014310044
+tlai_z 1.5774193771423852
+fsun_z 0.5105339692037322
+fabd_sun_z 0.6624750819515256
+fabd_sha_z 0.055831871479275076
+fabi_sun_z 0.4618565236971096
+fabi_sha_z 0.3068816172070387
+parsun_z 63.6573699736975
+parsha_z 20.435672205532256
+laisun_z 0.8053261757113809
+laisha_z 0.7720932014310044
+forc_solad 56.879260000066616 78.70591543895462
+forc_solai 56.24317555563372 34.416520116745716
+!!! 1
+NSTEP 2
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.8053261757113809
+laisha 0.7720932014310044
+tlai_z 1.5774193771423852
+fsun_z 0.5105339692037322
+fabd_sun_z 0.6624750819515256
+fabd_sha_z 0.055831871479275076
+fabi_sun_z 0.4618565236971096
+fabi_sha_z 0.3068816172070387
+parsun_z 69.96039136327904
+parsha_z 21.653168056183535
+laisun_z 0.8053261757113809
+laisha_z 0.7720932014310044
+forc_solad 64.60802738646119 88.5663089683987
+forc_solai 58.804372640015025 34.846091058077505
+!!! 2
+NSTEP 3
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 60.79326617918124 83.71691866224985
+forc_solai 57.585581315771314 34.6619288327027
+!!! 3
+NSTEP 4
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 56.46118005836535 78.16850188367698
+forc_solai 56.093818843074 34.386497017762366
+!!! 4
+NSTEP 5
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 51.726440049619846 72.05268124290211
+forc_solai 54.314060809352846 33.98781961607058
+!!! 5
+NSTEP 6
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 46.71439859504565 65.51779532170129
+forc_solai 52.23241846335702 33.42902173670139
+!!! 6
+NSTEP 7
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 22.07695420184625 32.3536186184721
+forc_solai 37.28117668519118 27.00451226856533
+!!! 7
+NSTEP 8
+dtime 1800
+nrad 1
+elai 1.575138299121403
+laisun 0.0
+laisha 1.575138299121403
+tlai_z 1.575138299121403
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.575138299121403
+forc_solad 19.38068298272023 28.596667391170747
+forc_solai 34.85959201592903 25.643607607478515
+!!! 8
+NSTEP 9
+dtime 1800
+nrad 1
+elai 1.5698802320281773
+laisun 0.0
+laisha 1.5698802320281773
+tlai_z 1.5698802320281773
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5698802320281773
+forc_solad 16.752833533509605 24.903306587389842
+forc_solai 32.24373468162726 24.09326162774702
+!!! 9
+NSTEP 10
+dtime 1800
+nrad 1
+elai 1.5617711204075995
+laisun 0.0
+laisha 1.5617711204075995
+tlai_z 1.5617711204075995
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5617711204075995
+forc_solad 14.251017440824286 21.35433393010692
+forc_solai 29.465713422648538 22.362396933365904
+!!! 10
+NSTEP 11
+dtime 1800
+nrad 1
+elai 1.5529937727029046
+laisun 0.0
+laisha 1.5529937727029046
+tlai_z 1.5529937727029046
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5529937727029046
+forc_solad 11.923782816690395 18.02014822197557
+forc_solai 26.567318650945595 20.470953245660414
+!!! 11
+NSTEP 12
+dtime 1800
+nrad 1
+elai 1.5448183634393688
+laisun 0.0
+laisha 1.5448183634393688
+tlai_z 1.5448183634393688
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5448183634393688
+forc_solad 9.808843838313173 14.957992349932624
+forc_solai 23.60024720953218 18.451098697912734
+!!! 12
+NSTEP 13
+dtime 1800
+nrad 1
+elai 1.5378063071665433
+laisun 0.0
+laisha 1.5378063071665433
+tlai_z 1.5378063071665433
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5378063071665433
+forc_solad 5.472599375077307 8.554227087336082
+forc_solai 16.06221553453932 12.98058782228054
+!!! 13
+NSTEP 14
+dtime 1800
+nrad 1
+elai 1.5446082055818406
+laisun 0.0
+laisha 1.5446082055818406
+tlai_z 1.5446082055818406
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5446082055818406
+forc_solad 4.388997735615032 6.918228652219622
+forc_solai 13.723900831043494 11.194669914438903
+!!! 14
+NSTEP 15
+dtime 1800
+nrad 1
+elai 1.5518410307617472
+laisun 0.0
+laisha 1.5518410307617472
+tlai_z 1.5518410307617472
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5518410307617472
+forc_solad 3.4668917305660156 5.5103582666211794
+forc_solai 11.519105796033434 9.475639259978273
+!!! 15
+NSTEP 16
+dtime 1800
+nrad 1
+elai 1.5592462847542055
+laisun 0.0
+laisha 1.5592462847542055
+tlai_z 1.5592462847542055
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5592462847542055
+forc_solad 2.7033993811241954 4.331315721261229
+forc_solai 9.504213984222627 7.876297644085594
+!!! 16
+NSTEP 17
+dtime 1800
+nrad 1
+elai 1.5661495833896621
+laisun 0.0
+laisha 1.5661495833896621
+tlai_z 1.5661495833896621
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5661495833896621
+forc_solad 2.091455204042771 3.375669619019436
+forc_solai 7.733829297483114 6.44961488250645
+!!! 17
+NSTEP 18
+dtime 1800
+nrad 1
+elai 1.5720380235934055
+laisun 0.0
+laisha 1.5720380235934055
+tlai_z 1.5720380235934055
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5720380235934055
+forc_solad 1.6214843410361277 2.633992485478947
+forc_solai 6.2582884686092255 5.245780324166406
+!!! 18
+NSTEP 19
+dtime 1800
+nrad 1
+elai 1.5764434141708492
+laisun 0.0
+laisha 1.5764434141708492
+tlai_z 1.5764434141708492
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5764434141708492
+forc_solad 2.312344106230893 3.721839884247876
+forc_solai 8.390925380888893 6.981429602871909
+!!! 19
+NSTEP 20
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 1.9046710762303256 3.0817784712098746
+forc_solai 7.160681992511432 5.9835745975318835
+!!! 20
+NSTEP 21
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 1.7167447911442748 2.7849332187118354
+forc_solai 6.566567342423 5.49837891485544
+!!! 21
+NSTEP 22
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 1.7374863820109123 2.8177557052396036
+forc_solai 6.633041094627842 5.552771771399152
+!!! 22
+NSTEP 23
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 1.9681528674595166 3.1817872666053155
+forc_solai 7.357353967652785 6.143719568506986
+!!! 23
+NSTEP 24
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 2.422155914720117 3.893406746432457
+forc_solai 8.709754506294797 7.238503674582456
+!!! 24
+NSTEP 25
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 1.974924244576962 3.19244716033239
+forc_solai 7.378216428886819 6.16069351313139
+!!! 25
+NSTEP 26
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 2.5608169076396954 4.109570866597215
+forc_solai 9.105308501169404 7.5565545422118845
+!!! 26
+NSTEP 27
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 3.3201782894547454 5.2848121338278
+forc_solai 11.146582373569176 9.18194852919612
+!!! 27
+NSTEP 28
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 4.265631831208911 6.730778104726033
+forc_solai 13.441495468053583 10.976349194536462
+!!! 28
+NSTEP 29
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 5.406168217484578 8.454436481277487
+forc_solai 15.925614117067298 12.87734585327439
+!!! 29
+NSTEP 30
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 6.745038896081309 10.454448026977992
+forc_solai 18.533668678390175 14.824259547493492
+!!! 30
+NSTEP 31
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 24.85715746902922 36.19627826049613
+forc_solai 39.547458345099834 28.20833755363293
+!!! 31
+NSTEP 32
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 30.446910713316456 43.83615184164218
+forc_solai 43.53637358938413 30.14713246105841
+!!! 32
+NSTEP 33
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 36.56772026163661 52.084137397925176
+forc_solai 47.22979946792955 31.713382331640982
+!!! 33
+NSTEP 34
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 43.09655267949118 60.76026854407413
+forc_solai 50.58284690551775 32.91913104093481
+!!! 34
+NSTEP 35
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 49.88515479642057 69.659350265668
+forc_solai 53.5746891593957 33.800493690148286
+!!! 35
+NSTEP 36
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 56.767972610324 78.56290400088434
+forc_solai 56.20353588841008 34.40860449784974
+!!! 36
+NSTEP 37
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 120.98228966115637 156.5475720386198
+forc_solai 70.67929352327648 35.11401114581307
+!!! 37
+NSTEP 38
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 132.65158153707492 169.80313852291337
+forc_solai 72.34722506301647 35.195668077177984
+!!! 38
+NSTEP 39
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 143.413746929244 181.79128762285868
+forc_solai 73.77247399292446 35.3949332993098
+!!! 39
+NSTEP 40
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 153.03612966249665 192.32142487673272
+forc_solai 74.97916865133678 35.6938734371007
+!!! 40
+NSTEP 41
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 161.32087267377474 201.24865913945183
+forc_solai 75.97987953877742 36.052093073100345
+!!! 41
+NSTEP 42
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 168.10469666980555 208.46519611171078
+forc_solai 76.7790109317042 36.418511489798966
+!!! 42
+NSTEP 43
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 212.06152658212903 253.37559196917448
+forc_solai 81.69040512986739 40.37633974282191
+!!! 43
+NSTEP 44
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 216.10559752077586 257.36696991406757
+forc_solai 82.12358756890188 40.86221517561015
+!!! 44
+NSTEP 45
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 218.037816784112 259.26708381194504
+forc_solai 82.32924206226959 41.09997503443656
+!!! 45
+NSTEP 46
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 217.8225944507648 259.0556529816382
+forc_solai 82.30637930278486 41.07332077191143
+!!! 46
+NSTEP 47
+dtime 1800
+nrad 1
+elai 1.5774193771423852
+laisun 0.0
+laisha 1.5774193771423852
+tlai_z 1.5774193771423852
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.5774193771423852
+forc_solad 215.46390755287342 256.73496762389317
+forc_solai 82.05509591748154 40.784035846461805
+!!! 47
+NSTEP 48
+dtime 1800
+nrad 1
+elai 1.60000002384186
+laisun 0.0
+laisha 1.60000002384186
+tlai_z 1.60000002384186
+fsun_z 0.0
+fabd_sun_z 0.0
+fabd_sha_z 0.0
+fabi_sun_z 0.0
+fabi_sha_z 0.0
+parsun_z 0.0
+parsha_z 0.0
+laisun_z 0.0
+laisha_z 1.60000002384186
+forc_solad 211.91384826926154 253.2294553694429
+forc_solai 81.6745195340632 40.35891243388185
+!!! 48
