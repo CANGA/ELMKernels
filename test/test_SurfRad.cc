@@ -106,14 +106,16 @@ int main(int argc, char **argv) {
   auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, ELM::numrad);
   auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad);
   auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad);
-  auto trd = create<ArrayD2>("trd", n_grid_cells, ELM::numrad);
-  auto tri = create<ArrayD2>("tri", n_grid_cells, ELM::numrad);
   auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno + 1);
   auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno + 1);
   auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno + 1);
   auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno + 1);
   auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad);
   auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad);
+
+  // arrays to compare output (trd & tri are double[numrad])
+  auto trd_array = create<ArrayD2>("trd", n_grid_cells, ELM::numrad);
+  auto tri_array = create<ArrayD2>("tri", n_grid_cells, ELM::numrad);
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);
@@ -148,14 +150,16 @@ int main(int argc, char **argv) {
     in.parseState(albsni_hst[idx]);
     in.parseState(albgrd[idx]);
     in.parseState(albgri[idx]);
-    in.parseState(trd[idx]);
-    in.parseState(tri[idx]);
     in.parseState(flx_absdv[idx]);
     in.parseState(flx_absdn[idx]);
     in.parseState(flx_absiv[idx]);
     in.parseState(flx_absin[idx]);
     in.parseState(albd[idx]);
     in.parseState(albi[idx]);
+
+    // local to these kernel calls
+    double trd[ELM::numrad] = {0.0,0.0};
+    double tri[ELM::numrad] = {0.0,0.0};
 
 
     // call SurfaceRadiation kernels
@@ -169,12 +173,12 @@ int main(int argc, char **argv) {
          albsoi[idx], albsnd_hst[idx],
          albsni_hst[idx], albgrd[idx],
          albgri[idx], sabv[idx], fsa[idx], sabg[idx], sabg_soil[idx], sabg_snow[idx],
-         trd[idx], tri[idx]);
+         trd, tri);
 
 
     ELM::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
                        flx_absdn[idx], flx_absiv[idx],
-                       flx_absin[idx], trd[idx], tri[idx], sabg_lyr[idx]);
+                       flx_absin[idx], trd, tri, sabg_lyr[idx]);
 
     ELM::SurfRadReflected(Land, albd[idx], albi[idx],
                           forc_solad[idx], forc_solai[idx],
@@ -203,14 +207,20 @@ int main(int argc, char **argv) {
     out.compareOutput(albsni_hst[idx]);
     out.compareOutput(albgrd[idx]);
     out.compareOutput(albgri[idx]);
-    out.compareOutput(trd[idx]);
-    out.compareOutput(tri[idx]);
     out.compareOutput(flx_absdv[idx]);
     out.compareOutput(flx_absdn[idx]);
     out.compareOutput(flx_absiv[idx]);
     out.compareOutput(flx_absin[idx]);
     out.compareOutput(albd[idx]);
     out.compareOutput(albi[idx]);
+
+    // put trd & tri into ELM::Array for ouput comparison
+    for (std::size_t i = 0; i < ELM::numrad; ++i) {
+        trd_array(idx,i) = trd[i];
+        tri_array(idx,i) = tri[i];
+    }
+    out.compareOutput(trd_array[idx]);
+    out.compareOutput(tri_array[idx]);
   }
   return 0;
 }

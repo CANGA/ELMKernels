@@ -485,10 +485,8 @@ int main(int argc, char **argv) {
                           sabg_lyr[idx]);
 
    {                          // scope for some local vars
-      //double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
-      //double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
-      auto trd = create<ArrayD2>("trd", n_grid_cells, ELM::numrad);
-      auto tri = create<ArrayD2>("tri", n_grid_cells, ELM::numrad);
+     double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
+     double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
       ELM::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
          ftii[idx], forc_solad[idx],
          forc_solai[idx], fabd[idx],
@@ -496,14 +494,14 @@ int main(int argc, char **argv) {
          albsoi[idx], albsnd_hst[idx],
          albsni_hst[idx], albgrd[idx],
          albgri[idx], sabv[idx], fsa[idx], sabg[idx], sabg_soil[idx], sabg_snow[idx],
-         trd[idx], tri[idx]);
+         trd, tri);
 
-      //std::cout << "SurfRadAbsorbed: " << sabv[idx] << " " << fsa[idx] << " " << sabg[idx] << " " << sabg_soil[idx] << " " << sabg_snow[idx]  << " " <<
-      //trd[0]  << " " << trd[1]  << " " << tri[0]  << " " << tri[1] << std::endl;
+      std::cout << "SurfRadAbsorbed: " << sabv[idx] << " " << fsa[idx] << " " << sabg[idx] << " " << sabg_soil[idx] << " " << sabg_snow[idx]  << " " <<
+      trd[0]  << " " << trd[1]  << " " << tri[0]  << " " << tri[1] << std::endl;
 
      ELM::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
                        flx_absdn[idx], flx_absiv[idx],
-                       flx_absin[idx], trd[idx], tri[idx], sabg_lyr[idx]);
+                       flx_absin[idx], trd, tri, sabg_lyr[idx]);
 
      std::cout << "SurfRadLayers, with snl =: " << snl[0] << std::endl;
      for (int i = 0; i < ELM::nlevsno + 1; ++i)

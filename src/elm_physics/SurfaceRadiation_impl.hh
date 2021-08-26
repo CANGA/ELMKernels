@@ -33,7 +33,7 @@ void SurfRadAbsorbed(const LandType &Land, const int &snl, const ArrayD1 ftdd, c
                      const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
                      const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
                      const ArrayD1 albgri, double &sabv, double &fsa, double &sabg, double &sabg_soil,
-                     double &sabg_snow, ArrayD1 trd, ArrayD1 tri) {
+                     double &sabg_snow, double trd[numrad], double tri[numrad]) {
 
   double absrad, cad[numrad], cai[numrad];
   if (!Land.urbpoi) {
@@ -73,8 +73,8 @@ void SurfRadAbsorbed(const LandType &Land, const int &snl, const ArrayD1 ftdd, c
 template <class ArrayD1>
 void SurfRadLayers(const LandType &Land, const int &snl, const double &sabg, const double &sabg_snow,
                    const double &snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
-                   const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const ArrayD1 trd, const ArrayD1 tri,
-                   ArrayD1 sabg_lyr) {
+                   const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[numrad],
+                   const double tri[numrad], ArrayD1 sabg_lyr) {
 
   double err_sum = 0.0;
   double sabg_snl_sum;
