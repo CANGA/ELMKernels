@@ -538,8 +538,8 @@ int main(int argc, char **argv) {
    auto z0mv = create<ArrayD1>("z0mv", n_grid_cells);
    auto z0hv = create<ArrayD1>("z0hv", n_grid_cells);
    auto z0qv = create<ArrayD1>("z0qv", n_grid_cells);
-   //auto beta = create<ArrayD1>("beta", n_grid_cells); - not needed - always assigned 1 - move out of CanTemp and just assign as 1.0 in BGFluxes
-   //auto zii = create<ArrayD1>("zii", n_grid_cells);
+   //auto beta = create<ArrayD1>("beta", n_grid_cells); - not needed - always assigned 1 - move out of CanTemp and just assign as 1.0 in *Fluxes
+   //auto zii = create<ArrayD1>("zii", n_grid_cells);  - not needed - always assigned 1000 - move out of CanTemp and just assign as 1.0 in *Fluxes
    auto thv = create<ArrayD1>("thv", n_grid_cells);
    auto z0m = create<ArrayD1>("z0m", n_grid_cells);
    auto displa = create<ArrayD1>("displa", n_grid_cells);
