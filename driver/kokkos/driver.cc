@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
                               frac_h2osfc, frac_sno, smpmin, forc_q, forc_pbot, forc_th, elai, esai, htop, forc_hgt_u,
                               forc_hgt_t, forc_hgt_q, z_0_town, z_d_town, forc_t, t_grnd, soilalpha, soilalpha_u,
                               soilbeta, qg_snow, qg_soil, qg, qg_h2osfc, dqgdT, emg, emv, htvp, z0mg, z0hg, z0qg, z0mv,
-                              z0hv, z0qv, beta, zii, thv, z0m, displa, cgrnd, cgrnds, cgrndl, forc_hgt_u_patch,
+                              z0hv, z0qv, thv, z0m, displa, forc_hgt_u_patch,
                               forc_hgt_t_patch, forc_hgt_q_patch, thm, eflx_sh_tot, eflx_sh_tot_u, eflx_sh_tot_r,
                               eflx_lh_tot, eflx_lh_tot_u, eflx_lh_tot_r, eflx_sh_veg, qflx_evap_tot, qflx_evap_veg,
                               qflx_tran_veg, tssbef, t_soisno, h2osoi_liq, h2osoi_ice, dz, watsat, sucsat, bsw, watdry,
@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
     i = 0;
     while (i != ntimes) {
       bareGroundFluxesInvoke(ncells, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, thm, thv,
-                             t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, zii, beta, z0hg, z0qg,
+                             t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, z0hg, z0qg,
                              snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno,
                              forc_pbot, cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil,
                              eflx_sh_h2osfc, qflx_evap_soi, qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc,

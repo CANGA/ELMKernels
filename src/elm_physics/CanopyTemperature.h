@@ -140,22 +140,17 @@ potential temp and wind speed.
 \param[out] z0mv                         [double] roughness length over vegetation, momentum [m]
 \param[out] z0hv                         [double] roughness length over vegetation, sensible heat [m]
 \param[out] z0qv                         [double] roughness length over vegetation, latent heat [m]
-\param[out] beta                         [double] coefficient of convective velocity [-]
-\param[out] zii                          [double] convective boundary height [m]
 \param[out] thv                          [double] virtual potential temperature (kelvin)
 \param[out] z0m                          [double] momentum roughness length (m)
 \param[out] displa                       [double] displacement height (m)
-\param[out] cgrnd                        [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
-\param[out] cgrnds                       [double] deriv. of soil sensible heat flux wrt soil temp [w/m2/k]
-\param[out] cgrndl                       [double] deriv. of soil latent heat flux wrt soil temp [w/m**2/k]
 */
 template <class ArrayD1>
 void GroundProperties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
                       const double &forc_q, const double &elai, const double &esai, const double &htop,
                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
                       const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
-                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &beta, double &zii, double &thv,
-                      double &z0m, double &displa, double &cgrnd, double &cgrnds, double &cgrndl);
+                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &thv,
+                      double &z0m, double &displa);
 
 /*! Calculate roughness length, displacement height, and forcing height for wind, temp, and humidity.
 

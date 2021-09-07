@@ -16,6 +16,13 @@ void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &
                     double &qflx_ev_soil, double &qflx_ev_h2osfc, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
                     double &rh_ref2m, double &rh_ref2m_r) {
 
+  if (!Land.lakpoi) {
+    // Initial set for calculation
+    cgrnd = 0.0;
+    cgrnds = 0.0;
+    cgrndl = 0.0;
+  }
+
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
 
     double rah, raw, raih, raiw;

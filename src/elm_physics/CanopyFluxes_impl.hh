@@ -227,7 +227,9 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
     double dc1, dc2, efsh, erre, err, efe, efeold, lw_grnd, dels, ecidif;
     double tstar, qstar, thvstar, wc, zeta, wtaq, wtlq, dele, det, deldT;
     double rssun, rssha;
-    const double btran0 = 0.0;
+    static const double btran0 = 0.0;
+    static const double beta = 1.0; // coefficient of convective velocity [-]
+    static const double zii = 1000.0; // convective boundary layer height [m]
 
     while (itlef <= itmax && !stop) {
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
@@ -426,8 +428,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
         um = std::max(ur, 0.1);
       } else {
         zeta = std::max(-100.0, std::min(zeta, -0.01));
-        wc = pow((-grav * ustar * thvstar * 1000.0 / thv),
-                 0.333); // convective boundary layer height hardwired as 1000.0
+        wc = beta * pow((-grav * ustar * thvstar * zii / thv), 0.333);
         um = std::sqrt(ur * ur + wc * wc);
       }
       obu = zldis / zeta;
@@ -471,6 +472,13 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
                      double &qflx_ev_soil, double &qflx_ev_h2osfc, double &dlrad, double &ulrad, double &cgrnds,
                      double &cgrndl, double &cgrnd, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
                      double &rh_ref2m, double &rh_ref2m_r) {
+
+  if (!Land.lakpoi) {
+    // Initial set for calculation
+    cgrnd = 0.0;
+    cgrnds = 0.0;
+    cgrndl = 0.0;
+  }
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
 

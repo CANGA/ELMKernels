@@ -184,8 +184,8 @@ void GroundProperties(const LandType &Land, const int &snl, const double &frac_s
                       const double &forc_q, const double &elai, const double &esai, const double &htop,
                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
                       const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
-                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &beta, double &zii, double &thv,
-                      double &z0m, double &displa, double &cgrnd, double &cgrnds, double &cgrndl) {
+                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &thv,
+                      double &z0m, double &displa) {
   if (!Land.lakpoi) {
     double avmuir; // ir inverse optical depth per unit leaf area
 
@@ -227,15 +227,9 @@ void GroundProperties(const LandType &Land, const int &snl, const double &frac_s
     z0hv = z0mv;
     z0qv = z0mv;
 
-    // Potential, virtual potential temperature, and wind speed at the reference height
-    beta = 1.0;
-    zii = 1000.0;
+    // Virtual potential temperature
     thv = forc_th * (1.0 + 0.61 * forc_q);
 
-    // Initial set for calculation
-    cgrnd = 0.0;
-    cgrnds = 0.0;
-    cgrndl = 0.0;
   }
 } // GroundProperties
 

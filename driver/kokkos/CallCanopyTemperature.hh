@@ -19,9 +19,9 @@ struct CallCanTemp {
               ArrayD1 &z_0_town_, ArrayD1 &z_d_town_, ArrayD1 &forc_t_, ArrayD1 &t_grnd_, ArrayD1 &soilalpha_,
               ArrayD1 &soilalpha_u_, ArrayD1 &soilbeta_, ArrayD1 &qg_snow_, ArrayD1 &qg_soil_, ArrayD1 &qg_,
               ArrayD1 &qg_h2osfc_, ArrayD1 &dqgdT_, ArrayD1 &emg_, ArrayD1 &emv_, ArrayD1 &htvp_, ArrayD1 &z0mg_,
-              ArrayD1 &z0hg_, ArrayD1 &z0qg_, ArrayD1 &z0mv_, ArrayD1 &z0hv_, ArrayD1 &z0qv_, ArrayD1 &beta_,
-              ArrayD1 &zii_, ArrayD1 &thv_, ArrayD1 &z0m_, ArrayD1 &displa_, ArrayD1 &cgrnd_, ArrayD1 &cgrnds_,
-              ArrayD1 &cgrndl_, ArrayD1 &forc_hgt_u_patch_, ArrayD1 &forc_hgt_t_patch_, ArrayD1 &forc_hgt_q_patch_,
+              ArrayD1 &z0hg_, ArrayD1 &z0qg_, ArrayD1 &z0mv_, ArrayD1 &z0hv_, ArrayD1 &z0qv_,
+              ArrayD1 &thv_, ArrayD1 &z0m_, ArrayD1 &displa_, ArrayD1 &forc_hgt_u_patch_,
+              ArrayD1 &forc_hgt_t_patch_, ArrayD1 &forc_hgt_q_patch_,
               ArrayD1 &thm_, ArrayD1 &eflx_sh_tot_, ArrayD1 &eflx_sh_tot_u_, ArrayD1 &eflx_sh_tot_r_,
               ArrayD1 &eflx_lh_tot_, ArrayD1 &eflx_lh_tot_u_, ArrayD1 &eflx_lh_tot_r_, ArrayD1 &eflx_sh_veg_,
               ArrayD1 &qflx_evap_tot_, ArrayD1 &qflx_evap_veg_, ArrayD1 &qflx_tran_veg_, ArrayD2 &tssbef_,
@@ -35,7 +35,7 @@ struct CallCanTemp {
         z_d_town(z_d_town_), forc_t(forc_t_), t_grnd(t_grnd_), soilalpha(soilalpha_), soilalpha_u(soilalpha_u_),
         soilbeta(soilbeta_), qg_snow(qg_snow_), qg_soil(qg_soil_), qg(qg_), qg_h2osfc(qg_h2osfc_), dqgdT(dqgdT_),
         emg(emg_), emv(emv_), htvp(htvp_), z0mg(z0mg_), z0hg(z0hg_), z0qg(z0qg_), z0mv(z0mv_), z0hv(z0hv_), z0qv(z0qv_),
-        beta(beta_), zii(zii_), thv(thv_), z0m(z0m_), displa(displa_), cgrnd(cgrnd_), cgrnds(cgrnds_), cgrndl(cgrndl_),
+        thv(thv_), z0m(z0m_), displa(displa_),
         forc_hgt_u_patch(forc_hgt_u_patch_), forc_hgt_t_patch(forc_hgt_t_patch_), forc_hgt_q_patch(forc_hgt_q_patch_),
         thm(thm_), eflx_sh_tot(eflx_sh_tot_), eflx_sh_tot_u(eflx_sh_tot_u_), eflx_sh_tot_r(eflx_sh_tot_r_),
         eflx_lh_tot(eflx_lh_tot_), eflx_lh_tot_u(eflx_lh_tot_u_), eflx_lh_tot_r(eflx_lh_tot_r_),
@@ -76,8 +76,8 @@ struct CallCanTemp {
     ELM::GroundProperties(Land, snl[i], frac_sno[i], forc_th[i], forc_q[i], elai[i], esai[i], htop[i],
                           Kokkos::subview(displar, i, Kokkos::ALL), Kokkos::subview(z0mr, i, Kokkos::ALL),
                           Kokkos::subview(h2osoi_liq, i, Kokkos::ALL), Kokkos::subview(h2osoi_ice, i, Kokkos::ALL),
-                          emg[i], emv[i], htvp[i], z0mg[i], z0hg[i], z0qg[i], z0mv[i], z0hv[i], z0qv[i], beta[i],
-                          zii[i], thv[i], z0m[i], displa[i], cgrnd[i], cgrnds[i], cgrndl[i]);
+                          emg[i], emv[i], htvp[i], z0mg[i], z0hg[i], z0qg[i], z0mv[i], z0hv[i], z0qv[i],
+                          thv[i], z0m[i], displa[i]);
 
     ELM::CalculateForcingHeight(Land, veg_active[i], frac_veg_nosno[i], forc_hgt_u[i], forc_hgt_t[i], forc_hgt_q[i],
                                 z0m[i], z0mg[i], z_0_town[i], z_d_town[i], forc_t[i], displa[i], forc_hgt_u_patch[i],
@@ -95,8 +95,8 @@ private:
 
   ArrayD1 t_h2osfc, t_h2osfc_bef, frac_sno_eff, frac_h2osfc, frac_sno, smpmin, forc_q, forc_pbot, forc_th, elai, esai,
       htop, forc_hgt_u, forc_hgt_t, forc_hgt_q, z_0_town, z_d_town, forc_t, t_grnd, soilalpha, soilalpha_u, soilbeta,
-      qg_snow, qg_soil, qg, qg_h2osfc, dqgdT, emg, emv, htvp, z0mg, z0hg, z0qg, z0mv, z0hv, z0qv, beta, zii, thv, z0m,
-      displa, cgrnd, cgrnds, cgrndl, forc_hgt_u_patch, forc_hgt_t_patch, forc_hgt_q_patch, thm, eflx_sh_tot,
+      qg_snow, qg_soil, qg, qg_h2osfc, dqgdT, emg, emv, htvp, z0mg, z0hg, z0qg, z0mv, z0hv, z0qv, thv, z0m,
+      displa, forc_hgt_u_patch, forc_hgt_t_patch, forc_hgt_q_patch, thm, eflx_sh_tot,
       eflx_sh_tot_u, eflx_sh_tot_r, eflx_lh_tot, eflx_lh_tot_u, eflx_lh_tot_r, eflx_sh_veg, qflx_evap_tot,
       qflx_evap_veg, qflx_tran_veg;
 
@@ -112,8 +112,8 @@ void canopyTemperatureInvoke(
     ArrayD1 &z_d_town_, ArrayD1 &forc_t_, ArrayD1 &t_grnd_, ArrayD1 &soilalpha_, ArrayD1 &soilalpha_u_,
     ArrayD1 &soilbeta_, ArrayD1 &qg_snow_, ArrayD1 &qg_soil_, ArrayD1 &qg_, ArrayD1 &qg_h2osfc_, ArrayD1 &dqgdT_,
     ArrayD1 &emg_, ArrayD1 &emv_, ArrayD1 &htvp_, ArrayD1 &z0mg_, ArrayD1 &z0hg_, ArrayD1 &z0qg_, ArrayD1 &z0mv_,
-    ArrayD1 &z0hv_, ArrayD1 &z0qv_, ArrayD1 &beta_, ArrayD1 &zii_, ArrayD1 &thv_, ArrayD1 &z0m_, ArrayD1 &displa_,
-    ArrayD1 &cgrnd_, ArrayD1 &cgrnds_, ArrayD1 &cgrndl_, ArrayD1 &forc_hgt_u_patch_, ArrayD1 &forc_hgt_t_patch_,
+    ArrayD1 &z0hv_, ArrayD1 &z0qv_, ArrayD1 &thv_, ArrayD1 &z0m_, ArrayD1 &displa_,
+    ArrayD1 &forc_hgt_u_patch_, ArrayD1 &forc_hgt_t_patch_,
     ArrayD1 &forc_hgt_q_patch_, ArrayD1 &thm_, ArrayD1 &eflx_sh_tot_, ArrayD1 &eflx_sh_tot_u_, ArrayD1 &eflx_sh_tot_r_,
     ArrayD1 &eflx_lh_tot_, ArrayD1 &eflx_lh_tot_u_, ArrayD1 &eflx_lh_tot_r_, ArrayD1 &eflx_sh_veg_,
     ArrayD1 &qflx_evap_tot_, ArrayD1 &qflx_evap_veg_, ArrayD1 &qflx_tran_veg_, ArrayD2 &tssbef_, ArrayD2 &t_soisno_,
@@ -125,8 +125,8 @@ void canopyTemperatureInvoke(
       Land_, veg_active_, snl_, frac_veg_nosno_, t_h2osfc_, t_h2osfc_bef_, frac_sno_eff_, frac_h2osfc_, frac_sno_,
       smpmin_, forc_q_, forc_pbot_, forc_th_, elai_, esai_, htop_, forc_hgt_u_, forc_hgt_t_, forc_hgt_q_, z_0_town_,
       z_d_town_, forc_t_, t_grnd_, soilalpha_, soilalpha_u_, soilbeta_, qg_snow_, qg_soil_, qg_, qg_h2osfc_, dqgdT_,
-      emg_, emv_, htvp_, z0mg_, z0hg_, z0qg_, z0mv_, z0hv_, z0qv_, beta_, zii_, thv_, z0m_, displa_, cgrnd_, cgrnds_,
-      cgrndl_, forc_hgt_u_patch_, forc_hgt_t_patch_, forc_hgt_q_patch_, thm_, eflx_sh_tot_, eflx_sh_tot_u_,
+      emg_, emv_, htvp_, z0mg_, z0hg_, z0qg_, z0mv_, z0hv_, z0qv_, thv_, z0m_, displa_,
+      forc_hgt_u_patch_, forc_hgt_t_patch_, forc_hgt_q_patch_, thm_, eflx_sh_tot_, eflx_sh_tot_u_,
       eflx_sh_tot_r_, eflx_lh_tot_, eflx_lh_tot_u_, eflx_lh_tot_r_, eflx_sh_veg_, qflx_evap_tot_, qflx_evap_veg_,
       qflx_tran_veg_, tssbef_, t_soisno_, h2osoi_liq_, h2osoi_ice_, dz_, watsat_, sucsat_, bsw_, watdry_, watopt_,
       rootfr_road_perv_, rootr_road_perv_, watfc_, displar_, z0mr_);

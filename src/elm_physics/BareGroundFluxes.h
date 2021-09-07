@@ -60,8 +60,6 @@ profiles of the surface boundary layer.
 \param[in]  forc_hgt_u_patch [double] observational height of wind at pft level [m]
 \param[in]  forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
 \param[in]  z0mg             [double] roughness length over ground, momentum [m]
-\param[in]  zii              [double] convective boundary height [m]
-\param[in]  beta             [double] coefficient of convective velocity [-]
 \param[in]  zldis            [double] reference height "minus" zero displacement height [m]
 \param[in]  displa           [double] displacement height [m]
 \param[in]  dth              [double] diff of virtual temp. between ref. height and surface
@@ -79,7 +77,7 @@ profiles of the surface boundary layer.
 */
 void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
-                           const double &zii, const double &beta, const double &zldis, const double &displa,
+                           const double &zldis, const double &displa,
                            const double &dth, const double &dqh, const double &ur, const double &forc_q,
                            const double &forc_th, const double &thv, double &z0hg, double &z0qg, double &obu,
                            double &um, double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar);

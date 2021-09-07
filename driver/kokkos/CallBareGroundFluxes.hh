@@ -12,7 +12,7 @@ struct CallBareGroundFluxes {
   CallBareGroundFluxes(ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_, ArrayD1 &forc_u_, ArrayD1 &forc_v_,
                        ArrayD1 &forc_q_, ArrayD1 &forc_th_, ArrayD1 &forc_hgt_u_patch_, ArrayD1 &thm_, ArrayD1 &thv_,
                        ArrayD1 &t_grnd_, ArrayD1 &qg_, ArrayD1 &dlrad_, ArrayD1 &ulrad_, ArrayD1 &forc_hgt_t_patch_,
-                       ArrayD1 &forc_hgt_q_patch_, ArrayD1 &z0mg_, ArrayD1 &zii_, ArrayD1 &beta_, ArrayD1 &z0hg_,
+                       ArrayD1 &forc_hgt_q_patch_, ArrayD1 &z0mg_, ArrayD1 &z0hg_,
                        ArrayD1 &z0qg_, ArrayI1 &snl_, ArrayD1 &forc_rho_, ArrayD1 &soilbeta_, ArrayD1 &dqgdT_,
                        ArrayD1 &htvp_, ArrayD1 &t_h2osfc_, ArrayD1 &qg_snow_, ArrayD1 &qg_soil_, ArrayD1 &qg_h2osfc_,
                        ArrayD2 &t_soisno_, ArrayD1 &forc_pbot_, ArrayD1 &cgrnds_, ArrayD1 &cgrndl_, ArrayD1 &cgrnd_,
@@ -23,7 +23,7 @@ struct CallBareGroundFluxes {
       : Land(Land_), frac_veg_nosno(frac_veg_nosno_), forc_u(forc_u_), forc_v(forc_v_), forc_q(forc_q_),
         forc_th(forc_th_), forc_hgt_u_patch(forc_hgt_u_patch_), thm(thm_), thv(thv_), t_grnd(t_grnd_), qg(qg_),
         z0mg(z0mg_), dlrad(dlrad_), ulrad(ulrad_), forc_hgt_t_patch(forc_hgt_t_patch_),
-        forc_hgt_q_patch(forc_hgt_q_patch_), zii(zii_), beta(beta_), z0hg(z0hg_), z0qg(z0qg_), snl(snl_),
+        forc_hgt_q_patch(forc_hgt_q_patch_), z0hg(z0hg_), z0qg(z0qg_), snl(snl_),
         forc_rho(forc_rho_), soilbeta(soilbeta_), dqgdT(dqgdT_), htvp(htvp_), t_h2osfc(t_h2osfc_), qg_snow(qg_snow_),
         qg_soil(qg_soil_), qg_h2osfc(qg_h2osfc_), t_soisno(t_soisno_), forc_pbot(forc_pbot_), cgrnds(cgrnds_),
         cgrndl(cgrndl_), cgrnd(cgrnd_), eflx_sh_grnd(eflx_sh_grnd_), eflx_sh_tot(eflx_sh_tot_),
@@ -51,7 +51,7 @@ struct CallBareGroundFluxes {
                       thv[i], t_grnd[i], qg[i], z0mg[i], dlrad[i], ulrad[i], zldis, displa, dth, dqh, obu, ur, um);
 
     StabilityIteration_BG(Land, frac_veg_nosno[i], forc_hgt_t_patch[i], forc_hgt_u_patch[i], forc_hgt_q_patch[i],
-                          z0mg[i], zii[i], beta[i], zldis, displa, dth, dqh, ur, forc_q[i], forc_th[i], thv[i], z0hg[i],
+                          z0mg[i], zldis, displa, dth, dqh, ur, forc_q[i], forc_th[i], thv[i], z0hg[i],
                           z0qg[i], obu, um, temp1, temp2, temp12m, temp22m, ustar);
 
     ComputeFlux_BG(Land, frac_veg_nosno[i], snl[i], forc_rho[i], soilbeta[i], dqgdT[i], htvp[i], t_h2osfc[i],
@@ -67,7 +67,7 @@ private:
   ArrayI1 frac_veg_nosno, snl;
 
   ArrayD1 forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, thm, thv, t_grnd, qg, dlrad, ulrad, forc_hgt_t_patch,
-      forc_hgt_q_patch, z0mg, zii, beta, z0hg, z0qg, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil,
+      forc_hgt_q_patch, z0mg, z0hg, z0qg, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil,
       qg_h2osfc, forc_pbot, cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil,
       eflx_sh_h2osfc, qflx_evap_soi, qflx_evap_tot, qflx_ev_snow, qflx_ev_soil, qflx_ev_h2osfc, t_ref2m, t_ref2m_r,
       q_ref2m, rh_ref2m, rh_ref2m_r;
@@ -79,7 +79,7 @@ void bareGroundFluxesInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &f
                             ArrayD1 &forc_v_, ArrayD1 &forc_q_, ArrayD1 &forc_th_, ArrayD1 &forc_hgt_u_patch_,
                             ArrayD1 &thm_, ArrayD1 &thv_, ArrayD1 &t_grnd_, ArrayD1 &qg_, ArrayD1 &z0mg_,
                             ArrayD1 &dlrad_, ArrayD1 &ulrad_, ArrayD1 &forc_hgt_t_patch_, ArrayD1 &forc_hgt_q_patch_,
-                            ArrayD1 &zii_, ArrayD1 &beta_, ArrayD1 &z0hg_, ArrayD1 &z0qg_, ArrayI1 &snl_,
+                            ArrayD1 &z0hg_, ArrayD1 &z0qg_, ArrayI1 &snl_,
                             ArrayD1 &forc_rho_, ArrayD1 &soilbeta_, ArrayD1 &dqgdT_, ArrayD1 &htvp_, ArrayD1 &t_h2osfc_,
                             ArrayD1 &qg_snow_, ArrayD1 &qg_soil_, ArrayD1 &qg_h2osfc_, ArrayD2 &t_soisno_,
                             ArrayD1 &forc_pbot_, ArrayD1 &cgrnds_, ArrayD1 &cgrndl_, ArrayD1 &cgrnd_,
@@ -91,7 +91,7 @@ void bareGroundFluxesInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &f
 
   CallBareGroundFluxes call_bgf(
       Land_, frac_veg_nosno_, forc_u_, forc_v_, forc_q_, forc_th_, forc_hgt_u_patch_, thm_, thv_, t_grnd_, qg_, dlrad_,
-      ulrad_, forc_hgt_t_patch_, forc_hgt_q_patch_, z0mg_, zii_, beta_, z0hg_, z0qg_, snl_, forc_rho_, soilbeta_,
+      ulrad_, forc_hgt_t_patch_, forc_hgt_q_patch_, z0mg_, z0hg_, z0qg_, snl_, forc_rho_, soilbeta_,
       dqgdT_, htvp_, t_h2osfc_, qg_snow_, qg_soil_, qg_h2osfc_, t_soisno_, forc_pbot_, cgrnds_, cgrndl_, cgrnd_,
       eflx_sh_grnd_, eflx_sh_tot_, eflx_sh_snow_, eflx_sh_soil_, eflx_sh_h2osfc_, qflx_evap_soi_, qflx_evap_tot_,
       qflx_ev_snow_, qflx_ev_soil_, qflx_ev_h2osfc_, t_ref2m_, t_ref2m_r_, q_ref2m_, rh_ref2m_, rh_ref2m_r_);

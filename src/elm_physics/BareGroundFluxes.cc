@@ -36,17 +36,19 @@ void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const do
 
 void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
-                           const double &zii, const double &beta, const double &zldis, const double &displa,
+                           const double &zldis, const double &displa,
                            const double &dth, const double &dqh, const double &ur, const double &forc_q,
                            const double &forc_th, const double &thv, double &z0hg, double &z0qg, double &obu,
                            double &um, double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar) {
 
-  double tstar;                // temperature scaling parameter
-  double qstar;                // moisture scaling parameter
-  double thvstar;              // virtual potential temperature scaling parameter
-  double wc;                   // convective velocity [m/s]
-  double zeta;                 // dimensionless height used in Monin-Obukhov theory
-  static const int niters = 3; // number of iterations
+  double tstar;                     // temperature scaling parameter
+  double qstar;                     // moisture scaling parameter
+  double thvstar;                   // virtual potential temperature scaling parameter
+  double wc;                        // convective velocity [m/s]
+  double zeta;                      // dimensionless height used in Monin-Obukhov theory
+  static const int niters = 3;      // number of iterations
+  static const double beta = 1.0;   // coefficient of convective velocity [-]
+  static const double zii = 1000.0; //convective boundary height [m]
 
   for (int i = 0; i < niters; i++) {
 
