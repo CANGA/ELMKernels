@@ -11,3 +11,7 @@ install(TARGETS test_CanSunShade)
 add_executable (test_SurfRad test_SurfRad.cc)
 target_link_libraries (test_SurfRad LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_SurfRad)
+
+add_executable (test_CanTemp test_CanTemp.cc)
+target_link_libraries (test_CanTemp LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_CanTemp)
