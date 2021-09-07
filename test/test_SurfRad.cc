@@ -10,7 +10,7 @@
 
 /*    
 
-tests CanopyHydrology kernels: 
+tests SurfaceRadiation kernels: 
 SurfRadZeroFluxes()
 SurfRadAbsorbed()
 SurfRadLayers()
