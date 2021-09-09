@@ -22,7 +22,7 @@ InitializeEnergyFluxes()
 
 implicitly tests QSat() and calc_soilevap_stress()
 
-the following data comes from the files SurfaceRadiation_IN.txt and SurfaceRadiation_OUT.txt located in test/data
+the following data comes from the files CanopyTemperature_IN.txt and CanopyTemperature_OUT.txt located in test/data
 
 veg_active
 snl
