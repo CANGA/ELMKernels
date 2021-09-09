@@ -15,3 +15,7 @@ install(TARGETS test_SurfRad)
 add_executable (test_CanTemp test_CanTemp.cc)
 target_link_libraries (test_CanTemp LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_CanTemp)
+
+add_executable (test_BGFluxes test_BGFluxes.cc)
+target_link_libraries (test_BGFluxes LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_BGFluxes)
