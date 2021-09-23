@@ -11,6 +11,10 @@
 
 namespace ELM {
 
+double ft(const double &tl, const double &ha);
+double fth(const double &tl, const double &hd, const double &se, const double &scaleFactor);
+double fth25(const double &hd, const double &se);
+
 /*! Evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an. (internal) */
 void quadratic(const double &a, const double &b, const double &c, double &r1, double &r2);
 
