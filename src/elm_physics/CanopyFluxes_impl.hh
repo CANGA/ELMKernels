@@ -259,7 +259,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       // just for readability of the code (from line 680)
       csoilb = (vkc / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45)));
       // compute the stability parameter for ricsoilc  ("S" in Sakaguchi&Zeng,2008)
-      ri = (grav * htop * (taf - t_grnd)) / pow((taf * uaf), 2.0);
+      ri = (grav * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0));
 
       // modify csoilc value (0.004) if the under-canopy is in stable condition
       if ((taf - t_grnd) > 0.0) {
@@ -402,11 +402,8 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       }
       ecidif = std::max(0.0, qflx_evap_veg - qflx_tran_veg - h2ocan / dtime);
       qflx_evap_veg = std::min(qflx_evap_veg, qflx_tran_veg + h2ocan / dtime);
-      qflx_evap_veg = qflx_evap_veg;
-      qflx_tran_veg = qflx_tran_veg;
       // The energy loss due to above two limits is added to the sensible heat flux.
       eflx_sh_veg = efsh + dc1 * wtga * dt_veg + err + erre + hvap * ecidif;
-      eflx_sh_veg = eflx_sh_veg;
       // Re-calculate saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       QSat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
@@ -451,7 +448,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
         }
       }
     } // stability iteration
-  }   // land type
+  } // land type
 } // StabilityIteration_Can()
 
 template <class ArrayD1>
@@ -493,7 +490,6 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
     // Fluxes from ground to canopy space
     double delt = wtal * t_grnd - wtl0 * t_veg - wta0 * thm;
     eflx_sh_grnd = cpair * forc_rho * wtg * delt;
-
     // compute individual sensible heat fluxes
     double delt_snow = wtal * t_soisno[nlevsno - snl] - wtl0 * t_veg - wta0 * thm;
     eflx_sh_snow = cpair * forc_rho * wtg * delt_snow;
@@ -533,7 +529,6 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
     cgrnd = cgrnds + cgrndl * htvp;
     // Update dew accumulation (kg/m2)
     h2ocan = std::max(0.0, h2ocan + (qflx_tran_veg - qflx_evap_veg) * dtime);
-
     // Determine total photosynthesis -- need to implement -- vars don't get used - diagnostics, maybe??
     // PhotosynthesisTotal(fn, filterp, atm2lnd_vars, cnstate_vars, canopystate_vars, photosyns_vars)
 
