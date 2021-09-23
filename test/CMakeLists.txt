@@ -16,6 +16,10 @@ add_executable (test_CanTemp test_CanTemp.cc)
 target_link_libraries (test_CanTemp LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_CanTemp)
 
-add_executable (test_BGFluxes test_BGFluxes.cc)
-target_link_libraries (test_BGFluxes LINK_PUBLIC elm_physics elm_utils)
-install(TARGETS test_BGFluxes)
+add_executable (test_BGFlux test_BGFlux.cc)
+target_link_libraries (test_BGFlux LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_BGFlux)
+
+add_executable (test_CanFlux test_CanFlux.cc)
+target_link_libraries (test_CanFlux LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_CanFlux)
