@@ -11,14 +11,17 @@
 #include <string>
 
 /*
-
 tests CanopyFluxes kernels: 
 InitializeFlux_Can()
 StabilityIteration_Can()
 ComputeFlux_Can()
 
+implicitly tests calc_effective_soilporosity(), calc_volumetric_h2oliq(), calc_root_moist_stress, QSat(),
+all FrictionVelocity kernels, and Photosynthesis()
 
-VegProperties veg
+utilizes ReadPFTData() to read a clm_params.nc file located in test/data
+
+the following data comes from the files CanopyFluxes_IN.txt and CanopyFluxes_OUT.txt located in test/data
 
 int snl
 int frac_veg_nosno
@@ -115,10 +118,9 @@ ArrayD1 sucsat
 ArrayD1 watsat
 ArrayD1 bsw
 
-
-
 */
 
+// local utility function for copying ELM Arrays to VegProperties members
 void copy_to_vegstruct(const ELM::Array<double, 1> array, double *vegvar) {
   for (std::size_t i = 0; i < array.extent(0); ++i)
     vegvar[i] = array[i];
@@ -142,7 +144,6 @@ int main(int argc, char **argv) {
   const std::string output_file = data_dir + "CanopyFluxes_OUT.txt";
   const std::string pft_file = "clm_params_c180524.nc";
 
-
   // hardwired
   ELM::LandType Land;
   ELM::VegProperties Veg;
@@ -152,10 +153,6 @@ int main(int argc, char **argv) {
   int n_grid_cells = 1;
   double dtime = 1800.0;
   int idx = 0;
-  int MPI_COMM_WORLD;
-
-
-
 
   // temporary data to pass between functions
   double wtg = 0.0;         // heat conductance for ground [m/s]
@@ -189,290 +186,279 @@ int main(int argc, char **argv) {
   double delq = 0.0;        // temporary
   double dt_veg = 0.0;      // change in t_veg, last iteration (Kelvin)
 
-  //if (read_pft_file) {
-    // PFT variables
-    //const auto maxpfts = ELM::IO::get_maxpfts(MPI_COMM_WORLD, data_dir, pft_file, "z0mr"); // I should write a better method to get the 'pft' dimension var from the params.nc files
-    //std::cout << " maxpfts: " << 25 << std::endl;
-    auto pftnames = create<ArrayS1>("pftnames", 25);
-    auto z0mr = create<ArrayD1>("z0mr", 25);
-    auto displar = create<ArrayD1>("displar", 25);
-    auto dleaf = create<ArrayD1>("dleaf", 25);
-    auto c3psn = create<ArrayD1>("c3psn", 25);
-    auto xl = create<ArrayD1>("xl", 25);
-    auto roota_par = create<ArrayD1>("roota_par", 25);
-    auto rootb_par = create<ArrayD1>("rootb_par", 25);
-    auto slatop = create<ArrayD1>("slatop", 25);
-    auto leafcn = create<ArrayD1>("leafcn", 25);
-    auto flnr = create<ArrayD1>("flnr", 25);
-    auto smpso = create<ArrayD1>("smpso", 25);
-    auto smpsc = create<ArrayD1>("smpsc", 25);
-    auto fnitr = create<ArrayD1>("fnitr", 25);
-    auto fnr = create<ArrayD1>("fnr", 25);
-    auto act25 = create<ArrayD1>("act25", 25);
-    auto kcha = create<ArrayD1>("kcha", 25);
-    auto koha = create<ArrayD1>("koha", 25);
-    auto cpha = create<ArrayD1>("cpha", 25);
-    auto vcmaxha = create<ArrayD1>("vcmaxha", 25);
-    auto jmaxha = create<ArrayD1>("jmaxha", 25);
-    auto tpuha = create<ArrayD1>("tpuha", 25);
-    auto lmrha = create<ArrayD1>("lmrha", 25);
-    auto vcmaxhd = create<ArrayD1>("vcmaxhd", 25);
-    auto jmaxhd = create<ArrayD1>("jmaxhd", 25);
-    auto tpuhd = create<ArrayD1>("tpuhd", 25);
-    auto lmrhd = create<ArrayD1>("lmrhd", 25);
-    auto lmrse = create<ArrayD1>("lmrse", 25);
-    auto qe = create<ArrayD1>("qe", 25);
-    auto theta_cj = create<ArrayD1>("theta_cj", 25);
-    auto bbbopt = create<ArrayD1>("bbbopt", 25);
-    auto mbbopt = create<ArrayD1>("mbbopt", 25);
-    auto nstor = create<ArrayD1>("nstor", 25);
-    auto br_xr = create<ArrayD1>("br_xr", 25);
-    auto tc_stress = create<ArrayD1>("tc_stress", 1); // only one value - keep in container for compatibility with NetCDF reader
-    auto rholvis = create<ArrayD1>("rholvis", 25); // numrad
-    auto rholnir = create<ArrayD1>("rholnir", 25); // numrad
-    auto rhosvis = create<ArrayD1>("rhosvis", 25); // numrad
-    auto rhosnir = create<ArrayD1>("rhosnir", 25); // numrad
-    auto taulvis = create<ArrayD1>("taulvis", 25); // numrad
-    auto taulnir = create<ArrayD1>("taulnir", 25); // numrad
-    auto tausvis = create<ArrayD1>("tausvis", 25); // numrad
-    auto tausnir = create<ArrayD1>("tausnir", 25); // numrad
+  // pft constants - read from NetCDF
+  auto pftnames = create<ArrayS1>("pftnames", 25);
+  auto z0mr = create<ArrayD1>("z0mr", 25);
+  auto displar = create<ArrayD1>("displar", 25);
+  auto dleaf = create<ArrayD1>("dleaf", 25);
+  auto c3psn = create<ArrayD1>("c3psn", 25);
+  auto xl = create<ArrayD1>("xl", 25);
+  auto roota_par = create<ArrayD1>("roota_par", 25);
+  auto rootb_par = create<ArrayD1>("rootb_par", 25);
+  auto slatop = create<ArrayD1>("slatop", 25);
+  auto leafcn = create<ArrayD1>("leafcn", 25);
+  auto flnr = create<ArrayD1>("flnr", 25);
+  auto smpso = create<ArrayD1>("smpso", 25);
+  auto smpsc = create<ArrayD1>("smpsc", 25);
+  auto fnitr = create<ArrayD1>("fnitr", 25);
+  auto fnr = create<ArrayD1>("fnr", 25);
+  auto act25 = create<ArrayD1>("act25", 25);
+  auto kcha = create<ArrayD1>("kcha", 25);
+  auto koha = create<ArrayD1>("koha", 25);
+  auto cpha = create<ArrayD1>("cpha", 25);
+  auto vcmaxha = create<ArrayD1>("vcmaxha", 25);
+  auto jmaxha = create<ArrayD1>("jmaxha", 25);
+  auto tpuha = create<ArrayD1>("tpuha", 25);
+  auto lmrha = create<ArrayD1>("lmrha", 25);
+  auto vcmaxhd = create<ArrayD1>("vcmaxhd", 25);
+  auto jmaxhd = create<ArrayD1>("jmaxhd", 25);
+  auto tpuhd = create<ArrayD1>("tpuhd", 25);
+  auto lmrhd = create<ArrayD1>("lmrhd", 25);
+  auto lmrse = create<ArrayD1>("lmrse", 25);
+  auto qe = create<ArrayD1>("qe", 25);
+  auto theta_cj = create<ArrayD1>("theta_cj", 25);
+  auto bbbopt = create<ArrayD1>("bbbopt", 25);
+  auto mbbopt = create<ArrayD1>("mbbopt", 25);
+  auto nstor = create<ArrayD1>("nstor", 25);
+  auto br_xr = create<ArrayD1>("br_xr", 25);
+  auto tc_stress = create<ArrayD1>("tc_stress", 1); // only one value - keep in container for compatibility with NetCDF reader
+  auto rholvis = create<ArrayD1>("rholvis", 25);
+  auto rholnir = create<ArrayD1>("rholnir", 25);
+  auto rhosvis = create<ArrayD1>("rhosvis", 25);
+  auto rhosnir = create<ArrayD1>("rhosnir", 25);
+  auto taulvis = create<ArrayD1>("taulvis", 25);
+  auto taulnir = create<ArrayD1>("taulnir", 25);
+  auto tausvis = create<ArrayD1>("tausvis", 25);
+  auto tausnir = create<ArrayD1>("tausnir", 25);
 
-    // read pft data from clm_params.nc
-    ELM::ReadPFTConstants(data_dir, pft_file, pftnames, z0mr, displar, dleaf, c3psn, xl, roota_par, rootb_par,
-                          slatop, leafcn, flnr, smpso, smpsc, fnitr, fnr, act25, kcha, koha, cpha, vcmaxha, jmaxha, tpuha,
-                          lmrha, vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt, nstor, br_xr,
-                          tc_stress, rholvis, rholnir, rhosvis, rhosnir, taulvis, taulnir, tausvis, tausnir);
-  //}
+  // read pft data from clm_params.nc
+  ELM::ReadPFTConstants(data_dir, pft_file, pftnames, z0mr, displar, dleaf, c3psn, xl, roota_par, rootb_par,
+                        slatop, leafcn, flnr, smpso, smpsc, fnitr, fnr, act25, kcha, koha, cpha, vcmaxha, jmaxha, tpuha,
+                        lmrha, vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt, nstor, br_xr,
+                        tc_stress, rholvis, rholnir, rhosvis, rhosnir, taulvis, taulnir, tausvis, tausnir);
+
+  // copy pft constants to Veg
+  copy_to_vegstruct(fnr,Veg.fnr);
+  copy_to_vegstruct(act25,Veg.act25);
+  copy_to_vegstruct(kcha,Veg.kcha);
+  copy_to_vegstruct(koha,Veg.koha);
+  copy_to_vegstruct(cpha,Veg.cpha);
+  copy_to_vegstruct(vcmaxha,Veg.vcmaxha);
+  copy_to_vegstruct(jmaxha,Veg.jmaxha);
+  copy_to_vegstruct(tpuha,Veg.tpuha);
+  copy_to_vegstruct(lmrha,Veg.lmrha);
+  copy_to_vegstruct(vcmaxhd,Veg.vcmaxhd);
+  copy_to_vegstruct(jmaxhd,Veg.jmaxhd);
+  copy_to_vegstruct(tpuhd,Veg.tpuhd);
+  copy_to_vegstruct(lmrhd,Veg.lmrhd);
+  copy_to_vegstruct(lmrse,Veg.lmrse);
+  copy_to_vegstruct(qe,Veg.qe);
+  copy_to_vegstruct(theta_cj,Veg.theta_cj);
+  copy_to_vegstruct(bbbopt,Veg.bbbopt);
+  copy_to_vegstruct(mbbopt,Veg.mbbopt);
+  copy_to_vegstruct(c3psn,Veg.c3psn);
+  copy_to_vegstruct(slatop,Veg.slatop);
+  copy_to_vegstruct(leafcn,Veg.leafcn);
+  copy_to_vegstruct(flnr,Veg.flnr);
+  copy_to_vegstruct(fnitr,Veg.fnitr);
 
   // ELM state variables
-auto snl = create<ArrayI1>("snl", n_grid_cells);
-auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", n_grid_cells);
-auto nrad = create<ArrayI1>("nrad", n_grid_cells);
-auto altmax_indx = create<ArrayI1>("altmax_indx", n_grid_cells);
-auto altmax_lastyear_indx = create<ArrayI1>("altmax_lastyear_indx", n_grid_cells);
+  auto snl = create<ArrayI1>("snl", n_grid_cells);
+  auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", n_grid_cells);
+  auto nrad = create<ArrayI1>("nrad", n_grid_cells);
+  auto altmax_indx = create<ArrayI1>("altmax_indx", n_grid_cells);
+  auto altmax_lastyear_indx = create<ArrayI1>("altmax_lastyear_indx", n_grid_cells);
 
+  auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
+  auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", n_grid_cells);
+  auto thm = create<ArrayD1>("thm", n_grid_cells);
+  auto thv = create<ArrayD1>("thv", n_grid_cells);
+  auto max_dayl = create<ArrayD1>("max_dayl", n_grid_cells);
+  auto dayl = create<ArrayD1>("dayl", n_grid_cells);
+  auto elai = create<ArrayD1>("elai", n_grid_cells);
+  auto esai = create<ArrayD1>("esai", n_grid_cells);
+  auto emv = create<ArrayD1>("emv", n_grid_cells);
+  auto emg = create<ArrayD1>("emg", n_grid_cells);
+  auto qg = create<ArrayD1>("qg", n_grid_cells);
+  auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
+  auto forc_t = create<ArrayD1>("forc_t", n_grid_cells);
+  auto forc_pbot = create<ArrayD1>("forc_pbot", n_grid_cells);
+  auto forc_lwrad = create<ArrayD1>("forc_lwrad", n_grid_cells);
+  auto forc_u = create<ArrayD1>("forc_u", n_grid_cells);
+  auto forc_v = create<ArrayD1>("forc_v", n_grid_cells);
+  auto forc_q = create<ArrayD1>("forc_q", n_grid_cells);
+  auto forc_th = create<ArrayD1>("forc_th", n_grid_cells);
+  auto z0mg = create<ArrayD1>("z0mg", n_grid_cells);
+  auto btran = create<ArrayD1>("btran", n_grid_cells);
+  auto displa = create<ArrayD1>("displa", n_grid_cells);
+  auto z0mv = create<ArrayD1>("z0mv", n_grid_cells);
+  auto z0hv = create<ArrayD1>("z0hv", n_grid_cells);
+  auto z0qv = create<ArrayD1>("z0qv", n_grid_cells);
+  auto t_veg = create<ArrayD1>("t_veg", n_grid_cells);
+  auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", n_grid_cells);
+  auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", n_grid_cells);
+  auto fwet = create<ArrayD1>("fwet", n_grid_cells);
+  auto fdry = create<ArrayD1>("fdry", n_grid_cells);
+  auto laisun = create<ArrayD1>("laisun", n_grid_cells);
+  auto laisha = create<ArrayD1>("laisha", n_grid_cells);
+  auto forc_rho = create<ArrayD1>("forc_rho", n_grid_cells);
+  auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
+  auto soilbeta = create<ArrayD1>("soilbeta", n_grid_cells);
+  auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", n_grid_cells);
+  auto t_h2osfc = create<ArrayD1>("t_h2osfc", n_grid_cells);
+  auto sabv = create<ArrayD1>("sabv", n_grid_cells);
+  auto h2ocan = create<ArrayD1>("h2ocan", n_grid_cells);
+  auto htop = create<ArrayD1>("htop", n_grid_cells);
+  auto t10 = create<ArrayD1>("t10", n_grid_cells);
+  auto vcmaxcintsha = create<ArrayD1>("vcmaxcintsha", n_grid_cells);
+  auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", n_grid_cells);
+  auto forc_pco2 = create<ArrayD1>("forc_pco2", n_grid_cells);
+  auto forc_po2 = create<ArrayD1>("forc_po2", n_grid_cells);
+  auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", n_grid_cells);
+  auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", n_grid_cells);
+  auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", n_grid_cells);
+  auto qg_snow = create<ArrayD1>("qg_snow", n_grid_cells);
+  auto qg_soil = create<ArrayD1>("qg_soil", n_grid_cells);
+  auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", n_grid_cells);
+  auto dqgdT = create<ArrayD1>("dqgdT", n_grid_cells);
+  auto htvp = create<ArrayD1>("htvp", n_grid_cells);
+  auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", n_grid_cells);
+  auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", n_grid_cells);
+  auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", n_grid_cells);
+  auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", n_grid_cells);
+  auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", n_grid_cells);
+  auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", n_grid_cells);
+  auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", n_grid_cells);
+  auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", n_grid_cells);
+  auto dlrad = create<ArrayD1>("dlrad", n_grid_cells);
+  auto ulrad = create<ArrayD1>("ulrad", n_grid_cells);
+  auto cgrnds = create<ArrayD1>("cgrnds", n_grid_cells);
+  auto cgrndl = create<ArrayD1>("cgrndl", n_grid_cells);
+  auto cgrnd = create<ArrayD1>("cgrnd", n_grid_cells);
+  auto t_ref2m = create<ArrayD1>("t_ref2m", n_grid_cells);
+  auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
+  auto q_ref2m = create<ArrayD1>("q_ref2m", n_grid_cells);
+  auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
+  auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
 
-auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
-auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", n_grid_cells);
-auto thm = create<ArrayD1>("thm", n_grid_cells);
-auto thv = create<ArrayD1>("thv", n_grid_cells);
-auto max_dayl = create<ArrayD1>("max_dayl", n_grid_cells);
-auto dayl = create<ArrayD1>("dayl", n_grid_cells);
-//auto tc_stress = create<ArrayD1>("tc_stress", n_grid_cells);
-auto elai = create<ArrayD1>("elai", n_grid_cells);
-auto esai = create<ArrayD1>("esai", n_grid_cells);
-auto emv = create<ArrayD1>("emv", n_grid_cells);
-auto emg = create<ArrayD1>("emg", n_grid_cells);
-auto qg = create<ArrayD1>("qg", n_grid_cells);
-auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
-auto forc_t = create<ArrayD1>("forc_t", n_grid_cells);
-auto forc_pbot = create<ArrayD1>("forc_pbot", n_grid_cells);
-auto forc_lwrad = create<ArrayD1>("forc_lwrad", n_grid_cells);
-auto forc_u = create<ArrayD1>("forc_u", n_grid_cells);
-auto forc_v = create<ArrayD1>("forc_v", n_grid_cells);
-auto forc_q = create<ArrayD1>("forc_q", n_grid_cells);
-auto forc_th = create<ArrayD1>("forc_th", n_grid_cells);
-auto z0mg = create<ArrayD1>("z0mg", n_grid_cells);
-auto btran = create<ArrayD1>("btran", n_grid_cells);
-auto displa = create<ArrayD1>("displa", n_grid_cells);
-auto z0mv = create<ArrayD1>("z0mv", n_grid_cells);
-auto z0hv = create<ArrayD1>("z0hv", n_grid_cells);
-auto z0qv = create<ArrayD1>("z0qv", n_grid_cells);
-auto t_veg = create<ArrayD1>("t_veg", n_grid_cells);
-auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", n_grid_cells);
-auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", n_grid_cells);
-auto fwet = create<ArrayD1>("fwet", n_grid_cells);
-auto fdry = create<ArrayD1>("fdry", n_grid_cells);
-auto laisun = create<ArrayD1>("laisun", n_grid_cells);
-auto laisha = create<ArrayD1>("laisha", n_grid_cells);
-auto forc_rho = create<ArrayD1>("forc_rho", n_grid_cells);
-auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
-auto soilbeta = create<ArrayD1>("soilbeta", n_grid_cells);
-auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", n_grid_cells);
-auto t_h2osfc = create<ArrayD1>("t_h2osfc", n_grid_cells);
-auto sabv = create<ArrayD1>("sabv", n_grid_cells);
-auto h2ocan = create<ArrayD1>("h2ocan", n_grid_cells);
-auto htop = create<ArrayD1>("htop", n_grid_cells);
-auto t10 = create<ArrayD1>("t10", n_grid_cells);
-auto vcmaxcintsha = create<ArrayD1>("vcmaxcintsha", n_grid_cells);
-auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", n_grid_cells);
-auto forc_pco2 = create<ArrayD1>("forc_pco2", n_grid_cells);
-auto forc_po2 = create<ArrayD1>("forc_po2", n_grid_cells);
-auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", n_grid_cells);
-auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", n_grid_cells);
-auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", n_grid_cells);
-auto qg_snow = create<ArrayD1>("qg_snow", n_grid_cells);
-auto qg_soil = create<ArrayD1>("qg_soil", n_grid_cells);
-auto qg_h2osfc = create<ArrayD1>("qg_h2osfc", n_grid_cells);
-auto dqgdT = create<ArrayD1>("dqgdT", n_grid_cells);
-auto htvp = create<ArrayD1>("htvp", n_grid_cells);
-auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", n_grid_cells);
-auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", n_grid_cells);
-auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", n_grid_cells);
-auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", n_grid_cells);
-auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", n_grid_cells);
-auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", n_grid_cells);
-auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", n_grid_cells);
-auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", n_grid_cells);
-auto dlrad = create<ArrayD1>("dlrad", n_grid_cells);
-auto ulrad = create<ArrayD1>("ulrad", n_grid_cells);
-auto cgrnds = create<ArrayD1>("cgrnds", n_grid_cells);
-auto cgrndl = create<ArrayD1>("cgrndl", n_grid_cells);
-auto cgrnd = create<ArrayD1>("cgrnd", n_grid_cells);
-auto t_ref2m = create<ArrayD1>("t_ref2m", n_grid_cells);
-auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
-auto q_ref2m = create<ArrayD1>("q_ref2m", n_grid_cells);
-auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
-auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
+  auto rootr = create<ArrayD2>("rootr", n_grid_cells, ELM::nlevgrnd);
+  auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, ELM::nlevgrnd);
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, ELM::nlevcan);
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, ELM::nlevcan);
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, ELM::nlevcan);
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, ELM::nlevcan);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto dz = create<ArrayD2>("dz", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, ELM::nlevgrnd);
+  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd);
+  auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd);
+  auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);
 
+  // input and output utility class objects
+  ELM::IO::ELMtestinput in(input_file);
+  ELM::IO::ELMtestinput out(output_file);
 
+  for (std::size_t t = 1; t < 49; ++t) {
+    
+    // get input and output state for time t
+    in.getState(t);
+    out.getState(t);
 
-
-auto rootr = create<ArrayD2>("rootr", n_grid_cells, ELM::nlevgrnd);
-auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, ELM::nlevgrnd);
-auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
-auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, ELM::nlevcan);
-auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, ELM::nlevcan);
-auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, ELM::nlevcan);
-auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, ELM::nlevcan);
-auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-auto dz = create<ArrayD2>("dz", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, ELM::nlevgrnd);
-auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd);
-auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd);
-auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);
-
-
-copy_to_vegstruct(fnr,Veg.fnr);
-copy_to_vegstruct(act25,Veg.act25);
-copy_to_vegstruct(kcha,Veg.kcha);
-copy_to_vegstruct(koha,Veg.koha);
-copy_to_vegstruct(cpha,Veg.cpha);
-copy_to_vegstruct(vcmaxha,Veg.vcmaxha);
-copy_to_vegstruct(jmaxha,Veg.jmaxha);
-copy_to_vegstruct(tpuha,Veg.tpuha);
-copy_to_vegstruct(lmrha,Veg.lmrha);
-copy_to_vegstruct(vcmaxhd,Veg.vcmaxhd);
-copy_to_vegstruct(jmaxhd,Veg.jmaxhd);
-copy_to_vegstruct(tpuhd,Veg.tpuhd);
-copy_to_vegstruct(lmrhd,Veg.lmrhd);
-copy_to_vegstruct(lmrse,Veg.lmrse);
-copy_to_vegstruct(qe,Veg.qe);
-copy_to_vegstruct(theta_cj,Veg.theta_cj);
-copy_to_vegstruct(bbbopt,Veg.bbbopt);
-copy_to_vegstruct(mbbopt,Veg.mbbopt);
-copy_to_vegstruct(c3psn,Veg.c3psn);
-copy_to_vegstruct(slatop,Veg.slatop);
-copy_to_vegstruct(leafcn,Veg.leafcn);
-copy_to_vegstruct(flnr,Veg.flnr);
-copy_to_vegstruct(fnitr,Veg.fnitr);
-
-
-// input and output utility class objects
-ELM::IO::ELMtestinput in(input_file);
-ELM::IO::ELMtestinput out(output_file);
-for (std::size_t t = 1; t < 49; ++t) {
-  // get input and output state for time t
-  in.getState(t);
-  out.getState(t);
-
-
-  // parse input state and assign to variables
-in.parseState(snl);
-in.parseState(frac_veg_nosno);
-in.parseState(nrad);
-in.parseState(altmax_indx);
-in.parseState(altmax_lastyear_indx);
-in.parseState(frac_sno);
-in.parseState(forc_hgt_u_patch);
-in.parseState(thm);
-in.parseState(thv);
-in.parseState(max_dayl);
-in.parseState(dayl);
-//in.parseState(tc_stress);
-in.parseState(elai);
-in.parseState(esai);
-in.parseState(emv);
-in.parseState(emg);
-in.parseState(qg);
-in.parseState(t_grnd);
-in.parseState(forc_t);
-in.parseState(forc_pbot);
-in.parseState(forc_lwrad);
-in.parseState(forc_u);
-in.parseState(forc_v);
-in.parseState(forc_q);
-in.parseState(forc_th);
-in.parseState(z0mg);
-in.parseState(btran);
-in.parseState(displa);
-in.parseState(z0mv);
-in.parseState(z0hv);
-in.parseState(z0qv);
-in.parseState(t_veg);
-in.parseState(forc_hgt_t_patch);
-in.parseState(forc_hgt_q_patch);
-in.parseState(fwet);
-in.parseState(fdry);
-in.parseState(laisun);
-in.parseState(laisha);
-in.parseState(forc_rho);
-in.parseState(snow_depth);
-in.parseState(soilbeta);
-in.parseState(frac_h2osfc);
-in.parseState(t_h2osfc);
-in.parseState(sabv);
-in.parseState(h2ocan);
-in.parseState(htop);
-in.parseState(t10);
-in.parseState(vcmaxcintsha);
-in.parseState(vcmaxcintsun);
-in.parseState(forc_pco2);
-in.parseState(forc_po2);
-in.parseState(qflx_tran_veg);
-in.parseState(qflx_evap_veg);
-in.parseState(eflx_sh_veg);
-in.parseState(qg_snow);
-in.parseState(qg_soil);
-in.parseState(qg_h2osfc);
-in.parseState(dqgdT);
-in.parseState(htvp);
-in.parseState(eflx_sh_grnd);
-in.parseState(eflx_sh_snow);
-in.parseState(eflx_sh_soil);
-in.parseState(eflx_sh_h2osfc);
-in.parseState(qflx_evap_soi);
-in.parseState(qflx_ev_snow);
-in.parseState(qflx_ev_soil);
-in.parseState(qflx_ev_h2osfc);
-in.parseState(dlrad);
-in.parseState(ulrad);
-in.parseState(cgrnds);
-in.parseState(cgrndl);
-in.parseState(cgrnd);
-in.parseState(t_ref2m);
-in.parseState(t_ref2m_r);
-in.parseState(q_ref2m);
-in.parseState(rh_ref2m);
-in.parseState(rh_ref2m_r);
-in.parseState(rootr[idx]);
-in.parseState(eff_porosity[idx]);
-in.parseState(tlai_z[idx]);
-in.parseState(parsha_z[idx]);
-in.parseState(parsun_z[idx]);
-in.parseState(laisha_z[idx]);
-in.parseState(laisun_z[idx]);
-in.parseState(t_soisno[idx]);
-in.parseState(h2osoi_ice[idx]);
-in.parseState(h2osoi_liq[idx]);
-in.parseState(dz[idx]);
-in.parseState(rootfr[idx]);
-in.parseState(sucsat[idx]);
-in.parseState(watsat[idx]);
-in.parseState(bsw[idx]);
-
+    // parse input state and assign to variables
+    in.parseState(snl);
+    in.parseState(frac_veg_nosno);
+    in.parseState(nrad);
+    in.parseState(altmax_indx);
+    in.parseState(altmax_lastyear_indx);
+    in.parseState(frac_sno);
+    in.parseState(forc_hgt_u_patch);
+    in.parseState(thm);
+    in.parseState(thv);
+    in.parseState(max_dayl);
+    in.parseState(dayl);
+    in.parseState(elai);
+    in.parseState(esai);
+    in.parseState(emv);
+    in.parseState(emg);
+    in.parseState(qg);
+    in.parseState(t_grnd);
+    in.parseState(forc_t);
+    in.parseState(forc_pbot);
+    in.parseState(forc_lwrad);
+    in.parseState(forc_u);
+    in.parseState(forc_v);
+    in.parseState(forc_q);
+    in.parseState(forc_th);
+    in.parseState(z0mg);
+    in.parseState(btran);
+    in.parseState(displa);
+    in.parseState(z0mv);
+    in.parseState(z0hv);
+    in.parseState(z0qv);
+    in.parseState(t_veg);
+    in.parseState(forc_hgt_t_patch);
+    in.parseState(forc_hgt_q_patch);
+    in.parseState(fwet);
+    in.parseState(fdry);
+    in.parseState(laisun);
+    in.parseState(laisha);
+    in.parseState(forc_rho);
+    in.parseState(snow_depth);
+    in.parseState(soilbeta);
+    in.parseState(frac_h2osfc);
+    in.parseState(t_h2osfc);
+    in.parseState(sabv);
+    in.parseState(h2ocan);
+    in.parseState(htop);
+    in.parseState(t10);
+    in.parseState(vcmaxcintsha);
+    in.parseState(vcmaxcintsun);
+    in.parseState(forc_pco2);
+    in.parseState(forc_po2);
+    in.parseState(qflx_tran_veg);
+    in.parseState(qflx_evap_veg);
+    in.parseState(eflx_sh_veg);
+    in.parseState(qg_snow);
+    in.parseState(qg_soil);
+    in.parseState(qg_h2osfc);
+    in.parseState(dqgdT);
+    in.parseState(htvp);
+    in.parseState(eflx_sh_grnd);
+    in.parseState(eflx_sh_snow);
+    in.parseState(eflx_sh_soil);
+    in.parseState(eflx_sh_h2osfc);
+    in.parseState(qflx_evap_soi);
+    in.parseState(qflx_ev_snow);
+    in.parseState(qflx_ev_soil);
+    in.parseState(qflx_ev_h2osfc);
+    in.parseState(dlrad);
+    in.parseState(ulrad);
+    in.parseState(cgrnds);
+    in.parseState(cgrndl);
+    in.parseState(cgrnd);
+    in.parseState(t_ref2m);
+    in.parseState(t_ref2m_r);
+    in.parseState(q_ref2m);
+    in.parseState(rh_ref2m);
+    in.parseState(rh_ref2m_r);
+    in.parseState(rootr[idx]);
+    in.parseState(eff_porosity[idx]);
+    in.parseState(tlai_z[idx]);
+    in.parseState(parsha_z[idx]);
+    in.parseState(parsun_z[idx]);
+    in.parseState(laisha_z[idx]);
+    in.parseState(laisun_z[idx]);
+    in.parseState(t_soisno[idx]);
+    in.parseState(h2osoi_ice[idx]);
+    in.parseState(h2osoi_liq[idx]);
+    in.parseState(dz[idx]);
+    in.parseState(rootfr[idx]);
+    in.parseState(sucsat[idx]);
+    in.parseState(watsat[idx]);
+    in.parseState(bsw[idx]);
 
     // call CanopyFluxes kernels
     ELM::InitializeFlux_Can(
@@ -510,102 +496,98 @@ in.parseState(bsw[idx]);
         cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], t_ref2m_r[idx], q_ref2m[idx], rh_ref2m[idx], rh_ref2m_r[idx]);
 
 
-// compare kernel output to ELM output state
-out.compareOutput(snl);
-out.compareOutput(frac_veg_nosno);
-out.compareOutput(nrad);
-out.compareOutput(altmax_indx);
-out.compareOutput(altmax_lastyear_indx);
-out.compareOutput(frac_sno);
-out.compareOutput(forc_hgt_u_patch);
-out.compareOutput(thm);
-out.compareOutput(thv);
-out.compareOutput(max_dayl);
-out.compareOutput(dayl);
-//out.compareOutput(tc_stress);
-out.compareOutput(elai);
-out.compareOutput(esai);
-out.compareOutput(emv);
-out.compareOutput(emg);
-out.compareOutput(qg);
-out.compareOutput(t_grnd);
-out.compareOutput(forc_t);
-out.compareOutput(forc_pbot);
-out.compareOutput(forc_lwrad);
-out.compareOutput(forc_u);
-out.compareOutput(forc_v);
-out.compareOutput(forc_q);
-out.compareOutput(forc_th);
-out.compareOutput(z0mg);
-out.compareOutput(btran);
-out.compareOutput(displa);
-out.compareOutput(z0mv);
-out.compareOutput(z0hv);
-out.compareOutput(z0qv);
-out.compareOutput(t_veg);
-out.compareOutput(forc_hgt_t_patch);
-out.compareOutput(forc_hgt_q_patch);
-out.compareOutput(fwet);
-out.compareOutput(fdry);
-out.compareOutput(laisun);
-out.compareOutput(laisha);
-out.compareOutput(forc_rho);
-out.compareOutput(snow_depth);
-out.compareOutput(soilbeta);
-out.compareOutput(frac_h2osfc);
-out.compareOutput(t_h2osfc);
-out.compareOutput(sabv);
-out.compareOutput(h2ocan);
-out.compareOutput(htop);
-out.compareOutput(t10);
-out.compareOutput(vcmaxcintsha);
-out.compareOutput(vcmaxcintsun);
-out.compareOutput(forc_pco2);
-out.compareOutput(forc_po2);
-out.compareOutput(qflx_tran_veg);
-out.compareOutput(qflx_evap_veg);
-out.compareOutput(eflx_sh_veg);
-out.compareOutput(qg_snow);
-out.compareOutput(qg_soil);
-out.compareOutput(qg_h2osfc);
-out.compareOutput(dqgdT);
-out.compareOutput(htvp);
-out.compareOutput(eflx_sh_grnd);
-out.compareOutput(eflx_sh_snow);
-out.compareOutput(eflx_sh_soil);
-out.compareOutput(eflx_sh_h2osfc);
-out.compareOutput(qflx_evap_soi);
-out.compareOutput(qflx_ev_snow);
-out.compareOutput(qflx_ev_soil);
-out.compareOutput(qflx_ev_h2osfc);
-out.compareOutput(dlrad);
-out.compareOutput(ulrad);
-out.compareOutput(cgrnds);
-out.compareOutput(cgrndl);
-out.compareOutput(cgrnd);
-out.compareOutput(t_ref2m);
-out.compareOutput(t_ref2m_r);
-out.compareOutput(q_ref2m);
-out.compareOutput(rh_ref2m);
-out.compareOutput(rh_ref2m_r);
-out.compareOutput(rootr[idx]);
-out.compareOutput(eff_porosity[idx]);
-out.compareOutput(tlai_z[idx]);
-out.compareOutput(parsha_z[idx]);
-out.compareOutput(parsun_z[idx]);
-out.compareOutput(laisha_z[idx]);
-out.compareOutput(laisun_z[idx]);
-out.compareOutput(t_soisno[idx]);
-out.compareOutput(h2osoi_ice[idx]);
-out.compareOutput(h2osoi_liq[idx]);
-out.compareOutput(dz[idx]);
-out.compareOutput(rootfr[idx]);
-out.compareOutput(sucsat[idx]);
-out.compareOutput(watsat[idx]);
-out.compareOutput(bsw[idx]);
-
+    // compare kernel output to ELM output state
+    out.compareOutput(snl);
+    out.compareOutput(frac_veg_nosno);
+    out.compareOutput(nrad);
+    out.compareOutput(altmax_indx);
+    out.compareOutput(altmax_lastyear_indx);
+    out.compareOutput(frac_sno);
+    out.compareOutput(forc_hgt_u_patch);
+    out.compareOutput(thm);
+    out.compareOutput(thv);
+    out.compareOutput(max_dayl);
+    out.compareOutput(dayl);
+    out.compareOutput(elai);
+    out.compareOutput(esai);
+    out.compareOutput(emv);
+    out.compareOutput(emg);
+    out.compareOutput(qg);
+    out.compareOutput(t_grnd);
+    out.compareOutput(forc_t);
+    out.compareOutput(forc_pbot);
+    out.compareOutput(forc_lwrad);
+    out.compareOutput(forc_u);
+    out.compareOutput(forc_v);
+    out.compareOutput(forc_q);
+    out.compareOutput(forc_th);
+    out.compareOutput(z0mg);
+    out.compareOutput(btran);
+    out.compareOutput(displa);
+    out.compareOutput(z0mv);
+    out.compareOutput(z0hv);
+    out.compareOutput(z0qv);
+    out.compareOutput(t_veg);
+    out.compareOutput(forc_hgt_t_patch);
+    out.compareOutput(forc_hgt_q_patch);
+    out.compareOutput(fwet);
+    out.compareOutput(fdry);
+    out.compareOutput(laisun);
+    out.compareOutput(laisha);
+    out.compareOutput(forc_rho);
+    out.compareOutput(snow_depth);
+    out.compareOutput(soilbeta);
+    out.compareOutput(frac_h2osfc);
+    out.compareOutput(t_h2osfc);
+    out.compareOutput(sabv);
+    out.compareOutput(h2ocan);
+    out.compareOutput(htop);
+    out.compareOutput(t10);
+    out.compareOutput(vcmaxcintsha);
+    out.compareOutput(vcmaxcintsun);
+    out.compareOutput(forc_pco2);
+    out.compareOutput(forc_po2);
+    out.compareOutput(qflx_tran_veg);
+    out.compareOutput(qflx_evap_veg);
+    out.compareOutput(eflx_sh_veg);
+    out.compareOutput(qg_snow);
+    out.compareOutput(qg_soil);
+    out.compareOutput(qg_h2osfc);
+    out.compareOutput(dqgdT);
+    out.compareOutput(htvp);
+    out.compareOutput(eflx_sh_grnd);
+    out.compareOutput(eflx_sh_snow);
+    out.compareOutput(eflx_sh_soil);
+    out.compareOutput(eflx_sh_h2osfc);
+    out.compareOutput(qflx_evap_soi);
+    out.compareOutput(qflx_ev_snow);
+    out.compareOutput(qflx_ev_soil);
+    out.compareOutput(qflx_ev_h2osfc);
+    out.compareOutput(dlrad);
+    out.compareOutput(ulrad);
+    out.compareOutput(cgrnds);
+    out.compareOutput(cgrndl);
+    out.compareOutput(cgrnd);
+    out.compareOutput(t_ref2m);
+    out.compareOutput(t_ref2m_r);
+    out.compareOutput(q_ref2m);
+    out.compareOutput(rh_ref2m);
+    out.compareOutput(rh_ref2m_r);
+    out.compareOutput(rootr[idx]);
+    out.compareOutput(eff_porosity[idx]);
+    out.compareOutput(tlai_z[idx]);
+    out.compareOutput(parsha_z[idx]);
+    out.compareOutput(parsun_z[idx]);
+    out.compareOutput(laisha_z[idx]);
+    out.compareOutput(laisun_z[idx]);
+    out.compareOutput(t_soisno[idx]);
+    out.compareOutput(h2osoi_ice[idx]);
+    out.compareOutput(h2osoi_liq[idx]);
+    out.compareOutput(dz[idx]);
+    out.compareOutput(rootfr[idx]);
+    out.compareOutput(sucsat[idx]);
+    out.compareOutput(watsat[idx]);
+    out.compareOutput(bsw[idx]);
+  }
+  return 0;
 }
-
-}
-
-
