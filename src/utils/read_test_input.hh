@@ -14,8 +14,9 @@ namespace ELM {
 namespace IO {
 
 template <typename T>
-bool IsAlmostEqual(const T a, const T b, double rel_tol=1e-15, double abs_tol=1e-20) {
+bool IsAlmostEqual(const T a, const T b, const double rel_tol) {
   if (a == b) return true;
+  double abs_tol = 1e-20;
   auto diff = std::abs(a - b);
   auto maxreldiff = std::max(std::abs(a),std::abs(b)) * rel_tol;
   return (diff <= maxreldiff || diff <= abs_tol);
@@ -66,14 +67,14 @@ public:
   }
 
   template <class Array_t>
-  void compareOutput(Array_t arr) {
+  void compareOutput(Array_t arr, const double rel_tol=1e-15) {
     using ArrType = typename Array_t::value_type;
     auto filearr = Array<ArrType, 1>(arr.getname(), arr.extent(0));
     parseState(filearr);
     bool same = true;
     std::vector<std::tuple<int, ArrType, ArrType>> mismatch;
     for (std::size_t i = 0; i < arr.extent(0); ++i) {
-      if (!IsAlmostEqual(arr(i),filearr(i))) {
+      if (!IsAlmostEqual(arr(i), filearr(i), rel_tol)) {
         same = false;
         mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr(i), filearr(i)));
       }
