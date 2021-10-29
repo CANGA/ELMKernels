@@ -104,7 +104,6 @@ This subroutine calculates and returns:
 4) shaded  leaf area
 5) sunlit leaf area for canopy layer
 6) shaded leaf area for canopy layer
-7) sunlit fraction of canopy
 
 \param[in]  Land                [LandType] struct containing information about landtype
 \param[in]  nrad                [int] number of canopy layers above snow for radiative transfer
