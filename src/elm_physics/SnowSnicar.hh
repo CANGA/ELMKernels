@@ -297,15 +297,15 @@ void SNICAR_AD_RT() {
       if (snl == 0) {
         flg_nosnl = 1;
         snl_lcl = 1;
-        h2osno_ice_lcl[nlevsno-1] = h2osno_lcl;
-        h2osno_liq_lcl[nlevsno-1] = 0.0;
+        h2osoi_ice_lcl[nlevsno-1] = h2osno_lcl;
+        h2osoi_liq_lcl[nlevsno-1] = 0.0;
         snw_rds_lcl = round(snw_rds_min);
       } else {
         flg_nosnl = 0;
         snl_lcl = snl;
         for (int i = 0; i < nlevsno; ++i) {
-          h2osno_liq_lcl[i] = h2osno_liq[i];
-          h2osno_ice_lcl[i] = h2osno_ice[i];
+          h2osoi_liq_lcl[i] = h2osoi_liq[i];
+          h2osoi_ice_lcl[i] = h2osoi_ice[i];
           snw_rds_lcl[i] = snw_rds[i];
         }
       }
@@ -334,8 +334,9 @@ void SNICAR_AD_RT() {
       }
 
       //Set spectral underlying surface albedos to their corresponding VIS or NIR albedos
-      albsfc_lcl[0] = albsfc[0];
-      for (int i = nir_bnd_bgn; i <= nir_bnd_end; ++i) { albsfc_lcl[i] = albsfc[1]; }
+      // not needed for SNICAR_AD_RT
+     //albsoi_lcl[0] = albsoi[0];
+     //for (int i = nir_bnd_bgn; i <= nir_bnd_end; ++i) { albsoi_lcl[i] = albsoi[1]; }
 
 
       // Error check for snow grain size:
@@ -555,7 +556,7 @@ void SNICAR_AD_RT() {
 #endif
           //mgf--
 
-          L_snw[i]   = h2osno_ice_lcl[i] + h2osno_liq_lcl[i];
+          L_snw[i]   = h2osoi_ice_lcl[i] + h2osoi_liq_lcl[i];
           tau_snw[i] = L_snw[i] * ext_cff_mss_snw_lcl[i];
 
           for (int j = 0; j < sno_nbr_aer; ++j) {
@@ -746,11 +747,11 @@ void SNICAR_AD_RT() {
 
         // set the underlying ground albedo == albedo of near-IR
         // unless bnd_idx == 1, for visible
-        rupdir[snl_btm_itf] = albsfc[1];
-        rupdif[snl_btm_itf] = albsfc[1];
+        rupdir[snl_btm_itf] = albsoi[1];
+        rupdif[snl_btm_itf] = albsoi[1];
         if (bnd_idx == 0) {
-          rupdir[snl_btm_itf] = albsfc[0];
-          rupdif[snl_btm_itf] = albsfc[0];
+          rupdir[snl_btm_itf] = albsoi[0];
+          rupdif[snl_btm_itf] = albsoi[0];
         }
 
         do i=snl_btm,snl_top,-1
@@ -915,8 +916,8 @@ void SNICAR_AD_RT() {
 
     // If snow < minimum_snow, but > 0, and there is sun, set albedo to underlying surface albedo
     } else if ((coszen > 0.0) && (h2osno_lcl < min_snw) && (h2osno_lcl > 0.0)) {
-             albout[0] = albsfc[0];
-             albout[1] = albsfc[1]
+             albout[0] = albsoi[0];
+             albout[1] = albsoi[1]
     // There is either zero snow, or no sun
     } else {
              albout[0] = 0.0;
