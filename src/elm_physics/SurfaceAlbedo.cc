@@ -18,7 +18,6 @@ using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
 
 namespace ELM {
-namespace SurfaceAlbedo {
 
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check! 
 // call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
@@ -1042,5 +1041,4 @@ void SoilAlbedo(
 //
 //  end subroutine SurfaceAlbedoInitTimeConst
 
-} // namespace SurfaceAlbedo
 } // namespace ELM
