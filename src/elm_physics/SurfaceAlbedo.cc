@@ -18,6 +18,7 @@ using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
 
 namespace ELM {
+namespace SurfaceAlbedo {
 
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check! 
 // call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
@@ -47,6 +48,7 @@ so we can probably calc at beginning of nstep with current solar zenith angle
 these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to SnowAbsorptionFactor()
 flx_absd_snw
 flx_absi_snw
+mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 
 */  
 
@@ -153,7 +155,6 @@ void SurfAlbInitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 m
       flx_absin[i] = 0.0;
     }
     if (nlevcan == 1) {
-      const double extkn = 0.30;
       vcmaxcintsun = 0.0;
       vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn;
       if (elai > 0.0) { 
@@ -305,8 +306,6 @@ void CanopyLayerLAI(const int &urbpoi, const double &elai, const double &esai, c
   ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 
   if (!urbpoi) {
-    const double dincmax = 0.25; // maximum lai+sai increment for canopy layer
-    const double mpe = 1.e-06; // prevents overflow for division by zero
     if (nlevcan == 1) {
       nrad = 1;
       ncan = 1;
@@ -514,11 +513,6 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
     double omega[numrad]; // fraction of intercepted radiation that is scattered (0 to 1)
     double rho[numrad], tau[numrad];
 
-    const double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
-    const double mpe = 1.e-06; // prevents overflow for division by zero
-    const double betads = 0.5; // two-stream parameter betad for snow
-    const double betais = 0.5; // two-stream parameter betai for snow
-
     // Weight reflectance/transmittance by lai and sai
     const double wl = elai / std::max(elai + esai, mpe);
     const double ws = esai / std::max(elai + esai, mpe);
@@ -699,7 +693,6 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
           fabi_sha_z[0] = fabi_sha[ib] / ((1.0 - fsun_z[0]) * laisum);
 
           // leaf to canopy scaling coefficients
-           double extkn = 0.30;
            double extkb = twostext;
            vcmaxcintsun = (1.0 - exp(-(extkn + extkb) * elai)) / (extkn + extkb);
            vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn - vcmaxcintsun;
@@ -891,17 +884,8 @@ void SoilAlbedo(
   const ArrayD1 lake_icefrac, const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
   ArrayD1 albsod, ArrayD1 albsoi) {
 
-  
-
   if (!Land.urbpoi) {
     if (coszen > 0.0) {
-
-      const double albice[numrad] = {0.8, 0.55}; // albedo land ice by waveband (0=vis, 1=nir)
-      const double alblak[numrad] = {0.60, 0.40}; // albedo frozen lakes by waveband (0=vis, 1=nir)
-      const double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice From D. Mironov (2010) Boreal Env. Research
-      const double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov (2010) Boreal Env. Research
-      const bool lakepuddling = false; // puddling (not extensively tested and currently hardwired off)
-
       for (int ib = 0; ib < numrad; ib++) {
         if (Land.ltype == istsoil || Land.ltype == istcrop) {
           double inc = std::max(0.11 - 0.40 * h2osoi_vol[0], 0.0); // soil water correction factor for soil albedo
@@ -1041,4 +1025,5 @@ void SoilAlbedo(
 //
 //  end subroutine SurfaceAlbedoInitTimeConst
 
+} // namespace SurfaceAlbedo
 } // namespace ELM

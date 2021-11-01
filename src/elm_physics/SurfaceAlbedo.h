@@ -45,6 +45,18 @@ flx_absi_snw
 namespace ELM {
 namespace SurfaceAlbedo {
 
+constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
+constexpr double mpe = 1.e-06; // prevents overflow for division by zero
+constexpr double extkn = 0.30;
+constexpr double albice[numrad] = {0.8, 0.55}; // albedo land ice by waveband (0=vis, 1=nir)
+constexpr double alblak[numrad] = {0.60, 0.40}; // albedo frozen lakes by waveband (0=vis, 1=nir)
+constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice From D. Mironov (2010) Boreal Env. Research
+constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov (2010) Boreal Env. Research
+constexpr bool lakepuddling = false; // puddling (not extensively tested and currently hardwired off)
+const double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
+const double betads = 0.5; // two-stream parameter betad for snow
+const double betais = 0.5; // two-stream parameter betai for snow
+
 /*
 inputs:
 urbpoi                                   [bool]   true if urban point, false otherwise
@@ -259,6 +271,7 @@ fabd_sha_z[nlevcan]      [double] absorbed shaded leaf direct  PAR (per unit lai
 fabi_sun_z[nlevcan]      [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
 fabi_sha_z[nlevcan]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
+template <class ArrayD1, class ArrayD2>
 void TwoStream(const LandType &Land, const int &nrad, const double &coszen, 
   const double &t_veg, const double &fwet, const double &elai, const double &esai, const ArrayD1 xl,
   const ArrayD1 tlai_z, const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri,
@@ -288,6 +301,7 @@ outputs:
 albsod[numrad]             [double]   direct-beam soil albedo [frc]
 albsoi[numrad]             [double]   diffuse soil albedo [frc]   
 */
+template <class ArrayD1>
 void SoilAlbedo(
   const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
   const ArrayD1 lake_icefrac, const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
