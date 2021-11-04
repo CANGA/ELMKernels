@@ -1,26 +1,12 @@
+// functions derived from subroutine SNICAR_AD_RT() in SnowSNICARMod.F90
+
+#pragma once
 
 #include <cmath>
 #include <stdexcept>
 
 #include "ELMConstants.h"
-#include "SnowSnicar.h"
-
-// when reading in ss_alb_snw_drc or _dfs and associates, check idx - Fortran reversed from NC file
-//#ifdef MODAL_AER evals to true
-//logical,  public, parameter :: DO_SNO_OC =    .false.   ! parameter to include organic carbon (OC)
-//                                                          ! in snowpack radiative calculations
-//logical,  public, parameter :: DO_SNO_AER =   .true.    ! parameter to include aerosols in snowpack radiative calculations
-//flg_snw_ice == 1
-//num_snowc filter is just if (snl > 0) {}
-
-// for build testing
-#include "array.hh"
-using ArrayB1 = ELM::Array<bool, 1>;
-using ArrayI1 = ELM::Array<int, 1>;
-using ArrayS1 = ELM::Array<std::string, 1>;
-using ArrayD1 = ELM::Array<double, 1>;
-using ArrayD2 = ELM::Array<double, 2>;
-using ArrayD3 = ELM::Array<double, 3>;
+#include "SnowSNICAR.h"
 
 
 namespace ELM {
@@ -214,15 +200,6 @@ namespace SNICAR {
 
 
 
-//idx_bcint_icerds                  ! index of ice effective radius for optical properties lookup table
-//idx_bcint_nclrds                  ! index of within-ice BC effective radius for optical properties lookup 
-//idx_bcext_nclrds                  ! index of external BC effective radius for optical properties lookup ta
-//enh_fct                           ! extinction/absorption enhancement factor for within-ice BC
-//tmp1                              ! temporary variable
-
-
-
-
 /*
 
 urbpoi                             [bool]    true if urban point, false otherwise
@@ -252,7 +229,8 @@ flx_slri_lcl[numrad_snw]    [double] diffuse incident irradiance [W/m2]
 
 
 */
-void SNICARInitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
+template <class ArrayI1, class ArrayD1, class ArrayD2>
+void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
   const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
   ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, ArrayD1 rds_bcint_lcl,
@@ -407,7 +385,7 @@ tau_star[numrad_snw][nlevsno]        [double]
 
 
 */
-
+template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
 void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
   const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, 
   const ArrayD1 rds_bcint_lcl, const ArrayD1 rds_bcext_lcl, const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
@@ -628,6 +606,7 @@ albout_lcl[numrad_snw]             [double]  snow albedo by band [frc]
 flx_abs_lcl[nlevsno+1][numrad_snw] [double]  absorbed flux per unit incident flux at top of snowpack [frc]
 
 */
+template <class ArrayD1, class ArrayD2>
 void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &flg_nosnl, const int &snl_top, const int &snl_btm, 
   const double &coszen, const double &h2osno, const double &mu_not,
   const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl, const ArrayD1 albsoi, const ArrayD2 g_star, 
@@ -988,6 +967,7 @@ albout[numrad]                [double] snow albedo, averaged into 2 bands (=0 if
 flx_abs[nlevsno+1][numrad]    [double] absorbed flux in each layer per unit flux incident [frc]
 
 */
+template <class ArrayD1, class ArrayD2>
 void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
   const double &mu_not,
 const double &h2osno, 

@@ -1,13 +1,4 @@
 //Functions derived from SurfaceAlbedoMod.F90
-#include <cmath>
-#include <stdexcept>
-
-#include "ELMConstants.h"
-#include "LandType.h"
-#include "SurfaceAlbedo.h"
-
-namespace ELM {
-namespace SurfaceAlbedo {
 
 // call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
 // CanopyLayers() -> TwoStream()
@@ -38,7 +29,20 @@ flx_absd_snw
 flx_absi_snw
 mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 
-*/  
+*/
+
+#pragma once
+
+#include <cmath>
+#include <stdexcept>
+
+#include "ELMConstants.h"
+#include "LandType.h"
+#include "SurfaceAlbedo.h"
+
+namespace ELM {
+namespace SurfaceAlbedo {
+
 
 // not sure if necessary
 // maybe for nstep == 0 this should be run, don't call surfalb, but call evrything else?

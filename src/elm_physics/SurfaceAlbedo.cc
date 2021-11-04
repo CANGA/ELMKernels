@@ -6,10 +6,6 @@
 #include "SurfaceAlbedo.h"
 
 
-
-
-
-
 // for build testing
 //#include "array.hh"
 //using ArrayB1 = ELM::Array<bool, 1>;
