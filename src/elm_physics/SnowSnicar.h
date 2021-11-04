@@ -1,7 +1,7 @@
 
 
 namespace ELM {
-namespace SnowSnicar {
+namespace SNICAR {
 
 constexpr int numrad_snw = 5; // number of spectral bands used in snow model [nbr]
 constexpr int nir_bnd_bgn = 1; // first band index in near-IR spectrum [idx]
@@ -63,10 +63,10 @@ constexpr double sza_b2 =  6.807489;
 constexpr double puny   =  1.0e-11;
 constexpr double mu_75  =  0.2588; // cosine of 75 degree
 
-constexpr exp_min = exp(-argmax);
+constexpr double exp_min = exp(-argmax);
 
 // shorter name for pi
-constexpr double pi = ELM_PI;
+const double pi = ELM_PI;
 // always use Delta approximation for snow
 constexpr int DELTA = 1;
 

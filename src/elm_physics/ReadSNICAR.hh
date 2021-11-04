@@ -164,3 +164,46 @@ subroutine SnowOptics_init( )
      end if
 
    end subroutine SnowOptics_init
+
+
+
+   subroutine SnowAge_init( )
+     use elm_varctl      , only : fsnowaging
+     use fileutils       , only : getfil
+     use spmdMod         , only : masterproc
+     use ncdio_pio       , only : file_desc_t, ncd_io, ncd_pio_openfile, ncd_pio_closefile
+
+     type(file_desc_t)  :: ncid                        ! netCDF file id
+     character(len=256) :: locfn                       ! local filename
+     character(len= 32) :: subname = 'SnowOptics_init' ! subroutine name
+     integer            :: varid                       ! netCDF id's
+     integer            :: ier                         ! error status
+
+     ! Open snow aging (effective radius evolution) file:
+     allocate(snowage_tau(idx_rhos_max,idx_Tgrd_max,idx_T_max))
+     allocate(snowage_kappa(idx_rhos_max,idx_Tgrd_max,idx_T_max))
+     allocate(snowage_drdt0(idx_rhos_max,idx_Tgrd_max,idx_T_max))
+
+     if(masterproc)  write(iulog,*) 'Attempting to read snow aging parameters .....'
+     call getfil (fsnowaging, locfn, 0)
+     call ncd_pio_openfile(ncid, locfn, 0)
+     if(masterproc) write(iulog,*) subname,trim(fsnowaging)
+
+     ! snow aging parameters
+
+     call ncd_io('tau', snowage_tau,       'read', ncid, posNOTonfile=.true.)
+     call ncd_io('kappa', snowage_kappa,   'read', ncid, posNOTonfile=.true.)
+     call ncd_io('drdsdt0', snowage_drdt0, 'read', ncid, posNOTonfile=.true.)
+
+     call ncd_pio_closefile(ncid)
+     if (masterproc) then
+
+        write(iulog,*) 'Successfully read snow aging properties'
+
+        ! print some diagnostics:
+        write (iulog,*) 'SNICAR: snowage tau for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_tau(3,11,9)
+        write (iulog,*) 'SNICAR: snowage kappa for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_kappa(3,11,9)
+        write (iulog,*) 'SNICAR: snowage dr/dt_0 for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_drdt0(3,11,9)
+     endif
+
+   end subroutine SnowAge_init
