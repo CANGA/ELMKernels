@@ -1,15 +1,14 @@
+/*! \file SurfaceAlbedo.h
+\brief Functions derived from SurfaceAlbedoMod.F90
 
-
-// need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check! 
-// call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
+// call sequence -> InitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
 // CanopyLayers() -> TwoStream()
 
 // will need to finish zenith angle ATS code, Aerosol functions
-
-// need to make metric to mimic num_vegsol num_novegsol
 // need to write coszen function
 // need to initialize h2osoi_vol[nlevgrnd]
 // need to read in soil color NetCDF, initialize isoicol, albsat, albdry
+
 // need to figure out doalb - during nstep == 0 SurfaceAlbedo doesn't get called and values for the outputs are provided by SurfaceAlbedoType::InitCold
 //  why does SurfAlb calc at nstep+1? there must be a reason
 //  from CLM 4.5 tech note:
@@ -30,6 +29,7 @@ so we can probably calc at beginning of nstep with current solar zenith angle
 these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to SnowAbsorptionFactor()
 flx_absd_snw
 flx_absi_snw
+mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 
 */  
 
@@ -53,9 +53,9 @@ constexpr double alblak[numrad] = {0.60, 0.40}; // albedo frozen lakes by waveba
 constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice From D. Mironov (2010) Boreal Env. Research
 constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov (2010) Boreal Env. Research
 constexpr bool lakepuddling = false; // puddling (not extensively tested and currently hardwired off)
-const double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
-const double betads = 0.5; // two-stream parameter betad for snow
-const double betais = 0.5; // two-stream parameter betai for snow
+constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
+constexpr double betads = 0.5; // two-stream parameter betad for snow
+constexpr double betais = 0.5; // two-stream parameter betai for snow
 
 /*
 inputs:
@@ -93,7 +93,7 @@ flx_absin[nlevsno]                       [double] diffuse flux absorption factor
 mss_cnc_aer_in_fdb[nlevsno][sno_nbr_aer] [double] mass concentration of all aerosol species for feedback calculation [kg kg-1]
 */
 template <class ArrayD1, class ArrayD2>
-void SurfAlbInitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
+void InitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
   const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3, const ArrayD1 mss_cnc_dst4,
   double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod, ArrayD1 albsoi, ArrayD1 albgrd, ArrayD1 albgri, ArrayD1 albd, 
   ArrayD1 albi, ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 fabi, ArrayD1 fabi_sun, ArrayD1 fabi_sha, 
@@ -305,8 +305,10 @@ template <class ArrayD1>
 void SoilAlbedo(
   const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
   const ArrayD1 lake_icefrac, const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
-  ArrayD1 albsod, ArrayD1 albsoi)
+  ArrayD1 albsod, ArrayD1 albsoi);
 
 
 } // namespace SurfaceAlbedo
 } // namespace ELM
+
+#include "SurfaceAlbedo_impl.hh"
