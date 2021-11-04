@@ -76,7 +76,7 @@ void InitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_
 
   // Initialize output because solar radiation only done if coszen > 0
   if (!urbpoi) {
-    for (int ib=0; ib < numrad; ++ib) {
+    for (int ib = 0; ib < numrad; ++ib) {
       albsod[ib] = 0.0;
       albsoi[ib] = 0.0;
       albgrd[ib] = 0.0;
@@ -648,7 +648,7 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 template <class ArrayD1>
 void SoilAlbedo(
   const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
-  const ArrayD1 lake_icefrac, const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
+  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
   ArrayD1 albsod, ArrayD1 albsoi) {
 
   if (!Land.urbpoi) {
@@ -662,20 +662,21 @@ void SoilAlbedo(
         } else if (Land.ltype == istice || Land.ltype == istice_mec) {
           albsod[ib] = albice[ib];
           albsoi[ib] = albsod[ib];
-        } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac[0] < 1.0 &&
-                                     lake_icefrac[1] > 0.0)) { // maybe get rid of lake logic?
-          albsod[ib] = 0.05 / (std::max(0.001, coszen) + 0.15);
-          // This expression is apparently from BATS according to Yongjiu Dai.
-          // The diffuse albedo should be an average over the whole sky of an angular-dependent direct expression.
-          // The expression above may have been derived to encompass both (e.g. Henderson-Sellers 1986),
-          // but I'll assume it applies more appropriately to the direct form for now.
-          // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
-          // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
-          if (Land.ltype == istdlak) {
-            albsoi[ib] = 0.10;
-          } else {
-            albsoi[ib] = albsod[ib];
-          }
+          //comment out lake logic for now
+       // } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac[0] < 1.0 &&
+       //                              lake_icefrac[1] > 0.0)) { // maybe get rid of lake logic?
+       //   albsod[ib] = 0.05 / (std::max(0.001, coszen) + 0.15);
+       //   // This expression is apparently from BATS according to Yongjiu Dai.
+       //   // The diffuse albedo should be an average over the whole sky of an angular-dependent direct expression.
+       //   // The expression above may have been derived to encompass both (e.g. Henderson-Sellers 1986),
+       //   // but I'll assume it applies more appropriately to the direct form for now.
+       //   // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
+       //   // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
+       //   if (Land.ltype == istdlak) {
+       //     albsoi[ib] = 0.10;
+       //   } else {
+       //     albsoi[ib] = albsod[ib];
+       //   }
   
         } else {
           // frozen lake, wetland

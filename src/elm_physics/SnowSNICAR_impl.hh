@@ -205,8 +205,8 @@ template <class ArrayI1, class ArrayD1, class ArrayD2>
 void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
   const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
-  ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, ArrayD1 rds_bcint_lcl,
-  ArrayD1 rds_bcext_lcl, double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl) {
+  ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
+  double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl) {
 
   if (!urbpoi) {
 
@@ -253,10 +253,12 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
       // 40nm) assumed for freshly-emitted BC in MAM.  Future
       // implementations may prognose the BC effective radius in
       // snow.
-      for (int i = 0; i < nlevsno; ++i) {
-        rds_bcint_lcl[i] = 100.0;
-        rds_bcext_lcl[i] = 100.0;
-      }
+
+     // put this in header
+     //for (int i = 0; i < nlevsno; ++i) {
+     //  rds_bcint_lcl[i] = 100.0;
+     //  rds_bcext_lcl[i] = 100.0;
+     //}
 
       // Error check for snow grain size:
       for (int i = snl_top; i <= snl_btm; ++i) {
@@ -295,7 +297,7 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
 void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
   const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, 
-  const ArrayD1 rds_bcint_lcl, const ArrayD1 rds_bcext_lcl, const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
+  const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
   const ArrayD1 ss_alb_oc1, 
   const ArrayD1 asm_prm_oc1, const ArrayD1 ext_cff_mss_oc1, const ArrayD1 ss_alb_oc2, const ArrayD1 asm_prm_oc2, 
   const ArrayD1 ext_cff_mss_oc2, const ArrayD1 ss_alb_dst1, const ArrayD1 asm_prm_dst1,
@@ -416,8 +418,8 @@ void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &s
           }
 
           // valid for 25 < bc_rds < 525 nm
-          int idx_bcint_nclrds = round(rds_bcint_lcl[i] / 50);
-          int idx_bcext_nclrds = round(rds_bcext_lcl[i] / 50);
+          int idx_bcint_nclrds = round(rds_bcint_lcl / 50);
+          int idx_bcext_nclrds = round(rds_bcext_lcl / 50);
 
           // check bounds:
           if (idx_bcint_icerds < idx_bcint_icerds_min) idx_bcint_icerds = idx_bcint_icerds_min;
@@ -829,7 +831,7 @@ void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &
 
 
 
-template <class ArrayD1, class ArrayD2>
+template <class ArrayI1, class ArrayD1, class ArrayD2>
 void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
   const double &mu_not,
   const double &h2osno, 

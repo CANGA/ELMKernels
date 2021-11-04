@@ -246,10 +246,10 @@ tlai_z[nlevcan]          [double] tlai increment for canopy layer
 tsai_z[nlevcan]          [double] tsai increment for canopy layer
 albgrd[numrad]           [double] ground albedo (direct) (column-level)
 albgri[numrad]           [double] ground albedo (diffuse)(column-level)
-rhol[numrad]             [double] leaf reflectance: 0=vis, 1=nir  
-rhos[numrad]             [double] stem reflectance: 0=vis, 1=nir  
-taul[numrad]             [double] leaf transmittance: 0=vis, 1=nir
-taus[numrad]             [double] stem transmittance: 0=vis, 1=nir
+rhol[numrad][numpft]     [double] leaf reflectance: 0=vis, 1=nir  
+rhos[numrad][numpft]     [double] stem reflectance: 0=vis, 1=nir  
+taul[numrad][numpft]     [double] leaf transmittance: 0=vis, 1=nir
+taus[numrad][numpft]     [double] stem transmittance: 0=vis, 1=nir
 
 outputs:
 vcmaxcintsun             [double] leaf to canopy scaling coefficient, sunlit leaf vcmax
@@ -292,7 +292,7 @@ Land                       [LandType] struct containing information about landty
 snl                        [int]      number of snow layers
 t_grnd                     [double]   ground temperature (Kelvin)
 coszen                     [double]   solar zenith angle factor 
-lake_icefrac[nlevlak]      [double]   mass fraction of lake layer that is frozen
+//lake_icefrac[nlevlak]      [double]   mass fraction of lake layer that is frozen -- removed for now
 h2osoi_vol[nlevgrnd]       [double]   volumetric soil water [m3/m3]
 albsat[numrad]             [double]   wet soil albedo by color class and waveband (color class designated in SurfaceAlbedoInitTimeConst)
 albdry[numrad]             [double]   dry soil albedo by color class and waveband (color class designated in SurfaceAlbedoInitTimeConst)
@@ -304,7 +304,7 @@ albsoi[numrad]             [double]   diffuse soil albedo [frc]
 template <class ArrayD1>
 void SoilAlbedo(
   const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
-  const ArrayD1 lake_icefrac, const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
+  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
   ArrayD1 albsod, ArrayD1 albsoi);
 
 

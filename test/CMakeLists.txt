@@ -23,3 +23,7 @@ install(TARGETS test_BGFlux)
 add_executable (test_CanFlux test_CanFlux.cc)
 target_link_libraries (test_CanFlux LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_CanFlux)
+
+add_executable (test_SurfAlb test_SurfAlb.cc)
+target_link_libraries (test_SurfAlb LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_SurfAlb)

@@ -30,6 +30,9 @@ constexpr int snw_rds_min_tbl = 30; // minimium effective radius defined in Mie 
 constexpr double snw_rds_max = 1500.0; // maximum allowed snow effective radius [microns]
 constexpr double snw_rds_refrz  = 1000.0; // effective radius of re-frozen snow [microns]
 
+constexpr double rds_bcint_lcl = 100.0; // effective radius of within-ice BC [nm]
+constexpr double rds_bcext_lcl = 100.0; // effective radius of external BC [nm]
+
 constexpr int idx_Mie_snw_mx = 1471; // number of effective radius indices used in Mie lookup table [idx]
 constexpr int idx_T_max      = 11; // maxiumum temperature index used in aging lookup table [idx]
 constexpr int idx_T_min      = 1; // minimum temperature index used in aging lookup table [idx]
@@ -100,8 +103,6 @@ constexpr int DELTA = 1;
 \param[out]h2osoi_ice_lcl[nlevsno]            [double] liquid water mass [kg/m2]
 \param[out]h2osoi_liq_lcl[nlevsno]            [double] ice mass [kg/m2]
 \param[out]snw_rds_lcl[nlevsno]               [int] snow effective radius [m^-6]
-\param[out]rds_bcint_lcl[nlevsno]             [double] effective radius of within-ice BC [nm]
-\param[out]rds_bcext_lcl[nlevsno]             [double] effective radius of external BC [nm]
 \param[out]mu_not                             [double] cosine solar zenith angle above the fresnel level
 \param[out]flx_slrd_lcl[numrad_snw]           [double] direct beam incident irradiance [W/m2]
 \param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
@@ -110,8 +111,8 @@ template <class ArrayI1, class ArrayD1, class ArrayD2>
 void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
   const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
-  ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, ArrayD1 rds_bcint_lcl,
-  ArrayD1 rds_bcext_lcl, double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl);
+  ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
+  double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl);
 
 
 
@@ -123,8 +124,6 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
 \param[in]coszen                                                     [double] solar zenith angle factor 
 \param[in]h2osno                                                     [double] snow water (mm H2O)
 \param[in]snw_rds_lcl[nlevsno]                                       [int] snow effective radius [m^-6]
-\param[in]rds_bcint_lcl[nlevsno]                                     [double] effective radius of within-ice BC [nm]
-\param[in]rds_bcext_lcl[nlevsno]                                     [double] effective radius of external BC [nm]
 \param[in]h2osoi_ice_lcl[nlevsno]                                    [double] liquid water mass [kg/m2]
 \param[in]h2osoi_liq_lcl[nlevsno]                                    [double] ice mass [kg/m2]
 \param[in]ss_alb_oc1[numrad_snw]                                     [double] Mie single scatter albedos for hydrophillic OC [frc]
@@ -167,7 +166,7 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
 void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
   const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, 
-  const ArrayD1 rds_bcint_lcl, const ArrayD1 rds_bcext_lcl, const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
+  const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
   const ArrayD1 ss_alb_oc1, 
   const ArrayD1 asm_prm_oc1, const ArrayD1 ext_cff_mss_oc1, const ArrayD1 ss_alb_oc2, const ArrayD1 asm_prm_oc2, 
   const ArrayD1 ext_cff_mss_oc2, const ArrayD1 ss_alb_dst1, const ArrayD1 asm_prm_dst1,
@@ -228,7 +227,7 @@ void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &
 \param[out]albout[numrad]                    [double] snow albedo, averaged into 2 bands (=0 if no sun or no snow) [frc]
 \param[out]flx_abs[nlevsno+1][numrad]        [double] absorbed flux in each layer per unit flux incident, averaged into 2 bands  [frc]
 */
-template <class ArrayD1, class ArrayD2>
+template <class ArrayI1, class ArrayD1, class ArrayD2>
 void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
   const double &mu_not,
 const double &h2osno, 
