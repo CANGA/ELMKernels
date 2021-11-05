@@ -82,9 +82,9 @@ namespace SNICAR {
 //      rhos = std::max(50.0, rhos);
 //
 //      // best-fit table indecies
-//      T_idx    = round((t_soisno[i] - 223) / 5) + 1;
-//      Tgrd_idx = round(dTdz[i] / 10) + 1;
-//      rhos_idx = round((rhos-50) / 50) + 1;
+//      T_idx    = round((t_soisno[i] - 223) / 5);
+//      Tgrd_idx = round(dTdz[i] / 10);
+//      rhos_idx = round((rhos-50) / 50);
 //
 //      // boundary check:
 //      if (T_idx < idx_T_min) { T_idx = idx_T_min; }
@@ -204,7 +204,7 @@ namespace SNICAR {
 template <class ArrayI1, class ArrayD1, class ArrayD2>
 void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
   const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
-  const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
+  const ArrayI1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
   ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
   double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl) {
 
@@ -215,6 +215,8 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
       for (int ib = 0; i < numrad; ++i) {
         flx_abs[i][ib] = 0.0;
       }
+    }
+    for (int i = 0; i <= nlevsno; ++i) {
       for (int ib = 0; i < numrad_snw; ++i) {
         flx_abs_lcl[i][ib] = 0.0;
       }
@@ -304,12 +306,11 @@ void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &s
   const ArrayD1 ext_cff_mss_dst1, const ArrayD1 ss_alb_dst2, const ArrayD1 asm_prm_dst2, 
   const ArrayD1 ext_cff_mss_dst2, const ArrayD1 ss_alb_dst3, const ArrayD1 asm_prm_dst3, 
   const ArrayD1 ext_cff_mss_dst3, const ArrayD1 ss_alb_dst4, const ArrayD1 asm_prm_dst4, 
-  const ArrayD1 ext_cff_mss_dst4, const ArrayD2 mss_cnc_aer_in, const ArrayD2 ss_alb_snw_drc,
+  const ArrayD1 ext_cff_mss_dst4, const ArrayD2 ss_alb_snw_drc,
   const ArrayD2 asm_prm_snw_drc, const ArrayD2 ext_cff_mss_snw_drc, const ArrayD2 ss_alb_snw_dfs,
   const ArrayD2 asm_prm_snw_dfs, const ArrayD2 ext_cff_mss_snw_dfs, const ArrayD2 ss_alb_bc1, 
   const ArrayD2 asm_prm_bc1, const ArrayD2 ext_cff_mss_bc1, const ArrayD2 ss_alb_bc2, const ArrayD2 asm_prm_bc2, 
-  const ArrayD2 ext_cff_mss_bc2, const ArrayD3 bcenh,
-
+  const ArrayD2 ext_cff_mss_bc2, const ArrayD3 bcenh, const ArrayD2 mss_cnc_aer_in,
   ArrayD2 g_star, ArrayD2 omega_star, ArrayD2 tau_star) {
 
   // Define local Mie parameters based on snow grain size and aerosol species,
@@ -409,17 +410,17 @@ void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &s
           int idx_bcint_icerds;
           if (snw_rds_lcl[i] < 125) {
              double tmp1 = snw_rds_lcl[i] / 50;
-             idx_bcint_icerds = round(tmp1);
+             idx_bcint_icerds = round(tmp1) - 1;
           } else if (snw_rds_lcl[i] < 175) {
-             idx_bcint_icerds = 2;
+             idx_bcint_icerds = 1;
           } else {
              double tmp1 = (snw_rds_lcl[i] / 250) + 2;
-             idx_bcint_icerds = round(tmp1);
+             idx_bcint_icerds = round(tmp1) - 1;
           }
 
           // valid for 25 < bc_rds < 525 nm
-          int idx_bcint_nclrds = round(rds_bcint_lcl / 50);
-          int idx_bcext_nclrds = round(rds_bcext_lcl / 50);
+          int idx_bcint_nclrds = round(rds_bcint_lcl / 50) - 1;
+          int idx_bcext_nclrds = round(rds_bcext_lcl / 50) - 1;
 
           // check bounds:
           if (idx_bcint_icerds < idx_bcint_icerds_min) idx_bcint_icerds = idx_bcint_icerds_min;

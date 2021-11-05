@@ -91,13 +91,13 @@ coszen  [double]   solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */
-inline bool vegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
-  if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
-    return true;
-  } else {
-    return false;
-  }
-}
+//inline bool vegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+//  if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
+//    return true;
+//  } else {
+//    return false;
+//  }
+//}
 
 
 /*
@@ -110,14 +110,14 @@ coszen  [double]   solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */
-inline bool novegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
-  if (!Land.urbpoi && coszen > 0.0) {
-    if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
-      return true;
-    }
-  }
-  return false;
-}
+//inline bool novegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+//  if (!Land.urbpoi && coszen > 0.0) {
+//    if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
+//      return true;
+//    }
+//  }
+//  return false;
+//}
 
 
 

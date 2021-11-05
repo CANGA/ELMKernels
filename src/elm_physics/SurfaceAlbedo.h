@@ -196,24 +196,19 @@ void CanopyLayerLAI(const int &urbpoi, const double &elai, const double &esai, c
 /*
 returns true if !urbpoi && coszen > 0 && landtype is vegetated
 
-inputs:
 Land    [LandType] struct containing information about landtype
-coszen  [double]   solar zenith angle factor
+coszen  [double] solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */
 inline bool vegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai);
 
 
-
-
 /*
 returns true if !urbpoi && coszen > 0 && landtype is not vegetated
 
-inputs:
-inputs:
 Land    [LandType] struct containing information about landtype
-coszen  [double]   solar zenith angle factor
+coszen  [double] solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */

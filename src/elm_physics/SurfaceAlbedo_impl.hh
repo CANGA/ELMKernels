@@ -66,6 +66,26 @@ namespace SurfaceAlbedo {
 //}
 
 
+
+inline bool vegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+  if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+
+inline bool novegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+  if (!Land.urbpoi && coszen > 0.0) {
+    if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
 template <class ArrayD1, class ArrayD2>
 void InitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
   const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3, const ArrayD1 mss_cnc_dst4,
