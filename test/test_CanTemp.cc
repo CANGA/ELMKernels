@@ -93,8 +93,8 @@ watopt[nlevgrnd]
 rootfr_road_perv[nlevgrnd]
 rootr_road_perv[nlevgrnd]
 watfc[nlevgrnd]
-displar[numpft+1]  +1??
-z0mr[numpft+1]  +1??
+displar[numpft]
+z0mr[numpft]
 */
 
 
@@ -198,8 +198,8 @@ int main(int argc, char **argv) {
   auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", n_grid_cells, ELM::nlevgrnd);
   auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", n_grid_cells, ELM::nlevgrnd);
   auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);
-  auto displar = create<ArrayD2>("displar", n_grid_cells, ELM::numpft+1);
-  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, ELM::numpft+1);
+  auto displar = create<ArrayD2>("displar", n_grid_cells, ELM::numpft);
+  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, ELM::numpft);
 
 
   // input and output utility class objects

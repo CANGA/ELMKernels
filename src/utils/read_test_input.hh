@@ -49,8 +49,8 @@ public:
       if (namefromfile == namefromarr) {
         const std::size_t pos = line_ss.tellg();
         const auto len = std::distance(std::istream_iterator<std::string>(line_ss), std::istream_iterator<std::string>());
-        if (len != arr.extent(0)) {
-          std::string err = "INPUT ERROR: Array length (" + std::to_string(arr.extent(0)) + ") != input data length (" + 
+        if (len != arr.size()) {
+          std::string err = "INPUT ERROR: Array length (" + std::to_string(arr.size()) + ") != input data length (" + 
           std::to_string(len) + ") for variable " + namefromarr;
           throw std::runtime_error(err);
         }
@@ -69,14 +69,14 @@ public:
   template <class Array_t>
   void compareOutput(Array_t arr, const double rel_tol=1e-15) {
     using ArrType = typename Array_t::value_type;
-    auto filearr = Array<ArrType, 1>(arr.getname(), arr.extent(0));
+    auto filearr = Array<ArrType, 1>(arr.getname(), arr.size());
     parseState(filearr);
     bool same = true;
     std::vector<std::tuple<int, ArrType, ArrType>> mismatch;
-    for (std::size_t i = 0; i < arr.extent(0); ++i) {
-      if (!IsAlmostEqual(arr(i), filearr(i), rel_tol)) {
+    for (std::size_t i = 0; i < arr.size(); ++i) {
+      if (!IsAlmostEqual(arr.data()[i], filearr.data()[i], rel_tol)) {
         same = false;
-        mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr(i), filearr(i)));
+        mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr.data()[i], filearr.data()[i]));
       }
     }
     std::cout << std::boolalpha << arr.getname() << " from NSTEP " << nstep_ << " passes: " << same << std::endl;
