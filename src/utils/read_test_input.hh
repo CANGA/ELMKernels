@@ -14,7 +14,7 @@ namespace ELM {
 namespace IO {
 
 template <typename T>
-bool IsAlmostEqual(const T a, const T b, const double rel_tol) {
+bool IsAlmostEqual(const T &a, const T &b, const double rel_tol) {
   if (a == b) return true;
   double abs_tol = 1e-20;
   auto diff = std::abs(a - b);
@@ -26,7 +26,7 @@ bool IsAlmostEqual(const T a, const T b, const double rel_tol) {
 class ELMtestinput {
 
 public:
-  ELMtestinput(const std::string& filename) : filename_(filename) { filestring_ = readInputFiletoString(); }
+  ELMtestinput(const std::string& filename) : filename_(filename) { this->filestring_ = readInputFiletoString(); }
 
 /*! Get state for time nstep and store in class variable state_ */
   std::string getState (const int nstep);
@@ -41,7 +41,7 @@ public:
   template <class Array_t>
   void parseState(Array_t arr) {
     std::string line_str, namefromfile;
-    std::istringstream state_ss(state_);
+    std::istringstream state_ss(this->state_);
     const std::string namefromarr = arr.getname();
     while (std::getline(state_ss, line_str)) {
       std::istringstream line_ss(line_str);
@@ -62,7 +62,7 @@ public:
         return;
       }
     }
-    std::string err = "INPUT ERROR: Can't find variable " + namefromarr + " in NSTEP " + std::to_string(nstep_);
+    std::string err = "INPUT ERROR: Can't find variable " + namefromarr + " in NSTEP " + std::to_string(this->nstep_);
     throw std::runtime_error(err);
   }
 
@@ -79,7 +79,7 @@ public:
         mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr.data()[i], filearr.data()[i]));
       }
     }
-    std::cout << std::boolalpha << arr.getname() << " from NSTEP " << nstep_ << " passes: " << same << std::endl;
+    std::cout << std::boolalpha << arr.getname() << " from NSTEP " << this->nstep_ << " passes: " << same << std::endl;
     if (!same) {
       for (const auto [i,a,f] : mismatch) {
         std::cout << std::setprecision (15) << "    [i, ELM Kernels, file]        " << i << "  " << a << "  " << f << std::endl;

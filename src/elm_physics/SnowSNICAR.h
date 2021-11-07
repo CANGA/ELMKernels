@@ -111,8 +111,8 @@ constexpr int DELTA = 1;
 \param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
 */
 template <class ArrayI1, class ArrayD1, class ArrayD2>
-void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
-  const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
+void InitTimestep (const int &urbpoi, const int &flg_slr_in, const double &coszen,
+  const double &h2osno, const int &snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
   ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
   double &mu_not, ArrayD1 flx_slrd_lcl, ArrayD1 flx_slri_lcl);
