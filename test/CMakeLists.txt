@@ -27,3 +27,14 @@ install(TARGETS test_CanFlux)
 add_executable (test_SurfAlb test_SurfAlb.cc)
 target_link_libraries (test_SurfAlb LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_SurfAlb)
+
+
+
+
+
+add_executable (test_CanHydro_newphysics test_CanHydro_newphysics.cc)
+target_link_libraries (test_CanHydro_newphysics LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_CanHydro_newphysics)
+
+
+

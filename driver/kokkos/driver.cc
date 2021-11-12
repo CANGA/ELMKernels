@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
     auto snow_depth = create<ArrayD1>("snow_depth", ncells);
     auto h2osno = create<ArrayD1>("h2osno", ncells);
     auto int_snow = create<ArrayD1>("int_snow", ncells);
-    auto qflx_snow_h2osfc = create<ArrayD1>("qflx_snow_h2osfc", ncells);
+    //auto qflx_snow_h2osfc = create<ArrayD1>("qflx_snow_h2osfc", ncells); - always 0.0
     auto h2osfc = create<ArrayD1>("h2osfc", ncells);
     auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", ncells);
     auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", ncells);
@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
       canopyHydrologyInvoke(ncells, Land, frac_veg_nosno, n_irrig_steps_left, snl, dtime, forc_rain, forc_snow, elai,
                             esai, h2ocan, irrig_rate, qflx_irrig, qflx_prec_grnd, qflx_snwcp_liq, qflx_snwcp_ice,
                             qflx_snow_grnd, qflx_rain_grnd, fwet, fdry, forc_t, t_grnd, qflx_snow_melt, n_melt,
-                            micro_sigma, snow_depth, h2osno, int_snow, qflx_snow_h2osfc, h2osfc, frac_h2osfc,
+                            micro_sigma, snow_depth, h2osno, int_snow, h2osfc, frac_h2osfc,
                             frac_sno_eff, frac_sno, swe_old, h2osoi_liq, h2osoi_ice, t_soisno, frac_iceold, dz, z, zi,
                             snw_rds);
       i++;

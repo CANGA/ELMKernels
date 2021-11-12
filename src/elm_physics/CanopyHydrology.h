@@ -117,7 +117,6 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
 \param[out]    z                             [double] layer cell center elevation (m)
 \param[out]    zi                            [double] layer interface elevation (m)
 \param[out]    snw_rds[nlevsno]              [double] snow grain radius [m^-6, microns]
-\param[out]    qflx_snow_h2osfc              [double] snow falling on surface water (mm/s)
 \param[out]    frac_sno_eff                  [double] fraction of ground covered by snow (0 to 1)
 \param[out]    frac_sno                      [double] fraction of ground covered by snow (0 to 1)
 */
@@ -128,7 +127,7 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
 
               double &snow_depth, double &h2osno, double &int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
               ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int &snl, ArrayD1 dz,
-              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &qflx_snow_h2osfc, double &frac_sno_eff,
+              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &frac_sno_eff,
               double &frac_sno);
 
 /*! Determine fraction of land surfaces which are submerged

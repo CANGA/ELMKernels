@@ -320,7 +320,7 @@ int main(int argc, char **argv) {
   auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
   auto qflx_snow_melt = create<ArrayD1>("qflx_snow_melt", n_grid_cells);
 
-  auto qflx_snow_h2osfc = create<ArrayD1>("qflx_snow_h2osfc", n_grid_cells);
+  //auto qflx_snow_h2osfc = create<ArrayD1>("qflx_snow_h2osfc", n_grid_cells);
   auto h2osfc = create<ArrayD1>("h2osfc", n_grid_cells);
   auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", n_grid_cells);
   auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", n_grid_cells);
@@ -364,10 +364,10 @@ int main(int argc, char **argv) {
     ELM::SnowInit(Land, dtime, do_capsnow, oldfflag, forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
                   n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],
                   h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
-                  qflx_snow_h2osfc[idx], frac_sno_eff[idx], frac_sno[idx]);
+                  frac_sno_eff[idx], frac_sno[idx]);
 
     std::cout << snow_depth[idx] << " " << h2osno[idx] << " " << int_snow[idx] << " " << snl[idx] << " "
-              << qflx_snow_h2osfc[idx] << " " << frac_sno_eff[idx] << " " << frac_sno[idx] << std::endl;
+              << " " << frac_sno_eff[idx] << " " << frac_sno[idx] << std::endl;
 
     for (int i = ELM::nlevsno - snl[idx]; i < ELM::nlevsno; i++) {
       std::cout << i << " " << swe_old[idx][i] << " " << h2osoi_liq[idx][i] << " " << h2osoi_ice[idx][i] << " "

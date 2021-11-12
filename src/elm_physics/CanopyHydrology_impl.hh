@@ -11,7 +11,7 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
 
               double &snow_depth, double &h2osno, double &int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
               ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int &snl, ArrayD1 dz,
-              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &qflx_snow_h2osfc, double &frac_sno_eff,
+              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &frac_sno_eff,
               double &frac_sno) {
 
   if (!Land.lakpoi) {
@@ -20,7 +20,7 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
     // Use Alta relationship, Anderson(1976); LaChapelle(1961),
     // U.S.Department of Agriculture Forest Service, Project F,
     // Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
-    qflx_snow_h2osfc = 0.0;
+
     // set temporary variables prior to updating
     temp_snow_depth = snow_depth;
     // save initial snow content
@@ -117,13 +117,12 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
             }
           }
         } else {
-          z_avg = 0.0;
+          //z_avg = 0.0;
           snow_depth = 0.0;
           frac_sno = 0.0;
         }
       }
 
-      qflx_snow_h2osfc = 0.0;    // no snow on surface water
       h2osno = h2osno + newsnow; // update h2osno for new snow
       int_snow = int_snow + newsnow;
       dz_snowf = (snow_depth - temp_snow_depth) / dtime; // update change in snow depth

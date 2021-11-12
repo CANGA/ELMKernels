@@ -1,5 +1,6 @@
 
 #include "CanopyHydrology.h"
+#include "CanopyHydrology_newphysics.hh"
 #include "ELMConstants.h"
 #include "LandType.h"
 #include "read_test_input.hh"
@@ -200,12 +201,17 @@ int main(int argc, char **argv) {
 
 
     // call CanopyHydrology kernels
-    ELM::Interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx[idx], elai[idx], esai[idx], dtime,
-                        h2ocan[idx], qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
+   //ELM::Interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx[idx], elai[idx], esai[idx], dtime,
+   //                    h2ocan[idx], qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
 
-    ELM::GroundFlux(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
-                      qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[idx],
-                      qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], qflx_snow_grnd[idx], qflx_rain_grnd[idx]);
+   //ELM::GroundFlux(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
+   //                  qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[idx],
+   //                  qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], qflx_snow_grnd[idx], qflx_rain_grnd[idx]);
+
+ELM::interception_physics(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dtime, 
+  dewmx[idx], elai[idx], esai[idx], h2ocan[idx], qflx_irrig[idx], qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], 
+  qflx_snow_grnd[idx], qflx_rain_grnd[idx], 
+  qflx_prec_grnd[idx]);
 
     ELM::FracWet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
 
