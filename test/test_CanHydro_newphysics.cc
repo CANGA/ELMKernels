@@ -9,7 +9,8 @@
 #include <iostream>
 #include <string>
 
-
+#include "CanHydro_newphys_external_logic.h"
+#include "CanHydro_newphys_internal_logic.h"
 
 /*
 tests CanopyHydrology kernels: 
@@ -153,7 +154,9 @@ int main(int argc, char **argv) {
   ELM::IO::ELMtestinput in(input_file);
   ELM::IO::ELMtestinput out(output_file);
 
-  for (std::size_t t = 1; t < 49; ++t) {
+
+  //for (std::size_t t = 1; t < 49; ++t) {
+  int t = 1;
 
     // get input and output state for time t
     in.getState(t);
@@ -215,12 +218,24 @@ ELM::interception_physics(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[
 
     ELM::FracWet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
 
-    ELM::SnowInit(Land, dtime, do_capsnow[idx], oldfflag[idx], forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
-                    n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],
-                    h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
-                    frac_sno_eff[idx], frac_sno[idx]);
+//    ELM::SnowInit(Land, dtime, do_capsnow[idx], oldfflag[idx], forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
+//                    n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],
+//                    h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
+//                    frac_sno_eff[idx], frac_sno[idx]);
 
-    ELM::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
+for (std::size_t t = 1; t < 5000000; ++t) {
+ELM::model_external::update_snow1(Land, do_capsnow[idx], oldfflag[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx], dtime, 
+forc_t[idx], t_grnd[idx], n_melt[idx],
+
+frac_sno[idx], frac_sno_eff[idx], int_snow[idx], h2osno[idx], snow_depth[idx],
+ snl[idx], swe_old[idx], dz[idx], z[idx], zi[idx], t_soisno[idx],h2osoi_ice[idx], h2osoi_liq[idx],
+frac_iceold[idx], snw_rds[idx]);
+}
+//    ELM::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
+//                    frac_h2osfc[idx]);
+
+
+ELM::innundation(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
                     frac_h2osfc[idx]);
 
     // compare kernel output to ELM output state
@@ -265,6 +280,6 @@ ELM::interception_physics(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[
     out.compareOutput(t_soisno[idx]);
     out.compareOutput(frac_iceold[idx]);
     out.compareOutput(snw_rds[idx]);
-  }
+  //}
   return 0;
 }

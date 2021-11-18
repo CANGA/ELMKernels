@@ -2,6 +2,10 @@
 
 namespace ELM {
 
+// from CanopyHydrology() - move to CanopyHydrology header when ready
+// set shape factor for accumulation of snow
+static const double accum_factor = 0.1;
+
 // from landunit_varcon.F90
 static const int istsoil = 1;
 static const int istcrop = 2;
