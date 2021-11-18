@@ -125,7 +125,7 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
 
       h2osno = h2osno + newsnow; // update h2osno for new snow
       int_snow = int_snow + newsnow;
-      dz_snowf = (snow_depth - temp_snow_depth) / dtime; // update change in snow depth
+      dz_snowf = (snow_depth - temp_snow_depth); // update change in snow depth
     }                                                    // end else do_capsnow
     // set frac_sno_eff variable
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
@@ -161,7 +161,7 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
     // Only ice part of snowfall is added here, the liquid part will be added later.
     if (snl > 0 && newnode == 0) {
       h2osoi_ice[nlevsno - snl] = h2osoi_ice[nlevsno - snl] + newsnow;
-      dz[nlevsno - snl] = dz[nlevsno - snl] + dz_snowf * dtime;
+      dz[nlevsno - snl] = dz[nlevsno - snl] + dz_snowf;
     }
   }
 } // SnowInit
@@ -176,7 +176,7 @@ void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h
     double min_h2osfc = 1.e-8; // arbitrary lower limit on h2osfc for safer numerics...
     // h2osfc only calculated for soil vegetated land units
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
-      // Use newton-raphson method to iteratively determine frac_h20sfc
+      // Use newton-raphson method to iteratively determine frac_h2osfc
       // based on amount of surface water storage (h2osfc) and
       // microtopography variability (micro_sigma)
       if (h2osfc > min_h2osfc) {
