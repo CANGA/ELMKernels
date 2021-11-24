@@ -5,28 +5,29 @@
 #include "LandType.h"
 #include "read_test_input.hh"
 #include "array.hh"
-
+#include "vegdata.h"
 #include <iostream>
 #include <string>
 
 /*    
-need to reconcile rhol/rhos taul/taus dimensionality
-ReadPFT has 1d var[numpft] and these kernels use 2d var[numrad][numpft]
 
 Need to read a few more NC files:
 mss_cnc vars from AerosolMod, everything from SnowOptics_Init, soil color (isoicol, albsat, albdry) from SurfaceAlbedoInitTimeConst
 
 tests SurfaceAlbedo kernels: 
-SurfRadZeroFluxes()
-SurfRadAbsorbed()
-SurfRadLayers()
-SurfRadReflected()
+SurfaceAlbedo::InitTimestep()
+SurfaceAlbedo::SoilAlbedo()
+  once for both sun and shade
+  SNICAR::InitTimestep()
+  SNICAR::SnowAerosolMieParams()
+  SNICAR::SnowRadiativeTransfer()
+  SNICAR::SnowAlbedoRadiationFlux()
+SurfaceAlbedo::GroundAlbedo()
+SurfaceAlbedo::SnowAbsorptionFactor()
+SurfaceAlbedo::CanopyLayerLAI()
+SurfaceAlbedo::TwoStream()
 
-the following data comes from the files SurfaceAlbedo_IN.txt and SurfaceAlbedo_OUT.txt located in test/data
-
-should probably pre-select constants that vary at the pft or cell level - things like albdry, albsat,
-rhol, rhos, taul, taus, xl
-
+the following data come from the files SurfaceAlbedo_IN.txt and SurfaceAlbedo_OUT.txt located in test/data
 
 snl_top
 snl_btm
@@ -46,7 +47,6 @@ vcmaxcintsun
 vcmaxcintsha
 t_veg
 fwet
-xl
 t_grnd
 mu_not
 mss_cnc_bcphi
@@ -83,10 +83,6 @@ fabd_sun_z
 fabd_sha_z
 fabi_sun_z
 fabi_sha_z
-rhol
-rhos
-taul
-taus
 albsat
 albdry
 h2osoi_vol
@@ -156,6 +152,7 @@ int main(int argc, char **argv) {
   const std::string snowoptics_file = data_dir + "SnowOptics_IN.txt";
   const std::string input_file = data_dir + "SurfaceAlbedo_IN.txt";
   const std::string output_file = data_dir + "SurfaceAlbedo_OUT.txt";
+  const std::string pft_file = "clm_params_c180524.nc";
 
   // hardwired
   ELM::LandType Land;
@@ -191,7 +188,6 @@ int main(int argc, char **argv) {
   auto vcmaxcintsha = create<ArrayD1>("vcmaxcintsha", n_grid_cells);
   auto t_veg = create<ArrayD1>("t_veg", n_grid_cells);
   auto fwet = create<ArrayD1>("fwet", n_grid_cells);
-  auto xl = create<ArrayD1>("xl", ELM::numpft);
   auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
   auto mu_not = create<ArrayD1>("mu_not", n_grid_cells);
 
@@ -231,12 +227,6 @@ int main(int argc, char **argv) {
   auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan);
   auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan);
   auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan);
-
-  // these need to be transposed
-  auto rhol = create<ArrayD2>("rhol", ELM::numrad, ELM::numpft);
-  auto rhos = create<ArrayD2>("rhos", ELM::numrad, ELM::numpft);
-  auto taul = create<ArrayD2>("taul", ELM::numrad, ELM::numpft);
-  auto taus = create<ArrayD2>("taus", ELM::numrad, ELM::numpft);
 
   auto albsat = create<ArrayD2>("albsat", n_grid_cells, ELM::numrad);
   auto albdry = create<ArrayD2>("albdry", n_grid_cells, ELM::numrad);
@@ -285,7 +275,6 @@ int main(int argc, char **argv) {
   auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
   auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
   auto albout_lcl = create<ArrayD2>("albout_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
-  //auto albout = create<ArrayD2>("albout", n_grid_cells, ELM::numrad);
   auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
   auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
   auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
@@ -299,23 +288,14 @@ int main(int argc, char **argv) {
   auto omega_star = create<ArrayD3>("omega_star", n_grid_cells, ELM::SNICAR::numrad_snw, ELM::nlevsno);
   auto tau_star = create<ArrayD3>("tau_star", n_grid_cells, ELM::SNICAR::numrad_snw, ELM::nlevsno);
   
-  // provide basic input to allow loops to run
-  assign(coszen, 0.9);
-  assign(h2osno, 0.5);
 
 
-
-
-
-
-
-
-  // input and output utility class objects
+  // input utility for SNICAR snow optics data
   ELM::IO::ELMtestinput snowoptics(snowoptics_file);
   // get input and output state for time t
   snowoptics.getState(0);
 
-
+  // get snow optics data from SNICAR input file
   snowoptics.parseState(ss_alb_oc1);
   snowoptics.parseState(asm_prm_oc1);
   snowoptics.parseState(ext_cff_mss_oc1);
@@ -352,12 +332,17 @@ int main(int argc, char **argv) {
   ELM::IO::ELMtestinput in(input_file);
   ELM::IO::ELMtestinput out(output_file);
 
+  // read PFT data
+  ELM::VegData<ArrayD1, ArrayD2> vegdata;
+  vegdata.read_veg_data(data_dir, pft_file);
+  // parse pft data for Land.vtype
+  ELM::AlbedoVegData albveg = vegdata.get_pft_albveg(Land.vtype);
+
   for (std::size_t t = 2; t < 49; ++t) {
 
     // get input and output state for time t
     in.getState(t);
     out.getState(t);
-
 
     // parse input state and assign to variables
     in.parseState(snl);
@@ -383,14 +368,9 @@ int main(int argc, char **argv) {
     in.parseState(h2osoi_liq);
     in.parseState(h2osoi_ice);
     in.parseState(snw_rds);
-    in.parseState(xl);
     in.parseState(h2osoi_vol);
     in.parseState(albsat);
     in.parseState(albdry);
-    in.parseState(rhol);
-    in.parseState(rhos);
-    in.parseState(taul);
-    in.parseState(taus);
     in.parseState(albgrd);
     in.parseState(albgri);
     in.parseState(flx_absdv);
@@ -418,40 +398,44 @@ int main(int argc, char **argv) {
 
 
   ELM::SurfaceAlbedo::InitTimestep(Land.urbpoi, elai[idx], mss_cnc_bcphi[idx], mss_cnc_bcpho[idx], 
-    mss_cnc_dst1[idx], mss_cnc_dst2[idx], mss_cnc_dst3[idx], mss_cnc_dst4[idx],
-    vcmaxcintsun[idx], vcmaxcintsha[idx], albsod[idx], albsoi[idx], albgrd[idx], albgri[idx], albd[idx], 
-    albi[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], 
-    ftdd[idx], ftid[idx], ftii[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx], 
+    mss_cnc_dst1[idx], mss_cnc_dst2[idx], mss_cnc_dst3[idx], mss_cnc_dst4[idx], vcmaxcintsun[idx], 
+    vcmaxcintsha[idx], albsod[idx], albsoi[idx], albgrd[idx], albgri[idx], albd[idx], albi[idx], 
+    fabd[idx], fabd_sun[idx], fabd_sha[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], ftdd[idx], 
+    ftid[idx], ftii[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx], 
     mss_cnc_aer_in_fdb[idx]);
 
   ELM::SurfaceAlbedo::SoilAlbedo(
-    Land, snl[idx], t_grnd[idx], coszen[idx], 
-    h2osoi_vol[idx], albsat[idx], albdry[idx],
-    albsod[idx], albsoi[idx]);
+    Land, snl[idx], t_grnd[idx], coszen[idx], h2osoi_vol[idx], 
+    albsat[idx], albdry[idx], albsod[idx], albsoi[idx]);
 
 {
     int flg_slr_in = 1;
 
-    ELM::SNICAR::InitTimestep (Land.urbpoi,
-      flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
-      snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absd_snw[idx],
-      flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx],
+    ELM::SNICAR::InitTimestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
+      h2osoi_liq[idx], h2osoi_ice[idx], snw_rds[idx], snl_top[idx], snl_btm[idx], 
+      flx_abs_lcl[idx], flx_absd_snw[idx], flg_nosnl[idx], h2osoi_ice_lcl[idx], 
+      h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx], 
       flx_slri_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], h2osno[idx], snw_rds_lcl[idx],
-      h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1,
-      asm_prm_dst1, ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, ext_cff_mss_dst3, ss_alb_dst4, asm_prm_dst4,
-      ext_cff_mss_dst4, ss_alb_snw_drc, asm_prm_snw_drc, ext_cff_mss_snw_drc, ss_alb_snw_dfs, asm_prm_snw_dfs, ext_cff_mss_snw_dfs, ss_alb_bc1,
-      asm_prm_bc1, ext_cff_mss_bc1, ss_alb_bc2, asm_prm_bc2, ext_cff_mss_bc2, bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
+    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+      h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
+      ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
+      ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
+      ext_cff_mss_dst3, ss_alb_dst4, asm_prm_dst4, ext_cff_mss_dst4, ss_alb_snw_drc, 
+      asm_prm_snw_drc, ext_cff_mss_snw_drc, ss_alb_snw_dfs, asm_prm_snw_dfs, ext_cff_mss_snw_dfs, 
+      ss_alb_bc1, asm_prm_bc1, ext_cff_mss_bc1, ss_alb_bc2, asm_prm_bc2, ext_cff_mss_bc2, 
+      bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx],
-      flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
+    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
+      snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], 
+      albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], h2osno[idx], snw_rds_lcl[idx], albsoi[idx],
-      albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], flx_absd_snw[idx]);
+    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+      h2osno[idx], snw_rds_lcl[idx], albsoi[idx],albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], 
+      flx_absd_snw[idx]);
   }
 
 
@@ -461,23 +445,28 @@ int main(int argc, char **argv) {
     ELM::SNICAR::InitTimestep (Land.urbpoi,
       flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
       snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absi_snw[idx],
-      flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx],
-      flx_slri_lcl[idx]);
+      flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], 
+      flx_slrd_lcl[idx], flx_slri_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], h2osno[idx], snw_rds_lcl[idx],
-      h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1,
-      asm_prm_dst1, ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, ext_cff_mss_dst3, ss_alb_dst4, asm_prm_dst4,
-      ext_cff_mss_dst4, ss_alb_snw_drc, asm_prm_snw_drc, ext_cff_mss_snw_drc, ss_alb_snw_dfs, asm_prm_snw_dfs, ext_cff_mss_snw_dfs, ss_alb_bc1,
-      asm_prm_bc1, ext_cff_mss_bc1, ss_alb_bc2, asm_prm_bc2, ext_cff_mss_bc2, bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
+    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+      h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
+      ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
+      ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
+      ext_cff_mss_dst3, ss_alb_dst4, asm_prm_dst4, ext_cff_mss_dst4, ss_alb_snw_drc, asm_prm_snw_drc, 
+      ext_cff_mss_snw_drc, ss_alb_snw_dfs, asm_prm_snw_dfs, ext_cff_mss_snw_dfs, ss_alb_bc1, asm_prm_bc1, 
+      ext_cff_mss_bc1, ss_alb_bc2, asm_prm_bc2, ext_cff_mss_bc2, bcenh, mss_cnc_aer_in_fdb[idx], 
+      g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], 
-      flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
+    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
+      coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], 
+      omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], h2osno[idx], snw_rds_lcl[idx], albsoi[idx],
-      albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], flx_absi_snw[idx]);
+    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+      h2osno[idx], snw_rds_lcl[idx], albsoi[idx], albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], 
+      flx_absi_snw[idx]);
   }
 
 
@@ -485,52 +474,21 @@ int main(int argc, char **argv) {
     albsoi[idx], albsnd[idx], albsni[idx], albgrd[idx], albgri[idx]);
 
 
-  ELM::SurfaceAlbedo::SnowAbsorptionFactor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], albsnd[idx], albsni[idx], flx_absd_snw[idx], 
-    flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx]);
+  ELM::SurfaceAlbedo::SnowAbsorptionFactor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
+    albsnd[idx], albsni[idx], flx_absd_snw[idx], flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], 
+    flx_absiv[idx], flx_absin[idx]);
 
 
-  ELM::SurfaceAlbedo::CanopyLayerLAI(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx],
-    fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], fabi_sun_z[idx], fabi_sha_z[idx]);
+  ELM::SurfaceAlbedo::CanopyLayerLAI(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
+    nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
+    fabi_sun_z[idx], fabi_sha_z[idx]);
 
 
-  ELM::SurfaceAlbedo::TwoStream(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], esai[idx], xl, tlai_z[idx], tsai_z[idx], 
-    albgrd[idx], albgri[idx], rhol, rhos, taul, taus, vcmaxcintsun[idx], vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], 
-    fabd[idx], fabd_sun[idx], fabd_sha[idx], albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 
+  ELM::SurfaceAlbedo::TwoStream(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
+    esai[idx], tlai_z[idx], tsai_z[idx], albgrd[idx], albgri[idx], albveg, vcmaxcintsun[idx], 
+    vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], 
+    albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 
     fabd_sha_z[idx], fabi_sun_z[idx], fabi_sha_z[idx]);
-
-
-    snowoptics.compareOutput(ss_alb_oc1);
-    snowoptics.compareOutput(asm_prm_oc1);
-    snowoptics.compareOutput(ext_cff_mss_oc1);
-    snowoptics.compareOutput(ss_alb_oc2);
-    snowoptics.compareOutput(asm_prm_oc2);
-    snowoptics.compareOutput(ext_cff_mss_oc2);
-    snowoptics.compareOutput(ss_alb_dst1);
-    snowoptics.compareOutput(asm_prm_dst1);
-    snowoptics.compareOutput(ext_cff_mss_dst1);
-    snowoptics.compareOutput(ss_alb_dst2);
-    snowoptics.compareOutput(asm_prm_dst2);
-    snowoptics.compareOutput(ext_cff_mss_dst2);
-    snowoptics.compareOutput(ss_alb_dst3);
-    snowoptics.compareOutput(asm_prm_dst3);
-    snowoptics.compareOutput(ext_cff_mss_dst3);
-    snowoptics.compareOutput(ss_alb_dst4);
-    snowoptics.compareOutput(asm_prm_dst4);
-    snowoptics.compareOutput(ext_cff_mss_dst4);
-    snowoptics.compareOutput(ss_alb_snw_drc);
-    snowoptics.compareOutput(asm_prm_snw_drc);
-    snowoptics.compareOutput(ext_cff_mss_snw_drc);
-    snowoptics.compareOutput(ss_alb_snw_dfs);
-    snowoptics.compareOutput(asm_prm_snw_dfs);
-    snowoptics.compareOutput(ext_cff_mss_snw_dfs);
-    snowoptics.compareOutput(ss_alb_bc1);
-    snowoptics.compareOutput(asm_prm_bc1);
-    snowoptics.compareOutput(ext_cff_mss_bc1);
-    snowoptics.compareOutput(ss_alb_bc2);
-    snowoptics.compareOutput(asm_prm_bc2);
-    snowoptics.compareOutput(ext_cff_mss_bc2);
-    snowoptics.compareOutput(bcenh);
-
 
     // compare kernel output to ELM output state
     out.compareOutput(snl);
@@ -556,14 +514,9 @@ int main(int argc, char **argv) {
     out.compareOutput(h2osoi_liq);
     out.compareOutput(h2osoi_ice);
     out.compareOutput(snw_rds);
-    out.compareOutput(xl);
     out.compareOutput(h2osoi_vol);
     out.compareOutput(albsat);
     out.compareOutput(albdry);
-    out.compareOutput(rhol);
-    out.compareOutput(rhos);
-    out.compareOutput(taul);
-    out.compareOutput(taus);
     out.compareOutput(albgrd);
     out.compareOutput(albgri);
     out.compareOutput(flx_absdv);
