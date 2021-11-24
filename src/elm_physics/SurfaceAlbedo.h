@@ -39,8 +39,12 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 
 #pragma once
 
+#include <cmath>
+#include <stdexcept>
+
 #include "ELMConstants.h"
 #include "LandType.h"
+#include "vegdata.h"
 
 namespace ELM {
 namespace SurfaceAlbedo {
@@ -236,15 +240,10 @@ t_veg                    [double] vegetation temperature (Kelvin)
 fwet                     [double] fraction of canopy that is wet (0 to 1) 
 elai                     [double] one-sided leaf area index with burying by snow
 esai                     [double] one-sided stem area index with burying by snow
-xl[maxpfts]              [double] ecophys const - leaf/stem orientation index
 tlai_z[nlevcan]          [double] tlai increment for canopy layer
 tsai_z[nlevcan]          [double] tsai increment for canopy layer
 albgrd[numrad]           [double] ground albedo (direct) (column-level)
 albgri[numrad]           [double] ground albedo (diffuse)(column-level)
-rhol[numrad][numpft]     [double] leaf reflectance: 0=vis, 1=nir  
-rhos[numrad][numpft]     [double] stem reflectance: 0=vis, 1=nir  
-taul[numrad][numpft]     [double] leaf transmittance: 0=vis, 1=nir
-taus[numrad][numpft]     [double] stem transmittance: 0=vis, 1=nir
 
 outputs:
 vcmaxcintsun             [double] leaf to canopy scaling coefficient, sunlit leaf vcmax
@@ -266,11 +265,11 @@ fabd_sha_z[nlevcan]      [double] absorbed shaded leaf direct  PAR (per unit lai
 fabi_sun_z[nlevcan]      [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
 fabi_sha_z[nlevcan]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
-template <class ArrayD1, class ArrayD2>
+template <class ArrayD1>
 void TwoStream(const LandType &Land, const int &nrad, const double &coszen, 
-  const double &t_veg, const double &fwet, const double &elai, const double &esai, const ArrayD1 xl,
+  const double &t_veg, const double &fwet, const double &elai, const double &esai,
   const ArrayD1 tlai_z, const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri,
-  const ArrayD2 rhol, const ArrayD2 rhos, const ArrayD2 taul, const ArrayD2 taus,
+  const AlbedoVegData& albveg,
   double &vcmaxcintsun, double &vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
   ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
   ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,

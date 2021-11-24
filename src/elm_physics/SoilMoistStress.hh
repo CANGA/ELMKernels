@@ -63,7 +63,7 @@ void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, con
                                const int &altmax_lastyear_indx, double *rootfr_unf) {
 
   if (perchroot || perchroot_alt) { // Define rootfraction for unfrozen soil only
-    if (perchroot_alt) {            // use total active layer (defined ass max thaw depth for current and prior year)
+    if (perchroot_alt) {            // use total active layer (defined as max thaw depth for current and prior year)
       for (int i = 0; i < nlevgrnd; i++) {
         if (i <= std::max(0, std::max(altmax_lastyear_indx, altmax_indx))) {
           rootfr_unf[i] = rootfr[i];
@@ -149,10 +149,10 @@ rootr[nlevgrnd]                 [double] effective fraction of roots in each soi
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 template <class ArrayD1>
-void calc_root_moist_stress(const int &vtype, const double *h2osoi_liqvol, const ArrayD1 rootfr,
+void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
                             const ArrayD1 t_soisno, const double &tc_stress, const ArrayD1 sucsat,
-                            const ArrayD1 watsat, const ArrayD1 bsw, const ArrayD1 smpso,
-                            const ArrayD1 smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
+                            const ArrayD1 watsat, const ArrayD1 bsw, const double &smpso,
+                            const double &smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
                             const int &altmax_lastyear_indx, ArrayD1 rootr, double &btran) {
   double s_node, smp_node;
   const double btran0 = 0.0;
@@ -169,9 +169,9 @@ void calc_root_moist_stress(const int &vtype, const double *h2osoi_liqvol, const
     } else {
       s_node = std::max(h2osoi_liqvol[nlevsno + i] / eff_porosity[i], 0.01);
       soil_suction(sucsat[i], s_node, bsw[i], smp_node);
-      smp_node = std::max(smpsc[vtype], smp_node);
+      smp_node = std::max(smpsc, smp_node);
       rresis[i] =
-          std::min((eff_porosity[i] / watsat[i]) * (smp_node - smpsc[vtype]) / (smpso[vtype] - smpsc[vtype]), 1.0);
+          std::min((eff_porosity[i] / watsat[i]) * (smp_node - smpsc) / (smpso - smpsc), 1.0);
 
       if (!perchroot && !perchroot_alt) {
         rootr[i] = rootfr[i] * rresis[i];

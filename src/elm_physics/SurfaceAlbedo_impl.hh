@@ -33,13 +33,6 @@ mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 
 #pragma once
 
-#include <cmath>
-#include <stdexcept>
-
-#include "ELMConstants.h"
-#include "LandType.h"
-#include "SurfaceAlbedo.h"
-
 namespace ELM {
 namespace SurfaceAlbedo {
 
@@ -302,11 +295,11 @@ void CanopyLayerLAI(const int &urbpoi, const double &elai, const double &esai, c
 
 
 
-template <class ArrayD1, class ArrayD2>
+template <class ArrayD1>
 void TwoStream(const LandType &Land, const int &nrad, const double &coszen, 
-const double &t_veg, const double &fwet, const double &elai, const double &esai, const ArrayD1 xl,
+const double &t_veg, const double &fwet, const double &elai, const double &esai,
 const ArrayD1 tlai_z, const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri,
-const ArrayD2 rhol, const ArrayD2 rhos, const ArrayD2 taul, const ArrayD2 taus,
+const AlbedoVegData& albveg,
 double &vcmaxcintsun, double &vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
 ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
 ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
@@ -324,7 +317,7 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
     // Calculate two-stream parameters that are independent of waveband:
     // chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
     const double cosz = std::max(0.001, coszen);
-    double chil = std::min(std::max(xl[Land.vtype], -0.4), 0.6);
+    double chil = std::min(std::max(albveg.xl, -0.4), 0.6);
     if (std::abs(chil) <= 0.01) {
       chil = 0.01;
     }
@@ -367,8 +360,8 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 
     for (int ib = 0; ib < numrad; ib++) {
 
-      rho[ib] = std::max(rhol[ib][Land.vtype] * wl + rhos[ib][Land.vtype] * ws, mpe);
-      tau[ib] = std::max(taul[ib][Land.vtype] * wl + taus[ib][Land.vtype] * ws, mpe);
+      rho[ib] = std::max(albveg.rhol[ib] * wl + albveg.rhos[ib] * ws, mpe);
+      tau[ib] = std::max(albveg.taul[ib] * wl + albveg.taus[ib] * ws, mpe);
 
       // Calculate two-stream parameters omega, betad, and betai.
       // Omega, betad, betai are adjusted for snow. Values for omega*betad

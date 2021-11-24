@@ -3,7 +3,7 @@
 #include "read_input.hh"
 #include "read_netcdf.hh"
 #include "utils.hh"
-#include "vegproperties.h"
+#include "vegdata.h"
 #include <iostream>
 #include <string>
 
@@ -14,7 +14,6 @@
 #include "InitTopography.hh"
 #include "LandType.h"
 #include "ReadAtmosphere.hh"
-#include "ReadPFTConstants.hh"
 #include "ReadTestData.hh"
 #include "SatellitePhenology.hh"
 
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
   const std::string basename_forc("");
   const std::string basename_phen("surfdata_1x1pt_US-Brw_simyr1850_c360x720_c20190221.nc");
   const std::string basename_init("ForATS_AK-BEOG_ICB1850CNPRDCTCBC.elm.r.0609-01-01-00000.nc");
-  const std::string basename_pfts("clm_params.nc");
+  const std::string pft_file("clm_params.nc");
 
   const auto forc_dims =
       ELM::IO::get_forcing_dimensions(MPI_COMM_WORLD, data_dir, basename_forc, "PRECTmms", start, n_months);
@@ -101,62 +100,9 @@ int main(int argc, char **argv) {
   }
 
   // PFT variables
-  const auto maxpfts = ELM::IO::get_maxpfts(MPI_COMM_WORLD, data_dir, basename_pfts, "z0mr");
-  std::cout << " maxpfts: " << maxpfts[0] << std::endl;
-  auto pftnames = create<ArrayS1>("pftnames", maxpfts[0]);
-  auto z0mr = create<ArrayD1>("pftnames", maxpfts[0]);
-  auto displar = create<ArrayD1>("displar", maxpfts[0]);
-  auto dleaf = create<ArrayD1>("dleaf", maxpfts[0]);
-  auto c3psn = create<ArrayD1>("c3psn", maxpfts[0]);
-  auto xl = create<ArrayD1>("xl", maxpfts[0]);
-  auto roota_par = create<ArrayD1>("roota_par", maxpfts[0]);
-  auto rootb_par = create<ArrayD1>("rootb_par", maxpfts[0]);
-  auto slatop = create<ArrayD1>("slatop", maxpfts[0]);
-  auto leafcn = create<ArrayD1>("leafcn", maxpfts[0]);
-  auto flnr = create<ArrayD1>("flnr", maxpfts[0]);
-  auto smpso = create<ArrayD1>("smpso", maxpfts[0]);
-  auto smpsc = create<ArrayD1>("smpsc", maxpfts[0]);
-  auto fnitr = create<ArrayD1>("fnitr", maxpfts[0]);
-  auto fnr = create<ArrayD1>("fnr", maxpfts[0]);
-  auto act25 = create<ArrayD1>("act25", maxpfts[0]);
-  auto kcha = create<ArrayD1>("kcha", maxpfts[0]);
-  auto koha = create<ArrayD1>("koha", maxpfts[0]);
-  auto cpha = create<ArrayD1>("cpha", maxpfts[0]);
-  auto vcmaxha = create<ArrayD1>("vcmaxha", maxpfts[0]);
-  auto jmaxha = create<ArrayD1>("jmaxha", maxpfts[0]);
-  auto tpuha = create<ArrayD1>("tpuha", maxpfts[0]);
-  auto lmrha = create<ArrayD1>("lmrha", maxpfts[0]);
-  auto vcmaxhd = create<ArrayD1>("vcmaxhd", maxpfts[0]);
-  auto jmaxhd = create<ArrayD1>("jmaxhd", maxpfts[0]);
-  auto tpuhd = create<ArrayD1>("tpuhd", maxpfts[0]);
-  auto lmrhd = create<ArrayD1>("lmrhd", maxpfts[0]);
-  auto lmrse = create<ArrayD1>("lmrse", maxpfts[0]);
-  auto qe = create<ArrayD1>("qe", maxpfts[0]);
-  auto theta_cj = create<ArrayD1>("theta_cj", maxpfts[0]);
-  auto bbbopt = create<ArrayD1>("bbbopt", maxpfts[0]);
-  auto mbbopt = create<ArrayD1>("mbbopt", maxpfts[0]);
-  auto nstor = create<ArrayD1>("nstor", maxpfts[0]);
-  auto br_xr = create<ArrayD1>("br_xr", maxpfts[0]);
-  auto tc_stress =
-      create<ArrayD1>("tc_stress", 1); // only one value - keep in container for compatibility with NetCDF reader
-  auto rhol = create<ArrayD2>("rhol", 2, maxpfts[0]); // numrad
-  auto rhos = create<ArrayD2>("rhol", 2, maxpfts[0]); // numrad
-  auto taul = create<ArrayD2>("rhol", 2, maxpfts[0]); // numrad
-  auto taus = create<ArrayD2>("rhol", 2, maxpfts[0]); // numrad
 
-  // read pft data from clm_params.nc
-  ELM::ReadPFTConstants(data_dir, basename_pfts, pftnames, z0mr, displar, dleaf, c3psn, xl, roota_par, rootb_par,
-                        slatop, leafcn, flnr, smpso, smpsc, fnitr, fnr, act25, kcha, koha, cpha, vcmaxha, jmaxha, tpuha,
-                        lmrha, vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt, nstor, br_xr,
-                        tc_stress, rhol[0], rhol[1], rhos[0], rhos[1], taul[0], taul[1], taus[0], taus[1]);
 
-  for (int j = 0; j != maxpfts[0]; j++) {
-    std::cout << "pftname: " << pftnames[j] << std::endl;
-    std::cout << "rhol[0], rhol[1]: " << rhol[0][j] << " " << rhol[1][j] << std::endl;
-    std::cout << "rhos[0], rhos[1]: " << rhos[0][j] << " " << rhos[1][j] << std::endl;
-    std::cout << "taul[0], taul[1]: " << taul[0][j] << " " << taul[1][j] << std::endl;
-    std::cout << "taus[0], taus[1]: " << taus[0][j] << " " << taus[1][j] << std::endl;
-  }
+
 
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   auto topo_slope = create<ArrayD1>("topo_slope", n_grid_cells);
@@ -303,9 +249,11 @@ int main(int argc, char **argv) {
     std::cout << dz[0][i] << std::endl;
   }
 
-  // instantiate data
+  // instantiate Land
   ELM::LandType Land;
-  ELM::VegProperties Veg;
+  // read PFT data
+  ELM::VegData<ArrayD1, ArrayD2> vegdata;
+  vegdata.read_veg_data(data_dir, pft_file);
 
   auto n_irrig_steps_left = create<ArrayI1>("n_irrig_steps_left", n_grid_cells);
   auto irrig_rate = create<ArrayD1>("irrig_rate", n_grid_cells);
