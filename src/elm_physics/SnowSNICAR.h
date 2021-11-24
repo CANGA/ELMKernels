@@ -9,6 +9,9 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 */
 #pragma once
 
+#include <cmath>
+#include <stdexcept>
+
 #include "ELMConstants.h"
 
 namespace ELM {
@@ -168,19 +171,18 @@ void InitTimestep (const int &urbpoi, const int &flg_slr_in, const double &cosze
 */
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
 void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
-  const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, 
-  const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl,
-  const ArrayD1 ss_alb_oc1, 
-  const ArrayD1 asm_prm_oc1, const ArrayD1 ext_cff_mss_oc1, const ArrayD1 ss_alb_oc2, const ArrayD1 asm_prm_oc2, 
-  const ArrayD1 ext_cff_mss_oc2, const ArrayD1 ss_alb_dst1, const ArrayD1 asm_prm_dst1,
-  const ArrayD1 ext_cff_mss_dst1, const ArrayD1 ss_alb_dst2, const ArrayD1 asm_prm_dst2, 
-  const ArrayD1 ext_cff_mss_dst2, const ArrayD1 ss_alb_dst3, const ArrayD1 asm_prm_dst3, 
-  const ArrayD1 ext_cff_mss_dst3, const ArrayD1 ss_alb_dst4, const ArrayD1 asm_prm_dst4, 
-  const ArrayD1 ext_cff_mss_dst4, const ArrayD2 ss_alb_snw_drc,
-  const ArrayD2 asm_prm_snw_drc, const ArrayD2 ext_cff_mss_snw_drc, const ArrayD2 ss_alb_snw_dfs,
-  const ArrayD2 asm_prm_snw_dfs, const ArrayD2 ext_cff_mss_snw_dfs, const ArrayD2 ss_alb_bc1, 
-  const ArrayD2 asm_prm_bc1, const ArrayD2 ext_cff_mss_bc1, const ArrayD2 ss_alb_bc2, const ArrayD2 asm_prm_bc2, 
-  const ArrayD2 ext_cff_mss_bc2, const ArrayD3 bcenh, const ArrayD2 mss_cnc_aer_in,
+  const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, const ArrayD1 h2osoi_ice_lcl,
+  const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1, const ArrayD1& asm_prm_oc1,
+  const ArrayD1& ext_cff_mss_oc1, const ArrayD1& ss_alb_oc2, const ArrayD1& asm_prm_oc2,
+  const ArrayD1& ext_cff_mss_oc2, const ArrayD1& ss_alb_dst1, const ArrayD1& asm_prm_dst1,
+  const ArrayD1& ext_cff_mss_dst1, const ArrayD1& ss_alb_dst2, const ArrayD1& asm_prm_dst2,
+  const ArrayD1& ext_cff_mss_dst2, const ArrayD1& ss_alb_dst3, const ArrayD1& asm_prm_dst3,
+  const ArrayD1& ext_cff_mss_dst3, const ArrayD1& ss_alb_dst4, const ArrayD1& asm_prm_dst4,
+  const ArrayD1& ext_cff_mss_dst4, const ArrayD2& ss_alb_snw_drc, const ArrayD2& asm_prm_snw_drc,
+  const ArrayD2& ext_cff_mss_snw_drc, const ArrayD2& ss_alb_snw_dfs, const ArrayD2& asm_prm_snw_dfs,
+  const ArrayD2& ext_cff_mss_snw_dfs, const ArrayD2& ss_alb_bc1, const ArrayD2& asm_prm_bc1,
+  const ArrayD2& ext_cff_mss_bc1, const ArrayD2& ss_alb_bc2, const ArrayD2& asm_prm_bc2,
+  const ArrayD2& ext_cff_mss_bc2, const ArrayD3& bcenh, const ArrayD2 mss_cnc_aer_in,
   ArrayD2 g_star, ArrayD2 omega_star, ArrayD2 tau_star);
 
 
