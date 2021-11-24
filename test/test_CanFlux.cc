@@ -2,10 +2,8 @@
 #include "ELMConstants.h"
 #include "LandType.h"
 #include "read_test_input.hh"
-#include "read_input.hh"
-#include "ReadPFTConstants.hh"
 #include "array.hh"
-#include "vegproperties.h"
+#include "vegdata.h"
 
 #include <iostream>
 #include <string>
@@ -19,9 +17,7 @@ ComputeFlux_Can()
 implicitly tests calc_effective_soilporosity(), calc_volumetric_h2oliq(), calc_root_moist_stress, QSat(),
 all FrictionVelocity kernels, and Photosynthesis()
 
-utilizes ReadPFTData() to read a clm_params.nc file located in test/data
-
-the following data comes from the files CanopyFluxes_IN.txt and CanopyFluxes_OUT.txt located in test/data
+the following data come from the files CanopyFluxes_IN.txt and CanopyFluxes_OUT.txt located in test/data
 
 int snl
 int frac_veg_nosno
@@ -35,7 +31,6 @@ double thm
 double thv
 double max_dayl
 double dayl
-double tc_stress
 double elai
 double esai
 double emv
@@ -120,13 +115,6 @@ ArrayD1 bsw
 
 */
 
-// local utility function for copying ELM Arrays to VegProperties members
-void copy_to_vegstruct(const ELM::Array<double, 1> array, double *vegvar) {
-  for (std::size_t i = 0; i < array.extent(0); ++i)
-    vegvar[i] = array[i];
-}
-
-
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayS1 = ELM::Array<std::string, 1>;
@@ -146,7 +134,6 @@ int main(int argc, char **argv) {
 
   // hardwired
   ELM::LandType Land;
-  ELM::VegProperties Veg;
   Land.ltype = 1;
   Land.ctype = 1;
   Land.vtype = 12;
@@ -185,82 +172,6 @@ int main(int argc, char **argv) {
   double tlbef = 0.0;       // leaf temperature from previous iteration [K]
   double delq = 0.0;        // temporary
   double dt_veg = 0.0;      // change in t_veg, last iteration (Kelvin)
-
-  // pft constants - read from NetCDF
-  auto pftnames = create<ArrayS1>("pftnames", 25);
-  auto z0mr = create<ArrayD1>("z0mr", 25);
-  auto displar = create<ArrayD1>("displar", 25);
-  auto dleaf = create<ArrayD1>("dleaf", 25);
-  auto c3psn = create<ArrayD1>("c3psn", 25);
-  auto xl = create<ArrayD1>("xl", 25);
-  auto roota_par = create<ArrayD1>("roota_par", 25);
-  auto rootb_par = create<ArrayD1>("rootb_par", 25);
-  auto slatop = create<ArrayD1>("slatop", 25);
-  auto leafcn = create<ArrayD1>("leafcn", 25);
-  auto flnr = create<ArrayD1>("flnr", 25);
-  auto smpso = create<ArrayD1>("smpso", 25);
-  auto smpsc = create<ArrayD1>("smpsc", 25);
-  auto fnitr = create<ArrayD1>("fnitr", 25);
-  auto fnr = create<ArrayD1>("fnr", 25);
-  auto act25 = create<ArrayD1>("act25", 25);
-  auto kcha = create<ArrayD1>("kcha", 25);
-  auto koha = create<ArrayD1>("koha", 25);
-  auto cpha = create<ArrayD1>("cpha", 25);
-  auto vcmaxha = create<ArrayD1>("vcmaxha", 25);
-  auto jmaxha = create<ArrayD1>("jmaxha", 25);
-  auto tpuha = create<ArrayD1>("tpuha", 25);
-  auto lmrha = create<ArrayD1>("lmrha", 25);
-  auto vcmaxhd = create<ArrayD1>("vcmaxhd", 25);
-  auto jmaxhd = create<ArrayD1>("jmaxhd", 25);
-  auto tpuhd = create<ArrayD1>("tpuhd", 25);
-  auto lmrhd = create<ArrayD1>("lmrhd", 25);
-  auto lmrse = create<ArrayD1>("lmrse", 25);
-  auto qe = create<ArrayD1>("qe", 25);
-  auto theta_cj = create<ArrayD1>("theta_cj", 25);
-  auto bbbopt = create<ArrayD1>("bbbopt", 25);
-  auto mbbopt = create<ArrayD1>("mbbopt", 25);
-  auto nstor = create<ArrayD1>("nstor", 25);
-  auto br_xr = create<ArrayD1>("br_xr", 25);
-  auto tc_stress = create<ArrayD1>("tc_stress", 1); // only one value - keep in container for compatibility with NetCDF reader
-  auto rholvis = create<ArrayD1>("rholvis", 25);
-  auto rholnir = create<ArrayD1>("rholnir", 25);
-  auto rhosvis = create<ArrayD1>("rhosvis", 25);
-  auto rhosnir = create<ArrayD1>("rhosnir", 25);
-  auto taulvis = create<ArrayD1>("taulvis", 25);
-  auto taulnir = create<ArrayD1>("taulnir", 25);
-  auto tausvis = create<ArrayD1>("tausvis", 25);
-  auto tausnir = create<ArrayD1>("tausnir", 25);
-
-  // read pft data from clm_params.nc
-  ELM::ReadPFTConstants(data_dir, pft_file, pftnames, z0mr, displar, dleaf, c3psn, xl, roota_par, rootb_par,
-                        slatop, leafcn, flnr, smpso, smpsc, fnitr, fnr, act25, kcha, koha, cpha, vcmaxha, jmaxha, tpuha,
-                        lmrha, vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt, nstor, br_xr,
-                        tc_stress, rholvis, rholnir, rhosvis, rhosnir, taulvis, taulnir, tausvis, tausnir);
-
-  // copy pft constants to Veg
-  copy_to_vegstruct(fnr,Veg.fnr);
-  copy_to_vegstruct(act25,Veg.act25);
-  copy_to_vegstruct(kcha,Veg.kcha);
-  copy_to_vegstruct(koha,Veg.koha);
-  copy_to_vegstruct(cpha,Veg.cpha);
-  copy_to_vegstruct(vcmaxha,Veg.vcmaxha);
-  copy_to_vegstruct(jmaxha,Veg.jmaxha);
-  copy_to_vegstruct(tpuha,Veg.tpuha);
-  copy_to_vegstruct(lmrha,Veg.lmrha);
-  copy_to_vegstruct(vcmaxhd,Veg.vcmaxhd);
-  copy_to_vegstruct(jmaxhd,Veg.jmaxhd);
-  copy_to_vegstruct(tpuhd,Veg.tpuhd);
-  copy_to_vegstruct(lmrhd,Veg.lmrhd);
-  copy_to_vegstruct(lmrse,Veg.lmrse);
-  copy_to_vegstruct(qe,Veg.qe);
-  copy_to_vegstruct(theta_cj,Veg.theta_cj);
-  copy_to_vegstruct(bbbopt,Veg.bbbopt);
-  copy_to_vegstruct(mbbopt,Veg.mbbopt);
-  copy_to_vegstruct(c3psn,Veg.c3psn);
-  copy_to_vegstruct(slatop,Veg.slatop);
-  copy_to_vegstruct(leafcn,Veg.leafcn);
-  copy_to_vegstruct(flnr,Veg.flnr);
-  copy_to_vegstruct(fnitr,Veg.fnitr);
 
   // ELM state variables
   auto snl = create<ArrayI1>("snl", n_grid_cells);
@@ -361,7 +272,13 @@ int main(int argc, char **argv) {
   ELM::IO::ELMtestinput in(input_file);
   ELM::IO::ELMtestinput out(output_file);
 
-  for (std::size_t t = 1; t < 49; ++t) {
+  // read veg constants
+  ELM::VegData<ArrayD1, ArrayD2> vegdata;
+  vegdata.read_veg_data(data_dir, pft_file);
+  // get veg constants for a single pft
+  ELM::PSNVegData psnveg = vegdata.get_pft_psnveg(Land.vtype);
+
+  for (std::size_t t = 0; t < 97; ++t) {
     
     // get input and output state for time t
     in.getState(t);
@@ -462,137 +379,134 @@ int main(int argc, char **argv) {
 
     // call CanopyFluxes kernels
     ELM::InitializeFlux_Can(
-        Land, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx], thm[idx], thv[idx], max_dayl[idx], dayl[idx],
-        altmax_indx[idx], altmax_lastyear_indx[idx], t_soisno[idx],
-        h2osoi_ice[idx], h2osoi_liq[idx],
-        dz[idx], rootfr[idx], tc_stress[idx],
-        sucsat[idx], watsat[idx],
-        bsw[idx], smpso,
-        smpsc, elai[idx], esai[idx], emv[idx], emg[idx], qg[idx], t_grnd[idx], forc_t[idx],
-        forc_pbot[idx], forc_lwrad[idx], forc_u[idx], forc_v[idx], forc_q[idx], forc_th[idx], z0mg[idx], btran[idx], displa[idx], z0mv[idx],
-        z0hv[idx], z0qv[idx], rootr[idx], eff_porosity[idx],
-        dayl_factor, air, bir, cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[idx]);
+        Land, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx],
+        thm[idx], thv[idx], max_dayl[idx], dayl[idx], altmax_indx[idx], altmax_lastyear_indx[idx], 
+        t_soisno[idx], h2osoi_ice[idx], h2osoi_liq[idx], dz[idx], rootfr[idx], psnveg.tc_stress, 
+        sucsat[idx], watsat[idx], bsw[idx], psnveg.smpso, psnveg.smpsc, elai[idx], esai[idx], 
+        emv[idx], emg[idx], qg[idx], t_grnd[idx], forc_t[idx], forc_pbot[idx], forc_lwrad[idx], 
+        forc_u[idx], forc_v[idx], forc_q[idx], forc_th[idx], z0mg[idx], btran[idx], displa[idx], 
+        z0mv[idx], z0hv[idx], z0qv[idx], rootr[idx], eff_porosity[idx], dayl_factor, air, bir, 
+        cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[idx]);
 
     ELM::StabilityIteration_Can(
-        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx], forc_hgt_t_patch[idx],
-        forc_hgt_q_patch[idx], dleaf, fwet[idx], fdry[idx], laisun[idx], laisha[idx],
-        forc_rho[idx], snow_depth[idx], soilbeta[idx], frac_h2osfc[idx], t_h2osfc[idx], sabv[idx], h2ocan[idx], htop[idx],
-        t_soisno[idx], air, bir, cir, ur, zldis, displa[idx], elai[idx], esai[idx], t_grnd[idx],
-        forc_pbot[idx], forc_q[idx], forc_th[idx], z0mg[idx], z0mv[idx], z0hv[idx], z0qv[idx], thm[idx], thv[idx], qg[idx], Veg, nrad[idx],
-        t10[idx], tlai_z[idx], vcmaxcintsha[idx], vcmaxcintsun[idx],
-        parsha_z[idx], parsun_z[idx],
-        laisha_z[idx], laisun_z[idx], forc_pco2[idx], forc_po2[idx],
-        dayl_factor, btran[idx], qflx_tran_veg[idx], qflx_evap_veg[idx], eflx_sh_veg[idx], wtg, wtl0, wta0, wtal, el, qsatl,
-        qsatldT, taf, qaf, um, dth, dqh, obu, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, t_veg[idx], wtgq,
-        wtalq, wtlq0, wtaq0);
+        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx], 
+        forc_hgt_t_patch[idx], forc_hgt_q_patch[idx], fwet[idx], fdry[idx], laisun[idx], 
+        laisha[idx], forc_rho[idx], snow_depth[idx], soilbeta[idx], frac_h2osfc[idx], 
+        t_h2osfc[idx], sabv[idx], h2ocan[idx], htop[idx],t_soisno[idx], air, bir, cir, 
+        ur, zldis, displa[idx], elai[idx], esai[idx], t_grnd[idx],forc_pbot[idx], 
+        forc_q[idx], forc_th[idx], z0mg[idx], z0mv[idx], z0hv[idx], z0qv[idx], thm[idx], 
+        thv[idx], qg[idx], psnveg, nrad[idx], t10[idx], tlai_z[idx], vcmaxcintsha[idx], 
+        vcmaxcintsun[idx], parsha_z[idx], parsun_z[idx], laisha_z[idx], laisun_z[idx], 
+        forc_pco2[idx], forc_po2[idx], dayl_factor, btran[idx], qflx_tran_veg[idx], 
+        qflx_evap_veg[idx], eflx_sh_veg[idx], wtg, wtl0, wta0, wtal, el, qsatl, qsatldT, 
+        taf, qaf, um, dth, dqh, obu, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, 
+        t_veg[idx], wtgq, wtalq, wtlq0, wtaq0);
 
     ELM::ComputeFlux_Can(
-        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], t_soisno[idx], frac_h2osfc[idx],
-        t_h2osfc[idx], sabv[idx], qg_snow[idx], qg_soil[idx], qg_h2osfc[idx], dqgdT[idx], htvp[idx], wtg, wtl0, wta0, wtal, air, bir,
-        cir, qsatl, qsatldT, dth, dqh, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, t_veg[idx], t_grnd[idx],
-        forc_pbot[idx], qflx_tran_veg[idx], qflx_evap_veg[idx], eflx_sh_veg[idx], forc_q[idx], forc_rho[idx], thm[idx], emv[idx],
-        emg[idx], forc_lwrad[idx], wtgq, wtalq, wtlq0, wtaq0, h2ocan[idx], eflx_sh_grnd[idx], eflx_sh_snow[idx], eflx_sh_soil[idx],
-        eflx_sh_h2osfc[idx], qflx_evap_soi[idx], qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx], dlrad[idx], ulrad[idx],
-        cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], t_ref2m_r[idx], q_ref2m[idx], rh_ref2m[idx], rh_ref2m_r[idx]);
+        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], t_soisno[idx], frac_h2osfc[idx], 
+        t_h2osfc[idx], sabv[idx], qg_snow[idx], qg_soil[idx], qg_h2osfc[idx], dqgdT[idx], htvp[idx], 
+        wtg, wtl0, wta0, wtal, air, bir, cir, qsatl, qsatldT, dth, dqh, temp1, temp2, temp12m, 
+        temp22m, tlbef, delq, dt_veg, t_veg[idx], t_grnd[idx], forc_pbot[idx], qflx_tran_veg[idx], 
+        qflx_evap_veg[idx], eflx_sh_veg[idx], forc_q[idx], forc_rho[idx], thm[idx], emv[idx], 
+        emg[idx], forc_lwrad[idx], wtgq, wtalq, wtlq0, wtaq0, h2ocan[idx], eflx_sh_grnd[idx], 
+        eflx_sh_snow[idx], eflx_sh_soil[idx], eflx_sh_h2osfc[idx], qflx_evap_soi[idx], 
+        qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx], dlrad[idx], ulrad[idx], 
+        cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], t_ref2m_r[idx], q_ref2m[idx], 
+        rh_ref2m[idx], rh_ref2m_r[idx]);
 
 
     // compare kernel output to ELM output state
-    out.compareOutput(snl, 1e-12);
-    out.compareOutput(frac_veg_nosno, 1e-12);
-    out.compareOutput(nrad, 1e-12);
-    out.compareOutput(altmax_indx, 1e-12);
-    out.compareOutput(altmax_lastyear_indx, 1e-12);
-    out.compareOutput(frac_sno, 1e-12);
-    out.compareOutput(forc_hgt_u_patch, 1e-12);
-    out.compareOutput(thm, 1e-12);
-    out.compareOutput(thv, 1e-12);
-    out.compareOutput(max_dayl, 1e-12);
-    out.compareOutput(dayl, 1e-12);
-    out.compareOutput(elai, 1e-12);
-    out.compareOutput(esai, 1e-12);
-    out.compareOutput(emv, 1e-12);
-    out.compareOutput(emg, 1e-12);
-    out.compareOutput(qg, 1e-12);
-    out.compareOutput(t_grnd, 1e-12);
-    out.compareOutput(forc_t, 1e-12);
-    out.compareOutput(forc_pbot, 1e-12);
-    out.compareOutput(forc_lwrad, 1e-12);
-    out.compareOutput(forc_u, 1e-12);
-    out.compareOutput(forc_v, 1e-12);
-    out.compareOutput(forc_q, 1e-12);
-    out.compareOutput(forc_th, 1e-12);
-    out.compareOutput(z0mg, 1e-12);
-    out.compareOutput(btran, 1e-12);
-    out.compareOutput(displa, 1e-12);
-    out.compareOutput(z0mv, 1e-12);
-    out.compareOutput(z0hv, 1e-12);
-    out.compareOutput(z0qv, 1e-12);
-    out.compareOutput(t_veg, 1e-12);
-    out.compareOutput(forc_hgt_t_patch, 1e-12);
-    out.compareOutput(forc_hgt_q_patch, 1e-12);
-    out.compareOutput(fwet, 1e-12);
-    out.compareOutput(fdry, 1e-12);
-    out.compareOutput(laisun, 1e-12);
-    out.compareOutput(laisha, 1e-12);
-    out.compareOutput(forc_rho, 1e-12);
-    out.compareOutput(snow_depth, 1e-12);
-    out.compareOutput(soilbeta, 1e-12);
-    out.compareOutput(frac_h2osfc, 1e-12);
-    out.compareOutput(t_h2osfc, 1e-12);
-    out.compareOutput(sabv, 1e-12);
-    if (t==1) {
-      out.compareOutput(h2ocan, 1e-11);
-      out.compareOutput(eflx_sh_h2osfc, 1e-11);
-    } else {
-      out.compareOutput(h2ocan, 1e-12);
-      out.compareOutput(eflx_sh_h2osfc, 1e-12);
-    }
-    out.compareOutput(htop, 1e-12);
-    out.compareOutput(t10, 1e-12);
-    out.compareOutput(vcmaxcintsha, 1e-12);
-    out.compareOutput(vcmaxcintsun, 1e-12);
-    out.compareOutput(forc_pco2, 1e-12);
-    out.compareOutput(forc_po2, 1e-12);
-    out.compareOutput(qflx_tran_veg, 1e-12);
-    out.compareOutput(qflx_evap_veg, 1e-12);
-    out.compareOutput(eflx_sh_veg, 1e-12);
-    out.compareOutput(qg_snow, 1e-12);
-    out.compareOutput(qg_soil, 1e-12);
-    out.compareOutput(qg_h2osfc, 1e-12);
-    out.compareOutput(dqgdT, 1e-12);
-    out.compareOutput(htvp, 1e-12);
-    out.compareOutput(eflx_sh_grnd, 1e-12);
-    out.compareOutput(eflx_sh_snow, 1e-12);
-    out.compareOutput(eflx_sh_soil, 1e-12);
-    out.compareOutput(qflx_evap_soi, 1e-12);
-    out.compareOutput(qflx_ev_snow, 1e-12);
-    out.compareOutput(qflx_ev_soil, 1e-12);
-    out.compareOutput(qflx_ev_h2osfc, 1e-12);
-    out.compareOutput(dlrad, 1e-12);
-    out.compareOutput(ulrad, 1e-12);
-    out.compareOutput(cgrnds, 1e-12);
-    out.compareOutput(cgrndl, 1e-12);
-    out.compareOutput(cgrnd, 1e-12);
-    out.compareOutput(t_ref2m, 1e-12);
-    out.compareOutput(t_ref2m_r, 1e-12);
-    out.compareOutput(q_ref2m, 1e-12);
-    out.compareOutput(rh_ref2m, 1e-12);
-    out.compareOutput(rh_ref2m_r, 1e-12);
-    out.compareOutput(rootr[idx], 1e-12);
-    out.compareOutput(eff_porosity[idx], 1e-12);
-    out.compareOutput(tlai_z[idx], 1e-12);
-    out.compareOutput(parsha_z[idx], 1e-12);
-    out.compareOutput(parsun_z[idx], 1e-12);
-    out.compareOutput(laisha_z[idx], 1e-12);
-    out.compareOutput(laisun_z[idx], 1e-12);
-    out.compareOutput(t_soisno[idx], 1e-12);
-    out.compareOutput(h2osoi_ice[idx], 1e-12);
-    out.compareOutput(h2osoi_liq[idx], 1e-12);
-    out.compareOutput(dz[idx], 1e-12);
-    out.compareOutput(rootfr[idx], 1e-12);
-    out.compareOutput(sucsat[idx], 1e-12);
-    out.compareOutput(watsat[idx], 1e-12);
-    out.compareOutput(bsw[idx], 1e-12);
+    out.compareOutput(snl);
+    out.compareOutput(frac_veg_nosno);
+    out.compareOutput(nrad);
+    out.compareOutput(altmax_indx);
+    out.compareOutput(altmax_lastyear_indx);
+    out.compareOutput(frac_sno);
+    out.compareOutput(forc_hgt_u_patch);
+    out.compareOutput(thm);
+    out.compareOutput(thv);
+    out.compareOutput(max_dayl);
+    out.compareOutput(dayl);
+    out.compareOutput(elai);
+    out.compareOutput(esai);
+    out.compareOutput(emv);
+    out.compareOutput(emg);
+    out.compareOutput(qg);
+    out.compareOutput(t_grnd);
+    out.compareOutput(forc_t);
+    out.compareOutput(forc_pbot);
+    out.compareOutput(forc_lwrad);
+    out.compareOutput(forc_u);
+    out.compareOutput(forc_v);
+    out.compareOutput(forc_q);
+    out.compareOutput(forc_th);
+    out.compareOutput(z0mg);
+    out.compareOutput(btran);
+    out.compareOutput(displa);
+    out.compareOutput(z0mv);
+    out.compareOutput(z0hv);
+    out.compareOutput(z0qv);
+    out.compareOutput(t_veg);
+    out.compareOutput(forc_hgt_t_patch);
+    out.compareOutput(forc_hgt_q_patch);
+    out.compareOutput(fwet);
+    out.compareOutput(fdry);
+    out.compareOutput(laisun);
+    out.compareOutput(laisha);
+    out.compareOutput(forc_rho);
+    out.compareOutput(snow_depth);
+    out.compareOutput(soilbeta);
+    out.compareOutput(frac_h2osfc);
+    out.compareOutput(t_h2osfc);
+    out.compareOutput(sabv);
+    out.compareOutput(h2ocan);
+    out.compareOutput(eflx_sh_h2osfc);
+    out.compareOutput(eflx_sh_grnd);
+    out.compareOutput(eflx_sh_snow);
+    out.compareOutput(eflx_sh_soil);
+    out.compareOutput(htop);
+    out.compareOutput(t10);
+    out.compareOutput(vcmaxcintsha);
+    out.compareOutput(vcmaxcintsun);
+    out.compareOutput(forc_pco2);
+    out.compareOutput(forc_po2);
+    out.compareOutput(qflx_tran_veg);
+    out.compareOutput(qflx_evap_veg);
+    out.compareOutput(eflx_sh_veg);
+    out.compareOutput(qg_snow);
+    out.compareOutput(qg_soil);
+    out.compareOutput(qg_h2osfc);
+    out.compareOutput(dqgdT);
+    out.compareOutput(htvp);
+    out.compareOutput(qflx_evap_soi);
+    out.compareOutput(qflx_ev_snow);
+    out.compareOutput(qflx_ev_soil);
+    out.compareOutput(qflx_ev_h2osfc);
+    out.compareOutput(dlrad);
+    out.compareOutput(ulrad);
+    out.compareOutput(cgrnds);
+    out.compareOutput(cgrndl);
+    out.compareOutput(cgrnd);
+    out.compareOutput(t_ref2m);
+    out.compareOutput(t_ref2m_r);
+    out.compareOutput(q_ref2m);
+    out.compareOutput(rh_ref2m);
+    out.compareOutput(rh_ref2m_r);
+    out.compareOutput(rootr[idx]);
+    out.compareOutput(eff_porosity[idx]);
+    out.compareOutput(tlai_z[idx]);
+    out.compareOutput(parsha_z[idx]);
+    out.compareOutput(parsun_z[idx]);
+    out.compareOutput(laisha_z[idx]);
+    out.compareOutput(laisun_z[idx]);
+    out.compareOutput(t_soisno[idx]);
+    out.compareOutput(h2osoi_ice[idx]);
+    out.compareOutput(h2osoi_liq[idx]);
+    out.compareOutput(dz[idx]);
+    out.compareOutput(rootfr[idx]);
+    out.compareOutput(sucsat[idx]);
+    out.compareOutput(watsat[idx]);
+    out.compareOutput(bsw[idx]);
   }
   return 0;
 }
