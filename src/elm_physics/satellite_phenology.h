@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include "read_input.hh"
@@ -32,7 +33,7 @@ new data is only read if needed (InterpMonths1 != months[0])
 serial - should only run on each node's rank == 0
 grid cell loop could be parallelized
 */
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
 void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
                       const std::string &basename, const Utils::DomainDecomposition<2> &dd, const ArrayI1 &vtype,
                       ArrayD1 &timwt, ArrayD2 &mlai2t, ArrayD2 &msai2t, ArrayD2 &mhvt2t, ArrayD2 &mhvb2t) {
@@ -67,10 +68,10 @@ void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
 
   if (InterpMonths1 != months[0]) {
     // allocate 2 months of LAI, SAI, HTOP, HBOT
-    Array<double, 3> mlai(2, n_grid_cells, n_pfts);
-    Array<double, 3> msai(2, n_grid_cells, n_pfts);
-    Array<double, 3> mhgtt(2, n_grid_cells, n_pfts);
-    Array<double, 3> mhgtb(2, n_grid_cells, n_pfts);
+    auto mlai = ArrayD3(2, n_grid_cells, n_pfts);
+    auto msai = ArrayD3(2, n_grid_cells, n_pfts);
+    auto mhgtt = ArrayD3(2, n_grid_cells, n_pfts);
+    auto mhgtb = ArrayD3(2, n_grid_cells, n_pfts);
 
     ReadMonthlyVegetation(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
     InterpMonths1 = months[0];
@@ -78,10 +79,10 @@ void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
     for (int i = 0; i < n_grid_cells; ++i) {
       veg_type = vtype[i];
       for (int month = 0; month < 2; ++month) {
-        mlai2t[i][month] = mlai(month, i, veg_type);
-        msai2t[i][month] = msai(month, i, veg_type);
-        mhvt2t[i][month] = mhgtt(month, i, veg_type);
-        mhvb2t[i][month] = mhgtb(month, i, veg_type);
+        mlai2t(i, month) = mlai(month, i, veg_type);
+        msai2t(i, month) = msai(month, i, veg_type);
+        mhvt2t(i, month) = mhgtt(month, i, veg_type);
+        mhvb2t(i, month) = mhgtb(month, i, veg_type);
       }
     }
   }

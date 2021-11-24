@@ -6,7 +6,7 @@
 
 
 #include "array.hh"
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "LandType.h"
 #include <algorithm>
 #include <cmath>

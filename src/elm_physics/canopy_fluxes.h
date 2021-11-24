@@ -1,4 +1,4 @@
-/*! \file CanopyFluxes.h 
+/*! \file canopy_fluxes.h 
 \brief Functions derived from CanopyFluxesMod.F90
 
 Calculate leaf temperature, leaf fluxes, transpiration, photosynthesis and update the dew accumulation due to
@@ -8,13 +8,13 @@ Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_C
 */
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include "vegdata.h"
-#include "FrictionVelocity.hh"
-#include "Photosynthesis.h"
-#include "QSat.hh"
-#include "SoilMoistStress.hh"
+#include "friction_velocity.h"
+#include "photosynthesis.h"
+#include "qsat.h"
+#include "soil_moist_stress.h"
 #include <algorithm>
 #include <assert.h>
 #include <cmath>
@@ -298,4 +298,4 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
 
 } // namespace ELM
 
-#include "CanopyFluxes_impl.hh"
+#include "canopy_fluxes_impl.hh"

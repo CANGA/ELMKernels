@@ -1,9 +1,9 @@
 #include <cmath>
 #include <stdexcept>
 
-#include "ELMConstants.h"
-#include "LandType.h"
-#include "SurfaceAlbedo.h"
+#include "elm_constants.h"
+#include "landtype.h"
+#include "surface_albedo.h"
 
 
 // for build testing

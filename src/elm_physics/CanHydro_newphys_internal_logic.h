@@ -2,7 +2,7 @@
 #pragma once
 
 #include "array.hh"
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "LandType.h"
 #include <algorithm>
 #include <cmath>
@@ -27,8 +27,8 @@ double sca_fraction_accumulation_snow(const double &newsnow, const double &frac_
 double sca_fraction_depletion(const double &h2osno, const double &int_snow, const double &n_melt);
 
 
-double save_initial_swe(const int& snl, const double &snow_depth, const ArrayD1 h2osoi_liq,
-  const ArrayD1 h2osoi_ice, double &snow_depth_old, ArrayD1 swe_old);
+double save_initial_snow(const int& snl, const double &snow_depth, const ArrayD1 h2osoi_liq,
+  const ArrayD1 h2osoi_ice, ArrayD1 swe_old);
 
 double effective_snow_fraction(const int &ltype, const double &frac_sno);
 

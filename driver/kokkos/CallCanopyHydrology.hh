@@ -1,10 +1,10 @@
 // CallCanopyHydrology.hh
 #pragma once
 
-#include "CanopyHydrology.h"
-#include "ELMConstants.h"
+#include "canopy_hydrology.h"
+#include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "LandType.h"
+#include "landtype.h"
 
 using ArrayD1 = Kokkos::View<double *>;
 using ArrayI1 = Kokkos::View<int *>;

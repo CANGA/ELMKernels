@@ -9,7 +9,7 @@ of sea surface fluxes using TOGA CORE and TAO data. J. Climate,
 Vol. 11, 2628-2644.
 */
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include <algorithm>
 #include <cmath>
 

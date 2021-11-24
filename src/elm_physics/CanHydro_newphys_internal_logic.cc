@@ -2,7 +2,7 @@
 
 
 #include "array.hh"
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "LandType.h"
 #include <algorithm>
 #include <cmath>
@@ -17,28 +17,41 @@ namespace ELM {
 namespace model_internal {
 
 
-
+// calulates fsca update when oldfflag == 1
+// eq 4 from:
+// Niu, G.-Y., and Yang, Z.-L. (2007), An observation-based formulation of snow cover 
+// fraction and its evaluation over large North American river basins, J. Geophys. Res., 112, D21101,
 double sca_fraction_oldfflag(const double &h2osno, const double &newsnow, const double &snow_depth) {
   return tanh(snow_depth / (2.5 * zlnd *
               pow((std::min(800.0, ((h2osno + newsnow) / snow_depth / 100.0))), 1.0))); // why to the power of 1.0??
 }
 
+// calculates fsca update due to snow accumulation on bare ground
+// simplified version of eq 7.14 for bare ground (no existing snow)
 double sca_fraction_accumulation_bare(const double &newsnow) {
   return tanh(accum_factor * newsnow);
 }
 
+
+// calculates fsca update due to snow accumulation on existing snow
+// eq 7.14
 double sca_fraction_accumulation_snow(const double &newsnow, const double &frac_sno) {
   return 1.0 - (1.0 - sca_fraction_accumulation_bare(newsnow)) * (1.0 - frac_sno);
 }
 
+
+// calculates fsca update due to snow depletion
+// eq 7.15
 double sca_fraction_depletion(const double &h2osno, const double &int_snow, const double &n_melt) {
   double smr = std::min(1.0, (h2osno / int_snow));
   return 1.0 - pow((acos(std::min(1.0, (2.0 * smr - 1.0))) / ELM_PI), n_melt);
 }
 
-
-double save_initial_swe(const int& snl, const double &snow_depth, const ArrayD1 h2osoi_liq,
-  const ArrayD1 h2osoi_ice, double &snow_depth_old, ArrayD1 swe_old) {
+// set temporary variables prior to updating
+// save inital layered swe and snow depth
+// alters swe_old in place and returns snow_depth 
+double save_initial_snow(const int& snl, const double &snow_depth, const ArrayD1 h2osoi_liq,
+  const ArrayD1 h2osoi_ice, ArrayD1 swe_old) {
   // save initial snow content
   for (int j = 0; j < nlevsno - snl; j++) {
     swe_old[j] = 0.0;
@@ -61,6 +74,8 @@ double effective_snow_fraction(const int &ltype, const double &frac_sno) { // se
   }
 }
 
+
+// eq 7.21
 double snow_bulk_density(const double &forc_t) {
   if (forc_t > tfrz + 2.0) {
     return 50.0 + 1.7 * pow(17.0, 1.5);
@@ -71,19 +86,28 @@ double snow_bulk_density(const double &forc_t) {
   }
 }
 
+
+// updates int_snow - sets to const value if (do_capsnow)
+// sets to updated value if (!do_capsnow && newsnow > 0.0)
+// eq 11 from 
+// Swenson, S. Cꎬ, and D. M. Lawrence. "A new fractional snow‐covered area parameterization for the 
+// Community Land Model and its effect on the surface energy balance." Journal of geophysical 
+// research: Atmospheres 117.D21 (2012). 
 double integrated_snow(const bool &do_capsnow, const double &h2osno, const double &newsnow, const double &frac_sno, 
   const double &n_melt, const double &int_snow) {
 
   return (do_capsnow) ? 5.0e2 : (newsnow > 0.0) ? std::min(1.e8, (h2osno + newsnow) / 
     (0.5 * (cos(ELM_PI * pow((1.0 - std::max(frac_sno, 1.e-6)), 
-    (1.0 / n_melt))) + 1.0))) + newsnow : int_snow + newsnow;
+    (1.0 / n_melt))) + 1.0))) + newsnow : int_snow;
 }
 
 
+// update int_snow if h2osno larger than int_snow due to frost
 double frost_deposition(const bool &do_capsnow, const double &h2osno, const double &int_snow) {
   return (do_capsnow) ? int_snow : std::max(int_snow, h2osno);
 }
 
+// eq 7.19 - solves for dz_snow 
 double dz_snow(const bool &do_capsnow, const double &snow_depth, const double &snow_depth_old) {
   return (do_capsnow) ? 0.0 : snow_depth - snow_depth_old; // update change in snow depth
 } 
@@ -93,6 +117,9 @@ double update_h2osno(const bool &do_capsnow, const double &newsnow, const double
   return (do_capsnow) ? h2osno : h2osno + newsnow;
 }
 
+
+// set fsca
+// calculates FSCA change due to snowmelt, and/or accumulation over surfaces with existing snow or bare ground 
 double fractional_sca(const bool &do_capsnow, const double &h2osno, const double &snowmelt, 
   const double &int_snow, const double &n_melt, const double &newsnow, const double &frac_sno) {
 
@@ -119,6 +146,7 @@ double fractional_sca(const bool &do_capsnow, const double &h2osno, const double
 }
 
 
+// eq 7.20
 double depth_of_snow(const bool &do_capsnow, const bool &urbpoi, const double &h2osno, const double &newsnow, 
   const double &forc_t, const double &frac_sno, const double &snow_depth) {
 
@@ -233,21 +261,28 @@ void update_snow(const LandType &Land, const bool &do_capsnow, const int &oldffl
 
   if (!Land.lakpoi) {
 
-    double snow_depth_old = save_initial_swe(snl, snow_depth, h2osoi_liq, h2osoi_ice, snow_depth_old, swe_old);
-    
+    // save initial snow content
+    double snow_depth_old = save_initial_snow(snl, snow_depth, h2osoi_liq, h2osoi_ice, swe_old);
+
+    // all snow falls on ground, no snow on h2osfc
     double newsnow = qflx_snow_grnd * dtime;
 
+    // snowmelt from previous time step * dtime
     double snowmelt = qflx_snow_melt * dtime;
 
-    int_snow = frost_deposition(do_capsnow, h2osno, int_snow);
+    // update int_snow
+    double int_snow_with_frost = frost_deposition(do_capsnow, h2osno, int_snow);
 
-    frac_sno = fractional_sca(do_capsnow, h2osno, snowmelt, int_snow, n_melt, newsnow, frac_sno);
+    // update fsca for snowmelt and/or accumulation
+    double frac_sno_updated = fractional_sca(do_capsnow, h2osno, snowmelt, int_snow_with_frost, n_melt, 
+      newsnow, frac_sno);
 
-    int_snow = integrated_snow(do_capsnow, h2osno, newsnow, frac_sno, n_melt, int_snow);
+    // update int_snow after any new snow accumulation
+    int_snow = integrated_snow(do_capsnow, h2osno, newsnow, frac_sno_updated, n_melt, int_snow_with_frost);
 
-    snow_depth = depth_of_snow(do_capsnow, Land.urbpoi, h2osno, newsnow, forc_t, frac_sno, snow_depth);
+    snow_depth = depth_of_snow(do_capsnow, Land.urbpoi, h2osno, newsnow, forc_t, frac_sno_updated, snow_depth);
 
-    frac_sno = oldfflag_sca(do_capsnow, oldfflag, h2osno, snow_depth, newsnow, frac_sno);
+    frac_sno = oldfflag_sca(do_capsnow, oldfflag, h2osno, snow_depth, newsnow, frac_sno_updated);
 
     frac_sno_eff = effective_snow_fraction(Land.ltype, frac_sno);
 

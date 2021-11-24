@@ -7,9 +7,9 @@
    It is not the same as the displa calculated in CanopyTemperature
 */
 
-#include "BareGroundFluxes.h"
-#include "FrictionVelocity.hh"
-#include "QSat.hh"
+#include "bareground_fluxes.h"
+#include "friction_velocity.h"
+#include "qsat.h"
 
 namespace ELM {
 

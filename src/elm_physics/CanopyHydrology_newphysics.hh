@@ -4,8 +4,8 @@
 // - evap * dt portion gets calculated in CanopyFluxes
 
 #include "array.hh"
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include <algorithm>
 #include <cmath>
 //#include "CanopyHydrology_newphysics.hh"

@@ -1,4 +1,4 @@
-/*! \file SnowSNICAR.h
+/*! \file snow_snicar.h
 \brief Functions derived from subroutine SNICAR_AD_RT() in SnowSNICARMod.F90
 
 Calculates snow albedo and per snow layer absorbed flux 
@@ -12,7 +12,7 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 #include <cmath>
 #include <stdexcept>
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 
 namespace ELM {
 namespace SNICAR {
@@ -243,4 +243,5 @@ ArrayD1 albout, ArrayD2 flx_abs);
 } // namespace ELM
 } // namespace SnowSnicar
 
-#include "SnowSNICAR_impl.hh"
+#include "snow_snicar_impl.hh"
+

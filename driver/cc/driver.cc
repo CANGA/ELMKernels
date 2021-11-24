@@ -7,25 +7,26 @@
 #include <iostream>
 #include <string>
 
-#include "BareGroundFluxes.h"
-#include "ELMConstants.h"
+#include "bareground_fluxes.h"
+#include "elm_constants.h"
 #include "InitSnowLayers.hh"
 #include "InitTimestep.hh"
 #include "InitTopography.hh"
-#include "LandType.h"
-#include "ReadAtmosphere.hh"
+#include "landtype.h"
+#include "read_atmosphere.h"
 #include "ReadTestData.hh"
-#include "SatellitePhenology.hh"
+#include "satellite_phenology.h"
 
-#include "CanopyHydrology.h"
-#include "CanopyTemperature.h"
-#include "SurfaceRadiation.h"
+#include "canopy_hydrology.h"
+#include "canopy_temperature.h"
+#include "surface_radiation.h"
 
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayS1 = ELM::Array<std::string, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
+using ArrayD3 = ELM::Array<double, 3>;
 
 template <class Array_t> Array_t create(const std::string &name, int D0) { return Array_t(D0); }
 template <class Array_t> Array_t create(const std::string &name, int D0, int D1) { return Array_t(D0, D1); }
@@ -142,7 +143,7 @@ int main(int argc, char **argv) {
   auto mhvb2t = create<ArrayD2>("mhvb2t", n_grid_cells, 2);
 
   // calculate monthly weights; read 2 months of LAI, SAI, HTOP, HBOT if required
-  ELM::InterpMonthlyVeg(start, dtime, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t,
+  ELM::InterpMonthlyVeg<ArrayD3>(start, dtime, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t,
                         mhvb2t);
 
   // prescribed sat phenology

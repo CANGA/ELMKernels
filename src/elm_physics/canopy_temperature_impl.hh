@@ -2,13 +2,6 @@
 
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
-#include "QSat.hh"
-#include "SurfaceResistance.h"
-#include <algorithm>
-#include <cmath>
-
 namespace ELM {
 
 template <class ArrayD1>

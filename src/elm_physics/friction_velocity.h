@@ -1,4 +1,4 @@
-/*! \file FrictionVelocity.hh
+/*! \file friction_velocity.h
 \brief Internal functions derived from FrictionVelocityMod.F90
 
 Split into 5 functions - wind, temperature, humidity, 2-m temp, 2-m humidity.

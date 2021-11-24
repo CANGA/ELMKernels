@@ -1,8 +1,8 @@
 
-#include "SurfaceAlbedo.h"
-#include "SnowSNICAR.h"
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "surface_albedo.h"
+#include "snow_snicar.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include "read_test_input.hh"
 #include "array.hh"
 #include "vegdata.h"

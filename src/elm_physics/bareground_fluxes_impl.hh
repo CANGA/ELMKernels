@@ -1,6 +1,6 @@
-#pragma once
 
-#include "QSat.hh"
+
+#pragma once
 
 namespace ELM {
 

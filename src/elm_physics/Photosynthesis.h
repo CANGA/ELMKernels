@@ -1,9 +1,9 @@
-/*! \file Photosynthesis.h
+/*! \file photosynthesis.h
 \brief Internal functions derived from PhotosynthesisMod.F90
 */
 #pragma once
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "vegdata.h"
 #include <algorithm>
 #include <cmath>
@@ -143,4 +143,5 @@ void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const do
 
 } // namespace ELM
 
-#include <Photosynthesis_impl.hh>
+#include <photosynthesis_impl.hh>
+

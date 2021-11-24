@@ -22,7 +22,7 @@ bool IsAlmostEqual(const T &a, const T &b, const double rel_tol) {
   return (diff <= maxreldiff || diff <= abs_tol);
 }
 
-/*! Class to read single-column inut data from ELM modules */
+/*! Class to read single-column input data from ELM modules */
 class ELMtestinput {
 
 public:

@@ -1,8 +1,8 @@
 
-#include "CanopyHydrology.h"
+#include "canopy_hydrology.h"
 #include "CanopyHydrology_newphysics.hh"
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include "read_test_input.hh"
 #include "array.hh"
 
@@ -223,8 +223,8 @@ ELM::interception_physics(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[
 //                    h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
 //                    frac_sno_eff[idx], frac_sno[idx]);
 
-for (std::size_t t = 1; t < 5000000; ++t) {
-ELM::model_external::update_snow1(Land, do_capsnow[idx], oldfflag[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx], dtime, 
+for (std::size_t t = 1; t < 50000000; ++t) {
+ELM::model_internal::update_snow(Land, do_capsnow[idx], oldfflag[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx], dtime, 
 forc_t[idx], t_grnd[idx], n_melt[idx],
 
 frac_sno[idx], frac_sno_eff[idx], int_snow[idx], h2osno[idx], snow_depth[idx],

@@ -1,6 +1,6 @@
-#include "BareGroundFluxes.h"
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "bareground_fluxes.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include "read_test_input.hh"
 #include "array.hh"
 

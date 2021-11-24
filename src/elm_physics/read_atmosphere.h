@@ -1,12 +1,12 @@
-/*! \file ReadAtmosphere.hh
+/*! \file read_atmosphere.h
 \brief need to split and document - time interpolation?
 */
 #pragma once
 
-#include "ELMConstants.h"
-#include "cmath"
+#include "elm_constants.h"
 #include "read_input.hh"
 #include "utils.hh"
+#include <cmath>
 
 namespace ELM {
 
@@ -35,15 +35,13 @@ double tdc(const double &t) {
 double esatw(const double &t) {
   const double a[7] = {6.107799961,     4.436518521e-01, 1.428945805e-02, 2.650648471e-04,
                        3.031240396e-06, 2.034080948e-08, 6.136820929e-11};
-  double ret = 100.0 * (a[0] + t * (a[1] + t * (a[2] + t * (a[3] + t * (a[4] + t * (a[5] + t * a[6]))))));
-  return ret;
+  return 100.0 * (a[0] + t * (a[1] + t * (a[2] + t * (a[3] + t * (a[4] + t * (a[5] + t * a[6]))))));
 }
 
 double esati(const double &t) {
   const double b[7] = {6.109177956,     5.034698970e-01, 1.886013408e-02, 4.176223716e-04,
                        5.824720280e-06, 4.838803174e-08, 1.838826904e-10};
-  double ret = 100.0 * (b[0] + t * (b[1] + t * (b[2] + t * (b[3] + t * (b[4] + t * (b[5] + t * b[6]))))));
-  return ret;
+  return 100.0 * (b[0] + t * (b[1] + t * (b[2] + t * (b[3] + t * (b[4] + t * (b[5] + t * b[6]))))));
 }
 
 /*

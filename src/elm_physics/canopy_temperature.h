@@ -1,4 +1,4 @@
-/*! \file CanopyTemperature.h
+/*! \file canopy_temperature.h
 \brief Functions derived from CanopyTemperatureMod.F90
 
 Calculates ground temperature, emissivity, humidity, roughness lengths, forcing height, etc.
@@ -9,8 +9,12 @@ GroundProperties() -> CalculateForcingHeight() -> InitializeEnergyFluxes()
 */
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
+#include "qsat.h"
+#include "surface_resistance.h"
+#include <algorithm>
+#include <cmath>
 
 namespace ELM {
 
@@ -197,4 +201,5 @@ void InitializeEnergyFluxes(const LandType &Land, double &eflx_sh_tot, double &e
 
 } // namespace ELM
 
-#include "CanopyTemperature_impl.hh"
+#include "canopy_temperature_impl.hh"
+

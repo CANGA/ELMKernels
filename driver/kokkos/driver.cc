@@ -5,15 +5,16 @@
 #include "CallCanopyTemperature.hh"
 #include "CallSurfaceRadiation.hh"
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "LandType.h"
-#include "vegproperties.h"
+#include "landtype.h"
+#include "vegdata.h"
 
 using ArrayB1 = Kokkos::View<bool *>;
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayD1 = Kokkos::View<double *>;
 using ArrayD2 = Kokkos::View<double **>;
+using ArrayP1 = Kokkos::View<ELM::PSNVegData *>;
 
 template <typename Array_t> Array_t create(const std::string &name, int D0) { return Array_t(name, D0); }
 
@@ -35,7 +36,25 @@ int main(int argc, char **argv) {
     // instantiate data
     // for CanopyHydrology
     ELM::LandType Land;
-    ELM::VegProperties Veg;
+
+    const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+    const std::string pft_file = "clm_params_c180524.nc";
+    // read veg constants
+    ELM::VegData<ArrayD1, ArrayD2> vegdata;
+    vegdata.read_veg_data(data_dir, pft_file);
+    // get veg constants for a single pft
+
+    // explicitly define Kokkos view of struct PSNVegData
+    auto psnveg = create<ArrayP1>("psnveg", ncells);
+
+    Kokkos::parallel_for ("psnveg_init", ncells, KOKKOS_LAMBDA (const int i) {
+      psnveg[i] = vegdata.get_pft_psnveg(Land.vtype);
+    });
+  
+
+
+
+
     double dtime = 0.5;
     auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", ncells);
     auto snl = create<ArrayI1>("snl", ncells);
@@ -275,7 +294,7 @@ int main(int argc, char **argv) {
     while (i != ntimes) {
 
       canopyFluxesInvoke(
-          ncells, Land, Veg, t_soisno, h2osoi_ice, h2osoi_liq, dz, rootfr, sucsat, watsat, bsw, smpso, smpsc, dleaf,
+          ncells, Land, psnveg, t_soisno, h2osoi_ice, h2osoi_liq, dz, rootfr, sucsat, watsat, bsw,
           parsha_z, parsun_z, laisha_z, laisun_z, tlai_z, rootr, eff_porosity, nrad, snl, frac_veg_nosno, altmax_indx,
           altmax_lastyear_indx, frac_sno, forc_hgt_u_patch, thm, thv, max_dayl, dayl, tc_stress, elai, esai, emv, emg,
           qg, t_grnd, forc_t, forc_pbot, forc_lwrad, forc_u, forc_v, forc_q, forc_th, z0mg, dtime, forc_hgt_t_patch,

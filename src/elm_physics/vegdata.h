@@ -3,7 +3,7 @@
 // read single pft data into struct for AoS approach
 #pragma once
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "array.hh"
 #include "read_input.hh"
 #include "utils.hh"

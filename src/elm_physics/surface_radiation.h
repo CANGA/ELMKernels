@@ -1,4 +1,4 @@
-/*! \file SurfaceRadiation.h
+/*! \file surface_radiation.h
 \brief Functions derived from SurfaceRadiationMod.F90
 
 Compute canopy sun/shade fractions, radiation absorbed by surface/layers, and radiation reflected.
@@ -8,8 +8,8 @@ CanopySunShadeFrac() -> SurfRadZeroFluxes() -> SurfRadAbsorbed() -> SurfRadLayer
 */
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include <assert.h>
 #include <cmath>
 
@@ -132,4 +132,4 @@ void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double
 
 } // namespace ELM
 
-#include "SurfaceRadiation_impl.hh"
+#include "surface_radiation_impl.hh"

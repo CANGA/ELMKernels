@@ -1,4 +1,4 @@
-/*! \file CanopyHydrology.h
+/*! \file canopy_hydrology.h
 \brief Functions derived from CanopyHydrologyMod.F90
 
 Compute interception, canopy fluxes to ground, fraction vegetation wet/dry, fraction of surface covered by H2O, FSCA,
@@ -8,8 +8,8 @@ Call sequence: Interception() -> Irrigation() -> GroundFlux() -> FracWet() -> Sn
 */
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include <algorithm>
 #include <cmath>
 
@@ -149,4 +149,4 @@ void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h
 
 } // namespace ELM
 
-#include "CanopyHydrology_impl.hh"
+#include "canopy_hydrology_impl.hh"

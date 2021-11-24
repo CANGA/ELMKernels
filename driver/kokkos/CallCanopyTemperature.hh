@@ -1,9 +1,9 @@
 // CallCanopyTemperature.hh
 #pragma once
-#include "CanopyTemperature.h"
-#include "ELMConstants.h"
+#include "canopy_temperature.h"
+#include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "LandType.h"
+#include "landtype.h"
 
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayB1 = Kokkos::View<bool *>;

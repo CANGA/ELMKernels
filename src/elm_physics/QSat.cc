@@ -1,7 +1,7 @@
 // derived from QSatMod.F90
 
-#include "QSat.hh"
-#include "ELMConstants.h"
+#include "qsat.h"
+#include "elm_constants.h"
 
 namespace ELM {
 

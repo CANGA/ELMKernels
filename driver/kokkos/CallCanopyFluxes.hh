@@ -1,21 +1,22 @@
 // CallCanopyFluxes.hh
 #pragma once
 
-#include "CanopyFluxes.h"
-#include "ELMConstants.h"
+#include "canopy_fluxes.h"
+#include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "LandType.h"
-#include "vegproperties.h"
+#include "landtype.h"
+#include "vegdata.h"
 
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayD1 = Kokkos::View<double *>;
 using ArrayD2 = Kokkos::View<double **>;
+using ArrayP1 = Kokkos::View<ELM::PSNVegData *>;
 
 struct CallCanopyFluxes {
 
-  CallCanopyFluxes(ELM::LandType &Land_, ELM::VegProperties &Veg_, ArrayD2 &t_soisno_, ArrayD2 &h2osoi_ice_,
+  CallCanopyFluxes(ELM::LandType &Land_, ArrayP1& Veg_, ArrayD2 &t_soisno_, ArrayD2 &h2osoi_ice_,
                    ArrayD2 &h2osoi_liq_, ArrayD2 &dz_, ArrayD2 &rootfr_, ArrayD2 &sucsat_, ArrayD2 &watsat_,
-                   ArrayD2 &bsw_, ArrayD2 &smpso_, ArrayD2 &smpsc_, ArrayD2 &dleaf_, ArrayD2 &parsha_z_,
+                   ArrayD2 &bsw_, ArrayD2 &parsha_z_,
                    ArrayD2 &parsun_z_, ArrayD2 &laisha_z_, ArrayD2 &laisun_z_, ArrayD2 &tlai_z_, ArrayD2 &rootr_,
                    ArrayD2 &eff_porosity_, ArrayI1 &nrad_, ArrayI1 &snl_, ArrayI1 &frac_veg_nosno_,
                    ArrayI1 &altmax_indx_, ArrayI1 &altmax_lastyear_indx_, ArrayD1 &frac_sno_,
@@ -35,7 +36,7 @@ struct CallCanopyFluxes {
                    ArrayD1 &rh_ref2m_r_, ArrayD1 &qflx_tran_veg_, ArrayD1 &qflx_evap_veg_, ArrayD1 &eflx_sh_veg_,
                    ArrayD1 &btran_, ArrayD1 &displa_, ArrayD1 &z0mv_, ArrayD1 &z0hv_, ArrayD1 &z0qv_, ArrayD1 &t_veg_)
       : Land(Land_), Veg(Veg_), t_soisno(t_soisno_), h2osoi_ice(h2osoi_ice_), h2osoi_liq(h2osoi_liq_), dz(dz_),
-        rootfr(rootfr_), sucsat(sucsat_), watsat(watsat_), bsw(bsw_), smpso(smpso_), smpsc(smpsc_), dleaf(dleaf_),
+        rootfr(rootfr_), sucsat(sucsat_), watsat(watsat_), bsw(bsw_),
         parsha_z(parsha_z_), parsun_z(parsun_z_), laisha_z(laisha_z_), laisun_z(laisun_z_), tlai_z(tlai_z_),
         rootr(rootr_), eff_porosity(eff_porosity_), nrad(nrad_), snl(snl_), frac_veg_nosno(frac_veg_nosno_),
         altmax_indx(altmax_indx_), altmax_lastyear_indx(altmax_lastyear_indx_), frac_sno(frac_sno_),
@@ -88,24 +89,26 @@ struct CallCanopyFluxes {
     double delq;        // temporary
     double dt_veg;      // change in t_veg, last iteration (Kelvin)
 
+    //ELM::PSNVegData psnveg = Veg.get_pft_psnveg(Land.vtype);
+
     ELM::InitializeFlux_Can(
         Land, snl[i], frac_veg_nosno[i], frac_sno[i], forc_hgt_u_patch[i], thm[i], thv[i], max_dayl[i], dayl[i],
         altmax_indx[i], altmax_lastyear_indx[i], Kokkos::subview(t_soisno, i, Kokkos::ALL),
         Kokkos::subview(h2osoi_ice, i, Kokkos::ALL), Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
         Kokkos::subview(dz, i, Kokkos::ALL), Kokkos::subview(rootfr, i, Kokkos::ALL), tc_stress[i],
         Kokkos::subview(sucsat, i, Kokkos::ALL), Kokkos::subview(watsat, i, Kokkos::ALL),
-        Kokkos::subview(bsw, i, Kokkos::ALL), Kokkos::subview(smpso, i, Kokkos::ALL),
-        Kokkos::subview(smpsc, i, Kokkos::ALL), elai[i], esai[i], emv[i], emg[i], qg[i], t_grnd[i], forc_t[i],
-        forc_pbot[i], forc_lwrad[i], forc_u[i], forc_v[i], forc_q[i], forc_th[i], z0mg[i], btran[i], displa[i], z0mv[i],
-        z0hv[i], z0qv[i], Kokkos::subview(rootr, i, Kokkos::ALL), Kokkos::subview(eff_porosity, i, Kokkos::ALL),
+        Kokkos::subview(bsw, i, Kokkos::ALL), psnveg[i].smpso, psnveg[i].smpsc, elai[i], esai[i], emv[i],
+        emg[i], qg[i], t_grnd[i], forc_t[i],cforc_pbot[i], forc_lwrad[i], forc_u[i], forc_v[i], forc_q[i],
+        forc_th[i], z0mg[i], btran[i], displa[i], z0mv[i], z0hv[i], z0qv[i],
+        Kokkos::subview(rootr, i, Kokkos::ALL), Kokkos::subview(eff_porosity, i, Kokkos::ALL),
         dayl_factor, air, bir, cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[i]);
 
     ELM::StabilityIteration_Can(
         Land, dtime, snl[i], frac_veg_nosno[i], frac_sno[i], forc_hgt_u_patch[i], forc_hgt_t_patch[i],
-        forc_hgt_q_patch[i], Kokkos::subview(dleaf, i, Kokkos::ALL), fwet[i], fdry[i], laisun[i], laisha[i],
+        forc_hgt_q_patch[i], fwet[i], fdry[i], laisun[i], laisha[i],
         forc_rho[i], snow_depth[i], soilbeta[i], frac_h2osfc[i], t_h2osfc[i], sabv[i], h2ocan[i], htop[i],
         Kokkos::subview(t_soisno, i, Kokkos::ALL), air, bir, cir, ur, zldis, displa[i], elai[i], esai[i], t_grnd[i],
-        forc_pbot[i], forc_q[i], forc_th[i], z0mg[i], z0mv[i], z0hv[i], z0qv[i], thm[i], thv[i], qg[i], Veg, nrad[i],
+        forc_pbot[i], forc_q[i], forc_th[i], z0mg[i], z0mv[i], z0hv[i], z0qv[i], thm[i], thv[i], qg[i], psnveg[i], nrad[i],
         t10[i], Kokkos::subview(tlai_z, i, Kokkos::ALL), vcmaxcintsha[i], vcmaxcintsun[i],
         Kokkos::subview(parsha_z, i, Kokkos::ALL), Kokkos::subview(parsun_z, i, Kokkos::ALL),
         Kokkos::subview(laisha_z, i, Kokkos::ALL), Kokkos::subview(laisun_z, i, Kokkos::ALL), forc_pco2[i], forc_po2[i],
@@ -125,7 +128,7 @@ struct CallCanopyFluxes {
 
 private:
   ELM::LandType Land;
-  ELM::VegProperties Veg;
+  ArrayP1 Veg;
   double dtime;
 
   ArrayI1 nrad, snl, frac_veg_nosno, altmax_indx, altmax_lastyear_indx;
@@ -138,14 +141,14 @@ private:
       cgrndl, cgrnd, t_ref2m, t_ref2m_r, q_ref2m, rh_ref2m, rh_ref2m_r, qflx_tran_veg, qflx_evap_veg, eflx_sh_veg,
       btran, displa, z0mv, z0hv, z0qv, t_veg;
 
-  ArrayD2 t_soisno, h2osoi_ice, h2osoi_liq, dz, rootfr, sucsat, watsat, bsw, smpso, smpsc, dleaf, parsha_z, parsun_z,
+  ArrayD2 t_soisno, h2osoi_ice, h2osoi_liq, dz, rootfr, sucsat, watsat, bsw, parsha_z, parsun_z,
       laisha_z, laisun_z, tlai_z, rootr, eff_porosity;
 };
 
 void canopyFluxesInvoke(
-    const int &ncells_, ELM::LandType &Land_, ELM::VegProperties &Veg_, ArrayD2 &t_soisno_, ArrayD2 &h2osoi_ice_,
+    const int &ncells_, ELM::LandType &Land_, ArrayP1& Veg_, ArrayD2 &t_soisno_, ArrayD2 &h2osoi_ice_,
     ArrayD2 &h2osoi_liq_, ArrayD2 &dz_, ArrayD2 &rootfr_, ArrayD2 &sucsat_, ArrayD2 &watsat_, ArrayD2 &bsw_,
-    ArrayD2 &smpso_, ArrayD2 &smpsc_, ArrayD2 &dleaf_, ArrayD2 &parsha_z_, ArrayD2 &parsun_z_, ArrayD2 &laisha_z_,
+    ArrayD2 &parsha_z_, ArrayD2 &parsun_z_, ArrayD2 &laisha_z_,
     ArrayD2 &laisun_z_, ArrayD2 &tlai_z_, ArrayD2 &rootr_, ArrayD2 &eff_porosity_, ArrayI1 &nrad_, ArrayI1 &snl_,
     ArrayI1 &frac_veg_nosno_, ArrayI1 &altmax_indx_, ArrayI1 &altmax_lastyear_indx_, ArrayD1 &frac_sno_,
     ArrayD1 &forc_hgt_u_patch_, ArrayD1 &thm_, ArrayD1 &thv_, ArrayD1 &max_dayl_, ArrayD1 &dayl_, ArrayD1 &tc_stress_,
@@ -163,7 +166,7 @@ void canopyFluxesInvoke(
     ArrayD1 &btran_, ArrayD1 &displa_, ArrayD1 &z0mv_, ArrayD1 &z0hv_, ArrayD1 &z0qv_, ArrayD1 &t_veg_) {
 
   CallCanopyFluxes call_canflux(
-      Land_, Veg_, t_soisno_, h2osoi_ice_, h2osoi_liq_, dz_, rootfr_, sucsat_, watsat_, bsw_, smpso_, smpsc_, dleaf_,
+      Land_, Veg_, t_soisno_, h2osoi_ice_, h2osoi_liq_, dz_, rootfr_, sucsat_, watsat_, bsw_,
       parsha_z_, parsun_z_, laisha_z_, laisun_z_, tlai_z_, rootr_, eff_porosity_, nrad_, snl_, frac_veg_nosno_,
       altmax_indx_, altmax_lastyear_indx_, frac_sno_, forc_hgt_u_patch_, thm_, thv_, max_dayl_, dayl_, tc_stress_,
       elai_, esai_, emv_, emg_, qg_, t_grnd_, forc_t_, forc_pbot_, forc_lwrad_, forc_u_, forc_v_, forc_q_, forc_th_,

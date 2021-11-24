@@ -1,6 +1,6 @@
 // derived from initVerticalMod.F90
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include <algorithm>
 #include <cmath>
 

@@ -1,4 +1,4 @@
-/*! \file SurfaceAlbedo.h
+/*! \file surface_albedo.h
 \brief Functions derived from SurfaceAlbedoMod.F90
 
 // call sequence -> InitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
@@ -42,8 +42,8 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 #include <cmath>
 #include <stdexcept>
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
 #include "vegdata.h"
 
 namespace ELM {
@@ -305,4 +305,4 @@ void SoilAlbedo(
 } // namespace SurfaceAlbedo
 } // namespace ELM
 
-#include "SurfaceAlbedo_impl.hh"
+#include "surface_albedo_impl.hh"

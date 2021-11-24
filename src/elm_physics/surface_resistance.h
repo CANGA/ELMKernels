@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include "LandType.h"
-#include "SurfaceResistance_impl.hh"
+
 #include <algorithm>
 #include <cmath>
 
@@ -49,4 +49,5 @@ double getlblcef(const double &rho, const double &temp);
 
 } // namespace ELM
 
-#include <SurfaceResistance_impl.hh>
+#include <surface_resistance_impl.hh>
+

@@ -1,6 +1,6 @@
 // derived from PhotosynthesisMod.F90
 
-#include "ELMConstants.h"
+#include "elm_constants.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -26,7 +26,7 @@ void quadratic(const double &a, const double &b, const double &c, double &r1, do
   }
 }
 
-void TimeStepInit() {}
+//void TimeStepInit() {}
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
 void ci_func(const double &ci, // intracellular leaf CO2 (Pa)

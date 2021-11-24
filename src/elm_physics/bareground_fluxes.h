@@ -1,4 +1,4 @@
-/*! \file BareGroundFluxes.h
+/*! \file bareground_fluxes.h
 \brief Functions derived from BareGroundFluxesMod.F90
 
 Compute sensible and latent fluxes and their derivatives with respect
@@ -13,8 +13,9 @@ It is not the same as the displa calculated in CanopyTemperature
 
 #pragma once
 
-#include "ELMConstants.h"
-#include "LandType.h"
+#include "elm_constants.h"
+#include "landtype.h"
+#include "qsat.h"
 #include <algorithm>
 #include <cmath>
 
@@ -139,4 +140,5 @@ void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &
 
 } // namespace ELM
 
-#include "BareGroundFluxes_impl.hh"
+#include "bareground_fluxes_impl.hh"
+
