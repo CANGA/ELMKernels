@@ -42,7 +42,7 @@ public:
   void parseState(Array_t arr) {
     std::string line_str, namefromfile;
     std::istringstream state_ss(this->state_);
-    const std::string namefromarr = arr.getname();
+    const std::string namefromarr = arr.label();
     while (std::getline(state_ss, line_str)) {
       std::istringstream line_ss(line_str);
       line_ss >> namefromfile;
@@ -69,7 +69,7 @@ public:
   template <class Array_t>
   void compareOutput(Array_t arr, const double rel_tol=1e-15) {
     using ArrType = typename Array_t::value_type;
-    auto filearr = Array<ArrType, 1>(arr.getname(), arr.size());
+    auto filearr = Array<ArrType, 1>(arr.label(), arr.size());
     parseState(filearr);
     bool same = true;
     std::vector<std::tuple<int, ArrType, ArrType>> mismatch;
@@ -79,7 +79,7 @@ public:
         mismatch.push_back(std::tuple<int, ArrType, ArrType>(i, arr.data()[i], filearr.data()[i]));
       }
     }
-    std::cout << std::boolalpha << arr.getname() << " from NSTEP " << this->nstep_ << " passes: " << same << std::endl;
+    std::cout << std::boolalpha << arr.label() << " from NSTEP " << this->nstep_ << " passes: " << same << std::endl;
     if (!same) {
       for (const auto [i,a,f] : mismatch) {
         std::cout << std::setprecision (15) << "    [i, ELM Kernels, file]        " << i << "  " << a << "  " << f << std::endl;

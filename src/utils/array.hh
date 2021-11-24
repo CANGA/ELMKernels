@@ -117,7 +117,7 @@ public:
   std::array<int, 1> shape() const { return {len_}; }
 
   // get variable name
-  std::string getname() const { return {name_}; }
+  std::string label() const { return {name_}; }
 
   typedef T value_type;
 
@@ -186,7 +186,7 @@ public:
   std::array<int, 2> shape() const { return {M_, N_}; }
 
   // get variable name
-  std::string getname() const { return {name_}; }
+  std::string label() const { return {name_}; }
 
   typedef T value_type;
 
@@ -262,7 +262,7 @@ public:
   std::array<int, 3> shape() const { return {M_, N_, P_}; }
 
   // get variable name
-  std::string getname() const { return {name_}; }
+  std::string label() const { return {name_}; }
 
   typedef T value_type;
 
