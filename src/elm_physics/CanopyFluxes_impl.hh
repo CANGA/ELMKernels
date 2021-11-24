@@ -10,16 +10,7 @@ ComputeFlux_Can()
 
 Irrigation() can be called anytime after InitializeFlux()
 */
-#include "ELMConstants.h"
-#include "FrictionVelocity.hh"
-#include "LandType.h"
-#include "Photosynthesis.hh"
-#include "QSat.hh"
-#include "SoilMoistStress.hh"
-#include "vegproperties.h"
-#include <algorithm>
-#include <assert.h>
-#include <cmath>
+#pragma once
 
 namespace ELM {
 
@@ -86,7 +77,7 @@ namespace ELM {
 //          // determine soil water deficit in this layer:
 //          // Calculate vol_liq_so - i.e., vol_liq at which smp_node = smpso - by inverting the above equations
 //          // for the root resistance factors
-//          vol_liq_so = eff_porosity[i] * pow((-smpso[Land.vtype]/sucsat[i]), (-1.0/bsw[i]));
+//          vol_liq_so = eff_porosity[i] * pow((-smpso/sucsat[i]), (-1.0/bsw[i]));
 //          // Translate vol_liq_so and eff_porosity into h2osoi_liq_so and h2osoi_liq_sat and calculate deficit
 //          h2osoi_liq_so = vol_liq_so * denh2o * dz[i];
 //          h2osoi_liq_sat = eff_porosity[i] * denh2o * dz[i];
@@ -107,7 +98,7 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
                         const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
                         const ArrayD1 dz, const ArrayD1 rootfr, const double &tc_stress,
                         const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
-                        const ArrayD1 smpso, const ArrayD1 smpsc, const double &elai, const double &esai,
+                        const double &smpso, const double &smpsc, const double &elai, const double &esai,
                         const double &emv, const double &emg, const double &qg, const double &t_grnd,
                         const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
                         const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
@@ -150,10 +141,11 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
       double h2osoi_liqvol[nlevgrnd + nlevsno];
       calc_volumetric_h2oliq(eff_porosity, h2osoi_liq, dz, h2osoi_liqvol);
       // calculate root moisture stress
-      calc_root_moist_stress(Land.vtype, h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso, smpsc,
+      calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso, smpsc,
                              eff_porosity, altmax_indx, altmax_lastyear_indx, rootr, btran);
 
       // Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
+      // removed alpha_aero (const 1.0) from computation of egvf
       lt = std::min(elai + esai, tlsai_crit);
       double egvf = (1.0 - exp(-lt)) / (1.0 - exp(-tlsai_crit));
       displa *= egvf;
@@ -191,7 +183,7 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
 template <class ArrayD1>
 void StabilityIteration_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
                             const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
-                            const double &forc_hgt_q_patch, const ArrayD1 dleaf, const double &fwet,
+                            const double &forc_hgt_q_patch, const double &fwet,
                             const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
                             const double &snow_depth, const double &soilbeta, const double &frac_h2osfc,
                             const double &t_h2osfc, const double &sabv, const double &h2ocan, const double &htop,
@@ -200,7 +192,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
                             const double &esai, const double &t_grnd, const double &forc_pbot, const double &forc_q,
                             const double &forc_th, const double &z0mg, const double &z0mv, const double &z0hv,
                             const double &z0qv, const double &thm, const double &thv, const double &qg,
-                            const VegProperties &veg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
+                            const PSNVegData& psnveg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
                             const double &vcmaxcintsha, const double &vcmaxcintsun, const ArrayD1 parsha_z,
                             const ArrayD1 parsun_z, const ArrayD1 laisha_z, const ArrayD1 laisun_z,
                             const double &forc_pco2, const double &forc_po2, const double &dayl_factor, double &btran,
@@ -212,12 +204,12 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
     bool stop = false;
-    int itmax = 40; // maximum number of iteration [-]
-    int itmin = 2;  // minimum number of iteration [-]
+    int itmax = 40; // maximum number of iterations [-]
+    int itmin = 2;  // minimum number of iterations [-]
     int itlef = 0;
     int nmozsgn = 0;       // number of times stability changes sign
     double del = 0.0;      // absolute change in leaf temp in current iteration [K]
-    double csoilc = 0.004; // Drag coefficient for soil under canopy [-]
+    //double csoilc = 0.004; // Drag coefficient for soil under canopy [-]
     double efeb = 0.0;     // latent heat flux from leaf (previous iter) [mm/s]
     double obuold = 0.0;   // monin-obukhov length from previous iteration
     double ustar, del2, uaf, cf, rb, ram, rah[2], raw[2];
@@ -230,7 +222,11 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
     static const double btran0 = 0.0;
     static const double beta = 1.0; // coefficient of convective velocity [-]
     static const double zii = 1000.0; // convective boundary layer height [m]
+    static const double ria = 0.5; // free parameter for stable formulation (currently = 0.5, "gamma" in Sakaguchi&Zeng,2008)
+    static const double dlemin = 0.1; // max limit for energy flux convergence [w/m2]
+    static const double dtmin = 0.01; // max limit for temperature convergence [K]
 
+    double ci_z[nlevcan] = {0.0}; // solution to integration eval from previous iteration
     while (itlef <= itmax && !stop) {
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
       FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
@@ -242,33 +238,30 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       // save leaf temp and leaf temp delta from previous iteration
       tlbef = t_veg;
       del2 = del;
-      // Determine aerodynamic resistances
-      ram = 1.0 / (ustar * ustar / um);
-      rah[0] = 1.0 / (temp1 * ustar);
-      raw[0] = 1.0 / (temp2 * ustar);
+      // Determine resistances
+      ram = 1.0 / (ustar * ustar / um); // aerodynamical resistance (s/m)
+      rah[0] = 1.0 / (temp1 * ustar); // thermal resistance [s/m]
+      raw[0] = 1.0 / (temp2 * ustar); // moisture resistance [s/m]
       // Bulk boundary layer resistance of leaves
-      uaf = um * std::sqrt(1.0 / (ram * um));
+      uaf = um * std::sqrt(1.0 / (ram * um)); // velocity of air within foliage [m/s]
       // Use pft parameter for leaf characteristic width dleaf
-      cf = 0.01 / (std::sqrt(uaf) * std::sqrt(dleaf[Land.vtype]));
-      rb = 1.0 / (cf * uaf);
+      cf = 0.01 / (std::sqrt(uaf) * std::sqrt(psnveg.dleaf)); // heat transfer coefficient from leaves [-]
+      rb = 1.0 / (cf * uaf); // leaf boundary layer resistance [s/m]
 
       // Parameterization for variation of csoilc with canopy density from X. Zeng, University of Arizona
       w = exp(-(elai + esai));
       // changed by K.Sakaguchi from here
-      // transfer coefficient over bare soil is changed to a local variable
-      // just for readability of the code (from line 680)
-      csoilb = (vkc / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45)));
+      csoilb = (vkc / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45))); // turbulent transfer coefficient over bare soil (unitless)
       // compute the stability parameter for ricsoilc  ("S" in Sakaguchi&Zeng,2008)
-      ri = (grav * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0));
+      ri = (grav * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0)); // stability parameter for under canopy air (unitless)
 
       // modify csoilc value (0.004) if the under-canopy is in stable condition
       if ((taf - t_grnd) > 0.0) {
         // decrease the value of csoilc by dividing it with (1+gamma*min(S, 10.0))
-        // ria ("gmanna" in Sakaguchi&Zeng, 2008) is a constant (=0.5)
-        ricsoilc = csoilc / (1.0 + 0.5 * std::min(ri, 10.0));
-        csoilcn = csoilb * w + ricsoilc * (1.0 - w);
+        ricsoilc = csoilc / (1.0 + ria * std::min(ri, 10.0)); // modified transfer coefficient under dense canopy (unitless)
+        csoilcn = csoilb * w + ricsoilc * (1.0 - w); // interpolated csoilc for dense (stable?) canopies
       } else {
-        csoilcn = csoilb * w + csoilc * (1.0 - w);
+        csoilcn = csoilb * w + csoilc * (1.0 - w); // interpolated csoilc for less than dense (less stable?) canopies
       }
 
       // Sakaguchi changes for stability formulation ends here
@@ -284,16 +277,16 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       }
 
       // call photosynthesis (phase=sun)
-      Photosynthesis(veg, Land.vtype, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
-                     dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, rssun);
+      Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+                     dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) {
         btran = std::min(1.0, btran * 1.25);
       }
 
       // call photosynthesis (phase=shade)
-      Photosynthesis(veg, Land.vtype, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
-                     dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, rssha);
+      Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+                     dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, ci_z, rssha);
 
       // Sensible heat conductance for air, leaf and ground
       wta = 1.0 / rah[0];       // air
@@ -363,7 +356,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
 
       // Evaporation flux from foliage
       erre = 0.0;
-      if (efe * efeb < 0.0) {
+      if ((efe * efeb) < 0.0) {
         efeold = efe;
         efe = 0.1 * efeold;
         erre = efe - efeold;
@@ -423,7 +416,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       if (zeta >= 0.0) { // stable
         zeta = std::min(2.0, std::max(zeta, 0.01));
         um = std::max(ur, 0.1);
-      } else {
+      } else { // unstable
         zeta = std::max(-100.0, std::min(zeta, -0.01));
         wc = beta * pow((-grav * ustar * thvstar * zii / thv), 0.333);
         um = std::sqrt(ur * ur + wc * wc);
@@ -443,7 +436,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
         dele = std::abs(efe - efeb);
         efeb = efe;
         det = std::max(del, del2);
-        if ((det < 0.01) && (dele < 0.1)) {
+        if ((det < dtmin) && (dele < dlemin)) {
           stop = true;
         }
       }
@@ -524,8 +517,8 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
              emv * (1.0 + (1.0 - emg) * (1.0 - emv)) * sb * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) +
              emg * (1.0 - emv) * sb * lw_grnd);
     // Derivative of soil energy flux with respect to soil temperature
-    cgrnds = cgrnds + cpair * forc_rho * wtg * wtal;
-    cgrndl = cgrndl + forc_rho * wtgq * wtalq * dqgdT;
+    cgrnds += cpair * forc_rho * wtg * wtal;
+    cgrndl += forc_rho * wtgq * wtalq * dqgdT;
     cgrnd = cgrnds + cgrndl * htvp;
     // Update dew accumulation (kg/m2)
     h2ocan = std::max(0.0, h2ocan + (qflx_tran_veg - qflx_evap_veg) * dtime);

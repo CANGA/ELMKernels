@@ -1,7 +1,6 @@
 // derived from PhotosynthesisMod.F90
 
 #include "ELMConstants.h"
-#include "vegproperties.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -62,7 +61,6 @@ void ci_func(const double &ci, // intracellular leaf CO2 (Pa)
              const double &mbb)      //  Ball-Berry slope of conductance-photosynthesis relationship
 {
   static const double theta_ip = 0.95;
-  double r1, r2; // roots of quadratic equation
 
   if (c3flag) {
     // C3: Rubisco-limited photosynthesis
@@ -84,6 +82,7 @@ void ci_func(const double &ci, // intracellular leaf CO2 (Pa)
   double aquad = theta_cj; // terms for quadratic equations
   double bquad = -(ac + aj);
   double cquad = ac * aj;
+  double r1, r2; // roots of quadratic equation
   quadratic(aquad, bquad, cquad, r1, r2);
   double ai = std::min(r1, r2); // intermediate co-limited photosynthesis (umol CO2/m**2/s)
 
@@ -343,18 +342,15 @@ void hybrid(
 } // hybrid
 
 double ft(const double &tl, const double &ha) {
-  double ans = exp(ha / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)) * (1.0 - (tfrz + 25.0) / tl));
-  return ans;
+  return exp(ha / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)) * (1.0 - (tfrz + 25.0) / tl));
 }
 
 double fth(const double &tl, const double &hd, const double &se, const double &scaleFactor) {
-  double ans = scaleFactor / (1.0 + exp((-hd + se * tl) / (ELM_RGAS * 1.0e-3 * tl)));
-  return ans;
+  return scaleFactor / (1.0 + exp((-hd + se * tl) / (ELM_RGAS * 1.0e-3 * tl)));
 }
 
 double fth25(const double &hd, const double &se) {
-  double ans = 1.0 + exp((-hd + se * (tfrz + 25.0)) / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)));
-  return ans;
+  return 1.0 + exp((-hd + se * (tfrz + 25.0)) / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)));
 }
 
 /* none of these variables do anything - diagnostics maybe??

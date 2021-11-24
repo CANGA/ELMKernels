@@ -1,15 +1,18 @@
-/*! \file Photosynthesis.hh
+/*! \file Photosynthesis.h
 \brief Internal functions derived from PhotosynthesisMod.F90
 */
 #pragma once
 
 #include "ELMConstants.h"
-#include "vegproperties.h"
+#include "vegdata.h"
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 
 namespace ELM {
+
+constexpr double sco = 0.5 * 0.209 / (42.75 / 1.e06); // relative specificity of rubisco
 
 double ft(const double &tl, const double &ha);
 double fth(const double &tl, const double &hd, const double &se, const double &scaleFactor);
@@ -124,11 +127,11 @@ void hybrid(
 
 /*! Compute photosynthesis with iterative solution for vegetation in both sun and shade. (internal) */
 template <class ArrayD1>
-void Photosynthesis(const VegProperties &veg, const int &vtype, const int &nrad, const double &forc_pbot,
+void Photosynthesis(const PSNVegData& psnveg, const int &nrad, const double &forc_pbot,
                     const double &t_veg, const double &t10, const double &esat_tv, const double &eair,
                     const double &oair, const double &cair, const double &rb, const double &btran,
                     const double &dayl_factor, const double &thm, const ArrayD1 tlai_z, const double &vcmaxcint,
-                    const ArrayD1 par_z, const ArrayD1 lai_z, double &rs);
+                    const ArrayD1 par_z, const ArrayD1 lai_z, ArrayD1 ci_z, double &rs);
 
 /*! Compute photosynthesis totals. (internal)
 note: none of these variables do anything - diagnostics maybe??

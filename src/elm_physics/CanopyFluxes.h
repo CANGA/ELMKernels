@@ -10,7 +10,14 @@ Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_C
 
 #include "ELMConstants.h"
 #include "LandType.h"
-#include "vegproperties.h"
+#include "vegdata.h"
+#include "FrictionVelocity.hh"
+#include "Photosynthesis.h"
+#include "QSat.hh"
+#include "SoilMoistStress.hh"
+#include <algorithm>
+#include <assert.h>
+#include <cmath>
 
 namespace ELM {
 
@@ -82,7 +89,7 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
                         const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
                         const ArrayD1 dz, const ArrayD1 rootfr, const double &tc_stress,
                         const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
-                        const ArrayD1 smpso, const ArrayD1 smpsc, const double &elai, const double &esai,
+                        const double &smpso, const double &smpsc, const double &elai, const double &esai,
                         const double &emv, const double &emg, const double &qg, const double &t_grnd,
                         const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
                         const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
@@ -103,7 +110,6 @@ photosynthesis for both sun & shade.
 \param[in]  forc_hgt_u_patch           [double] observational height of wind at pft level [m]
 \param[in]  forc_hgt_t_patch           [double] observational height of temperature at pft level [m]
 \param[in]  forc_hgt_q_patch           [double] observational height of specific humidity at pft level [m]
-\param[in]  dleaf[numpft]              [double] characteristic leaf dimension (m)
 \param[in]  fwet                       [double] fraction of canopy that is wet (0 to 1)
 \param[in]  fdry                       [double] fraction of foliage that is green and dry [-]
 \param[in]  laisun                     [double] sunlit leaf area
@@ -136,7 +142,7 @@ photosynthesis for both sun & shade.
 \param[in]  thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 \param[in]  thv                        [double] virtual potential temperature (kelvin)
 \param[in]  qg                         [double] ground specific humidity [kg/kg]
-\param[in]  veg                        [VegProperties] struct containing vegetation constant parameters
+\param[in]  psnveg                     [PSNVegData] constant vegetation data for current pft
 \param[in]  nrad                       [int]  number of canopy layers above snow for radiative transfer
 \param[in]  t10                        [double] 10-day running mean of the 2 m temperature (K)
 \param[in]  tlai_z[nlevcan]            [double] pft total leaf area index for canopy layer
@@ -182,7 +188,7 @@ photosynthesis for both sun & shade.
 template <class ArrayD1>
 void StabilityIteration_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
                             const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
-                            const double &forc_hgt_q_patch, const ArrayD1 dleaf, const double &fwet,
+                            const double &forc_hgt_q_patch, const double &fwet,
                             const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
                             const double &snow_depth, const double &soilbeta, const double &frac_h2osfc,
                             const double &t_h2osfc, const double &sabv, const double &h2ocan, const double &htop,
@@ -191,7 +197,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
                             const double &esai, const double &t_grnd, const double &forc_pbot, const double &forc_q,
                             const double &forc_th, const double &z0mg, const double &z0mv, const double &z0hv,
                             const double &z0qv, const double &thm, const double &thv, const double &qg,
-                            const VegProperties &veg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
+                            const PSNVegData &psnveg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
                             const double &vcmaxcintsha, const double &vcmaxcintsun, const ArrayD1 parsha_z,
                             const ArrayD1 parsun_z, const ArrayD1 laisha_z, const ArrayD1 laisun_z,
                             const double &forc_pco2, const double &forc_po2, const double &dayl_factor, double &btran,
