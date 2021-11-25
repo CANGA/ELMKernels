@@ -233,60 +233,60 @@ int main(int argc, char **argv) {
   auto h2osoi_vol = create<ArrayD2>("h2osoi_vol", n_grid_cells, ELM::nlevgrnd);
 
   // D3
-  auto mss_cnc_aer_in_fdb = create<ArrayD3>("mss_cnc_aer_in_fdb", n_grid_cells, ELM::nlevsno, ELM::SNICAR::sno_nbr_aer);
+  auto mss_cnc_aer_in_fdb = create<ArrayD3>("mss_cnc_aer_in_fdb", n_grid_cells, ELM::nlevsno, ELM::snow_snicar::sno_nbr_aer);
   auto flx_absd_snw = create<ArrayD3>("flx_absd_snw", n_grid_cells, ELM::nlevsno+1, ELM::numrad);
   auto flx_absi_snw = create<ArrayD3>("flx_absi_snw", n_grid_cells, ELM::nlevsno+1, ELM::numrad);
-  auto flx_abs_lcl = create<ArrayD3>("flx_abs_lcl", n_grid_cells, ELM::nlevsno+1, ELM::SNICAR::numrad_snw);
+  auto flx_abs_lcl = create<ArrayD3>("flx_abs_lcl", n_grid_cells, ELM::nlevsno+1, ELM::snow_snicar::numrad_snw);
   //auto flx_abs = create<ArrayD3>("flx_abs", n_grid_cells, ELM::nlevsno+1, ELM::numrad);
 
   // remaining variables required for SNICAR kernels
   // D1
   auto h2osno = create<ArrayD1>("h2osno", n_grid_cells);
-  auto ss_alb_oc1 = create<ArrayD1>("ss_alb_oc1", ELM::SNICAR::numrad_snw);
-  auto asm_prm_oc1 = create<ArrayD1>("asm_prm_oc1", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_oc1 = create<ArrayD1>("ext_cff_mss_oc1", ELM::SNICAR::numrad_snw);
-  auto ss_alb_oc2 = create<ArrayD1>("ss_alb_oc2", ELM::SNICAR::numrad_snw);
-  auto asm_prm_oc2 = create<ArrayD1>("asm_prm_oc2", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_oc2 = create<ArrayD1>("ext_cff_mss_oc2", ELM::SNICAR::numrad_snw);
-  auto ss_alb_dst1 = create<ArrayD1>("ss_alb_dst1", ELM::SNICAR::numrad_snw);
-  auto asm_prm_dst1 = create<ArrayD1>("asm_prm_dst1", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_dst1 = create<ArrayD1>("ext_cff_mss_dst1", ELM::SNICAR::numrad_snw);
-  auto ss_alb_dst2 = create<ArrayD1>("ss_alb_dst2", ELM::SNICAR::numrad_snw);
-  auto asm_prm_dst2 = create<ArrayD1>("asm_prm_dst2", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_dst2 = create<ArrayD1>("ext_cff_mss_dst2", ELM::SNICAR::numrad_snw);
-  auto ss_alb_dst3 = create<ArrayD1>("ss_alb_dst3", ELM::SNICAR::numrad_snw);
-  auto asm_prm_dst3 = create<ArrayD1>("asm_prm_dst3", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_dst3 = create<ArrayD1>("ext_cff_mss_dst3", ELM::SNICAR::numrad_snw);
-  auto ss_alb_dst4 = create<ArrayD1>("ss_alb_dst4", ELM::SNICAR::numrad_snw);
-  auto asm_prm_dst4 = create<ArrayD1>("asm_prm_dst4", ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_dst4 = create<ArrayD1>("ext_cff_mss_dst4", ELM::SNICAR::numrad_snw);
+  auto ss_alb_oc1 = create<ArrayD1>("ss_alb_oc1", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_oc1 = create<ArrayD1>("asm_prm_oc1", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_oc1 = create<ArrayD1>("ext_cff_mss_oc1", ELM::snow_snicar::numrad_snw);
+  auto ss_alb_oc2 = create<ArrayD1>("ss_alb_oc2", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_oc2 = create<ArrayD1>("asm_prm_oc2", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_oc2 = create<ArrayD1>("ext_cff_mss_oc2", ELM::snow_snicar::numrad_snw);
+  auto ss_alb_dst1 = create<ArrayD1>("ss_alb_dst1", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_dst1 = create<ArrayD1>("asm_prm_dst1", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_dst1 = create<ArrayD1>("ext_cff_mss_dst1", ELM::snow_snicar::numrad_snw);
+  auto ss_alb_dst2 = create<ArrayD1>("ss_alb_dst2", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_dst2 = create<ArrayD1>("asm_prm_dst2", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_dst2 = create<ArrayD1>("ext_cff_mss_dst2", ELM::snow_snicar::numrad_snw);
+  auto ss_alb_dst3 = create<ArrayD1>("ss_alb_dst3", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_dst3 = create<ArrayD1>("asm_prm_dst3", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_dst3 = create<ArrayD1>("ext_cff_mss_dst3", ELM::snow_snicar::numrad_snw);
+  auto ss_alb_dst4 = create<ArrayD1>("ss_alb_dst4", ELM::snow_snicar::numrad_snw);
+  auto asm_prm_dst4 = create<ArrayD1>("asm_prm_dst4", ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_dst4 = create<ArrayD1>("ext_cff_mss_dst4", ELM::snow_snicar::numrad_snw);
 
   // D2
-  auto ss_alb_snw_drc = create<ArrayD2>("ss_alb_snw_drc", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto asm_prm_snw_drc = create<ArrayD2>("asm_prm_snw_drc", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto ext_cff_mss_snw_drc = create<ArrayD2>("ext_cff_mss_snw_drc", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto ss_alb_snw_dfs = create<ArrayD2>("ss_alb_snw_dfs", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto asm_prm_snw_dfs = create<ArrayD2>("asm_prm_snw_dfs", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto ext_cff_mss_snw_dfs = create<ArrayD2>("ext_cff_mss_snw_dfs", ELM::SNICAR::numrad_snw, ELM::SNICAR::idx_Mie_snw_mx);
-  auto ss_alb_bc1 = create<ArrayD2>("ss_alb_bc1", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto asm_prm_bc1 = create<ArrayD2>("asm_prm_bc1", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_bc1 = create<ArrayD2>("ext_cff_mss_bc1", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto ss_alb_bc2 = create<ArrayD2>("ss_alb_bc2", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto albout_lcl = create<ArrayD2>("albout_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
-  auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
-  auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", n_grid_cells, ELM::SNICAR::numrad_snw);
+  auto ss_alb_snw_drc = create<ArrayD2>("ss_alb_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto asm_prm_snw_drc = create<ArrayD2>("asm_prm_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto ext_cff_mss_snw_drc = create<ArrayD2>("ext_cff_mss_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto ss_alb_snw_dfs = create<ArrayD2>("ss_alb_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto asm_prm_snw_dfs = create<ArrayD2>("asm_prm_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto ext_cff_mss_snw_dfs = create<ArrayD2>("ext_cff_mss_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+  auto ss_alb_bc1 = create<ArrayD2>("ss_alb_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto asm_prm_bc1 = create<ArrayD2>("asm_prm_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_bc1 = create<ArrayD2>("ext_cff_mss_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto ss_alb_bc2 = create<ArrayD2>("ss_alb_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto albout_lcl = create<ArrayD2>("albout_lcl", n_grid_cells, ELM::snow_snicar::numrad_snw);
+  auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", n_grid_cells, ELM::snow_snicar::numrad_snw);
+  auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", n_grid_cells, ELM::snow_snicar::numrad_snw);
   auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
   auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
   auto h2osoi_ice_lcl = create<ArrayD2>("h2osoi_ice_lcl", n_grid_cells, ELM::nlevsno);
   auto h2osoi_liq_lcl = create<ArrayD2>("h2osoi_liq_lcl", n_grid_cells, ELM::nlevsno);
 
   // D3
-  auto bcenh = create<ArrayD3>("bcenh", ELM::SNICAR::idx_bcint_icerds_max+1, ELM::SNICAR::idx_bc_nclrds_max+1, ELM::SNICAR::numrad_snw);
-  auto g_star = create<ArrayD3>("g_star", n_grid_cells, ELM::SNICAR::numrad_snw, ELM::nlevsno);
-  auto omega_star = create<ArrayD3>("omega_star", n_grid_cells, ELM::SNICAR::numrad_snw, ELM::nlevsno);
-  auto tau_star = create<ArrayD3>("tau_star", n_grid_cells, ELM::SNICAR::numrad_snw, ELM::nlevsno);
+  auto bcenh = create<ArrayD3>("bcenh", ELM::snow_snicar::idx_bcint_icerds_max+1, ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+  auto g_star = create<ArrayD3>("g_star", n_grid_cells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+  auto omega_star = create<ArrayD3>("omega_star", n_grid_cells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+  auto tau_star = create<ArrayD3>("tau_star", n_grid_cells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
   
 
 
@@ -397,28 +397,28 @@ int main(int argc, char **argv) {
     in.parseState(fabi_sha);
 
 
-  ELM::SurfaceAlbedo::InitTimestep(Land.urbpoi, elai[idx], mss_cnc_bcphi[idx], mss_cnc_bcpho[idx], 
+  ELM::surface_albedo::InitTimestep(Land.urbpoi, elai[idx], mss_cnc_bcphi[idx], mss_cnc_bcpho[idx], 
     mss_cnc_dst1[idx], mss_cnc_dst2[idx], mss_cnc_dst3[idx], mss_cnc_dst4[idx], vcmaxcintsun[idx], 
     vcmaxcintsha[idx], albsod[idx], albsoi[idx], albgrd[idx], albgri[idx], albd[idx], albi[idx], 
     fabd[idx], fabd_sun[idx], fabd_sha[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], ftdd[idx], 
     ftid[idx], ftii[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx], 
     mss_cnc_aer_in_fdb[idx]);
 
-  ELM::SurfaceAlbedo::SoilAlbedo(
+  ELM::surface_albedo::SoilAlbedo(
     Land, snl[idx], t_grnd[idx], coszen[idx], h2osoi_vol[idx], 
     albsat[idx], albdry[idx], albsod[idx], albsoi[idx]);
 
 {
     int flg_slr_in = 1;
 
-    ELM::SNICAR::InitTimestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
+    ELM::snow_snicar::InitTimestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
       h2osoi_liq[idx], h2osoi_ice[idx], snw_rds[idx], snl_top[idx], snl_btm[idx], 
       flx_abs_lcl[idx], flx_absd_snw[idx], flg_nosnl[idx], h2osoi_ice_lcl[idx], 
       h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx], 
       flx_slri_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+    ELM::snow_snicar::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
       h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
       ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
       ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
@@ -428,12 +428,12 @@ int main(int argc, char **argv) {
       bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
+    ELM::snow_snicar::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
       snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], 
       albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+    ELM::snow_snicar::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
       h2osno[idx], snw_rds_lcl[idx], albsoi[idx],albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], 
       flx_absd_snw[idx]);
   }
@@ -442,14 +442,14 @@ int main(int argc, char **argv) {
   {
     int flg_slr_in = 2;
 
-    ELM::SNICAR::InitTimestep (Land.urbpoi,
+    ELM::snow_snicar::InitTimestep (Land.urbpoi,
       flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
       snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absi_snw[idx],
       flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], 
       flx_slrd_lcl[idx], flx_slri_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+    ELM::snow_snicar::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
       h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
       ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
       ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
@@ -459,32 +459,32 @@ int main(int argc, char **argv) {
       g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::SNICAR::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
+    ELM::snow_snicar::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
       coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], 
       omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::SNICAR::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+    ELM::snow_snicar::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
       h2osno[idx], snw_rds_lcl[idx], albsoi[idx], albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], 
       flx_absi_snw[idx]);
   }
 
 
-  ELM::SurfaceAlbedo::GroundAlbedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
+  ELM::surface_albedo::GroundAlbedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
     albsoi[idx], albsnd[idx], albsni[idx], albgrd[idx], albgri[idx]);
 
 
-  ELM::SurfaceAlbedo::SnowAbsorptionFactor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
+  ELM::surface_albedo::SnowAbsorptionFactor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
     albsnd[idx], albsni[idx], flx_absd_snw[idx], flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], 
     flx_absiv[idx], flx_absin[idx]);
 
 
-  ELM::SurfaceAlbedo::CanopyLayerLAI(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
+  ELM::surface_albedo::CanopyLayerLAI(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
     nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
     fabi_sun_z[idx], fabi_sha_z[idx]);
 
 
-  ELM::SurfaceAlbedo::TwoStream(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
+  ELM::surface_albedo::TwoStream(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
     esai[idx], tlai_z[idx], tsai_z[idx], albgrd[idx], albgri[idx], albveg, vcmaxcintsun[idx], 
     vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], 
     albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 

@@ -378,7 +378,7 @@ int main(int argc, char **argv) {
     in.parseState(bsw[idx]);
 
     // call CanopyFluxes kernels
-    ELM::InitializeFlux_Can(
+    ELM::canopy_fluxes::InitializeFlux_Can(
         Land, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx],
         thm[idx], thv[idx], max_dayl[idx], dayl[idx], altmax_indx[idx], altmax_lastyear_indx[idx], 
         t_soisno[idx], h2osoi_ice[idx], h2osoi_liq[idx], dz[idx], rootfr[idx], psnveg.tc_stress, 
@@ -388,7 +388,7 @@ int main(int argc, char **argv) {
         z0mv[idx], z0hv[idx], z0qv[idx], rootr[idx], eff_porosity[idx], dayl_factor, air, bir, 
         cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[idx]);
 
-    ELM::StabilityIteration_Can(
+    ELM::canopy_fluxes::StabilityIteration_Can(
         Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u_patch[idx], 
         forc_hgt_t_patch[idx], forc_hgt_q_patch[idx], fwet[idx], fdry[idx], laisun[idx], 
         laisha[idx], forc_rho[idx], snow_depth[idx], soilbeta[idx], frac_h2osfc[idx], 
@@ -402,7 +402,7 @@ int main(int argc, char **argv) {
         taf, qaf, um, dth, dqh, obu, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, 
         t_veg[idx], wtgq, wtalq, wtlq0, wtaq0);
 
-    ELM::ComputeFlux_Can(
+    ELM::canopy_fluxes::ComputeFlux_Can(
         Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], t_soisno[idx], frac_h2osfc[idx], 
         t_h2osfc[idx], sabv[idx], qg_snow[idx], qg_soil[idx], qg_h2osfc[idx], dqgdT[idx], htvp[idx], 
         wtg, wtl0, wta0, wtal, air, bir, cir, qsatl, qsatldT, dth, dqh, temp1, temp2, temp12m, 

@@ -47,14 +47,14 @@ struct CallBareGroundFluxes {
     double temp22m; // relation for specific humidity profile applied at 2-m
     double ustar;   // friction velocity [m/s]
 
-    InitializeFlux_BG(Land, frac_veg_nosno[i], forc_u[i], forc_v[i], forc_q[i], forc_th[i], forc_hgt_u_patch[i], thm[i],
+    bareground_fluxes::InitializeFlux_BG(Land, frac_veg_nosno[i], forc_u[i], forc_v[i], forc_q[i], forc_th[i], forc_hgt_u_patch[i], thm[i],
                       thv[i], t_grnd[i], qg[i], z0mg[i], dlrad[i], ulrad[i], zldis, displa, dth, dqh, obu, ur, um);
 
-    StabilityIteration_BG(Land, frac_veg_nosno[i], forc_hgt_t_patch[i], forc_hgt_u_patch[i], forc_hgt_q_patch[i],
+    bareground_fluxes::StabilityIteration_BG(Land, frac_veg_nosno[i], forc_hgt_t_patch[i], forc_hgt_u_patch[i], forc_hgt_q_patch[i],
                           z0mg[i], zldis, displa, dth, dqh, ur, forc_q[i], forc_th[i], thv[i], z0hg[i],
                           z0qg[i], obu, um, temp1, temp2, temp12m, temp22m, ustar);
 
-    ComputeFlux_BG(Land, frac_veg_nosno[i], snl[i], forc_rho[i], soilbeta[i], dqgdT[i], htvp[i], t_h2osfc[i],
+    bareground_fluxes::ComputeFlux_BG(Land, frac_veg_nosno[i], snl[i], forc_rho[i], soilbeta[i], dqgdT[i], htvp[i], t_h2osfc[i],
                    qg_snow[i], qg_soil[i], qg_h2osfc[i], Kokkos::subview(t_soisno, i, Kokkos::ALL), forc_pbot[i], dth,
                    dqh, temp1, temp2, temp12m, temp22m, ustar, forc_q[i], thm[i], cgrnds[i], cgrndl[i], cgrnd[i],
                    eflx_sh_grnd[i], eflx_sh_tot[i], eflx_sh_snow[i], eflx_sh_soil[i], eflx_sh_h2osfc[i],

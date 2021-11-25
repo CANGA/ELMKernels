@@ -12,6 +12,7 @@
 #include "qsat.h"
 
 namespace ELM {
+namespace bareground_fluxes {
 
 void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
                        const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
@@ -30,7 +31,7 @@ void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const do
     dlrad = 0.0;
     ulrad = 0.0;
 
-    MoninObukIni(ur, thv, dthv, zldis, z0mg, um, obu);
+    friction_velocity::MoninObukIni(ur, thv, dthv, zldis, z0mg, um, obu);
   }
 } // InitializeFlux_BG()
 
@@ -55,11 +56,11 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
     if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
 
       // friction velocity calls
-      FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
-      FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hg, temp1);
-      FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
-      FrictionVelocityTemperature2m(obu, z0hg, temp12m);
-      FrictionVelocityHumidity2m(obu, z0hg, z0qg, temp12m, temp22m);
+      friction_velocity::FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
+      friction_velocity::FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hg, temp1);
+      friction_velocity::FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
+      friction_velocity::FrictionVelocityTemperature2m(obu, z0hg, temp12m);
+      friction_velocity::FrictionVelocityHumidity2m(obu, z0hg, z0qg, temp12m, temp22m);
 
       tstar = temp1 * dth;
       qstar = temp2 * dqh;
@@ -82,4 +83,5 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
   }
 } // StabilityIteration_BG()
 
+} // namespace bareground_fluxes
 } // namespace ELM

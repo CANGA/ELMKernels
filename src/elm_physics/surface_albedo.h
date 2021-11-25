@@ -47,7 +47,7 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 #include "vegdata.h"
 
 namespace ELM {
-namespace SurfaceAlbedo {
+namespace surface_albedo {
 
 constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
 constexpr double mpe = 1.e-06; // prevents overflow for division by zero
@@ -302,7 +302,7 @@ void SoilAlbedo(
   ArrayD1 albsod, ArrayD1 albsoi);
 
 
-} // namespace SurfaceAlbedo
+} // namespace surface_albedo
 } // namespace ELM
 
 #include "surface_albedo_impl.hh"

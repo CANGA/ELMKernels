@@ -6,7 +6,8 @@
 #include <cmath>
 
 namespace ELM {
-
+namespace canopy_hydrology {
+  
 void Interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
                   const double &dewmx, const double &elai, const double &esai, const double &dtime, double &h2ocan,
                   double &qflx_candrip, double &qflx_through_snow, double &qflx_through_rain, double &fracsnow,
@@ -141,4 +142,5 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
   }
 } // FracWet
 
+} // namespace canopy_hydrology
 } // namespace ELM

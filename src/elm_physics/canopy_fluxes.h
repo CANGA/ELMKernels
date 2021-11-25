@@ -20,6 +20,7 @@ Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_C
 #include <cmath>
 
 namespace ELM {
+namespace canopy_fluxes {
 
 /*! Initialize variables for photosynthesis and call MoninObukIni() for vegetated cells.
 
@@ -296,6 +297,7 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
                      double &cgrndl, double &cgrnd, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
                      double &rh_ref2m, double &rh_ref2m_r);
 
+} // namespace canopy_fluxes
 } // namespace ELM
 
 #include "canopy_fluxes_impl.hh"

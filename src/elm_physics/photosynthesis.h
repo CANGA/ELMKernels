@@ -11,6 +11,7 @@
 #include <iostream>
 
 namespace ELM {
+namespace photosynthesis {
 
 constexpr double sco = 0.5 * 0.209 / (42.75 / 1.e06); // relative specificity of rubisco
 
@@ -141,6 +142,7 @@ void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const do
                          const double &psnsha_wj, const double &psnsha_wp, const double &laisha, double &fpsn,
                          double &fpsn_wc, double &fpsn_wj, double &fpsn_wp);
 
+} // namespace photosynthesis
 } // namespace ELM
 
 #include <photosynthesis_impl.hh>

@@ -3,6 +3,7 @@
 #pragma once
 
 namespace ELM {
+namespace canopy_temperature {
 
 template <class ArrayD1>
 void SaveGroundTemp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
@@ -110,7 +111,7 @@ void CalculateSoilBeta(const LandType &Land, const double &frac_sno, const doubl
                        const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
                        const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta) {
 
-  calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz, soilbeta);
+  surface_resistance::calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz, soilbeta);
 } // CalculateSoilBeta()
 
 template <class ArrayD1>
@@ -127,14 +128,14 @@ void CalculateHumidities(const LandType &Land, const int &snl, const double &for
     double qsatgdT; // d(qsatg)/dT
 
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
-      QSat(t_soisno[nlevsno - snl], forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat::QSat(t_soisno[nlevsno - snl], forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
       }
       qg_snow = qsatg;
       dqgdT = frac_sno * qsatgdT;
-      QSat(t_soisno[nlevsno], forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat::QSat(t_soisno[nlevsno], forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > hr * qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
@@ -148,7 +149,7 @@ void CalculateHumidities(const LandType &Land, const int &snl, const double &for
         qg_snow = qg_soil;
         dqgdT = (1.0 - frac_h2osfc) * hr * dqgdT;
       }
-      QSat(t_h2osfc, forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat::QSat(t_h2osfc, forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
@@ -157,7 +158,7 @@ void CalculateHumidities(const LandType &Land, const int &snl, const double &for
       dqgdT = dqgdT + frac_h2osfc * qsatgdT;
       qg = frac_sno_eff * qg_snow + (1.0 - frac_sno_eff - frac_h2osfc) * qg_soil + frac_h2osfc * qg_h2osfc;
     } else {
-      QSat(t_grnd, forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat::QSat(t_grnd, forc_pbot, eg, degdT, qsatg, qsatgdT);
       qg = qred * qsatg;
       dqgdT = qred * qsatgdT;
 
@@ -226,4 +227,5 @@ void GroundProperties(const LandType &Land, const int &snl, const double &frac_s
   }
 } // GroundProperties
 
+} // namespace canopy_temperature
 } // namespace ELM

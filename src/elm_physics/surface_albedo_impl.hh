@@ -34,7 +34,7 @@ mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 #pragma once
 
 namespace ELM {
-namespace SurfaceAlbedo {
+namespace surface_albedo {
 
 
 // not sure if necessary
@@ -806,5 +806,5 @@ void SoilAlbedo(
 //
 //  end subroutine SurfaceAlbedoInitTimeConst
 
-} // namespace SurfaceAlbedo
+} // namespace surface_albedo
 } // namespace ELM

@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 namespace ELM {
+namespace photosynthesis {
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
 void quadratic(const double &a, const double &b, const double &c, double &r1, double &r2) {
@@ -368,4 +369,5 @@ void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const do
   fpsn_wp = psnsun_wp * laisun + psnsha_wp * laisha;
 }
 
+} // namespace photosynthesis
 } // namespace ELM

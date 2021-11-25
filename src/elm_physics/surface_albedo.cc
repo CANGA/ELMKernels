@@ -15,7 +15,7 @@
 //using ArrayD2 = ELM::Array<double, 2>;
 
 namespace ELM {
-namespace SurfaceAlbedo {
+namespace surface_albedo {
 
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check! 
 // call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
@@ -209,5 +209,5 @@ esai    [double] one-sided stem area index with burying by snow
 //
 //  end subroutine SurfaceAlbedoInitTimeConst
 
-} // namespace SurfaceAlbedo
+} // namespace surface_albedo
 } // namespace ELM

@@ -3,7 +3,8 @@
 #pragma once
 
 namespace ELM {
-
+namespace canopy_hydrology {
+  
 template <class ArrayD1>
 void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
               const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
@@ -212,6 +213,7 @@ void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h
   }
 } // FracH2OSfc
 
+} // namespace canopy_hydrology
 } // namespace ELM
 
 

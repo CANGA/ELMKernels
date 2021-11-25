@@ -17,6 +17,7 @@ GroundProperties() -> CalculateForcingHeight() -> InitializeEnergyFluxes()
 #include <cmath>
 
 namespace ELM {
+namespace canopy_temperature {
 
 /*! Record t_h2osfc and t_soisno prior to updating.
 
@@ -199,6 +200,7 @@ void InitializeEnergyFluxes(const LandType &Land, double &eflx_sh_tot, double &e
                             double &eflx_lh_tot, double &eflx_lh_tot_u, double &eflx_lh_tot_r, double &eflx_sh_veg,
                             double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg);
 
+} // namespace canopy_temperature
 } // namespace ELM
 
 #include "canopy_temperature_impl.hh"

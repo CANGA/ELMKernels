@@ -216,7 +216,7 @@ ELM::interception_physics(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[
   qflx_snow_grnd[idx], qflx_rain_grnd[idx], 
   qflx_prec_grnd[idx]);
 
-    ELM::FracWet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
+    ELM::canopy_hydrology::FracWet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
 
 //    ELM::SnowInit(Land, dtime, do_capsnow[idx], oldfflag[idx], forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
 //                    n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],

@@ -14,6 +14,7 @@ CanopySunShadeFrac() -> SurfRadZeroFluxes() -> SurfRadAbsorbed() -> SurfRadLayer
 #include <cmath>
 
 namespace ELM {
+namespace surface_radiation {
 
 /*! Zero out fluxes before surface radiation calculations.
 
@@ -130,6 +131,7 @@ void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double
                              const ArrayD1 fabi_sha_z, ArrayD1 parsun_z, ArrayD1 parsha_z,
                              ArrayD1 laisun_z, ArrayD1 laisha_z, double &laisun, double &laisha);
 
+} // namespace surface_radiation
 } // namespace ELM
 
 #include "surface_radiation_impl.hh"

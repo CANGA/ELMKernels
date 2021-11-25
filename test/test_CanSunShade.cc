@@ -109,7 +109,7 @@ int main(int argc, char **argv) {
     in.parseState(laisha_z[idx]);
 
     // call CanopySunShadeFractions kernel
-    ELM::CanopySunShadeFractions(
+    ELM::surface_radiation::CanopySunShadeFractions(
         Land, nrad[idx], elai[idx], tlai_z[idx], fsun_z[idx],
         forc_solad[idx], forc_solai[idx],
         fabd_sun_z[idx], fabd_sha_z[idx],

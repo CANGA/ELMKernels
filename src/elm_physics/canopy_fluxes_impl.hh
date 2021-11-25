@@ -13,7 +13,7 @@ Irrigation() can be called anytime after InitializeFlux()
 #pragma once
 
 namespace ELM {
-
+namespace canopy_fluxes {
 // */
 // void Irrigation(
 //  const LandType& Land,
@@ -136,12 +136,12 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
       dayl_factor = std::min(1.0, std::max(0.01, (dayl * dayl) / (max_dayl * max_dayl)));
 
       // compute effective soil porosity
-      calc_effective_soilporosity(watsat, h2osoi_ice, dz, eff_porosity);
+      soil_moist_stress::calc_effective_soilporosity(watsat, h2osoi_ice, dz, eff_porosity);
       // compute volumetric liquid water content
       double h2osoi_liqvol[nlevgrnd + nlevsno];
-      calc_volumetric_h2oliq(eff_porosity, h2osoi_liq, dz, h2osoi_liqvol);
+      soil_moist_stress::calc_volumetric_h2oliq(eff_porosity, h2osoi_liq, dz, h2osoi_liqvol);
       // calculate root moisture stress
-      calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso, smpsc,
+      soil_moist_stress::calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso, smpsc,
                              eff_porosity, altmax_indx, altmax_lastyear_indx, rootr, btran);
 
       // Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
@@ -160,7 +160,7 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
 
       // Saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       double deldT; // derivative of "el" on "t_veg" [pa/K]
-      QSat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
+      qsat::QSat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
       // Initialize flux profile
       taf = (t_grnd + thm) / 2.0;
@@ -175,7 +175,7 @@ void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_ve
       // Check to see if the forcing height is below the canopy height
       assert(zldis >= 0.0);
       // Initialize Monin-Obukhov length and wind speed
-      MoninObukIni(ur, thv, dthv, zldis, z0mv, um, obu);
+      friction_velocity::MoninObukIni(ur, thv, dthv, zldis, z0mv, um, obu);
     }
   }
 } // InitializeFlux_Can()
@@ -229,11 +229,11 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
     double ci_z[nlevcan] = {0.0}; // solution to integration eval from previous iteration
     while (itlef <= itmax && !stop) {
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
-      FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
-      FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hv, temp1);
-      FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hv, z0qv, temp1, temp2);
-      FrictionVelocityTemperature2m(obu, z0hv, temp12m);
-      FrictionVelocityHumidity2m(obu, z0hv, z0qv, temp12m, temp22m);
+      friction_velocity::FrictionVelocityWind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
+      friction_velocity::FrictionVelocityTemperature(forc_hgt_t_patch, displa, obu, z0hv, temp1);
+      friction_velocity::FrictionVelocityHumidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hv, z0qv, temp1, temp2);
+      friction_velocity::FrictionVelocityTemperature2m(obu, z0hv, temp12m);
+      friction_velocity::FrictionVelocityHumidity2m(obu, z0hv, z0qv, temp12m, temp22m);
 
       // save leaf temp and leaf temp delta from previous iteration
       tlbef = t_veg;
@@ -277,7 +277,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       }
 
       // call photosynthesis (phase=sun)
-      Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+      photosynthesis::Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
                      dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) {
@@ -285,7 +285,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       }
 
       // call photosynthesis (phase=shade)
-      Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+      photosynthesis::Photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
                      dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, ci_z, rssha);
 
       // Sensible heat conductance for air, leaf and ground
@@ -398,7 +398,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
       // The energy loss due to above two limits is added to the sensible heat flux.
       eflx_sh_veg = efsh + dc1 * wtga * dt_veg + err + erre + hvap * ecidif;
       // Re-calculate saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
-      QSat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
+      qsat::QSat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
       // Update vegetation/ground surface temperature, canopy air
       // temperature, canopy vapor pressure, aerodynamic temperature, and
@@ -506,7 +506,7 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
     // 2 m height specific humidity
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
     // 2 m height relative humidity
-    QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+    qsat::QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m) * 100.0);
     rh_ref2m_r = rh_ref2m;
 
@@ -530,4 +530,5 @@ void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, 
   }
 } // ComputeFlux_Can()
 
+} // namespace canopy_fluxes
 } // namespace ELM

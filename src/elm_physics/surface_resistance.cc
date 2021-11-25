@@ -6,6 +6,7 @@
 #include <cmath>
 
 namespace ELM {
+namespace surface_resistance {
 
 double getlblcef(const double &rho, const double &temp) {
   const double C = 120.0;      // K
@@ -20,4 +21,5 @@ double getlblcef(const double &rho, const double &temp) {
   return result;
 }
 
+} // namespace surface_resistance
 } // namespace ELM

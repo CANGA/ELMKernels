@@ -3,6 +3,8 @@
 #pragma once
 
 namespace ELM {
+namespace soil_moist_stress {
+
 
 template <class ArrayD1>
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int &altmax_indx,
@@ -100,5 +102,6 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
   }
 }
 
+} // namespace soil_moist_stress
 } // namespace ELM
 

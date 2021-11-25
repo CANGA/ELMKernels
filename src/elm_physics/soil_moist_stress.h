@@ -10,6 +10,8 @@ I remove the original calc_root_moist_stress() and instead call
 normalize_unfrozen_rootfr(), which calls array_normalization() -- note: rootfr_unf[nlevgrnd] needs to be initialized to
 0.0 calc_root_moist_stress_clm45default(), which calls soil_water_retention_curve%soil_suction()
 
+
+soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without derivative
 */
 #pragma once
 
@@ -18,6 +20,7 @@ normalize_unfrozen_rootfr(), which calls array_normalization() -- note: rootfr_u
 #include <cmath>
 
 namespace ELM {
+namespace soil_moist_stress {
 
 /*
 DESCRIPTION: normalize array elements with respect to array sum
@@ -111,6 +114,7 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
                             const double &smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
                             const int &altmax_lastyear_indx, ArrayD1 rootr, double &btran);
 
+} // namespace soil_moist_stress
 } // namespace ELM
 
 #include "soil_moist_stress_impl.hh"

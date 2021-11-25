@@ -3,6 +3,7 @@
 #pragma once
 
 namespace ELM {
+namespace surface_radiation {
 
 template <class ArrayD1>
 void SurfRadZeroFluxes(const LandType &Land, double &sabg_soil, double &sabg_snow, double &sabg, double &sabv,
@@ -224,4 +225,5 @@ void CanopySunShadeFractions(const LandType &Land, const int &nrad, const double
   }
 }
 
+} // namespace surface_radiation
 } // namespace ELM

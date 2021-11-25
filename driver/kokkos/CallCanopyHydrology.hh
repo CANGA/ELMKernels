@@ -43,18 +43,18 @@ struct CallCanHydro {
     double fracsnow;
     double fracrain;
 
-    ELM::Interception(Land, frac_veg_nosno[i], forc_rain[i], forc_snow[i], dewmx, elai[i], esai[i], dtime, h2ocan[i],
+    ELM::canopy_hydrology::Interception(Land, frac_veg_nosno[i], forc_rain[i], forc_snow[i], dewmx, elai[i], esai[i], dtime, h2ocan[i],
                       qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
 
-    ELM::Irrigation(Land, irrig_rate[i], n_irrig_steps_left[i], qflx_irrig[i]);
+    ELM::canopy_hydrology::Irrigation(Land, irrig_rate[i], n_irrig_steps_left[i], qflx_irrig[i]);
 
-    ELM::GroundFlux(Land, do_capsnow, frac_veg_nosno[i], forc_rain[i], forc_snow[i], qflx_irrig[i], qflx_candrip,
+    ELM::canopy_hydrology::GroundFlux(Land, do_capsnow, frac_veg_nosno[i], forc_rain[i], forc_snow[i], qflx_irrig[i], qflx_candrip,
                     qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[i], qflx_snwcp_liq[i],
                     qflx_snwcp_ice[i], qflx_snow_grnd[i], qflx_rain_grnd[i]);
 
-    ELM::FracWet(Land, frac_veg_nosno[i], dewmx, elai[i], esai[i], h2ocan[i], fwet[i], fdry[i]);
+    ELM::canopy_hydrology::FracWet(Land, frac_veg_nosno[i], dewmx, elai[i], esai[i], h2ocan[i], fwet[i], fdry[i]);
 
-    ELM::SnowInit(Land, dtime, do_capsnow, oldfflag, forc_t[i], t_grnd[i], qflx_snow_grnd[i], qflx_snow_melt[i],
+    ELM::canopy_hydrology::SnowInit(Land, dtime, do_capsnow, oldfflag, forc_t[i], t_grnd[i], qflx_snow_grnd[i], qflx_snow_melt[i],
                   n_melt[i], snow_depth[i], h2osno[i], int_snow[i], Kokkos::subview(swe_old, i, Kokkos::ALL),
                   Kokkos::subview(h2osoi_liq, i, Kokkos::ALL), Kokkos::subview(h2osoi_ice, i, Kokkos::ALL),
                   Kokkos::subview(t_soisno, i, Kokkos::ALL), Kokkos::subview(frac_iceold, i, Kokkos::ALL), snl[i],
@@ -62,7 +62,7 @@ struct CallCanHydro {
                   Kokkos::subview(zi, i, Kokkos::ALL), Kokkos::subview(snw_rds, i, Kokkos::ALL),
                   frac_sno_eff[i], frac_sno[i]);
 
-    ELM::FracH2OSfc(Land, micro_sigma[i], h2osno[i], h2osfc[i], Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
+    ELM::canopy_hydrology::FracH2OSfc(Land, micro_sigma[i], h2osno[i], h2osfc[i], Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
                     frac_sno[i], frac_sno_eff[i], frac_h2osfc[i]);
   }
 

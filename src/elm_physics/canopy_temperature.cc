@@ -6,6 +6,7 @@
 #include <cmath>
 
 namespace ELM {
+namespace canopy_temperature {
 
 void CalculateForcingHeight(const LandType &Land, const bool &veg_active, const int &frac_veg_nosno,
                             const double &forc_hgt_u, const double &forc_hgt_t, const double &forc_hgt_q,
@@ -65,4 +66,5 @@ void InitializeEnergyFluxes(const LandType &Land, double &eflx_sh_tot, double &e
   qflx_tran_veg = 0.0;
 } // InitializeEnergyFluxes
 
+} // namespace canopy_temperature
 } // namespace ELM

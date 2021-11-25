@@ -3,6 +3,7 @@
 #pragma once
 
 namespace ELM {
+namespace photosynthesis {
 
 template <class ArrayD1>
 void Photosynthesis(const PSNVegData &psnveg, const int &nrad, const double &forc_pbot,
@@ -282,4 +283,5 @@ void Photosynthesis(const PSNVegData &psnveg, const int &nrad, const double &for
   }
 } // void PhotoSynthesis
 
+} // namespace photosynthesis
 } // namespace ELM

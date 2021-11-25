@@ -3,7 +3,8 @@
 #include <cmath>
 
 namespace ELM {
-
+namespace soil_moist_stress {
+  
 void array_normalization(double *arr_inout) {
   double arr_sum = 0.0;
 
@@ -22,5 +23,6 @@ void soil_suction(const double &smpsat, const double &s, const double &bsw, doub
   smp = -smpsat * pow(s, (-bsw));
 }
 
+} // namespace soil_moist_stress
 } // namespace ELM
 

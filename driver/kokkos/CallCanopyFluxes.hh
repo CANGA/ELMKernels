@@ -91,7 +91,7 @@ struct CallCanopyFluxes {
 
     //ELM::PSNVegData psnveg = Veg.get_pft_psnveg(Land.vtype);
 
-    ELM::InitializeFlux_Can(
+    ELM::canopy_fluxes::InitializeFlux_Can(
         Land, snl[i], frac_veg_nosno[i], frac_sno[i], forc_hgt_u_patch[i], thm[i], thv[i], max_dayl[i], dayl[i],
         altmax_indx[i], altmax_lastyear_indx[i], Kokkos::subview(t_soisno, i, Kokkos::ALL),
         Kokkos::subview(h2osoi_ice, i, Kokkos::ALL), Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
@@ -103,7 +103,7 @@ struct CallCanopyFluxes {
         Kokkos::subview(rootr, i, Kokkos::ALL), Kokkos::subview(eff_porosity, i, Kokkos::ALL),
         dayl_factor, air, bir, cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[i]);
 
-    ELM::StabilityIteration_Can(
+    ELM::canopy_fluxes::StabilityIteration_Can(
         Land, dtime, snl[i], frac_veg_nosno[i], frac_sno[i], forc_hgt_u_patch[i], forc_hgt_t_patch[i],
         forc_hgt_q_patch[i], fwet[i], fdry[i], laisun[i], laisha[i],
         forc_rho[i], snow_depth[i], soilbeta[i], frac_h2osfc[i], t_h2osfc[i], sabv[i], h2ocan[i], htop[i],
@@ -116,7 +116,7 @@ struct CallCanopyFluxes {
         qsatldT, taf, qaf, um, dth, dqh, obu, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, t_veg[i], wtgq,
         wtalq, wtlq0, wtaq0);
 
-    ELM::ComputeFlux_Can(
+    ELM::canopy_fluxes::ComputeFlux_Can(
         Land, dtime, snl[i], frac_veg_nosno[i], frac_sno[i], Kokkos::subview(t_soisno, i, Kokkos::ALL), frac_h2osfc[i],
         t_h2osfc[i], sabv[i], qg_snow[i], qg_soil[i], qg_h2osfc[i], dqgdT[i], htvp[i], wtg, wtl0, wta0, wtal, air, bir,
         cir, qsatl, qsatldT, dth, dqh, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, t_veg[i], t_grnd[i],

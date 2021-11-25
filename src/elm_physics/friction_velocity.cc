@@ -14,6 +14,7 @@ Vol. 11, 2628-2644.
 #include <cmath>
 
 namespace ELM {
+namespace friction_velocity {
 
 void MoninObukIni(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
                   double &um, double &obu) {
@@ -158,4 +159,5 @@ void FrictionVelocityHumidity2m(const double &obu, const double &z0h, const doub
   }
 }
 
+} // namespace friction_velocity
 } // namespace ELM

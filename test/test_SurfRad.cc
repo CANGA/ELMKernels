@@ -163,10 +163,10 @@ int main(int argc, char **argv) {
 
 
     // call SurfaceRadiation kernels
-    ELM::SurfRadZeroFluxes(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
+    ELM::surface_radiation::SurfRadZeroFluxes(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
                           sabg_lyr[idx]);
 
-    ELM::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
+    ELM::surface_radiation::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
          ftii[idx], forc_solad[idx],
          forc_solai[idx], fabd[idx],
          fabi[idx], albsod[idx],
@@ -176,11 +176,11 @@ int main(int argc, char **argv) {
          trd, tri);
 
 
-    ELM::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
+    ELM::surface_radiation::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
                        flx_absdn[idx], flx_absiv[idx],
                        flx_absin[idx], trd, tri, sabg_lyr[idx]);
 
-    ELM::SurfRadReflected(Land, albd[idx], albi[idx],
+    ELM::surface_radiation::SurfRadReflected(Land, albd[idx], albi[idx],
                           forc_solad[idx], forc_solai[idx],
                           fsr[idx]);
 

@@ -4,6 +4,7 @@
 #include "elm_constants.h"
 
 namespace ELM {
+namespace qsat {
 
 // For water vapor (temperature range 0C-100C)
 static const double a0 = 6.11213476;
@@ -78,4 +79,5 @@ void QSat(const double &T, const double &p,
   qsdT = esdT * vp2 * p; // 1 / K
 }
 
+} // namespace qsat
 } // namespace ELM
