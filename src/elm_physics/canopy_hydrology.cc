@@ -8,7 +8,7 @@
 namespace ELM {
 namespace canopy_hydrology {
   
-void Interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
+void interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
                   const double &dewmx, const double &elai, const double &esai, const double &dtime, double &h2ocan,
                   double &qflx_candrip, double &qflx_through_snow, double &qflx_through_rain, double &fracsnow,
                   double &fracrain) {
@@ -67,7 +67,7 @@ void Interception(const LandType &Land, const int &frac_veg_nosno, const double 
       fracrain = 0.0;
     }
   }
-} // Interception
+} // interception
 
 void Irrigation(const LandType &Land, const double &irrig_rate, int &n_irrig_steps_left, double &qflx_irrig) {
   if (!Land.lakpoi) {
@@ -80,7 +80,7 @@ void Irrigation(const LandType &Land, const double &irrig_rate, int &n_irrig_ste
   }
 } // Irrigation
 
-void GroundFlux(const LandType &Land, const bool &do_capsnow, const int &frac_veg_nosno, const double &forc_rain,
+void ground_flux(const LandType &Land, const bool &do_capsnow, const int &frac_veg_nosno, const double &forc_rain,
                 const double &forc_snow, const double &qflx_irrig, const double &qflx_candrip,
                 const double &qflx_through_snow, const double &qflx_through_rain, const double &fracsnow,
                 const double &fracrain, double &qflx_prec_grnd, double &qflx_snwcp_liq, double &qflx_snwcp_ice,
@@ -119,9 +119,9 @@ void GroundFlux(const LandType &Land, const bool &do_capsnow, const int &frac_ve
       qflx_rain_grnd = qflx_prec_grnd_rain; // liquid water onto ground (mm/s)
     }
   }
-} // GroundFlux
+} // ground_flux
 
-void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewmx, const double &elai,
+void fraction_wet(const LandType &Land, const int &frac_veg_nosno, const double &dewmx, const double &elai,
              const double &esai, const double &h2ocan, double &fwet, double &fdry) {
 
   if (!Land.lakpoi) {
@@ -140,7 +140,7 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
       fdry = 0.0;
     }
   }
-} // FracWet
+} // fraction_wet
 
 } // namespace canopy_hydrology
 } // namespace ELM

@@ -128,7 +128,7 @@ void hybrid(
 
 /*! Compute photosynthesis with iterative solution for vegetation in both sun and shade. (internal) */
 template <class ArrayD1>
-void Photosynthesis(const PSNVegData& psnveg, const int &nrad, const double &forc_pbot,
+void photosynthesis(const PSNVegData& psnveg, const int &nrad, const double &forc_pbot,
                     const double &t_veg, const double &t10, const double &esat_tv, const double &eair,
                     const double &oair, const double &cair, const double &rb, const double &btran,
                     const double &dayl_factor, const double &thm, const ArrayD1 tlai_z, const double &vcmaxcint,
@@ -137,7 +137,7 @@ void Photosynthesis(const PSNVegData& psnveg, const int &nrad, const double &for
 /*! Compute photosynthesis totals. (internal)
 note: none of these variables do anything - diagnostics maybe??
 */
-void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
+void photosynthesis_total(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
                          const double &psnsun_wp, const double &laisun, const double &psnsha, const double &psnsha_wc,
                          const double &psnsha_wj, const double &psnsha_wp, const double &laisha, double &fpsn,
                          double &fpsn_wc, double &fpsn_wj, double &fpsn_wp);

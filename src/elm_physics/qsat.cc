@@ -47,7 +47,7 @@ static const double d6 = 0.133268878e-10;
 static const double d7 = 0.394116744e-13;
 static const double d8 = 0.498070196e-16;
 
-void QSat(const double &T, const double &p,
+void qsat(const double &T, const double &p,
 
           double &es, double &esdT, double &qs, double &qsdT) {
   double td, vp, vp1, vp2, T_limit;

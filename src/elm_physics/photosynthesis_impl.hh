@@ -6,13 +6,13 @@ namespace ELM {
 namespace photosynthesis {
 
 template <class ArrayD1>
-void Photosynthesis(const PSNVegData &psnveg, const int &nrad, const double &forc_pbot,
+void photosynthesis(const PSNVegData &psnveg, const int &nrad, const double &forc_pbot,
                     const double &t_veg, const double &t10, const double &esat_tv, const double &eair,
                     const double &oair, const double &cair, const double &rb, const double &btran,
                     const double &dayl_factor, const double &thm, const ArrayD1 tlai_z, const double &vcmaxcint,
                     const ArrayD1 par_z, const ArrayD1 lai_z, double ci_z[nlevcan], double &rs) {
 
-  // Photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
+  // photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
   const double fnps = 0.15;      // fraction of light absorbed by non-photosynthetic pigments
   const double theta_psii = 0.7; // empirical curvature parameter for electron transport rate
   // C3 or C4 photosynthesis logical variable
@@ -214,7 +214,7 @@ void Photosynthesis(const PSNVegData &psnveg, const int &nrad, const double &for
       ci_z[iv] = cair - an * forc_pbot * (1.4 * gs_mol[iv] + 1.6 * gb_mol) / (gb_mol * gs_mol[iv]);
       double gs = gs_mol[iv] / cf; // leaf stomatal conductance (m/s)
       rs_z[iv] = std::min(1.0 / gs, rsmax0);
-      // Photosynthesis. Save rate-limiting photosynthesis
+      // photosynthesis. Save rate-limiting photosynthesis
       psn_z[iv] = ag;
       psn_wc_z[iv] = 0.0;
       psn_wj_z[iv] = 0.0;

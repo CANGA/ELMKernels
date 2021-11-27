@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
   auto mhvb2t = create<ArrayD2>("mhvb2t", n_grid_cells, 2);
 
   // calculate monthly weights; read 2 months of LAI, SAI, HTOP, HBOT if required
-  ELM::InterpMonthlyVeg<ArrayD3>(start, dtime, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t,
+  ELM::interp_monthly_veg<ArrayD3>(start, dtime, n_pfts, data_dir, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t,
                         mhvb2t);
 
   // prescribed sat phenology
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
   auto frac_veg_nosno_alb = create<ArrayI1>("frac_veg_nosno_alb", n_grid_cells);
 
   int idx = 0;
-  ELM::SatellitePhenology(mlai2t[idx], msai2t[idx], mhvt2t[idx], mhvb2t[idx], timwt, vtype[idx], snow_depth[idx],
+  ELM::satellite_phenology(mlai2t[idx], msai2t[idx], mhvt2t[idx], mhvb2t[idx], timwt, vtype[idx], snow_depth[idx],
                           frac_sno[idx], tlai[idx], tsai[idx], htop[idx], hbot[idx], elai[idx], esai[idx],
                           frac_veg_nosno_alb[idx]);
 
@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
   auto atm_psrf = create<ArrayD2>("atm_psrf", ntimes, n_grid_cells);
   auto atm_prec = create<ArrayD2>("atm_prec", ntimes, n_grid_cells);
 
-  ELM::ReadAtmForcing(data_dir, basename_forc, start, dd, n_months, atm_zbot, atm_tbot, atm_rh, atm_wind, atm_fsds,
+  ELM::read_atm_forcing(data_dir, basename_forc, start, dd, n_months, atm_zbot, atm_tbot, atm_rh, atm_wind, atm_fsds,
                       atm_flds, atm_psrf, atm_prec);
 
   //  for (int t = 0; t < 1488; ++t) {
@@ -212,7 +212,7 @@ int main(int argc, char **argv) {
   auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, 2);
 
   for (int t = 0; t < 1488; ++t) {
-    ELM::GetAtmTimestep(atm_tbot(t, idx), atm_psrf(t, idx), atm_rh(t, idx), atm_flds(t, idx), atm_fsds(t, idx),
+    ELM::get_atm_timestep(atm_tbot(t, idx), atm_psrf(t, idx), atm_rh(t, idx), atm_flds(t, idx), atm_fsds(t, idx),
                         atm_prec(t, idx), atm_wind(t, idx), forc_t[0], forc_th[0], forc_pbot[0], forc_q[0],
                         forc_lwrad[idx], forc_rain[idx], forc_snow[idx], forc_u[idx], forc_v[idx], forc_rh[idx],
                         forc_rho[idx], forc_po2[idx], forc_pco2[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
@@ -295,22 +295,22 @@ int main(int argc, char **argv) {
 
     double qflx_irrig[1] = {0.0}; // hardwired here
 
-    ELM::canopy_hydrology::Interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx, elai[idx], esai[idx], dtime,
+    ELM::canopy_hydrology::interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx, elai[idx], esai[idx], dtime,
                       h2ocan[idx], qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
     std::cout << frac_veg_nosno[idx] << " " << forc_rain[idx] << " " << forc_snow[idx] << " " << dewmx << " "
               << elai[idx] << " " << esai[idx] << " " << dtime << " " << h2ocan[idx] << " " << qflx_candrip << " "
               << qflx_through_snow << " " << qflx_through_rain << " " << fracsnow << " " << fracrain << std::endl;
 
-    ELM::canopy_hydrology::GroundFlux(Land, do_capsnow, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
+    ELM::canopy_hydrology::ground_flux(Land, do_capsnow, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
                     qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[idx],
                     qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], qflx_snow_grnd[idx], qflx_rain_grnd[idx]);
     std::cout << qflx_prec_grnd[idx] << " " << qflx_snwcp_liq[idx] << " " << qflx_snwcp_ice[idx] << " "
               << qflx_snow_grnd[idx] << " " << qflx_rain_grnd[idx] << std::endl;
 
-    ELM::canopy_hydrology::FracWet(Land, frac_veg_nosno[idx], dewmx, elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
+    ELM::canopy_hydrology::fraction_wet(Land, frac_veg_nosno[idx], dewmx, elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
     std::cout << fwet[idx] << " " << fdry[idx] << std::endl;
 
-    ELM::canopy_hydrology::SnowInit(Land, dtime, do_capsnow, oldfflag, forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
+    ELM::canopy_hydrology::snow_init(Land, dtime, do_capsnow, oldfflag, forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
                   n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],
                   h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
                   frac_sno_eff[idx], frac_sno[idx]);
@@ -324,7 +324,7 @@ int main(int argc, char **argv) {
                 << zi[idx][i] << " " << snw_rds[idx][i] << std::endl;
     }
 
-    ELM::canopy_hydrology::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
+    ELM::canopy_hydrology::fraction_h2osfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
                     frac_h2osfc[idx]);
 
     std::cout << micro_sigma[idx] << " " << h2osno[idx] << " " << h2osfc[idx] << " " << frac_sno[idx] << " "
@@ -418,7 +418,7 @@ int main(int argc, char **argv) {
 
 
 
-  ELM::surface_radiation::CanopySunShadeFractions(
+  ELM::surface_radiation::canopy_sunshade_fractions(
         Land, nrad[idx], elai[idx], tlai_z[idx], fsun_z[idx],
         forc_solad[idx], forc_solai[idx],
         fabd_sun_z[idx], fabd_sha_z[idx],
@@ -426,17 +426,17 @@ int main(int argc, char **argv) {
         parsun_z[idx], parsha_z[idx],
         laisun_z[idx], laisha_z[idx], laisun[idx], laisha[idx]);
   std::cout << laisun[idx] << " " << laisha[idx] << std::endl;
-    std::cout << "CanopySunShadeFractions: " << parsun_z[0][0] << " " <<parsha_z[0][0] << " " << 
+    std::cout << "canopy_sunshade_fractions: " << parsun_z[0][0] << " " <<parsha_z[0][0] << " " << 
       laisun_z[0][0] << " " << laisha_z[0][0] << std::endl;
 
 
-   ELM::surface_radiation::SurfRadZeroFluxes(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
+   ELM::surface_radiation::initialize_flux(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
                           sabg_lyr[idx]);
 
    {                          // scope for some local vars
      double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
      double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
-      ELM::surface_radiation::SurfRadAbsorbed(Land, snl[idx], ftdd[idx], ftid[idx],
+      ELM::surface_radiation::total_absorbed_radiation(Land, snl[idx], ftdd[idx], ftid[idx],
          ftii[idx], forc_solad[idx],
          forc_solai[idx], fabd[idx],
          fabi[idx], albsod[idx],
@@ -445,21 +445,21 @@ int main(int argc, char **argv) {
          albgri[idx], sabv[idx], fsa[idx], sabg[idx], sabg_soil[idx], sabg_snow[idx],
          trd, tri);
 
-      std::cout << "SurfRadAbsorbed: " << sabv[idx] << " " << fsa[idx] << " " << sabg[idx] << " " << sabg_soil[idx] << " " << sabg_snow[idx]  << " " <<
+      std::cout << "total_absorbed_radiation: " << sabv[idx] << " " << fsa[idx] << " " << sabg[idx] << " " << sabg_soil[idx] << " " << sabg_snow[idx]  << " " <<
       trd[0]  << " " << trd[1]  << " " << tri[0]  << " " << tri[1] << std::endl;
 
-     ELM::surface_radiation::SurfRadLayers(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
+     ELM::surface_radiation::layer_absorbed_radiation(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
                        flx_absdn[idx], flx_absiv[idx],
                        flx_absin[idx], trd, tri, sabg_lyr[idx]);
 
-     std::cout << "SurfRadLayers, with snl =: " << snl[0] << std::endl;
+     std::cout << "layer_absorbed_radiation, with snl =: " << snl[0] << std::endl;
      for (int i = 0; i < ELM::nlevsno + 1; ++i)
       std::cout << sabg_lyr[0][i] << std::endl;
 
-    ELM::surface_radiation::SurfRadReflected(Land, albd[idx], albi[idx],
+    ELM::surface_radiation::reflected_radiation(Land, albd[idx], albi[idx],
                           forc_solad[idx], forc_solai[idx],
                           fsr[idx]);
-    std::cout << "SurfRadReflected: " << fsr[0] <<  std::endl;
+    std::cout << "reflected_radiation: " << fsr[0] <<  std::endl;
    }
 
    // variables for CanopyTemperature
@@ -521,26 +521,26 @@ int main(int argc, char **argv) {
        create<ArrayD2>("rootr_road_perv", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
    auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);  // comes from SoilStateType.F90
 
-   ELM::canopy_temperature::SaveGroundTemp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
+   ELM::canopy_temperature::old_ground_temp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
 
-   std::cout << "SaveGroundTemp: " << t_h2osfc_bef[idx] << std::endl;
+   std::cout << "old_ground_temp: " << t_h2osfc_bef[idx] << std::endl;
    for (int i = 0; i < ELM::nlevgrnd + ELM::nlevsno; ++i)
      std::cout << i << " " << tssbef[idx][i] << std::endl;
 
-   ELM::canopy_temperature::CalculateGroundTemp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
+   ELM::canopy_temperature::ground_temp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
                             t_grnd[idx]);
-   std::cout << "CalculateGroundTemp: " << t_grnd[idx] << std::endl;
+   std::cout << "ground_temp: " << t_grnd[idx] << std::endl;
 
    double qred, hr;
    // need vars from SoilStateType.F90 (InitSoil.hh) to be meaningful for next three calls
-   ELM::canopy_temperature::CalculateSoilAlpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+   ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
                            dz[idx], t_soisno[idx], watsat[idx], sucsat[idx], bsw[idx], watdry[idx], watopt[idx],
                            rootfr_road_perv[idx], rootr_road_perv[idx], qred, hr, soilalpha[idx], soilalpha_u[idx]);
 
-   ELM::canopy_temperature::CalculateSoilBeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
+   ELM::canopy_temperature::calc_soilbeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
                           h2osoi_ice[idx], dz[idx], soilbeta[idx]);
 
-   ELM::canopy_temperature::CalculateHumidities(Land, snl[idx], forc_q[idx], forc_pbot[idx], t_h2osfc[idx], t_grnd[idx], frac_sno[idx],
+   ELM::canopy_temperature::humidities(Land, snl[idx], forc_q[idx], forc_pbot[idx], t_h2osfc[idx], t_grnd[idx], frac_sno[idx],
                             frac_sno_eff[idx], frac_h2osfc[idx], qred, hr, t_soisno[idx], qg_snow[idx], qg_soil[idx],
                             qg[idx], qg_h2osfc[idx], dqgdT[idx]);
 

@@ -18,7 +18,7 @@ A driver for these physics kernels should call this library's functions in the f
     Initialization:
         serial region
             ELM::ReadPFTConstants() - read data from params NetCDF file
-            ELM::ReadAtmForcing() - read forcing NetCDF
+            ELM::read_atm_forcing() - read forcing NetCDF
             ELM::ReadLandData() - read time-invariant land data from NetCDF
         parallel region
             ELM::InitSnowLayers() - initial set of snow layers
@@ -26,45 +26,45 @@ A driver for these physics kernels should call this library's functions in the f
             ELM::InitMicroTopo() - set topography parameters
     Time-stepping
         serial region
-            ELM::InterpMonthlyVeg() - read from phenology NetCDF if needed
+            ELM::interp_monthly_veg() - read from phenology NetCDF if needed
         parallel region
             ELM::InitTimestep() - initialize a few variables
-            ELM::GetAtmTimestep() - process forcing data for this time-step
-            ELM::SatellitePhenology() - process prescribed vegetation data
+            ELM::get_atm_timestep() - process forcing data for this time-step
+            ELM::satellite_phenology() - process prescribed vegetation data
 
             CanopyHydrology calls
-            ELM::canopy_hydrology::Interception()
-            ELM::canopy_hydrology::GroundFlux()
-            ELM::canopy_hydrology::FracWet()
-            ELM::canopy_hydrology::SnowInit()
-            ELM::canopy_hydrology::FracH2OSfc()
+            ELM::canopy_hydrology::interception()
+            ELM::canopy_hydrology::ground_flux()
+            ELM::canopy_hydrology::fraction_wet()
+            ELM::canopy_hydrology::snow_init()
+            ELM::canopy_hydrology::fraction_h2osfc()
 
             SurfaceRadiation calls
-            ELM::surface_radiation::CanopySunShadeFractions()
-            ELM::surface_radiation::SurfRadZeroFluxes()
-            ELM::surface_radiation::SurfRadAbsorbed()
-            ELM::surface_radiation::SurfRadLayers()
-            ELM::surface_radiation::SurfRadReflected()
+            ELM::surface_radiation::canopy_sunshade_fractions()
+            ELM::surface_radiation::initialize_flux()
+            ELM::surface_radiation::total_absorbed_radiation()
+            ELM::surface_radiation::layer_absorbed_radiation()
+            ELM::surface_radiation::reflected_radiation()
 
             CanopyTemperature calls
-            ELM::canopy_temperature::SaveGroundTemp()
-            ELM::canopy_temperature::CalculateGroundTemp()
-            ELM::canopy_temperature::CalculateSoilAlpha()
-            ELM::canopy_temperature::CalculateSoilBeta()
-            ELM::canopy_temperature::CalculateHumidities()
-            ELM::canopy_temperature::GroundProperties()
-            ELM::canopy_temperature::CalculateForcingHeight()
-            ELM::canopy_temperature::InitializeEnergyFluxes()
+            ELM::canopy_temperature::old_ground_temp()
+            ELM::canopy_temperature::ground_temp()
+            ELM::canopy_temperature::calc_soilalpha()
+            ELM::canopy_temperature::calc_soilbeta()
+            ELM::canopy_temperature::humidities()
+            ELM::canopy_temperature::ground_properties()
+            ELM::canopy_temperature::forcing_height()
+            ELM::canopy_temperature::init_energy_fluxes()
 
-            BareGroundFluxes calls
-            ELM::bareground_fluxes::InitializeFlux_BG()
-            ELM::bareground_fluxes::StabilityIteration_BG()
-            ELM::bareground_fluxes::ComputeFlux_BG()
+            Bareground_fluxes calls
+            ELM::bareground_fluxes::initialize_flux()
+            ELM::bareground_fluxes::stability_iteration()
+            ELM::bareground_fluxes::compute_flux()
 
             CanopyFluxes calls
-            ELM::canopy_fluxes::InitializeFlux_Can()
-            ELM::canopy_fluxes::StabilityIteration_Can()
-            ELM::canopy_fluxes::ComputeFlux_Can()
+            ELM::canopy_fluxes::initialize_flux()
+            ELM::canopy_fluxes::stability_iteration()
+            ELM::canopy_fluxes::compute_flux()
 
 Documentation
 -------------

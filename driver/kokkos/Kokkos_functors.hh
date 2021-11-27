@@ -10,7 +10,7 @@ using ArrayD2 = Kokkos::View<double **>;
 struct BGFCaller {
 
   // make private?
-  Kokkos::View<ELM::BareGroundFluxes *> bg_fluxes;
+  Kokkos::View<ELM::Bareground_fluxes *> bg_fluxes;
   ELM::LandType land;
   ArrayI1 frac_vec_nosno_in, snl;
 
@@ -22,7 +22,7 @@ struct BGFCaller {
 
   ArrayD2 t_soisno;
 
-  BGFCaller(Kokkos::View<ELM::BareGroundFluxes *> &bg_fluxes_, ELM::LandType &land_, ArrayI1 &frac_vec_nosno_in_,
+  BGFCaller(Kokkos::View<ELM::Bareground_fluxes *> &bg_fluxes_, ELM::LandType &land_, ArrayI1 &frac_vec_nosno_in_,
             ArrayD1 &forc_u_, ArrayD1 &forc_v_, ArrayD1 &forc_q_in_, ArrayD1 &forc_th_in_,
             ArrayD1 &forc_hgt_u_patch_in_, ArrayD1 &thm_in_, ArrayD1 &thv_in_, ArrayD1 &t_grnd_, ArrayD1 &qg_,
             ArrayD1 &z0mg_in_, ArrayD1 &dlrad_, ArrayD1 &ulrad_, ArrayD1 &forc_hgt_t_patch_, ArrayD1 &forc_hgt_q_patch_,

@@ -1,10 +1,10 @@
 /*! \file bareground_fluxes.h
-\brief Functions derived from BareGroundFluxesMod.F90
+\brief Functions derived from Bareground_fluxesMod.F90
 
 Compute sensible and latent fluxes and their derivatives with respect
 to ground temperature using ground temperatures from previous time step.
 
-Call sequence: InitializeFlux_BG() -> StabilityIteration_BG() -> ComputeFlux_BG()
+Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 
 Note:
 the "displa" displacement height variable used here is local to these functions.
@@ -22,7 +22,7 @@ It is not the same as the displa calculated in CanopyTemperature
 namespace ELM {
 namespace bareground_fluxes {
 
-/*! Initialize variables and call MoninObukIni() for bare-ground cells.
+/*! Initialize variables and call monin_obukhov_length() for bare-ground cells.
 
 \param[in]  Land             [LandType] struct containing information about landtype
 \param[in]  frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
@@ -46,7 +46,7 @@ namespace bareground_fluxes {
 \param[out] ur               [double] wind speed at reference height [m/s]
 \param[out] um               [double] wind speed including the stablity effect [m/s]
 */
-void InitializeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
+void initialize_flux(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
                        const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
                        const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
                        double &ulrad, double &zldis, double &displa, double &dth, double &dqh, double &obu, double &ur,
@@ -77,7 +77,7 @@ profiles of the surface boundary layer.
 \param[out] temp22m          [double] relation for specific humidity profile applied at 2-m
 \param[out] ustar            [double] friction velocity [m/s]
 */
-void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
+void stability_iteration(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
                            const double &zldis, const double &displa,
                            const double &dth, const double &dqh, const double &ur, const double &forc_q,
@@ -128,7 +128,7 @@ void StabilityIteration_BG(const LandType &Land, const int &frac_veg_nosno, cons
 \param[out] rh_ref2m                   [double] 2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
-void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
+void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
                     const double &soilbeta, const double &dqgdT, const double &htvp, const double &t_h2osfc,
                     const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const ArrayD1 t_soisno,
                     const double &forc_pbot, const double &dth, const double &dqh, const double &temp1,

@@ -18,8 +18,8 @@ namespace ELM {
 namespace surface_albedo {
 
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check! 
-// call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
-// CanopyLayers() -> TwoStream()
+// call sequence -> SurfAlbInitTimestep() -> soil_albedo() -> SNICAR_AD_RT() (once for both wavebands) -> ground_albedo() -> flux_absorption_factor()
+// CanopyLayers() -> two_stream_solver()
 
 // will need to finish zenith angle ATS code, Aerosol functions
 // need to initialize h2osoi_vol[nlevgrnd]
@@ -41,7 +41,7 @@ So it's for the ATM coupling
 so we can probably calc at beginning of nstep with current solar zenith angle
 
 
-these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to SnowAbsorptionFactor()
+these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to flux_absorption_factor()
 flx_absd_snw
 flx_absi_snw
 mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()

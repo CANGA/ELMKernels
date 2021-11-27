@@ -50,13 +50,13 @@ struct CallCanTemp {
     double qred; // soil surface relative humidity
     double hr;   // relative humidity
 
-    ELM::canopy_temperature::SaveGroundTemp(Land, t_h2osfc[i], Kokkos::subview(t_soisno, i, Kokkos::ALL), t_h2osfc_bef[i],
+    ELM::canopy_temperature::old_ground_temp(Land, t_h2osfc[i], Kokkos::subview(t_soisno, i, Kokkos::ALL), t_h2osfc_bef[i],
                         Kokkos::subview(tssbef, i, Kokkos::ALL));
 
-    ELM::canopy_temperature::CalculateGroundTemp(Land, snl[i], frac_sno_eff[i], frac_h2osfc[i], t_h2osfc[i],
+    ELM::canopy_temperature::ground_temp(Land, snl[i], frac_sno_eff[i], frac_h2osfc[i], t_h2osfc[i],
                              Kokkos::subview(t_soisno, i, Kokkos::ALL), t_grnd[i]);
 
-    ELM::canopy_temperature::CalculateSoilAlpha(Land, frac_sno[i], frac_h2osfc[i], smpmin[i], Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
+    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[i], frac_h2osfc[i], smpmin[i], Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
                             Kokkos::subview(h2osoi_ice, i, Kokkos::ALL), Kokkos::subview(dz, i, Kokkos::ALL),
                             Kokkos::subview(t_soisno, i, Kokkos::ALL), Kokkos::subview(watsat, i, Kokkos::ALL),
                             Kokkos::subview(sucsat, i, Kokkos::ALL), Kokkos::subview(bsw, i, Kokkos::ALL),
@@ -64,26 +64,26 @@ struct CallCanTemp {
                             Kokkos::subview(rootfr_road_perv, i, Kokkos::ALL),
                             Kokkos::subview(rootr_road_perv, i, Kokkos::ALL), qred, hr, soilalpha[i], soilalpha_u[i]);
 
-    ELM::canopy_temperature::CalculateSoilBeta(Land, frac_sno[i], frac_h2osfc[i], Kokkos::subview(watsat, i, Kokkos::ALL),
+    ELM::canopy_temperature::calc_soilbeta(Land, frac_sno[i], frac_h2osfc[i], Kokkos::subview(watsat, i, Kokkos::ALL),
                            Kokkos::subview(watfc, i, Kokkos::ALL), Kokkos::subview(h2osoi_liq, i, Kokkos::ALL),
                            Kokkos::subview(h2osoi_ice, i, Kokkos::ALL), Kokkos::subview(dz, i, Kokkos::ALL),
                            soilbeta[i]);
 
-    ELM::canopy_temperature::CalculateHumidities(Land, snl[i], forc_q[i], forc_pbot[i], t_h2osfc[i], t_grnd[i], frac_sno[i],
+    ELM::canopy_temperature::humidities(Land, snl[i], forc_q[i], forc_pbot[i], t_h2osfc[i], t_grnd[i], frac_sno[i],
                              frac_sno_eff[i], frac_h2osfc[i], qred, hr, Kokkos::subview(t_soisno, i, Kokkos::ALL),
                              qg_snow[i], qg_soil[i], qg[i], qg_h2osfc[i], dqgdT[i]);
 
-    ELM::canopy_temperature::GroundProperties(Land, snl[i], frac_sno[i], forc_th[i], forc_q[i], elai[i], esai[i], htop[i],
+    ELM::canopy_temperature::ground_properties(Land, snl[i], frac_sno[i], forc_th[i], forc_q[i], elai[i], esai[i], htop[i],
                           Kokkos::subview(displar, i, Kokkos::ALL), Kokkos::subview(z0mr, i, Kokkos::ALL),
                           Kokkos::subview(h2osoi_liq, i, Kokkos::ALL), Kokkos::subview(h2osoi_ice, i, Kokkos::ALL),
                           emg[i], emv[i], htvp[i], z0mg[i], z0hg[i], z0qg[i], z0mv[i], z0hv[i], z0qv[i],
                           thv[i], z0m[i], displa[i]);
 
-    ELM::canopy_temperature::CalculateForcingHeight(Land, veg_active[i], frac_veg_nosno[i], forc_hgt_u[i], forc_hgt_t[i], forc_hgt_q[i],
+    ELM::canopy_temperature::forcing_height(Land, veg_active[i], frac_veg_nosno[i], forc_hgt_u[i], forc_hgt_t[i], forc_hgt_q[i],
                                 z0m[i], z0mg[i], z_0_town[i], z_d_town[i], forc_t[i], displa[i], forc_hgt_u_patch[i],
                                 forc_hgt_t_patch[i], forc_hgt_q_patch[i], thm[i]);
 
-    ELM::canopy_temperature::InitializeEnergyFluxes(Land, eflx_sh_tot[i], eflx_sh_tot_u[i], eflx_sh_tot_r[i], eflx_lh_tot[i],
+    ELM::canopy_temperature::init_energy_fluxes(Land, eflx_sh_tot[i], eflx_sh_tot_u[i], eflx_sh_tot_r[i], eflx_lh_tot[i],
                                 eflx_lh_tot_u[i], eflx_lh_tot_r[i], eflx_sh_veg[i], qflx_evap_tot[i], qflx_evap_veg[i],
                                 qflx_tran_veg[i]);
   }

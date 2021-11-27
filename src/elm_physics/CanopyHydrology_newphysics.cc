@@ -679,7 +679,7 @@ void innundation(const LandType &Land, const double &micro_sigma, const double &
       frac_h2osfc = 0.0;
     }
   }
-} // FracH2OSfc
+} // fraction_h2osfc
 
 
 

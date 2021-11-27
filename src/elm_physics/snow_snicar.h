@@ -4,7 +4,7 @@
 Calculates snow albedo and per snow layer absorbed flux 
 
 Call sequence:
-InitTimestep() -> SnowAerosolMieParams() -> SnowRadiativeTransfer() -> SnowAlbedoRadiationFlux()
+init_timestep() -> snow_aerosol_mie_params() -> snow_radiative_transfer_solver() -> snow_albedo_radiation_factor()
 Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in == 2) radiation fluxes
 */
 #pragma once
@@ -114,7 +114,7 @@ constexpr int DELTA = 1;
 \param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
 */
 template <class ArrayI1, class ArrayD1, class ArrayD2>
-void InitTimestep (const int &urbpoi, const int &flg_slr_in, const double &coszen,
+void init_timestep (const int &urbpoi, const int &flg_slr_in, const double &coszen,
   const double &h2osno, const int &snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
   ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
@@ -170,7 +170,7 @@ void InitTimestep (const int &urbpoi, const int &flg_slr_in, const double &cosze
 \param[out]tau_star[numrad_snw][nlevsno]                                 [double] transformed (i.e. Delta-Eddington) optical depth of snow+aerosol layer [-]
 */
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
-void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
+void snow_aerosol_mie_params(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
   const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, const ArrayD1 h2osoi_ice_lcl,
   const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1, const ArrayD1& asm_prm_oc1,
   const ArrayD1& ext_cff_mss_oc1, const ArrayD1& ss_alb_oc2, const ArrayD1& asm_prm_oc2,
@@ -208,7 +208,7 @@ void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &s
 \param[out]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack [frc]
 */
 template <class ArrayD1, class ArrayD2>
-void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &flg_nosnl, const int &snl_top, const int &snl_btm, 
+void snow_radiative_transfer_solver(const int &urbpoi, const int &flg_slr_in, const int &flg_nosnl, const int &snl_top, const int &snl_btm, 
   const double &coszen, const double &h2osno, const double &mu_not,
   const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl, const ArrayD1 albsoi, const ArrayD2 g_star, 
   const ArrayD2 omega_star, const ArrayD2 tau_star, ArrayD1 albout_lcl, 
@@ -233,7 +233,7 @@ void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &
 \param[out]flx_abs[nlevsno+1][numrad]        [double] absorbed flux in each layer per unit flux incident, averaged into 2 bands  [frc]
 */
 template <class ArrayI1, class ArrayD1, class ArrayD2>
-void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
+void snow_albedo_radiation_factor(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
   const double &mu_not,
 const double &h2osno, 
 const ArrayI1 snw_rds_lcl, 

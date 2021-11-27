@@ -12,7 +12,7 @@ namespace ELM {
 
 // serial I/O function
 template <typename Array_t>
-void ReadAtmForcing(const std::string &data_dir, const std::string &basename_atm, const Utils::Date &time,
+void read_atm_forcing(const std::string &data_dir, const std::string &basename_atm, const Utils::Date &time,
                     const Utils::DomainDecomposition<2> &dd, const int n_months, Array_t &atm_zbot, Array_t &atm_tbot,
                     Array_t &atm_rh, Array_t &atm_wind, Array_t &atm_fsds, Array_t &atm_flds, Array_t &atm_psrf,
                     Array_t &atm_prec) {
@@ -57,7 +57,7 @@ forc_hgt_grc is hardwired as 30m in lnd_import_export.F90 - should it be here? w
 
 */
 template <typename ArrayD1>
-void GetAtmTimestep(const double &atm_tbot, const double &atm_psrf, const double &atm_rh, const double &atm_flds,
+void get_atm_timestep(const double &atm_tbot, const double &atm_psrf, const double &atm_rh, const double &atm_flds,
                     const double &atm_fsds, const double &atm_prec, const double &atm_wind, double &forc_t,
                     double &forc_th, double &forc_pbot, double &forc_q, double &forc_lwrad, double &forc_rain,
                     double &forc_snow, double &forc_u, double &forc_v, double &forc_rh, double &forc_rho,

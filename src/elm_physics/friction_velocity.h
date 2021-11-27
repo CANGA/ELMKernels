@@ -25,7 +25,7 @@ surface fluxes using TOGA CORE and TAO data. J. Climate, Vol. 11, 2628-2644. (in
 \param[out] um    [double]  wind speed including the stability effect [m/s]
 \param[out] obu   [double]  monin-obukhov length (m)
 */
-void MoninObukIni(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
+void monin_obukhov_length(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
                   double &um, double &obu);
 
 /*! Calculation of the friction velocity of surface boundary layer. (internal)
@@ -37,7 +37,7 @@ forc_hgt_u_patch   [double] observational height of wind at pft level [m]
 \param[in]  z0m    [double] roughness length over vegetation, momentum [m]
 \param[out] ustar  [double] friction velocity [m/s]
 */
-void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
+void friction_velocity_wind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
                           const double &z0m, double &ustar);
 
 /*! Calculation of the relation for potential temperature of surface boundary layer. (internal)
@@ -48,7 +48,7 @@ void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, 
 \param[in]  z0h              [double] roughness length over vegetation, sensible heat [m]
 \param[out] temp1            [double] relation for potential temperature profile
 */
-void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &displa, const double &obu,
+void friction_velocity_temp(const double &forc_hgt_t_patch, const double &displa, const double &obu,
                                  const double &z0h, double &temp1);
 
 /*! Calculation of the relation for potential humidity of surface boundary layer. (internal)
@@ -61,7 +61,7 @@ void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &d
 \param[in]  temp1            [double] relation for potential temperature profile
 \param[our] temp2            [double] relation for specific humidity profile
 */
-void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
+void friction_velocity_humidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
                               const double &obu, const double &z0h, const double &z0q, const double &temp1,
                               double &temp2);
 
@@ -70,7 +70,7 @@ void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc
 \param[in]  z0h     [double] roughness length over vegetation, sensible heat [m]
 \param[out] temp12m [double] relation for potential temperature profile applied at 2-m
 */
-void FrictionVelocityTemperature2m(const double &obu, const double &z0h, double &temp12m);
+void friction_velocity_temp2m(const double &obu, const double &z0h, double &temp12m);
 
 /*! Calculation of the relation for potential humidity at 2-m. (internal)
 INPUTS:
@@ -79,7 +79,7 @@ INPUTS:
 \param[in]  z0q     [double] roughness length over vegetation, latent heat [m]
 \param[out] temp22m [double] relation for specific humidity profile applied at 2-m
 */
-void FrictionVelocityHumidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
+void friction_velocity_humidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
                                 double &temp22m);
 
 } // namespace friction_velocity

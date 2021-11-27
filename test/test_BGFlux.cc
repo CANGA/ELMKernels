@@ -9,12 +9,12 @@
 
 /*
 
-tests BareGroundFluxes kernels: 
-InitializeFlux_BG()
-StabilityIteration_BG()
-ComputeFlux_BG()
+tests bareground_fluxes kernels: 
+initialize_flux()
+stability_iteration()
+compute_flux()
 
-implicitly tests FrictionVelocity kernels
+implicitly tests friction_velocity kernels
 
 the following data comes from the files BareGroundFluxes_IN.txt and BareGroundFluxes_OUT.txt located in test/data
 int frac_veg_nosno
@@ -219,15 +219,15 @@ int main(int argc, char **argv) {
     
     assign(frac_veg_nosno, 0); // hardwire to make it run
     
-    // call BareGroundFluxes kernels
-    ELM::bareground_fluxes::InitializeFlux_BG(Land, frac_veg_nosno[idx], forc_u[idx], forc_v[idx], forc_q[idx], forc_th[idx], forc_hgt_u_patch[idx], thm[idx],
+    // call bareground_fluxes kernels
+    ELM::bareground_fluxes::initialize_flux(Land, frac_veg_nosno[idx], forc_u[idx], forc_v[idx], forc_q[idx], forc_th[idx], forc_hgt_u_patch[idx], thm[idx],
                       thv[idx], t_grnd[idx], qg[idx], z0mg[idx], dlrad[idx], ulrad[idx], zldis, displa, dth, dqh, obu, ur, um);
     
-    ELM::bareground_fluxes::StabilityIteration_BG(Land, frac_veg_nosno[idx], forc_hgt_t_patch[idx], forc_hgt_u_patch[idx], forc_hgt_q_patch[idx],
+    ELM::bareground_fluxes::stability_iteration(Land, frac_veg_nosno[idx], forc_hgt_t_patch[idx], forc_hgt_u_patch[idx], forc_hgt_q_patch[idx],
                           z0mg[idx], zldis, displa, dth, dqh, ur, forc_q[idx], forc_th[idx], thv[idx], z0hg[idx],
                           z0qg[idx], obu, um, temp1, temp2, temp12m, temp22m, ustar);
     
-    ELM::bareground_fluxes::ComputeFlux_BG(Land, frac_veg_nosno[idx], snl[idx], forc_rho[idx], soilbeta[idx], dqgdT[idx], htvp[idx], t_h2osfc[idx],
+    ELM::bareground_fluxes::compute_flux(Land, frac_veg_nosno[idx], snl[idx], forc_rho[idx], soilbeta[idx], dqgdT[idx], htvp[idx], t_h2osfc[idx],
                    qg_snow[idx], qg_soil[idx], qg_h2osfc[idx], t_soisno[idx], forc_pbot[idx], dth,
                    dqh, temp1, temp2, temp12m, temp22m, ustar, forc_q[idx], thm[idx], cgrnds[idx], cgrndl[idx], cgrnd[idx],
                    eflx_sh_grnd[idx], eflx_sh_tot[idx], eflx_sh_snow[idx], eflx_sh_soil[idx], eflx_sh_h2osfc[idx],

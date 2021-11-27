@@ -34,7 +34,7 @@ struct CallSurfRad {
     double trd[ELM::numrad]; // transmitted solar radiation: direct (W/m**2)
     double tri[ELM::numrad]; // transmitted solar radiation: diffuse (W/m**2)
 
-    ELM::surface_radiation::surface_radiation::CanopySunShadeFractions(
+    ELM::surface_radiation::surface_radiation::canopy_sunshade_fractions(
         Land, nrad[i], elai[i], Kokkos::subview(tlai_z, i, Kokkos::ALL), Kokkos::subview(fsun_z, i, Kokkos::ALL),
         Kokkos::subview(forc_solad, i, Kokkos::ALL), Kokkos::subview(forc_solai, i, Kokkos::ALL),
         Kokkos::subview(fabd_sun_z, i, Kokkos::ALL), Kokkos::subview(fabd_sha_z, i, Kokkos::ALL),
@@ -42,10 +42,10 @@ struct CallSurfRad {
         Kokkos::subview(parsun_z, i, Kokkos::ALL), Kokkos::subview(parsha_z, i, Kokkos::ALL),
         Kokkos::subview(laisun_z, i, Kokkos::ALL), Kokkos::subview(laisha_z, i, Kokkos::ALL), laisun[i], laisha[i]);
 
-    ELM::surface_radiation::surface_radiation::SurfRadZeroFluxes(Land, sabg_soil[i], sabg_snow[i], sabg[i], sabv[i], fsa[i],
+    ELM::surface_radiation::surface_radiation::initialize_flux(Land, sabg_soil[i], sabg_snow[i], sabg[i], sabv[i], fsa[i],
                            Kokkos::subview(sabg_lyr, i, Kokkos::ALL));
 
-    ELM::surface_radiation::surface_radiation::SurfRadAbsorbed(Land, snl[i], Kokkos::subview(ftdd, i, Kokkos::ALL), Kokkos::subview(ftid, i, Kokkos::ALL),
+    ELM::surface_radiation::surface_radiation::total_absorbed_radiation(Land, snl[i], Kokkos::subview(ftdd, i, Kokkos::ALL), Kokkos::subview(ftid, i, Kokkos::ALL),
                          Kokkos::subview(ftii, i, Kokkos::ALL), Kokkos::subview(forc_solad, i, Kokkos::ALL),
                          Kokkos::subview(forc_solai, i, Kokkos::ALL), Kokkos::subview(fabd, i, Kokkos::ALL),
                          Kokkos::subview(fabi, i, Kokkos::ALL), Kokkos::subview(albsod, i, Kokkos::ALL),
@@ -54,11 +54,11 @@ struct CallSurfRad {
                          Kokkos::subview(albgri, i, Kokkos::ALL), sabv[i], fsa[i], sabg[i], sabg_soil[i], sabg_snow[i],
                          trd, tri);
 
-    ELM::surface_radiation::SurfRadLayers(Land, snl[i], sabg[i], sabg_snow[i], snow_depth[i], Kokkos::subview(flx_absdv, i, Kokkos::ALL),
+    ELM::surface_radiation::layer_absorbed_radiation(Land, snl[i], sabg[i], sabg_snow[i], snow_depth[i], Kokkos::subview(flx_absdv, i, Kokkos::ALL),
                        Kokkos::subview(flx_absdn, i, Kokkos::ALL), Kokkos::subview(flx_absiv, i, Kokkos::ALL),
                        Kokkos::subview(flx_absin, i, Kokkos::ALL), trd, tri, Kokkos::subview(sabg_lyr, i, Kokkos::ALL));
 
-    ELM::surface_radiation::SurfRadReflected(Land, Kokkos::subview(albd, i, Kokkos::ALL), Kokkos::subview(albi, i, Kokkos::ALL),
+    ELM::surface_radiation::reflected_radiation(Land, Kokkos::subview(albd, i, Kokkos::ALL), Kokkos::subview(albi, i, Kokkos::ALL),
                           Kokkos::subview(forc_solad, i, Kokkos::ALL), Kokkos::subview(forc_solai, i, Kokkos::ALL),
                           fsr[i]);
   }

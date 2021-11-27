@@ -14,18 +14,18 @@
 Need to read a few more NC files:
 mss_cnc vars from AerosolMod, everything from SnowOptics_Init, soil color (isoicol, albsat, albdry) from SurfaceAlbedoInitTimeConst
 
-tests SurfaceAlbedo kernels: 
-SurfaceAlbedo::InitTimestep()
-SurfaceAlbedo::SoilAlbedo()
+tests surface_albedo and snow_snicar kernels: 
+surface_albedo::init_timestep()
+surface_albedo::soil_albedo()
   once for both sun and shade
-  SNICAR::InitTimestep()
-  SNICAR::SnowAerosolMieParams()
-  SNICAR::SnowRadiativeTransfer()
-  SNICAR::SnowAlbedoRadiationFlux()
-SurfaceAlbedo::GroundAlbedo()
-SurfaceAlbedo::SnowAbsorptionFactor()
-SurfaceAlbedo::CanopyLayerLAI()
-SurfaceAlbedo::TwoStream()
+  SNICAR::init_timestep()
+  SNICAR::snow_aerosol_mie_params()
+  SNICAR::snow_radiative_transfer_solver()
+  SNICAR::snow_albedo_radiation_factor()
+surface_albedo::ground_albedo()
+surface_albedo::flux_absorption_factor()
+surface_albedo::canopy_layer_lai()
+surface_albedo::two_stream_solver()
 
 the following data come from the files SurfaceAlbedo_IN.txt and SurfaceAlbedo_OUT.txt located in test/data
 
@@ -397,28 +397,28 @@ int main(int argc, char **argv) {
     in.parseState(fabi_sha);
 
 
-  ELM::surface_albedo::InitTimestep(Land.urbpoi, elai[idx], mss_cnc_bcphi[idx], mss_cnc_bcpho[idx], 
+  ELM::surface_albedo::init_timestep(Land.urbpoi, elai[idx], mss_cnc_bcphi[idx], mss_cnc_bcpho[idx], 
     mss_cnc_dst1[idx], mss_cnc_dst2[idx], mss_cnc_dst3[idx], mss_cnc_dst4[idx], vcmaxcintsun[idx], 
     vcmaxcintsha[idx], albsod[idx], albsoi[idx], albgrd[idx], albgri[idx], albd[idx], albi[idx], 
     fabd[idx], fabd_sun[idx], fabd_sha[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], ftdd[idx], 
     ftid[idx], ftii[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx], 
     mss_cnc_aer_in_fdb[idx]);
 
-  ELM::surface_albedo::SoilAlbedo(
+  ELM::surface_albedo::soil_albedo(
     Land, snl[idx], t_grnd[idx], coszen[idx], h2osoi_vol[idx], 
     albsat[idx], albdry[idx], albsod[idx], albsoi[idx]);
 
 {
     int flg_slr_in = 1; // direct-beam
 
-    ELM::snow_snicar::InitTimestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
+    ELM::snow_snicar::init_timestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
       h2osoi_liq[idx], h2osoi_ice[idx], snw_rds[idx], snl_top[idx], snl_btm[idx], 
       flx_abs_lcl[idx], flx_absd_snw[idx], flg_nosnl[idx], h2osoi_ice_lcl[idx], 
       h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx], 
       flx_slri_lcl[idx]);
 
 
-    ELM::snow_snicar::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+    ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
       h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
       ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
       ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
@@ -428,12 +428,12 @@ int main(int argc, char **argv) {
       bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::snow_snicar::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
+    ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
       snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], 
       albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::snow_snicar::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+    ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
       h2osno[idx], snw_rds_lcl[idx], albsoi[idx],albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], 
       flx_absd_snw[idx]);
   }
@@ -442,14 +442,14 @@ int main(int argc, char **argv) {
   {
     int flg_slr_in = 2; // diffuse
 
-    ELM::snow_snicar::InitTimestep (Land.urbpoi,
+    ELM::snow_snicar::init_timestep (Land.urbpoi,
       flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
       snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absi_snw[idx],
       flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], 
       flx_slrd_lcl[idx], flx_slri_lcl[idx]);
 
 
-    ELM::snow_snicar::SnowAerosolMieParams(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+    ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
       h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], ss_alb_oc1, asm_prm_oc1, 
       ext_cff_mss_oc1, ss_alb_oc2, asm_prm_oc2, ext_cff_mss_oc2, ss_alb_dst1, asm_prm_dst1, 
       ext_cff_mss_dst1, ss_alb_dst2, asm_prm_dst2, ext_cff_mss_dst2, ss_alb_dst3, asm_prm_dst3, 
@@ -459,32 +459,32 @@ int main(int argc, char **argv) {
       g_star[idx], omega_star[idx], tau_star[idx]);
 
 
-    ELM::snow_snicar::SnowRadiativeTransfer(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
+    ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
       coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], 
       omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
 
-    ELM::snow_snicar::SnowAlbedoRadiationFlux(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+    ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
       h2osno[idx], snw_rds_lcl[idx], albsoi[idx], albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], 
       flx_absi_snw[idx]);
   }
 
 
-  ELM::surface_albedo::GroundAlbedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
+  ELM::surface_albedo::ground_albedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
     albsoi[idx], albsnd[idx], albsni[idx], albgrd[idx], albgri[idx]);
 
 
-  ELM::surface_albedo::SnowAbsorptionFactor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
+  ELM::surface_albedo::flux_absorption_factor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
     albsnd[idx], albsni[idx], flx_absd_snw[idx], flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], 
     flx_absiv[idx], flx_absin[idx]);
 
 
-  ELM::surface_albedo::CanopyLayerLAI(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
+  ELM::surface_albedo::canopy_layer_lai(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
     nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
     fabi_sun_z[idx], fabi_sha_z[idx]);
 
 
-  ELM::surface_albedo::TwoStream(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
+  ELM::surface_albedo::two_stream_solver(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
     esai[idx], tlai_z[idx], tsai_z[idx], albgrd[idx], albgri[idx], albveg, vcmaxcintsun[idx], 
     vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], 
     albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 

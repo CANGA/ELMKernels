@@ -1,5 +1,5 @@
 
-#include "CallBareGroundFluxes.hh"
+#include "CallBareground_fluxes.hh"
 #include "CallCanopyFluxes.hh"
 #include "CallCanopyHydrology.hh"
 #include "CallCanopyTemperature.hh"
@@ -258,7 +258,7 @@ int main(int argc, char **argv) {
 
     i = 0;
     while (i != ntimes) {
-      bareGroundFluxesInvoke(ncells, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, thm, thv,
+      bareground_fluxesInvoke(ncells, Land, frac_veg_nosno, forc_u, forc_v, forc_q, forc_th, forc_hgt_u_patch, thm, thv,
                              t_grnd, qg, z0mg, dlrad, ulrad, forc_hgt_t_patch, forc_hgt_q_patch, z0hg, z0qg,
                              snl, forc_rho, soilbeta, dqgdT, htvp, t_h2osfc, qg_snow, qg_soil, qg_h2osfc, t_soisno,
                              forc_pbot, cgrnds, cgrndl, cgrnd, eflx_sh_grnd, eflx_sh_tot, eflx_sh_snow, eflx_sh_soil,

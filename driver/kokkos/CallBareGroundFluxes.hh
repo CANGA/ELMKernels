@@ -7,9 +7,9 @@ using ArrayD1 = Kokkos::View<double *>;
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayD2 = Kokkos::View<double **>;
 
-struct CallBareGroundFluxes {
+struct CallBareground_fluxes {
 
-  CallBareGroundFluxes(ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_, ArrayD1 &forc_u_, ArrayD1 &forc_v_,
+  CallBareground_fluxes(ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_, ArrayD1 &forc_u_, ArrayD1 &forc_v_,
                        ArrayD1 &forc_q_, ArrayD1 &forc_th_, ArrayD1 &forc_hgt_u_patch_, ArrayD1 &thm_, ArrayD1 &thv_,
                        ArrayD1 &t_grnd_, ArrayD1 &qg_, ArrayD1 &dlrad_, ArrayD1 &ulrad_, ArrayD1 &forc_hgt_t_patch_,
                        ArrayD1 &forc_hgt_q_patch_, ArrayD1 &z0mg_, ArrayD1 &z0hg_,
@@ -47,14 +47,14 @@ struct CallBareGroundFluxes {
     double temp22m; // relation for specific humidity profile applied at 2-m
     double ustar;   // friction velocity [m/s]
 
-    bareground_fluxes::InitializeFlux_BG(Land, frac_veg_nosno[i], forc_u[i], forc_v[i], forc_q[i], forc_th[i], forc_hgt_u_patch[i], thm[i],
+    bareground_fluxes::initialize_flux(Land, frac_veg_nosno[i], forc_u[i], forc_v[i], forc_q[i], forc_th[i], forc_hgt_u_patch[i], thm[i],
                       thv[i], t_grnd[i], qg[i], z0mg[i], dlrad[i], ulrad[i], zldis, displa, dth, dqh, obu, ur, um);
 
-    bareground_fluxes::StabilityIteration_BG(Land, frac_veg_nosno[i], forc_hgt_t_patch[i], forc_hgt_u_patch[i], forc_hgt_q_patch[i],
+    bareground_fluxes::stability_iteration(Land, frac_veg_nosno[i], forc_hgt_t_patch[i], forc_hgt_u_patch[i], forc_hgt_q_patch[i],
                           z0mg[i], zldis, displa, dth, dqh, ur, forc_q[i], forc_th[i], thv[i], z0hg[i],
                           z0qg[i], obu, um, temp1, temp2, temp12m, temp22m, ustar);
 
-    bareground_fluxes::ComputeFlux_BG(Land, frac_veg_nosno[i], snl[i], forc_rho[i], soilbeta[i], dqgdT[i], htvp[i], t_h2osfc[i],
+    bareground_fluxes::compute_flux(Land, frac_veg_nosno[i], snl[i], forc_rho[i], soilbeta[i], dqgdT[i], htvp[i], t_h2osfc[i],
                    qg_snow[i], qg_soil[i], qg_h2osfc[i], Kokkos::subview(t_soisno, i, Kokkos::ALL), forc_pbot[i], dth,
                    dqh, temp1, temp2, temp12m, temp22m, ustar, forc_q[i], thm[i], cgrnds[i], cgrndl[i], cgrnd[i],
                    eflx_sh_grnd[i], eflx_sh_tot[i], eflx_sh_snow[i], eflx_sh_soil[i], eflx_sh_h2osfc[i],
@@ -73,9 +73,9 @@ private:
       q_ref2m, rh_ref2m, rh_ref2m_r;
 
   ArrayD2 t_soisno;
-}; // CallBareGroundFluxes
+}; // CallBareground_fluxes
 
-void bareGroundFluxesInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_, ArrayD1 &forc_u_,
+void bareground_fluxesInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &frac_veg_nosno_, ArrayD1 &forc_u_,
                             ArrayD1 &forc_v_, ArrayD1 &forc_q_, ArrayD1 &forc_th_, ArrayD1 &forc_hgt_u_patch_,
                             ArrayD1 &thm_, ArrayD1 &thv_, ArrayD1 &t_grnd_, ArrayD1 &qg_, ArrayD1 &z0mg_,
                             ArrayD1 &dlrad_, ArrayD1 &ulrad_, ArrayD1 &forc_hgt_t_patch_, ArrayD1 &forc_hgt_q_patch_,
@@ -89,7 +89,7 @@ void bareGroundFluxesInvoke(const int &ncells_, ELM::LandType &Land_, ArrayI1 &f
                             ArrayD1 &qflx_ev_h2osfc_, ArrayD1 &t_ref2m_, ArrayD1 &t_ref2m_r_, ArrayD1 &q_ref2m_,
                             ArrayD1 &rh_ref2m_, ArrayD1 &rh_ref2m_r_) {
 
-  CallBareGroundFluxes call_bgf(
+  CallBareground_fluxes call_bgf(
       Land_, frac_veg_nosno_, forc_u_, forc_v_, forc_q_, forc_th_, forc_hgt_u_patch_, thm_, thv_, t_grnd_, qg_, dlrad_,
       ulrad_, forc_hgt_t_patch_, forc_hgt_q_patch_, z0mg_, z0hg_, z0qg_, snl_, forc_rho_, soilbeta_,
       dqgdT_, htvp_, t_h2osfc_, qg_snow_, qg_soil_, qg_h2osfc_, t_soisno_, forc_pbot_, cgrnds_, cgrndl_, cgrnd_,

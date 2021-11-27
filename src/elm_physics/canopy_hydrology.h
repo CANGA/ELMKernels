@@ -4,7 +4,7 @@
 Compute interception, canopy fluxes to ground, fraction vegetation wet/dry, fraction of surface covered by H2O, FSCA,
 initialize new snow layers.
 
-Call sequence: Interception() -> Irrigation() -> GroundFlux() -> FracWet() -> SnowInit() -> FracH2OSfc()
+Call sequence: interception() -> Irrigation() -> ground_flux() -> fraction_wet() -> snow_init() -> fraction_h2osfc()
 */
 #pragma once
 
@@ -35,7 +35,7 @@ Also calculates fraction of precipitation that is rain/snow.
 \param[out]    fracsnow          [double]   frac of precipitation that is snow [-]
 \param[out]    fracrain          [double]   frac of precipitation that is rain [-]
 */
-void Interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
+void interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
                   const double &dewmx, const double &elai, const double &esai, const double &dtime, double &h2ocan,
                   double &qflx_candrip, double &qflx_through_snow, double &qflx_through_rain, double &fracsnow,
                   double &fracrain);
@@ -69,7 +69,7 @@ canopy storage losses.
 \param[out] qflx_snow_grnd    [double]   snow on ground after interception (mm H2O/s) [+]
 \param[out] qflx_rain_grnd    [double]   rain on ground after interception (mm H2O/s) [+]
 */
-void GroundFlux(const LandType &Land, const bool &do_capsnow, const int &frac_veg_nosno, const double &forc_rain,
+void ground_flux(const LandType &Land, const bool &do_capsnow, const int &frac_veg_nosno, const double &forc_rain,
                 const double &forc_snow, const double &qflx_irrig, const double &qflx_candrip,
                 const double &qflx_through_snow, const double &qflx_through_rain, const double &fracsnow,
                 const double &fracrain, double &qflx_prec_grnd, double &qflx_snwcp_liq, double &qflx_snwcp_ice,
@@ -91,7 +91,7 @@ can transpire.  Adjusted for stem area which does not transpire.
 \param[out] fwet           [double]   fraction of canopy that is wet (0 to 1)
 \param[out] fdry           [double]   fraction of foliage that is green and dry [-] (new)
 */
-void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewmx, const double &elai,
+void fraction_wet(const LandType &Land, const int &frac_veg_nosno, const double &dewmx, const double &elai,
              const double &esai, const double &h2ocan, double &fwet, double &fdry);
 
 /*! Initialize new snow layer if the snow accumulation exceeds 10 mm, compute fractional SCA.
@@ -122,7 +122,7 @@ void FracWet(const LandType &Land, const int &frac_veg_nosno, const double &dewm
 \param[out]    frac_sno                      [double] fraction of ground covered by snow (0 to 1)
 */
 template <class ArrayD1>
-void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
+void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
               const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
               const double &n_melt,
 
@@ -144,7 +144,7 @@ based on surface microtopography and surface water storage.
 \param[out] frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)
 */
 template <class ArrayD1>
-void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
+void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
 
                 double &h2osfc, ArrayD1 h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc);
 

@@ -1,5 +1,5 @@
 /* functions from FrictionVelocityMod.F90
-FrictionVelocity:
+friction_velocity:
 Split into 5 functions - wind, temperature, humidity, 2-m temp, 2-m humidity
 Don't need u10 variables, they are used for dust model
 
@@ -16,7 +16,7 @@ Vol. 11, 2628-2644.
 namespace ELM {
 namespace friction_velocity {
 
-void MoninObukIni(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
+void monin_obukhov_length(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
                   double &um, double &obu) {
   double rib;  // bulk Richardson number
   double zeta; // dimensionless height used in Monin-Obukhov theory
@@ -44,7 +44,7 @@ void MoninObukIni(const double &ur, const double &thv, const double &dthv, const
   obu = zldis / zeta;
 }
 
-/* StabilityFunc1() - used in FrictionVelocityWind() */
+/* StabilityFunc1() - used in friction_velocity_wind() */
 double StabilityFunc1(double zeta) {
   double chik, chik2, retval;
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
@@ -53,7 +53,7 @@ double StabilityFunc1(double zeta) {
   return retval;
 }
 
-/* StabilityFunc2() - used in FrictionVelocityTemperature() and FrictionVelocityHumidity() */
+/* StabilityFunc2() - used in friction_velocity_temp() and friction_velocity_humidity() */
 double StabilityFunc2(double zeta) {
   double chik2, retval;
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
@@ -61,7 +61,7 @@ double StabilityFunc2(double zeta) {
   return retval;
 }
 
-void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
+void friction_velocity_wind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
                           const double &z0m, double &ustar) {
   const double zetam = 1.574;                     // transition point of flux-gradient relation (wind profile)
   const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
@@ -80,7 +80,7 @@ void FrictionVelocityWind(const double &forc_hgt_u_patch, const double &displa, 
   }
 }
 
-void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &displa, const double &obu,
+void friction_velocity_temp(const double &forc_hgt_t_patch, const double &displa, const double &obu,
                                  const double &z0h, double &temp1) {
   const double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
   const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
@@ -98,7 +98,7 @@ void FrictionVelocityTemperature(const double &forc_hgt_t_patch, const double &d
   }
 }
 
-void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
+void friction_velocity_humidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
                               const double &obu, const double &z0h, const double &z0q, const double &temp1,
                               double &temp2) {
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
@@ -121,7 +121,7 @@ void FrictionVelocityHumidity(const double &forc_hgt_q_patch, const double &forc
   }
 }
 
-void FrictionVelocityTemperature2m(const double &obu, const double &z0h, double &temp12m) {
+void friction_velocity_temp2m(const double &obu, const double &z0h, double &temp12m) {
   const double zldis = 2.0 + z0h;
   const double zeta = zldis / obu;
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
@@ -138,7 +138,7 @@ void FrictionVelocityTemperature2m(const double &obu, const double &z0h, double 
   }
 }
 
-void FrictionVelocityHumidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
+void friction_velocity_humidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
                                 double &temp22m) {
   if (z0q == z0h) {
     temp22m = temp12m;

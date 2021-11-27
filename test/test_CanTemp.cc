@@ -10,15 +10,15 @@
 
 /*
 
-tests CanopyTemperature kernels: 
-SaveGroundTemp()
-CalculateGroundTemp()
-CalculateSoilAlpha()
-CalculateSoilBeta()
-CalculateHumidities()
-GroundProperties()
-CalculateForcingHeight()
-InitializeEnergyFluxes()
+tests canopy_temperature kernels: 
+old_ground_temp()
+ground_temp()
+calc_soilalpha()
+calc_soilbeta()
+humidities()
+ground_properties()
+forcing_height()
+init_energy_fluxes()
 
 implicitly tests QSat() and calc_soilevap_stress()
 
@@ -286,33 +286,33 @@ int main(int argc, char **argv) {
     in.parseState(z0mr[idx]);
 
     // call CanopyTemperature kernels
-    ELM::canopy_temperature::SaveGroundTemp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
+    ELM::canopy_temperature::old_ground_temp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
 
-    ELM::canopy_temperature::CalculateGroundTemp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
+    ELM::canopy_temperature::ground_temp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
                              t_grnd[idx]);
 
-    ELM::canopy_temperature::CalculateSoilAlpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
                             dz[idx], t_soisno[idx], watsat[idx], sucsat[idx], bsw[idx], watdry[idx], watopt[idx],
                             rootfr_road_perv[idx], rootr_road_perv[idx], qred, hr, soilalpha[idx], soilalpha_u[idx]);
 
-    ELM::canopy_temperature::CalculateSoilBeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
+    ELM::canopy_temperature::calc_soilbeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
                            h2osoi_ice[idx], dz[idx], soilbeta[idx]);
 
-    ELM::canopy_temperature::CalculateHumidities(Land, snl[idx], forc_q[idx], forc_pbot[idx], t_h2osfc[idx], t_grnd[idx], frac_sno[idx],
+    ELM::canopy_temperature::humidities(Land, snl[idx], forc_q[idx], forc_pbot[idx], t_h2osfc[idx], t_grnd[idx], frac_sno[idx],
                              frac_sno_eff[idx], frac_h2osfc[idx], qred, hr, t_soisno[idx], qg_snow[idx], qg_soil[idx],
                              qg[idx], qg_h2osfc[idx], dqgdT[idx]);
 
-    ELM::canopy_temperature::GroundProperties(Land, snl[idx], frac_sno[idx], forc_th[idx], forc_q[idx], elai[idx], esai[idx], htop[idx],
+    ELM::canopy_temperature::ground_properties(Land, snl[idx], frac_sno[idx], forc_th[idx], forc_q[idx], elai[idx], esai[idx], htop[idx],
                            displar[idx], z0mr[idx],
                            h2osoi_liq[idx], h2osoi_ice[idx],
                            emg[idx], emv[idx], htvp[idx], z0mg[idx], z0hg[idx], z0qg[idx], z0mv[idx], z0hv[idx], z0qv[idx],
                            thv[idx], z0m[idx], displa[idx]);
 
-    ELM::canopy_temperature::CalculateForcingHeight(Land, veg_active[idx], frac_veg_nosno[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
+    ELM::canopy_temperature::forcing_height(Land, veg_active[idx], frac_veg_nosno[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
                                  z0m[idx], z0mg[idx], z_0_town[idx], z_d_town[idx], forc_t[idx], displa[idx], forc_hgt_u_patch[idx],
                                  forc_hgt_t_patch[idx], forc_hgt_q_patch[idx], thm[idx]);
 
-    ELM::canopy_temperature::InitializeEnergyFluxes(Land, eflx_sh_tot[idx], eflx_sh_tot_u[idx], eflx_sh_tot_r[idx], eflx_lh_tot[idx],
+    ELM::canopy_temperature::init_energy_fluxes(Land, eflx_sh_tot[idx], eflx_sh_tot_u[idx], eflx_sh_tot_r[idx], eflx_lh_tot[idx],
                                 eflx_lh_tot_u[idx], eflx_lh_tot_r[idx], eflx_sh_veg[idx], qflx_evap_tot[idx], qflx_evap_veg[idx],
                                 qflx_tran_veg[idx]);
 

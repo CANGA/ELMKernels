@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-/*  Tests CanopySunShadeFractions kernel
+/*  Tests canopy_sunshade_fractions kernel
 this kernel resided in SurfaceRadiation, but is called directly from the driver  
 
 the following data comes from the files CanopySunShadeFractions_IN.txt and CanopySunShadeFractions_OUT.txt located in test/data
@@ -108,8 +108,8 @@ int main(int argc, char **argv) {
     in.parseState(laisun_z[idx]);
     in.parseState(laisha_z[idx]);
 
-    // call CanopySunShadeFractions kernel
-    ELM::surface_radiation::CanopySunShadeFractions(
+    // call canopy_sunshade_fractions kernel
+    ELM::surface_radiation::canopy_sunshade_fractions(
         Land, nrad[idx], elai[idx], tlai_z[idx], fsun_z[idx],
         forc_solad[idx], forc_solai[idx],
         fabd_sun_z[idx], fabd_sha_z[idx],

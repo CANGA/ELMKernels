@@ -4,7 +4,7 @@
 Calculate leaf temperature, leaf fluxes, transpiration, photosynthesis and update the dew accumulation due to
 evaporation. Also calculates the irrigation rate (not currently active). Irrigation() can be called anytime after InitializeFlux()
 
-Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_Can()
+Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 */
 #pragma once
 
@@ -22,7 +22,7 @@ Call sequence: InitializeFlux_Can() -> StabilityIteration_Can() -> ComputeFlux_C
 namespace ELM {
 namespace canopy_fluxes {
 
-/*! Initialize variables for photosynthesis and call MoninObukIni() for vegetated cells.
+/*! Initialize variables for photosynthesis and call monin_obukhov_length() for vegetated cells.
 
 \param[in]  Land                            [LandType] struct containing information about landtype
 \param[in]  snl                             [int] number of snow layers
@@ -84,7 +84,7 @@ namespace canopy_fluxes {
 \param[out] t_veg                           [double]  vegetation temperature (Kelvin)
 */
 template <class ArrayD1>
-void InitializeFlux_Can(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
+void initialize_flux(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
                         const double &forc_hgt_u_patch, const double &thm, const double &thv, const double &max_dayl,
                         const double &dayl, const int &altmax_indx, const int &altmax_lastyear_indx,
                         const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
@@ -187,7 +187,7 @@ photosynthesis for both sun & shade.
 \param[out] wtaq0                      [double] normalized latent heat conductance for air [-]
 */
 template <class ArrayD1>
-void StabilityIteration_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
+void stability_iteration(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
                             const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
                             const double &forc_hgt_q_patch, const double &fwet,
                             const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
@@ -279,7 +279,7 @@ void StabilityIteration_Can(const LandType &Land, const double &dtime, const int
 \param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
-void ComputeFlux_Can(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
+void compute_flux(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
                      const double &frac_sno, const ArrayD1 t_soisno, const double &frac_h2osfc,
                      const double &t_h2osfc, const double &sabv, const double &qg_snow, const double &qg_soil,
                      const double &qg_h2osfc, const double &dqgdT, const double &htvp, const double &wtg,

@@ -359,7 +359,7 @@ double fth25(const double &hd, const double &se) {
 
 
 */
-void PhotosynthesisTotal(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
+void photosynthesis_total(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
                          const double &psnsun_wp, const double &laisun, const double &psnsha, const double &psnsha_wc,
                          const double &psnsha_wj, const double &psnsha_wp, const double &laisha, double &fpsn,
                          double &fpsn_wc, double &fpsn_wj, double &fpsn_wp) {

@@ -1,7 +1,7 @@
 //Functions derived from SurfaceAlbedoMod.F90
 
-// call sequence -> SurfAlbInitTimestep() -> SoilAlbedo() -> SNICAR_AD_RT() (once for both wavebands) -> GroundAlbedo() -> SnowAbsorptionFactor()
-// CanopyLayers() -> TwoStream()
+// call sequence -> SurfAlbInitTimestep() -> soil_albedo() -> SNICAR_AD_RT() (once for both wavebands) -> ground_albedo() -> flux_absorption_factor()
+// CanopyLayers() -> two_stream_solver()
 
 // will need to finish zenith angle ATS code, Aerosol functions
 
@@ -24,7 +24,7 @@ So it's for the ATM coupling
 so we can probably calc at beginning of nstep with current solar zenith angle
 
 
-these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to SnowAbsorptionFactor()
+these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to flux_absorption_factor()
 flx_absd_snw
 flx_absi_snw
 mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
@@ -80,7 +80,7 @@ inline bool novegsol(const LandType &Land, const double &coszen, const double &e
 
 
 template <class ArrayD1, class ArrayD2>
-void InitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
+void init_timestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
   const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3, const ArrayD1 mss_cnc_dst4,
   double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod, ArrayD1 albsoi, ArrayD1 albgrd, ArrayD1 albgri, ArrayD1 albd, 
   ArrayD1 albi, ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 fabi, ArrayD1 fabi_sun, ArrayD1 fabi_sha, 
@@ -136,11 +136,11 @@ void InitTimestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_
     mss_cnc_aer_in_fdb[i][6] = mss_cnc_dst3[i];
     mss_cnc_aer_in_fdb[i][7] = mss_cnc_dst4[i];
   }
-} // InitTimestep
+} // init_timestep
 
 
 template <class ArrayD1>
-void GroundAlbedo(const bool &urbpoi, const double &coszen, const double &frac_sno, const ArrayD1 albsod, 
+void ground_albedo(const bool &urbpoi, const double &coszen, const double &frac_sno, const ArrayD1 albsod, 
   const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri) {
   if (!urbpoi && coszen > 0.0) {
     for (int ib = 0; ib < numrad; ++ib) {
@@ -148,12 +148,12 @@ void GroundAlbedo(const bool &urbpoi, const double &coszen, const double &frac_s
       albgri[ib] = albsoi[ib] * (1.0 - frac_sno) + albsni[ib] * frac_sno;
     }
   }
-} // GroundAlbedo
+} // ground_albedo
 
 
 
 template <class ArrayD1, class ArrayD2>
-void SnowAbsorptionFactor(const LandType &Land, const double &coszen, const double &frac_sno,
+void flux_absorption_factor(const LandType &Land, const double &coszen, const double &frac_sno,
 const ArrayD1 albsod, const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
 const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv, ArrayD1 flx_absdn, 
 ArrayD1 flx_absiv, ArrayD1 flx_absin) {
@@ -188,11 +188,11 @@ ArrayD1 flx_absiv, ArrayD1 flx_absin) {
       } // for numrad
     } // for nlevsno +1 layers
   } // if !Land.urbpoi && coszen > 0.0
-} // SnowAbsorptionFactor
+} // flux_absorption_factor
 
 
 template <class ArrayD1>
-void CanopyLayerLAI(const int &urbpoi, const double &elai, const double &esai, const double &tlai, const double &tsai, 
+void canopy_layer_lai(const int &urbpoi, const double &elai, const double &esai, const double &tlai, const double &tsai, 
   int &nrad, int &ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z, 
   ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 
@@ -291,12 +291,12 @@ void CanopyLayerLAI(const int &urbpoi, const double &elai, const double &esai, c
       fsun_z[iv] = 0.0;
     }
   } // if !urbpoi
-} // CanopyLayerLAI
+} // canopy_layer_lai
 
 
 
 template <class ArrayD1>
-void TwoStream(const LandType &Land, const int &nrad, const double &coszen, 
+void two_stream_solver(const LandType &Land, const int &nrad, const double &coszen, 
 const double &t_veg, const double &fwet, const double &elai, const double &esai,
 const ArrayD1 tlai_z, const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri,
 const AlbedoVegData& albveg,
@@ -654,12 +654,12 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
       albi[ib] = albgri[ib];
     }
   }
-} // TwoStream
+} // two_stream_solver
 
 
 
 template <class ArrayD1>
-void SoilAlbedo(
+void soil_albedo(
   const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
   const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
   ArrayD1 albsod, ArrayD1 albsoi) {
@@ -715,7 +715,7 @@ void SoilAlbedo(
       }
     }
   }
-} // SoilAlbedo
+} // soil_albedo
 
 
 //subroutine SurfaceAlbedoInitTimeConst(bounds)

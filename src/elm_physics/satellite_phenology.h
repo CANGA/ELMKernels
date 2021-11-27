@@ -9,7 +9,7 @@ namespace ELM {
 Read monthly vegetation data for two consec. months.
 */
 template <typename Array_t>
-void ReadMonthlyVegetation(const std::string &data_dir, const std::string &basename_phen, const Utils::Date &time,
+void read_monthly_veg(const std::string &data_dir, const std::string &basename_phen, const Utils::Date &time,
                            const Utils::DomainDecomposition<2> &dd, Array_t &mlai, Array_t &msai, Array_t &mhgtt,
                            Array_t &mhgtb) {
 
@@ -27,14 +27,14 @@ void ReadMonthlyVegetation(const std::string &data_dir, const std::string &basen
 
 /*
 Determine if 2 new months of data are to be read.
-should be run every timestep to determine time weights for SatellitePhenology()
+should be run every timestep to determine time weights for satellite_phenology()
 new data is only read if needed (InterpMonths1 != months[0])
 
 serial - should only run on each node's rank == 0
 grid cell loop could be parallelized
 */
 template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
+void interp_monthly_veg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
                       const std::string &basename, const Utils::DomainDecomposition<2> &dd, const ArrayI1 &vtype,
                       ArrayD1 &timwt, ArrayD2 &mlai2t, ArrayD2 &msai2t, ArrayD2 &mhvt2t, ArrayD2 &mhvb2t) {
   int it[2];     //  month 1 and month 2 (step 1)
@@ -73,7 +73,7 @@ void InterpMonthlyVeg(const Utils::Date &time_start, int dtime, int n_pfts, cons
     auto mhgtt = ArrayD3(2, n_grid_cells, n_pfts);
     auto mhgtb = ArrayD3(2, n_grid_cells, n_pfts);
 
-    ReadMonthlyVegetation(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
+    read_monthly_veg(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
     InterpMonths1 = months[0];
 
     for (int i = 0; i < n_grid_cells; ++i) {
@@ -96,7 +96,7 @@ can be run in parallel
 
 */
 template <typename ArrayD1>
-void SatellitePhenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1 &mhvt, const ArrayD1 &mhvb,
+void satellite_phenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1 &mhvt, const ArrayD1 &mhvb,
                         const ArrayD1 &timwt, const int &vtype, const double &snow_depth, const double &frac_sno,
                         double &tlai, double &tsai, double &htop, double &hbot, double &elai, double &esai,
                         int &frac_veg_nosno_alb) {

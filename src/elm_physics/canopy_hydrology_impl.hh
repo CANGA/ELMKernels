@@ -6,7 +6,7 @@ namespace ELM {
 namespace canopy_hydrology {
   
 template <class ArrayD1>
-void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
+void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
               const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
               const double &n_melt,
 
@@ -165,10 +165,10 @@ void SnowInit(const LandType &Land, const double &dtime, const bool &do_capsnow,
       dz[nlevsno - snl] = dz[nlevsno - snl] + dz_snowf;
     }
   }
-} // SnowInit
+} // snow_init
 
 template <class ArrayD1>
-void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
+void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
 
                 double &h2osfc, ArrayD1 h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc) {
 
@@ -211,7 +211,7 @@ void FracH2OSfc(const LandType &Land, const double &micro_sigma, const double &h
       frac_h2osfc = 0.0;
     }
   }
-} // FracH2OSfc
+} // fraction_h2osfc
 
 } // namespace canopy_hydrology
 } // namespace ELM

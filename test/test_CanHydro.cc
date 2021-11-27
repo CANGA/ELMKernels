@@ -11,12 +11,12 @@
 
 
 /*
-tests CanopyHydrology kernels: 
-Interception()
-GroundFlux()
-FracWet()
-SnowInit()
-FracH2OSfc()
+tests canopy_hydrology kernels: 
+interception()
+ground_flux()
+fraction_wet()
+snow_init()
+fraction_h2osfc()
 
 will need to add Irrigation() later
 
@@ -200,21 +200,21 @@ int main(int argc, char **argv) {
 
 
     // call CanopyHydrology kernels
-    ELM::canopy_hydrology::Interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx[idx], elai[idx], esai[idx], dtime,
+    ELM::canopy_hydrology::interception(Land, frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], dewmx[idx], elai[idx], esai[idx], dtime,
                         h2ocan[idx], qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
 
-    ELM::canopy_hydrology::GroundFlux(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
+    ELM::canopy_hydrology::ground_flux(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
                       qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[idx],
                       qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], qflx_snow_grnd[idx], qflx_rain_grnd[idx]);
 
-    ELM::canopy_hydrology::FracWet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
+    ELM::canopy_hydrology::fraction_wet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
 
-    ELM::canopy_hydrology::SnowInit(Land, dtime, do_capsnow[idx], oldfflag[idx], forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
+    ELM::canopy_hydrology::snow_init(Land, dtime, do_capsnow[idx], oldfflag[idx], forc_t[idx], t_grnd[idx], qflx_snow_grnd[idx], qflx_snow_melt[idx],
                     n_melt[idx], snow_depth[idx], h2osno[idx], int_snow[idx], swe_old[idx], h2osoi_liq[idx],
                     h2osoi_ice[idx], t_soisno[idx], frac_iceold[idx], snl[idx], dz[idx], z[idx], zi[idx], snw_rds[idx],
                     frac_sno_eff[idx], frac_sno[idx]);
 
-    ELM::canopy_hydrology::FracH2OSfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
+    ELM::canopy_hydrology::fraction_h2osfc(Land, micro_sigma[idx], h2osno[idx], h2osfc[idx], h2osoi_liq[idx], frac_sno[idx], frac_sno_eff[idx],
                     frac_h2osfc[idx]);
 
     // compare kernel output to ELM output state

@@ -6,7 +6,7 @@ namespace ELM {
 namespace bareground_fluxes {
 
 template <class ArrayD1>
-void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
+void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
                     const double &soilbeta, const double &dqgdT, const double &htvp, const double &t_h2osfc,
                     const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const ArrayD1 t_soisno,
                     const double &forc_pbot, const double &dth, const double &dqh, const double &temp1,
@@ -73,7 +73,7 @@ void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
 
     // 2 m height relative humidity
-    qsat::QSat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+    qsat::qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
 
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m * 100.0));
 
@@ -82,7 +82,7 @@ void ComputeFlux_BG(const LandType &Land, const int &frac_veg_nosno, const int &
       t_ref2m_r = t_ref2m;
     }
   }
-} // ComputeFlux_BG
+} // compute_flux
 
 } // namespace bareground_fluxes
 } // namespace ELM

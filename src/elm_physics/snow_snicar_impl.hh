@@ -195,7 +195,7 @@ namespace snow_snicar {
 
 
 template <class ArrayI1, class ArrayD1, class ArrayD2>
-void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
+void init_timestep (const int & urbpoi, const int & flg_slr_in, const double &coszen,
   const double &h2osno, const int & snl, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
   const ArrayD1 snw_rds, int &snl_top, int &snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int &flg_nosnl,
   ArrayD1 h2osoi_ice_lcl, ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl,
@@ -290,7 +290,7 @@ void InitTimestep (const int & urbpoi, const int & flg_slr_in, const double &cos
 
 
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
-void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
+void snow_aerosol_mie_params(const int &urbpoi, const int &flg_slr_in, const int &snl_top, const int &snl_btm,
   const double &coszen, const double &h2osno, const ArrayI1 snw_rds_lcl, const ArrayD1 h2osoi_ice_lcl,
   const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1, const ArrayD1& asm_prm_oc1,
   const ArrayD1& ext_cff_mss_oc1, const ArrayD1& ss_alb_oc2, const ArrayD1& asm_prm_oc2,
@@ -484,7 +484,7 @@ void SnowAerosolMieParams(const int &urbpoi, const int &flg_slr_in, const int &s
 
 
 template <class ArrayD1, class ArrayD2>
-void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &flg_nosnl, const int &snl_top, const int &snl_btm, 
+void snow_radiative_transfer_solver(const int &urbpoi, const int &flg_slr_in, const int &flg_nosnl, const int &snl_top, const int &snl_btm, 
   const double &coszen, const double &h2osno, const double &mu_not,
   const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl, const ArrayD1 albsoi, const ArrayD2 g_star, 
   const ArrayD2 omega_star, const ArrayD2 tau_star, ArrayD1 albout_lcl, 
@@ -825,7 +825,7 @@ void SnowRadiativeTransfer(const int &urbpoi, const int &flg_slr_in, const int &
 
 
 template <class ArrayI1, class ArrayD1, class ArrayD2>
-void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
+void snow_albedo_radiation_factor(const bool &urbpoi, const int &flg_slr_in, const int &snl_top, const double &coszen,
   const double &mu_not,
   const double &h2osno, 
   const ArrayI1 snw_rds_lcl, 
@@ -907,7 +907,7 @@ void SnowAlbedoRadiationFlux(const bool &urbpoi, const int &flg_slr_in, const in
       albout[1] = 0.0;
     } // if ((coszen > 0.0) && (h2osno > min_snw))
   } // if !urbpoi
-} // SnowAlbedoRadiationFlux()
+} // snow_albedo_radiation_factor()
 
 
 } // namespace snow_snicar
