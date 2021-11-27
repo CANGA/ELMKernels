@@ -33,38 +33,38 @@ A driver for these physics kernels should call this library's functions in the f
             ELM::SatellitePhenology() - process prescribed vegetation data
 
             CanopyHydrology calls
-            ELM::Interception()
-            ELM::GroundFlux()
-            ELM::FracWet()
-            ELM::SnowInit()
-            ELM::FracH2OSfc()
+            ELM::canopy_hydrology::Interception()
+            ELM::canopy_hydrology::GroundFlux()
+            ELM::canopy_hydrology::FracWet()
+            ELM::canopy_hydrology::SnowInit()
+            ELM::canopy_hydrology::FracH2OSfc()
 
             SurfaceRadiation calls
-            ELM::CanopySunShadeFractions()
-            ELM::SurfRadZeroFluxes()
-            ELM::SurfRadAbsorbed()
-            ELM::SurfRadLayers()
-            ELM::SurfRadReflected()
+            ELM::surface_radiation::CanopySunShadeFractions()
+            ELM::surface_radiation::SurfRadZeroFluxes()
+            ELM::surface_radiation::SurfRadAbsorbed()
+            ELM::surface_radiation::SurfRadLayers()
+            ELM::surface_radiation::SurfRadReflected()
 
             CanopyTemperature calls
-            ELM::SaveGroundTemp()
-            ELM::CalculateGroundTemp()
-            ELM::CalculateSoilAlpha()
-            ELM::CalculateSoilBeta()
-            ELM::CalculateHumidities()
-            ELM::GroundProperties()
-            ELM::CalculateForcingHeight()
-            ELM::InitializeEnergyFluxes()
+            ELM::canopy_temperature::SaveGroundTemp()
+            ELM::canopy_temperature::CalculateGroundTemp()
+            ELM::canopy_temperature::CalculateSoilAlpha()
+            ELM::canopy_temperature::CalculateSoilBeta()
+            ELM::canopy_temperature::CalculateHumidities()
+            ELM::canopy_temperature::GroundProperties()
+            ELM::canopy_temperature::CalculateForcingHeight()
+            ELM::canopy_temperature::InitializeEnergyFluxes()
 
             BareGroundFluxes calls
-            ELM::InitializeFlux_BG()
-            ELM::StabilityIteration_BG()
-            ELM::ComputeFlux_BG()
+            ELM::bareground_fluxes::InitializeFlux_BG()
+            ELM::bareground_fluxes::StabilityIteration_BG()
+            ELM::bareground_fluxes::ComputeFlux_BG()
 
             CanopyFluxes calls
-            ELM::InitializeFlux_Can()
-            ELM::StabilityIteration_Can()
-            ELM::ComputeFlux_Can()
+            ELM::canopy_fluxes::InitializeFlux_Can()
+            ELM::canopy_fluxes::StabilityIteration_Can()
+            ELM::canopy_fluxes::ComputeFlux_Can()
 
 Documentation
 -------------
@@ -77,7 +77,7 @@ Install
 -------
 sample configure/build/test looks like:
 
-    git clone -b ecoon/physics https://code.ornl.gov/uec/ELM_Kernels.git ELM_Kernels
+    git clone -b physics https://code.ornl.gov/uec/ELM_Kernels.git ELM_Kernels
     mkdir build-dir
     mkdir install-dir
     
