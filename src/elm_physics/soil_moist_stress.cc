@@ -1,6 +1,5 @@
 
-#include "elm_constants.h"
-#include <cmath>
+#include "soil_moist_stress.h"
 
 namespace ELM {
 namespace soil_moist_stress {

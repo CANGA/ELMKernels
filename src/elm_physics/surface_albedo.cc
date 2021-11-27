@@ -1,18 +1,5 @@
-#include <cmath>
-#include <stdexcept>
 
-#include "elm_constants.h"
-#include "landtype.h"
 #include "surface_albedo.h"
-
-
-// for build testing
-//#include "array.hh"
-//using ArrayB1 = ELM::Array<bool, 1>;
-//using ArrayI1 = ELM::Array<int, 1>;
-//using ArrayS1 = ELM::Array<std::string, 1>;
-//using ArrayD1 = ELM::Array<double, 1>;
-//using ArrayD2 = ELM::Array<double, 2>;
 
 namespace ELM {
 namespace surface_albedo {

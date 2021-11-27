@@ -44,8 +44,8 @@ namespace canopy_fluxes {
 \param[in]  sucsat[nlevgrnd]                [double] minimum soil suction (mm)
 \param[in]  watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
 \param[in]  bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
-\param[in]  smpso[numpft]                   [double] soil water potential at full stomatal opening (mm)
-\param[in]  smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
+\param[in]  smpso                           [double] soil water potential at full stomatal opening (mm)
+\param[in]  smpsc                           [double] soil water potential at full stomatal closure (mm)
 \param[in]  elai                            [double] one-sided leaf area index with burying by snow
 \param[in]  esai                            [double] one-sided stem area index with burying by snow
 \param[in]  emv                             [double] vegetation emissivity

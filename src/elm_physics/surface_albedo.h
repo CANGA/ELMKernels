@@ -39,12 +39,11 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 
 #pragma once
 
-#include <cmath>
-#include <stdexcept>
-
 #include "elm_constants.h"
 #include "landtype.h"
 #include "vegdata.h"
+#include <cmath>
+#include <stdexcept>
 
 namespace ELM {
 namespace surface_albedo {

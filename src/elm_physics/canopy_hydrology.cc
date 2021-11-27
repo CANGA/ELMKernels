@@ -1,9 +1,6 @@
 // functions derived from CanopyHydrologyMod.F90
 
-#include "elm_constants.h"
-#include "landtype.h"
-#include <algorithm>
-#include <cmath>
+#include "canopy_hydrology.h"
 
 namespace ELM {
 namespace canopy_hydrology {

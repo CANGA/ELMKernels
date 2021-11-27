@@ -9,7 +9,6 @@
 
 #include "bareground_fluxes.h"
 #include "friction_velocity.h"
-#include "qsat.h"
 
 namespace ELM {
 namespace bareground_fluxes {

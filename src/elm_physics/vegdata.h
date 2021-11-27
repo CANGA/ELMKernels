@@ -80,10 +80,10 @@ struct VegData {
   void read_veg_data(const std::string &data_dir, const std::string &basename_pfts);
 
   // get struct of photosynthesis variables for vegetation == vegtype
-  PSNVegData get_pft_psnveg (int vegtype);
+  const PSNVegData get_pft_psnveg (int vegtype) const;
 
   // get struct of albedo variables for vegetation == vegtype
-  AlbedoVegData get_pft_albveg(int vegtype);
+  const AlbedoVegData get_pft_albveg(int vegtype) const;
 
 };
 

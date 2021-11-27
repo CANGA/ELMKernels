@@ -1,9 +1,6 @@
 // functions from SurfaceResistanceMod.F90
 
-#include "elm_constants.h"
-#include "LandType.h"
-#include <algorithm>
-#include <cmath>
+#include "surface_resistance.h"
 
 namespace ELM {
 namespace surface_resistance {

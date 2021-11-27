@@ -1,9 +1,6 @@
 // functions derived from CanopyTemperatureMod.F90
 
-#include "elm_constants.h"
-#include "landtype.h"
-#include <algorithm>
-#include <cmath>
+#include "canopy_temperature.h"
 
 namespace ELM {
 namespace canopy_temperature {

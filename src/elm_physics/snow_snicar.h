@@ -9,10 +9,9 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 */
 #pragma once
 
+#include "elm_constants.h"
 #include <cmath>
 #include <stdexcept>
-
-#include "elm_constants.h"
 
 namespace ELM {
 namespace snow_snicar {

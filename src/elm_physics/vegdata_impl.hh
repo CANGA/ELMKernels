@@ -1,6 +1,5 @@
 
 #pragma once
-#include "vegdata.h"
 
 namespace ELM {
 
@@ -108,7 +107,7 @@ void VegData<ArrayD1, ArrayD2>::read_veg_data(const std::string &data_dir, const
 
 
 template <typename ArrayD1, typename ArrayD2>
-PSNVegData VegData<ArrayD1, ArrayD2>::get_pft_psnveg (int vegtype) {
+const PSNVegData VegData<ArrayD1, ArrayD2>::get_pft_psnveg (int vegtype) const {
   PSNVegData psnvegdata;
   psnvegdata.fnr = fnr(vegtype);
   psnvegdata.act25 = act25(vegtype);
@@ -141,7 +140,7 @@ PSNVegData VegData<ArrayD1, ArrayD2>::get_pft_psnveg (int vegtype) {
 }
 
 template <typename ArrayD1, typename ArrayD2>
-AlbedoVegData VegData<ArrayD1, ArrayD2>::get_pft_albveg(int vegtype) {
+const AlbedoVegData VegData<ArrayD1, ArrayD2>::get_pft_albveg(int vegtype) const {
  AlbedoVegData albedovegdata;
  albedovegdata.rhol[0] = rholvis(vegtype);
  albedovegdata.rhol[1] = rholnir(vegtype);

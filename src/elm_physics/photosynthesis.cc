@@ -1,9 +1,6 @@
 // derived from PhotosynthesisMod.F90
 
-#include "elm_constants.h"
-#include <algorithm>
-#include <cmath>
-#include <stdexcept>
+#include "photosynthesis.h"
 
 namespace ELM {
 namespace photosynthesis {
