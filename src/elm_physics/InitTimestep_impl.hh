@@ -29,7 +29,7 @@ void InitTimestep(const bool &lakpoi, const double &h2osno, const bool &veg_acti
   if (veg_active) {
     frac_veg_nosno = frac_veg_nosno_alb;
   } else {
-    frac_veg_nosno = 0.0;
+    frac_veg_nosno = 0;
   }
 
   // Initialize set of previous time-step variables
