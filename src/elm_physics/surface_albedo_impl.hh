@@ -186,7 +186,7 @@ ArrayD1 flx_absiv, ArrayD1 flx_absin) {
           }
         } // if subgridflag
       } // for numrad
-    } // for nlensno +1 layers
+    } // for nlevsno +1 layers
   } // if !Land.urbpoi && coszen > 0.0
 } // SnowAbsorptionFactor
 

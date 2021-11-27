@@ -1,4 +1,4 @@
-/*! \file qsat.hh
+/*! \file qsat.h
 \brief Internal function derived from QSatMod.F90
 */
 #pragma once

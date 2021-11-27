@@ -409,7 +409,7 @@ int main(int argc, char **argv) {
     albsat[idx], albdry[idx], albsod[idx], albsoi[idx]);
 
 {
-    int flg_slr_in = 1;
+    int flg_slr_in = 1; // direct-beam
 
     ELM::snow_snicar::InitTimestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
       h2osoi_liq[idx], h2osoi_ice[idx], snw_rds[idx], snl_top[idx], snl_btm[idx], 
@@ -440,7 +440,7 @@ int main(int argc, char **argv) {
 
 
   {
-    int flg_slr_in = 2;
+    int flg_slr_in = 2; // diffuse
 
     ELM::snow_snicar::InitTimestep (Land.urbpoi,
       flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
