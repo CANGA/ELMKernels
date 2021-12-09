@@ -72,11 +72,21 @@ struct Date {
     }
     return *this;
   }
+
   Date &increment_seconds(size_t seconds) {
     sec += (int)seconds;
     while (sec >= sec_per_day) {
       operator+=(1);
-      sec = sec % sec_per_day;
+      sec -= sec_per_day;
+    }
+    return *this;
+  }
+
+  Date &decrement_seconds(size_t seconds) {
+    sec -= (int)seconds;
+    while (sec < 0) {
+      operator-=(1);
+      sec += sec_per_day;
     }
     return *this;
   }
@@ -171,6 +181,26 @@ inline int months_since(const Date &lhs, const Date &rhs) {
 inline int years_since(const Date &lhs, const Date &rhs) { return lhs.year - rhs.year; }
 
 inline int operator-(const Date &lhs, const Date &rhs) { return days_since(lhs, rhs); }
+
+//
+// decimal Julian date
+//
+inline double decimal_doy(int month, int day, int seconds) {
+  const auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  double doy = 0.0;
+  for (int i = 0; i != month - 1; ++i) {
+    doy += dy_per_mo[i];
+  }
+  doy += day - 1.0;
+  doy += seconds/86400.0;
+  return std::move(doy);
+}
+
+inline double decimal_doy(const Date& date) {
+  double doy = (double)date.doy;
+  doy += date.sec/86400.0;
+  return std::move(doy);
+}
 
 //
 // relational
