@@ -47,6 +47,12 @@ int main(int argc, char **argv) {
     // explicitly define Kokkos view of struct PSNVegData
     auto psnveg = create<ArrayP1>("psnveg", ncells);
 
+    // init PSNVegData
+    //auto Land = create <Kokkos::View<ELM::LandType *> >("Land", ncells); 
+    //Kokkos::parallel_for ("psnveg_init", ncells, KOKKOS_LAMBDA (const int i) {
+    //  psnveg[i] = vegdata.get_pft_psnveg(Land[i].vtype);
+    //});
+
     Kokkos::parallel_for ("psnveg_init", ncells, KOKKOS_LAMBDA (const int i) {
       psnveg[i] = vegdata.get_pft_psnveg(Land.vtype);
     });

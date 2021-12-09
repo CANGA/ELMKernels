@@ -44,11 +44,10 @@ void interp_monthly_veg(const Utils::Date &time_start, int dtime, int n_pfts, co
   const auto ndaypm = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // days per month
   auto n_grid_cells = dd.n_local[0] * dd.n_local[1];
 
-  Utils::Date time_end(time_start);
+  auto time_end(time_start);
   time_end.increment_seconds(dtime);
-  auto date = time_end.date();
-  int kmo = std::get<1>(date); // month
-  int kda = std::get<2>(date); // day
+  int kmo = std::get<1>(time_end.date()); // month
+  int kda = std::get<2>(time_end.date()); // day
 
   double t = (kda - 0.5) / ndaypm[kmo - 1];
   it[0] = t + 0.5;
@@ -101,8 +100,6 @@ void satellite_phenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1
                         double &tlai, double &tsai, double &htop, double &hbot, double &elai, double &esai,
                         int &frac_veg_nosno_alb) {
 
-  double ol, fb;
-
   // need to update elai and esai only every albedo time step so do not
   // have any inconsistency in lai and sai between SurfaceAlbedo calls (i.e.,
   // if albedos are not done every time step).
@@ -119,10 +116,17 @@ void satellite_phenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1
   // top height      htop <- mhvt1 and mhvt2
   // bottom height   hbot <- mhvb1 and mhvb2
 
-  tlai = timwt[0] * mlai[0] + timwt[1] * mlai[1];
-  tsai = timwt[0] * msai[0] + timwt[1] * msai[1];
-  htop = timwt[0] * mhvt[0] + timwt[1] * mhvt[1];
-  hbot = timwt[0] * mhvb[0] + timwt[1] * mhvb[1];
+  if (vtype != noveg) {
+    tlai = timwt[0] * mlai[0] + timwt[1] * mlai[1];
+    tsai = timwt[0] * msai[0] + timwt[1] * msai[1];
+    htop = timwt[0] * mhvt[0] + timwt[1] * mhvt[1];
+    hbot = timwt[0] * mhvb[0] + timwt[1] * mhvb[1];
+  } else {
+    tlai =  0.0;
+    tsai =  0.0;
+    htop =  0.0;
+    hbot =  0.0;
+  }
 
   // adjust lai and sai for burying by snow. if exposed lai and sai
   // are less than 0.05, set equal to zero to prevent numerical
@@ -130,8 +134,9 @@ void satellite_phenology(const ArrayD1 &mlai, const ArrayD1 &msai, const ArrayD1
   // snow burial fraction for short vegetation (e.g. grasses) as in
   // Wang and Zeng, 2007.
 
+  double fb;
   if (vtype > noveg && vtype <= nbrdlf_dcd_brl_shrub) {
-    ol = std::min(std::max(snow_depth - hbot, 0.0), htop - hbot);
+    double ol = std::min(std::max(snow_depth - hbot, 0.0), htop - hbot);
     fb = 1.0 - ol / std::max(1.e-06, htop - hbot);
   } else {
     fb = 1.0 - std::max(std::min(snow_depth, 0.2), 0.0) / 0.2; // 0.2m is assumed

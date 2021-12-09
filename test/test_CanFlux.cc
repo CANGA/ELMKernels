@@ -276,7 +276,7 @@ int main(int argc, char **argv) {
   ELM::VegData<ArrayD1, ArrayD2> vegdata;
   vegdata.read_veg_data(data_dir, pft_file);
   // get veg constants for a single pft
-  ELM::PSNVegData psnveg = vegdata.get_pft_psnveg(Land.vtype);
+  const ELM::PSNVegData psnveg = vegdata.get_pft_psnveg(Land.vtype);
 
   for (std::size_t t = 0; t < 97; ++t) {
     

@@ -1,5 +1,6 @@
 /*! \file read_atmosphere.h
 \brief need to split and document - time interpolation?
+from lnd_import()
 */
 #pragma once
 
@@ -11,11 +12,11 @@
 namespace ELM {
 
 // serial I/O function
-template <typename Array_t>
+template <typename ArrayD2>
 void read_atm_forcing(const std::string &data_dir, const std::string &basename_atm, const Utils::Date &time,
-                    const Utils::DomainDecomposition<2> &dd, const int n_months, Array_t &atm_zbot, Array_t &atm_tbot,
-                    Array_t &atm_rh, Array_t &atm_wind, Array_t &atm_fsds, Array_t &atm_flds, Array_t &atm_psrf,
-                    Array_t &atm_prec) {
+                    const Utils::DomainDecomposition<2> &dd, const int n_months, ArrayD2 &atm_zbot, ArrayD2 &atm_tbot,
+                    ArrayD2 &atm_rh, ArrayD2 &atm_wind, ArrayD2 &atm_fsds, ArrayD2 &atm_flds, ArrayD2 &atm_psrf,
+                    ArrayD2 &atm_prec) {
 
   IO::read_and_reshape_forcing(data_dir, basename_atm, "ZBOT", time, n_months, dd, atm_zbot);
   IO::read_and_reshape_forcing(data_dir, basename_atm, "TBOT", time, n_months, dd, atm_tbot);
@@ -28,8 +29,7 @@ void read_atm_forcing(const std::string &data_dir, const std::string &basename_a
 }
 
 double tdc(const double &t) {
-  double ret = std::min(50.0, std::max(-50.0, (t - tfrz)));
-  return ret;
+  return std::min(50.0, std::max(-50.0, (t - tfrz)));
 }
 
 double esatw(const double &t) {
@@ -56,6 +56,7 @@ need to write szenith function to calc solar zenith angle for radiation processi
 forc_hgt_grc is hardwired as 30m in lnd_import_export.F90 - should it be here? what about ZBOT from forcing file (2m)?
 
 */
+
 template <typename ArrayD1>
 void get_atm_timestep(const double &atm_tbot, const double &atm_psrf, const double &atm_rh, const double &atm_flds,
                     const double &atm_fsds, const double &atm_prec, const double &atm_wind, double &forc_t,
@@ -111,13 +112,15 @@ void get_atm_timestep(const double &atm_tbot, const double &atm_psrf, const doub
   double swvdr = swndr;
   double swvdf = swndr;
   double ratio_rvrf = std::min(
-      0.99, std::max(0.29548 + 0.00504 * swndr - 1.4957e-05 * pow(swndr, 20) + 1.4881e-08 * pow(swndr, 3.0), 0.01));
-  forc_solad[1] = ratio_rvrf * swndr;
-  forc_solai[1] = (1.0 - ratio_rvrf) * swndf;
-  ratio_rvrf = std::min(
       0.99, std::max(0.17639 + 0.00380 * swvdr - 9.0039e-06 * pow(swvdr, 2.0) + 8.1351e-09 * pow(swvdr, 3.0), 0.01));
   forc_solad[0] = ratio_rvrf * swvdr;
   forc_solai[0] = (1.0 - ratio_rvrf) * swvdf;
+
+  ratio_rvrf = std::min(
+      0.99, std::max(0.29548 + 0.00504 * swndr - 1.4957e-05 * pow(swndr, 2.0) + 1.4881e-08 * pow(swndr, 3.0), 0.01));
+  forc_solad[1] = ratio_rvrf * swndr;
+  forc_solai[1] = (1.0 - ratio_rvrf) * swndf;
+  
   // forc_solar = forc_solad[0] + forc_solai[0] + forc_solad[1] + forc_solai[1];
 
   // partition precip into rain & snow
