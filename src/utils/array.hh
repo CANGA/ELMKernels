@@ -47,9 +47,17 @@ protected:
   // copy construct
   Data_(const Data_ &other) = default;
 
+  // resize data ptr
+  // destructive
+  void Data_resize(int N) {
+    len_ = N;
+    do_.reset(new T[N](), std::default_delete<T[]>());
+    d_ = do_.get();
+  }
+
 protected:
   // global length
-  const int len_;
+  int len_;
 
   // owning data
   std::shared_ptr<T> do_;
@@ -106,6 +114,12 @@ public:
   const T &operator[](int i) const {
     assert(0 <= i && i < len_);
     return d_[i];
+  }
+
+  // resize accessor - destructive
+  Array<T, 1>& resize(const int N) {
+    Impl::Data_<T>::Data_resize(N);
+    return *this;
   }
 
   // shape
@@ -175,6 +189,14 @@ public:
   const Array<T, 1> operator[](int i) const {
     assert(0 <= i && i < M_);
     return Array<T, 1>(name_, N_, &d_[i * N_]);
+  }
+
+  // resize accessor - destructive
+  Array<T, 2>& resize(const int M, const int N) {
+    Impl::Data_<T>::Data_resize(M*N);
+    M_ = M;
+    N_ = N;
+    return *this;
   }
 
   // shape
@@ -253,6 +275,15 @@ public:
     return Array<T, 2>(name_, N_, P_, &d_[i * N_ * P_]);
   }
 
+  // resize accessor - destructive
+  Array<T, 3>& resize(int M, int N, int P) {
+    Impl::Data_<T>::Data_resize(M*N*P);
+    M_ = M;
+    N_ = N;
+    P_ = P;
+    return *this;
+  }
+
   // shape
   int extent(int d) const {
     assert(d < 3 && "Array::extent requested for dimension greater than is stored.");
@@ -314,6 +345,16 @@ public:
   const Array<T, 3> operator[](int i) const {
     assert(0 <= i && i < M_);
     return Array<T, 3>(N_, P_, Q_, &d_[i * N_ * P_ * Q_]);
+  }
+
+  // resize accessor - destructive
+  Array<T, 4>& resize(int M, int N, int P, int Q) {
+    Impl::Data_<T>::Data_resize(M*N*P*Q);
+    M_ = M;
+    N_ = N;
+    P_ = P;
+    Q_ = Q;
+    return *this;
   }
 
   // shape

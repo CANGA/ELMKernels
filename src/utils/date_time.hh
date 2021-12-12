@@ -39,13 +39,13 @@ struct Date {
   int year;
   int doy;
   int sec;
-  const int sec_per_day = 86400;
+  static const int sec_per_day = 86400;
 
   Date(int year_, int doy_) : year(year_), doy(doy_), sec(0) {}
 
   Date(int year_, int month, int day) : Date(year_, to_doy(month, day)) {}
 
-  Date(int year_, int month, int day, int sec_) : Date(year_, to_doy(month, day)) { sec = sec_; }
+  Date(int year_, int month, int day, int seconds) : Date(year_, to_doy(month, day)) { this->increment_seconds(seconds); }
 
   Date(int year_) : Date(year_, 0) {}
   Date() : Date(0, 0) {}
@@ -160,14 +160,25 @@ inline Date operator-(Date lhs, int rhs) {
 }
 
 //
+// decimal Julian date
+//
+inline double decimal_doy(int month, int day, int seconds) {
+  return to_doy(month, day) + seconds/86400.0;
+}
+
+inline double decimal_doy(const Date& date) {
+  return date.doy + date.sec/86400.0;
+}
+
+//
 // Subtract
 //
 // NOTE: adding two dates isn't supported, but diffing two dates is ok!
 //
-inline int days_since(const Date &lhs, const Date &rhs) {
+inline double days_since(const Date &lhs, const Date &rhs) {
   int d_year = lhs.year - rhs.year;
-  int d_doy = lhs.doy - rhs.doy;
-  return d_doy + 365 * d_year;
+  double d_doy = decimal_doy(lhs) - decimal_doy(rhs);
+  return d_doy + 365.0 * d_year;
 }
 
 inline int months_since(const Date &lhs, const Date &rhs) {
@@ -180,40 +191,20 @@ inline int months_since(const Date &lhs, const Date &rhs) {
 
 inline int years_since(const Date &lhs, const Date &rhs) { return lhs.year - rhs.year; }
 
-inline int operator-(const Date &lhs, const Date &rhs) { return days_since(lhs, rhs); }
-
-//
-// decimal Julian date
-//
-inline double decimal_doy(int month, int day, int seconds) {
-  const auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-  double doy = 0.0;
-  for (int i = 0; i != month - 1; ++i) {
-    doy += dy_per_mo[i];
-  }
-  doy += day - 1.0;
-  doy += seconds/86400.0;
-  return std::move(doy);
-}
-
-inline double decimal_doy(const Date& date) {
-  double doy = (double)date.doy;
-  doy += date.sec/86400.0;
-  return std::move(doy);
-}
+inline double operator-(const Date &lhs, const Date &rhs) { return days_since(lhs, rhs); }
 
 //
 // relational
 //
 inline bool operator<(const Date &lhs, const Date &rhs) {
-  // orders by year first, doy second
-  return std::tie(lhs.year, lhs.doy) < std::tie(rhs.year, rhs.doy);
+  // orders by year first, doy second, sec last
+  return std::tie(lhs.year, lhs.doy, lhs.sec) < std::tie(rhs.year, rhs.doy, rhs.sec);
 }
 inline bool operator>(const Date &lhs, const Date &rhs) { return rhs < lhs; }
 inline bool operator<=(const Date &lhs, const Date &rhs) { return !(lhs > rhs); }
 inline bool operator>=(const Date &lhs, const Date &rhs) { return !(lhs < rhs); }
 
-inline bool operator==(const Date &lhs, const Date &rhs) { return lhs.year == rhs.year && lhs.doy == rhs.doy; }
+inline bool operator==(const Date &lhs, const Date &rhs) { return lhs.year == rhs.year && lhs.doy == rhs.doy && lhs.sec == rhs.sec; }
 inline bool operator!=(const Date &lhs, const Date &rhs) { return !(lhs == rhs); }
 
 //
