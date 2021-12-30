@@ -43,7 +43,7 @@ double dt_radians (double dt) {
   return dt * TWO_PI / 86400.0;
 }
 
-// define dt start time of day on the period -2*p1 to 2*pi
+// define dt start time of day on the period -pi to pi
 double dt_start_rad (double jday, double lonrad) {
   // adjust t to be between -2pi and 2pi
   double t_start = (jday-floor(jday)) * TWO_PI + lonrad - ELM_PI;

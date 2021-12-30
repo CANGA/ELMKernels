@@ -83,13 +83,17 @@ static const double ELM_MWWV = 18.016;                 // molecular weight water
 static const double ELM_RGAS = ELM_AVOGAD * ELM_BOLTZ; // Universal gas constant ~ J/K/kmole
 static const double ELM_RWV = ELM_RGAS / ELM_MWWV;     // Water vapor gas constant ~ J/K/kg
 
+static const double ELM_STEBOL = 5.67e-8;              // Stefan-Boltzmann constant ~ W/m^2/K^4
+// need to replace 'sb' with 'ELM_STEBOL'
+//static const double sb = 5.67e-8;        // Stefan-Boltzmann constant ~ W/m^2/K^4
+
 // from clm_varcon.F90
 static const double snw_rds_min = 54.526; // minimum allowed snow effective radius (also "fresh snow" value) [microns]
 static const double zlnd = 0.01;          // Roughness length for soil [m]
 static const double zsno = 0.0024;        // Roughness length for snow [m]
 static const double spval = 1.0e36;       // special value for real data
 static const int ispval = -9999;          // special value for int data
-static const double tfrz = 273.15;        // freezing temperature [K]
+inline constexpr double tfrz = 273.15;        // freezing temperature [K]
 static const double denice = 0.917e3;     // density of ice             ~ kg/m^3
 static const double denh2o = 1.000e3;     // // density of fresh water     ~ kg/m^3
 static const double hvap = 2.501e6;       // Latent heat of evap for water [J/kg]

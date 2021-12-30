@@ -385,6 +385,16 @@ Array<T, D2> reshape(Array<T, D1> &arr_in, const std::array<int, D2> &new_shape)
   return Array<T, D2>(new_shape, (T *)arr_in.begin());
 }
 
+
+//
+// resize array
+// NOTE, this does not change the Array type or number of dimensions, only the extent of the dimensions!
+//
+template <typename Array, typename... Args>
+void resize(Array& arr_in, Args&&... args) {
+  arr_in.resize(std::forward<Args>(args)...);
+}
+
 //
 // Copies from an Array into an Array-like object.
 //

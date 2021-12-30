@@ -33,6 +33,10 @@ new data is only read if needed (InterpMonths1 != months[0])
 serial - should only run on each node's rank == 0
 grid cell loop could be parallelized
 */
+
+// check some of the int to double to int implicit conversions - it[], months[], etc
+// fix InterpMonths1 - get rid of static var? - could easily use date object to calc weights, flag read
+// months switch at midpoint -- 1st half of jan -> months = {12, 1}, 2nd half of jan, -> months = {1, 2}
 template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
 void interp_monthly_veg(const Utils::Date &time_start, int dtime, int n_pfts, const std::string &dir,
                       const std::string &basename, const Utils::DomainDecomposition<2> &dd, const ArrayI1 &vtype,
