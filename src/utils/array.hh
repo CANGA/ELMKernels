@@ -98,20 +98,20 @@ public:
   Array(const Array<T, 1> &other) = default;
 
   // accessors
-  T &operator()(const int i) {
+  T &operator()(int i) {
     assert(0 <= i && i < len_);
     return d_[i];
   }
-  const T &operator()(const int i) const {
+  T &operator()(int i) const {
     assert(0 <= i && i < len_);
     return d_[i];
   }
 
-  T &operator[](const int i) {
+  T &operator[](int i) {
     assert(0 <= i && i < len_);
     return d_[i];
   }
-  const T &operator[](int i) const {
+  T &operator[](int i) const {
     assert(0 <= i && i < len_);
     return d_[i];
   }
@@ -177,7 +177,7 @@ public:
     assert(0 <= i && i < M_ && 0 <= j && j < N_);
     return d_[j + i * N_];
   }
-  const T &operator()(int i, int j) const {
+  T &operator()(int i, int j) const {
     assert(0 <= i && i < M_ && 0 <= j && j < N_);
     return d_[j + i * N_];
   }
@@ -186,7 +186,7 @@ public:
     assert(0 <= i && i < M_);
     return Array<T, 1>(name_, N_, &d_[i * N_]);
   }
-  const Array<T, 1> operator[](int i) const {
+  Array<T, 1> operator[](int i) const {
     assert(0 <= i && i < M_);
     return Array<T, 1>(name_, N_, &d_[i * N_]);
   }
@@ -261,7 +261,7 @@ public:
     assert(0 <= i && i < M_ && 0 <= j && j < N_ && 0 <= k && k < P_);
     return d_[k + P_ * (j + i * N_)];
   }
-  const T &operator()(int i, int j, int k) const {
+  T &operator()(int i, int j, int k) const {
     assert(0 <= i && i < M_ && 0 <= j && j < N_ && 0 <= k && k < P_);
     return d_[k + P_ * (j + i * N_)];
   }
@@ -270,7 +270,7 @@ public:
     assert(0 <= i && i < M_);
     return Array<T, 2>(name_, N_, P_, &d_[i * N_ * P_]);
   }
-  const Array<T, 2> operator[](int i) const {
+  Array<T, 2> operator[](int i) const {
     assert(0 <= i && i < M_);
     return Array<T, 2>(name_, N_, P_, &d_[i * N_ * P_]);
   }
@@ -333,7 +333,7 @@ public:
     assert(0 <= i && i < M_ && 0 <= j && j < N_ && 0 <= k && k < P_ && 0 <= l && l < Q_);
     return d_[l + Q_ * (k + P_ * (j + i * N_))];
   }
-  const T &operator()(int i, int j, int k, int l) const {
+  T &operator()(int i, int j, int k, int l) const {
     assert(0 <= i && i < M_ && 0 <= j && j < N_ && 0 <= k && k < P_ && 0 <= l && l < Q_);
     return d_[l + Q_ * (k + P_ * (j + i * N_))];
   }
@@ -342,7 +342,7 @@ public:
     assert(0 <= i && i < M_);
     return Array<T, 3>(N_, P_, Q_, &d_[i * N_ * P_ * Q_]);
   }
-  const Array<T, 3> operator[](int i) const {
+  Array<T, 3> operator[](int i) const {
     assert(0 <= i && i < M_);
     return Array<T, 3>(N_, P_, Q_, &d_[i * N_ * P_ * Q_]);
   }
