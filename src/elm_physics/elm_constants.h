@@ -117,3 +117,24 @@ static const bool perchroot = false;     // calculate root function only in unfr
 static const bool perchroot_alt = false; // calculate root function only in active layer - estimated from past 2 years
 
 } // namespace ELM
+
+namespace ELM::ELMconstants {
+inline constexpr double TFRZ = 273.15;        // freezing temperature [K]
+
+inline constexpr double PI = 3.14159265358979323846;   // pi
+inline constexpr double BOLTZ = 1.38065e-23;           // Boltzmann's constant ~ J/K/molecule
+inline constexpr double AVOGAD = 6.02214e26;           // Avogadro's number ~ molecules/kmole
+inline constexpr double MWWV = 18.016;                 // molecular weight water vapor
+inline constexpr double RGAS = AVOGAD * BOLTZ; // Universal gas constant ~ J/K/kmole
+inline constexpr double RWV = RGAS / MWWV;     // Water vapor gas constant ~ J/K/kg
+
+inline constexpr double STEBOL = 5.67e-8;              // Stefan-Boltzmann constant ~ W/m^2/K^4
+inline constexpr double MWDAIR = 28.966; // molecular weight dry air ~ kg/kmole
+inline constexpr double RAIR = RGAS / MWDAIR; // Dry air gas constant     ~ J/K/kg
+
+
+inline constexpr double O2_MOLAR_CONST = 0.209;       // constant atmospheric O2 molar ratio (mol/mol)
+inline constexpr double CO2_PPMV = 355.0; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
+
+
+} // namespace ELM::constants

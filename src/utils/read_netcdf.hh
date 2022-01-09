@@ -56,8 +56,8 @@ inline std::array<GO, D> get_dimensions(const Comm_type &comm, const std::string
   status = nc_inq_var(nc_id, var_id, nullptr, nullptr, &n_dims, dim_ids.data(), nullptr);
   error(status, "nc_inq_var", filename, varname);
 
-  assert(n_dims == D);
-  std::array<GO, D> dims;
+  //assert(n_dims == D);
+  std::array<GO, D> dims{0};
   for (int i = 0; i != n_dims; ++i) {
     GO len_dim;
     status = nc_inq_dimlen(nc_id, dim_ids[i], &len_dim);
@@ -69,6 +69,127 @@ inline std::array<GO, D> get_dimensions(const Comm_type &comm, const std::string
   error(status, "nc_close", filename);
   return dims;
 }
+
+
+
+
+inline int get_dimid(const Comm_type &comm, const std::string &filename,
+                                        const std::string &varname) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int dim_id = -1;
+  status = nc_inq_dimid (nc_id, varname.c_str(), &dim_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+  return dim_id;
+}
+
+template <int D>
+inline std::array<int, D> get_vardimids(const Comm_type &comm, const std::string &filename,
+                                        const std::string &varname) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int var_id = -1;
+  status = nc_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  std::array<int, D> dimids{0};
+  status = nc_inq_vardimid(nc_id, var_id, dimids.data());
+  error(status, "nc_inq_vardimid", filename, varname);
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+  return dimids;
+}
+
+
+
+
+
+
+
+
+
+
+
+template <size_t D>
+inline std::array<GO, D> get_dim_new(const Comm_type &comm, const std::string &filename,
+                                        const std::string &varname) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int var_id = -1;
+  status = nc_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  int n_dims;
+  std::array<int, NC_MAX_VAR_DIMS> dim_ids;
+  status = nc_inq_var(nc_id, var_id, nullptr, nullptr, &n_dims, dim_ids.data(), nullptr);
+  error(status, "nc_inq_var", filename, varname);
+
+  //assert(n_dims == D);
+  std::array<GO, D> dims{0};
+  for (int i = 0; i != n_dims; ++i) {
+    GO len_dim;
+    status = nc_inq_dimlen(nc_id, dim_ids[i], &len_dim);
+    error(status, "nc_inq_dimlen", filename, varname);
+    dims[i] = len_dim;
+  }
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+  return dims;
+}
+
+
+
+inline int get_ndims(const Comm_type &comm, const std::string &filename,
+                                        const std::string &varname) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int var_id = -1;
+  status = nc_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  int n_dims;
+  std::array<int, NC_MAX_VAR_DIMS> dim_ids;
+  status = nc_inq_var(nc_id, var_id, nullptr, nullptr, &n_dims, dim_ids.data(), nullptr);
+  error(status, "nc_inq_var", filename, varname);
+
+ //assert(n_dims == D);
+ //std::array<GO, D> dims;
+ //for (int i = 0; i != n_dims; ++i) {
+ //  GO len_dim;
+ //  status = nc_inq_dimlen(nc_id, dim_ids[i], &len_dim);
+ //  error(status, "nc_inq_dimlen", filename, varname);
+ //  dims[i] = len_dim;
+ //}
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+  return n_dims;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 //
 // Read all of the dataset into all of the array.

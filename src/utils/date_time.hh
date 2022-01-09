@@ -163,11 +163,16 @@ inline Date operator-(Date lhs, int rhs) {
 // decimal Julian date
 //
 inline double decimal_doy(int month, int day, int seconds) {
+  //int doy = to_doy(month, day);
+  //double d_doy = doy + seconds/86400.0;
   return to_doy(month, day) + seconds/86400.0;
 }
 
 inline double decimal_doy(const Date& date) {
-  return date.doy + date.sec/86400.0;
+  //double doy = (double)date.doy;
+  //double d_ doy += date.sec/86400.0;
+  //return std::move(doy);
+  return static_cast<double>(date.doy) + static_cast<double>(date.sec)/86400.0;
 }
 
 //
