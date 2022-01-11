@@ -6,8 +6,8 @@
 namespace ELM {
 namespace Utils {
 
-inline int to_doy(int month, int day) {
-  const auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+constexpr int to_doy(int month, int day) {
+  constexpr auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
   int doy = 0;
   for (int i = 0; i != month - 1; ++i) {
@@ -17,8 +17,8 @@ inline int to_doy(int month, int day) {
   return std::move(doy);
 }
 
-inline std::tuple<int, int, int> to_date(int year, int doy) {
-  const auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+constexpr std::tuple<int, int, int> to_date(int year, int doy) {
+  constexpr auto dy_per_mo = std::array<int, 12>{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
   assert(doy < 365 && "ELM::Utils::to_date() expects day_of_year < 365");
   assert(doy >= 0 && "ELM::Utils::to_date() expects day_of_year >= 0");
@@ -162,13 +162,13 @@ inline Date operator-(Date lhs, int rhs) {
 //
 // decimal Julian date
 //
-inline double decimal_doy(int month, int day, int seconds) {
+constexpr double decimal_doy(int month, int day, int seconds) {
   //int doy = to_doy(month, day);
   //double d_doy = doy + seconds/86400.0;
   return to_doy(month, day) + seconds/86400.0;
 }
 
-inline double decimal_doy(const Date& date) {
+constexpr double decimal_doy(const Date& date) {
   //double doy = (double)date.doy;
   //double d_ doy += date.sec/86400.0;
   //return std::move(doy);
@@ -180,7 +180,7 @@ inline double decimal_doy(const Date& date) {
 //
 // NOTE: adding two dates isn't supported, but diffing two dates is ok!
 //
-inline double days_since(const Date &lhs, const Date &rhs) {
+constexpr double days_since(const Date &lhs, const Date &rhs) {
   int d_year = lhs.year - rhs.year;
   double d_doy = decimal_doy(lhs) - decimal_doy(rhs);
   return d_doy + 365.0 * d_year;
@@ -194,23 +194,23 @@ inline int months_since(const Date &lhs, const Date &rhs) {
   return d_mo + 12 * d_year;
 }
 
-inline int years_since(const Date &lhs, const Date &rhs) { return lhs.year - rhs.year; }
+constexpr int years_since(const Date &lhs, const Date &rhs) { return lhs.year - rhs.year; }
 
-inline double operator-(const Date &lhs, const Date &rhs) { return days_since(lhs, rhs); }
+constexpr double operator-(const Date &lhs, const Date &rhs) { return days_since(lhs, rhs); }
 
 //
 // relational
 //
-inline bool operator<(const Date &lhs, const Date &rhs) {
+constexpr bool operator<(const Date &lhs, const Date &rhs) {
   // orders by year first, doy second, sec last
   return std::tie(lhs.year, lhs.doy, lhs.sec) < std::tie(rhs.year, rhs.doy, rhs.sec);
 }
-inline bool operator>(const Date &lhs, const Date &rhs) { return rhs < lhs; }
-inline bool operator<=(const Date &lhs, const Date &rhs) { return !(lhs > rhs); }
-inline bool operator>=(const Date &lhs, const Date &rhs) { return !(lhs < rhs); }
+constexpr bool operator>(const Date &lhs, const Date &rhs) { return rhs < lhs; }
+constexpr bool operator<=(const Date &lhs, const Date &rhs) { return !(lhs > rhs); }
+constexpr bool operator>=(const Date &lhs, const Date &rhs) { return !(lhs < rhs); }
 
-inline bool operator==(const Date &lhs, const Date &rhs) { return lhs.year == rhs.year && lhs.doy == rhs.doy && lhs.sec == rhs.sec; }
-inline bool operator!=(const Date &lhs, const Date &rhs) { return !(lhs == rhs); }
+constexpr bool operator==(const Date &lhs, const Date &rhs) { return lhs.year == rhs.year && lhs.doy == rhs.doy && lhs.sec == rhs.sec; }
+constexpr bool operator!=(const Date &lhs, const Date &rhs) { return !(lhs == rhs); }
 
 //
 // Ticker class handles timesteps.

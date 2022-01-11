@@ -136,5 +136,5 @@ inline constexpr double RAIR = RGAS / MWDAIR; // Dry air gas constant     ~ J/K/
 inline constexpr double O2_MOLAR_CONST = 0.209;       // constant atmospheric O2 molar ratio (mol/mol)
 inline constexpr double CO2_PPMV = 355.0; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
-
+enum class forcDataType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 } // namespace ELM::constants
