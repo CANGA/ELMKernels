@@ -74,6 +74,53 @@ inline std::array<GO, D> get_dimensions(const MPI_Comm &comm, const std::string 
 }
 
 //
+// get id of dimension variable named by varname
+//
+inline int get_dimid(const MPI_Comm &comm, const std::string &filename,
+                                        const std::string &varname) {
+  MPI_Info info;
+  MPI_Info_create(&info);
+  int nc_id = -1;
+  auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
+  error(status, "ncmpi_open", filename);
+  MPI_Info_free(&info);
+
+  int dim_id = -1;
+  status = ncmpi_inq_dimid (nc_id, varname.c_str(), &dim_id);
+  error(status, "ncmpi_inq_varid", filename, varname);
+
+  status = ncmpi_close(nc_id);
+  error(status, "ncmpi_close", filename);
+  return dim_id;
+}
+
+//
+// return an array of dimension ids corresponding to the dimensions of variable named by varname
+//
+template <int D>
+inline std::array<int, D> get_vardimids(const MPI_Comm &comm, const std::string &filename,
+                                        const std::string &varname) {
+  MPI_Info info;
+  MPI_Info_create(&info);
+  int nc_id = -1;
+  auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
+  error(status, "ncmpi_open", filename);
+  MPI_Info_free(&info);
+
+  int var_id = -1;
+  status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "ncmpi_inq_varid", filename, varname);
+
+  std::array<int, D> dimids{0};
+  status = ncmpi_inq_vardimid(nc_id, var_id, dimids.data());
+  error(status, "ncmpi_inq_vardimid", filename, varname);
+
+  status = ncmpi_close(nc_id);
+  error(status, "ncmpi_close", filename);
+  return dimids;
+}
+
+//
 // Read some.
 //
 template <size_t D>

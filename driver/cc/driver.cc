@@ -14,7 +14,7 @@
 #include "InitTopography.hh"
 #include "landtype.h"
 #include "read_atmosphere.h"
-#include "ReadTestData.hh"
+//#include "ReadTestData.hh"
 #include "satellite_phenology.h"
 
 #include "canopy_hydrology.h"
@@ -121,14 +121,14 @@ int main(int argc, char **argv) {
 
   auto sand3d = create<ArrayD2>("sand3d", n_grid_cells, ELM::nlevsoi); // should change name from sand3d, clay3d
   auto clay3d = create<ArrayD2>("clay3d", n_grid_cells, ELM::nlevsoi);
-  ELM::ReadLandData(data_dir, basename_phen, dd, topo_slope, topo_std, sand3d, clay3d);
+  //ELM::ReadLandData(data_dir, basename_phen, dd, topo_slope, topo_std, sand3d, clay3d);
   std::cout << topo_slope[0] << " " << topo_std[0] << std::endl;
   for (int i = 0; i < ELM::nlevsoi; ++i) {
     std::cout << "sand3d & clay3d: " << i << " " << sand3d[0][i] << " " << clay3d[0][i] << std::endl;
   }
 
-  ELM::ReadTestInitData(data_dir, basename_init, dd, t_soisno, snl, snow_depth, h2ocan, h2osoi_liq, h2osoi_ice, h2osno,
-                        snw_rds, int_snow);
+  //ELM::ReadTestInitData(data_dir, basename_init, dd, t_soisno, snl, snow_depth, h2ocan, h2osoi_liq, h2osoi_ice, h2osno,
+  //                      snw_rds, int_snow);
 
   for (int i = 0; i < 1; i++) {
     std::cout << snl[i] << std::endl;
