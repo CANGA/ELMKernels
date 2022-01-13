@@ -1,8 +1,11 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "array.hh"
 #include "elm_constants.h"
+
 
 
 namespace ELM::forcing_physics {
@@ -10,36 +13,36 @@ namespace ELM::forcing_physics {
 using forcDataType = ELMconstants::forcDataType;
 
 // calc forcing given two raw forcing inputs and corresponding weights 
-constexpr double interp_forcing(const double& wt1, const double& wt2, const double& forc1, const double& forc2);
+double interp_forcing(const double& wt1, const double& wt2, const double& forc1, const double& forc2);
 
 // convert degrees K to C; bound on interval [-50,50]
-constexpr double tdc(const double &t);
+double tdc(const double &t);
 
 // calc saturated vapor pressure as function of temp for t > freezing
 // Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure. 
-constexpr double esatw(const double &t);
+double esatw(const double &t);
 
 // calc saturated vapor pressure as function of temp for t <= freezing
 // Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
-constexpr double esati(const double &t);
+double esati(const double &t);
 
 // rho, pO2, pCO2
 // eq 26.10 in CLM tech note 
 // derive atmospheric vapor pressure from specific humidity and pressure
-constexpr double derive_forc_vp (const double& forc_qbot, const double& forc_pbot);
+double derive_forc_vp (const double& forc_qbot, const double& forc_pbot);
 
 // derive atmospheric density from pressure, vapor pressure, and temperature
-constexpr double derive_forc_rho (const double& forc_pbot, const double& forc_vp, const double& forc_tbot);
+double derive_forc_rho (const double& forc_pbot, const double& forc_vp, const double& forc_tbot);
 
 // derive partial O2 pressure from atmospheric pressure
-constexpr double derive_forc_po2 (const double& forc_pbot);
+double derive_forc_po2 (const double& forc_pbot);
 // derive partial CO2 pressure from atmospheric pressure
-constexpr double derive_forc_pco2 (const double& forc_pbot);
+double derive_forc_pco2 (const double& forc_pbot);
 
 // functor to calculate all derived forcing quantities
 template<typename ArrayD1>
-struct ConsititutiveAirProperties {
-  ConsititutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, 
+struct ConstitutiveAirProperties {
+  ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, 
                              const ArrayD1& forc_tbot, ArrayD1& forc_vp,
                              ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2);
 
