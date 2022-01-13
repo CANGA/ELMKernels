@@ -7,17 +7,9 @@
 #include <tuple>
 
 #include "elm_constants.h"
-#include "mpi_types.hh"
 #include "utils.hh"
 #include "array.hh"
 #include "read_input.hh"
-
-
-#ifdef HAVE_PNETCDF
-#include "read_pnetcdf.hh"
-#else
-#include "read_netcdf.hh"
-#endif
 
 #include "forcing_physics.h"
 
@@ -32,22 +24,35 @@ are assumed to be point measurements and are interpolated for use in this model
 continuous flux data like FSDS and PREC are assumed to be averaged over their timesteps
 and are used without interpoating
 
-
 ELM uses two different time schemes for forcing data. Instantaneous values are defined at 
-t=forc_dt/2, t=3forc_dt/2 etc. Flux values are defined at t=forc_dt, t=2forc_dt etc.
+a forc_dt/2 offset from t=0 -- forc_T0 = -forc_dt/2, forc_T1 = forc_dt/2, forc_T2 = 3forc_dt/2.
 
-We choose to define all forcing inputs for this model at multiples of t=forc_dt.
-   
-POINT DATA
- t_idx                       0      1      2       3
- file time                   0     dt     2dt     3dt
- centered start time         0     dt     2dt     3dt   -- this model, also ELM flux data
- staggered start time    -dt/2   dt/2   3dt/2   5dt/2   -- this is how ELM structures point data
+Continuous flux values in ELM are defined without any offset -- forc_T0 = 0, forc_T1 = forc_dt, forc_T2 = 2forc_dt.
 
-  staggered S[]; centered C[];
+We choose to define all forcing inputs for this model at multiples of t=forc_dt, the way ELM defines continuous data.
 
-      -fdt/2     fdt/2    fdt3/2            - S forcing times
-              t=0       t=fdt     t=2fdt    - C forcing times
+
+EXAMPLE
+ELM time indexng for point data compared to the indexing method used here (equivaent to ELM indexing for continuos data).
+with model_dt = 1800s and forc_dt = 3600s
+
+                                      ELM                                              THIS MODEL
+nstep t_start t_end ELM_forc_lb_t ELM_forc_lb_t forc_t_idices | NEW_forc_lb_t NEW_forc_lb_t forc_t_idices
+1        0     1800         -1800          1800        (0,1)  |             0          3600         (0,1)
+2     1800     3600          1800          5400        (1,2)  |             0          3600         (0,1)
+3     3600     5400          1800          5400        (1,2)  |          3600          7200         (1,2)
+4     5400     7200          5400          9000        (2,3)  |          3600          7200         (1,2)
+5     7200     9000          5400          9000        (2,3)  |          7200         10800         (2,3)
+|
+
+
+VISUAL REPRESENTATION
+
+  staggered S[]; -- ELM point data
+  centered C[]; -- this model
+
+      -fdt/2      fdt/2     fdt3/2          - S forcing times
+              t=0      t=fdt    t=2fdt      - C forcing times
           X----|----X----|----X----|      
         S[0]       S[1]      S[2]
               C[0]      C[1]      C[2]
@@ -58,10 +63,10 @@ POINT DATA
              /             \ physics timestepping with 4 model_dt per forc_dt 
             /               \  
         t=0/                 \ t = forc_dt = 4 * model_dt
-          |-xx-|-xx-|-xx-|-xx-|
+ C        |-xx-|-xx-|-xx-|-xx-| model timesteps within 1 forc_dt
           C0                  C1
                                       
-   We interpolate the ingested forcing data at the midpoint of the model timestep, 
+   We interpolate the ingested forcing data at the midpoint of the model timestep (xx), 
    model_step_interp_time = model_timestep_start + model_dt / 2
 
 */
@@ -92,27 +97,28 @@ class ForcData {
 
 private:
   ArrayD2 data_;
-  GO ntimes_{0}, ncells_{0};
-  double forc_dt_{0.0};
-  std::string fname_, varname_;
-  Utils::Date data_start_time_;
+  std::string varname_, fname_;
   Utils::Date file_start_time_;
+  int ntimes_, ncells_;
+  
+  Utils::Date data_start_time_;
+  double forc_dt_{0.0};
 
 public:
-  constexpr ForcData(const std::string& filename, const Utils::Date &file_start_time, const GO ntimes, const GO ncells);
+  constexpr ForcData(const std::string& filename, const Utils::Date &file_start_time, const size_t ntimes, const size_t ncells);
 
   // interface to update forcing file info
   constexpr void update_file_info(const Utils::Date& new_file_start_time, const std::string& new_filename);
 
   // interface to update working data start time
-  constexpr void update_data_start_time(const GO t_idx);
+  constexpr void update_data_start_time(const size_t t_idx);
 
   // calculate t_idx at model_time and check bounds
   // assumes model_time is centered on the model_dt interval, ie  = model_step_start + model_dt/2
-  constexpr GO forc_t_idx_checks(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+  constexpr size_t forc_t_idx_checks(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
 
   // calculate t_idx at model_time relative to forc_record_start_time
-  constexpr GO forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+  constexpr size_t forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
 
   // calculate linear interpolation of [t1,t2] interval at t = model_time
   // only used for instantaneous point measurement data like TBOT, QBOT, PBOT, RH, FLDS, WIND
@@ -121,7 +127,7 @@ public:
   // lb_time = data_start_time_ + forc_dt * t_idx and ub_time = data_start_time_ + forc_dt * (t_idx + 1)
   // forc_data_times_of_measurement =  {0, forc_dt, ..., Nforc_dt}
   // the other option is to define the values staggered by +- forc_dt/2
-  constexpr std::pair<double,double> forcing_time_weights(const GO t_idx, const Utils::Date& model_time) const;
+  constexpr std::pair<double,double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
 
   // return a tuple of references to the passed in parameters based on the ordering of the file array
   // requires data(ntimes, nlon * nlat) and file_data(*,*,*) in {ntimes,nlon,nlat}
@@ -133,7 +139,7 @@ public:
   constexpr auto input_idx_order(const Comm_type& comm, T& t, T& x) const;
 
   // read forcing data from a file 
-  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const GO ntimes);
+  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes);
 
   // get forcing data for the current timestep
   // interpolate point values

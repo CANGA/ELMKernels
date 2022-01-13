@@ -79,7 +79,7 @@ void interp_monthly_veg(const Utils::Date &time_start, int dtime, int n_pfts, co
     read_monthly_veg(dir, basename, time_end, dd, mlai, msai, mhgtt, mhgtb);
     InterpMonths1 = months[0];
 
-    for (int i = 0; i < n_grid_cells; ++i) {
+    for (size_t i = 0; i < n_grid_cells; ++i) {
       veg_type = vtype[i];
       for (int month = 0; month < 2; ++month) {
         mlai2t(i, month) = mlai(month, i, veg_type);

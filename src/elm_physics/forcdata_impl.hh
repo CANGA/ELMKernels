@@ -44,9 +44,12 @@ constexpr T& get_dim_ref(const U dim_idx, T& t, T& x) {
 
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
 constexpr ForcData<ArrayD1, ArrayD2, type>::ForcData(const std::string& filename, const Utils::Date &file_start_time,
-  const GO ntimes, const GO ncells) : fname_(filename), file_start_time_(file_start_time),
-                                      ntimes_(ntimes), ncells_(ncells), varname_(vname<type>()),
-                                      data_(vname<type>(), ntimes, ncells)  { }
+  const size_t ntimes, const size_t ncells) : data_(vname<type>(), ntimes, ncells),
+                                      varname_(vname<type>()),
+                                      fname_(filename),
+                                      file_start_time_(file_start_time),
+                                      ntimes_(ntimes),
+                                      ncells_(ncells) { }
 
 // interface to update forcing file info
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
@@ -57,7 +60,7 @@ constexpr void ForcData<ArrayD1, ArrayD2, type>::update_file_info(const Utils::D
 
 // interface to update working data start time
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr void ForcData<ArrayD1, ArrayD2, type>::update_data_start_time(const GO t_idx) {
+constexpr void ForcData<ArrayD1, ArrayD2, type>::update_data_start_time(const size_t t_idx) {
   data_start_time_ = file_start_time_;
   data_start_time_.increment_seconds(static_cast<int>(round(86400.0 * forc_dt_ * t_idx)));
 }
@@ -65,12 +68,12 @@ constexpr void ForcData<ArrayD1, ArrayD2, type>::update_data_start_time(const GO
 // calculate t_idx at model_time and check bounds
 // assumes model_time is centered on the model_dt interval, ie  = model_step_start + model_dt/2
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr GO ForcData<ArrayD1, ArrayD2, type>::forc_t_idx_checks(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
+constexpr size_t ForcData<ArrayD1, ArrayD2, type>::forc_t_idx_checks(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
   const double delta_to_model_time = Utils::days_since(model_time, forc_record_start_time);
   const double halfdt = model_dt * 0.5;
   const double model_dt_start = delta_to_model_time - halfdt;
   const double model_dt_end = delta_to_model_time + halfdt;
-  const GO idx_model_halfdt = static_cast<int>(delta_to_model_time / forc_dt_);
+  const int idx_model_halfdt = static_cast<int>(delta_to_model_time / forc_dt_);
   const double forc_dt_start = idx_model_halfdt * forc_dt_;
   const double forc_dt_end = (idx_model_halfdt + 1) * forc_dt_;
   
@@ -88,9 +91,9 @@ constexpr GO ForcData<ArrayD1, ArrayD2, type>::forc_t_idx_checks(const double& m
 
 // calculate t_idx at model_time relative to forc_record_start_time
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr GO ForcData<ArrayD1, ArrayD2, type>::forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
+constexpr size_t ForcData<ArrayD1, ArrayD2, type>::forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
   const double delta = Utils::days_since(model_time, forc_record_start_time);
-  return static_cast<GO>( delta / forc_dt_);
+  return static_cast<size_t>( delta / forc_dt_);
 }
 
 // calculate linear interpolation of [t1,t2] interval at t = model_time
@@ -101,7 +104,7 @@ constexpr GO ForcData<ArrayD1, ArrayD2, type>::forc_t_idx(const Utils::Date& mod
 // forc_data_times_of_measurement =  {0, forc_dt, ..., Nforc_dt}
 // the other option is to define the values staggered by +- forc_dt/2
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr std::pair<double,double> ForcData<ArrayD1, ArrayD2, type>::forcing_time_weights(const GO t_idx, const Utils::Date& model_time) const {
+constexpr std::pair<double,double> ForcData<ArrayD1, ArrayD2, type>::forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const {
   Utils::Date forc_start(data_start_time_);
   forc_start.increment_seconds(static_cast<int>(round(86400 * forc_dt_) * t_idx));
   const double elapsed_dt = Utils::days_since(model_time, forc_start) / forc_dt_;
@@ -153,41 +156,41 @@ constexpr auto ForcData<ArrayD1, ArrayD2, type>::input_idx_order(const Comm_type
 
 // read forcing data from a file
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr void ForcData<ArrayD1, ArrayD2, type>::read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const GO ntimes) {
+constexpr void ForcData<ArrayD1, ArrayD2, type>::read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes) {
   // resize if ntimes has changed - assume ncells_ doesn't change
-  if (ntimes != data_.extent(0)) { ntimes_ = ntimes; data_.resize(ntimes, ncells_); }
+  if (ntimes != static_cast<size_t>(data_.extent(0))) { ntimes_ = ntimes; data_.resize(ntimes, ncells_); }
 
   { // get forc_dt_ by differencing the first and second timestep
     // assume forc_dt doesn't change until next read
-    const std::array<GO, 1> start = {0};
-    const std::array<GO, 1> count = {2};
+    const std::array<size_t, 1> start = {0};
+    const std::array<size_t, 1> count = {2};
     ELM::Array<double, 1> arr_for_dt_measurement(2);
-    IO::read(dd.comm, fname_, "DTIME", start, count, arr_for_dt_measurement.data());
+    IO::read_netcdf(dd.comm, fname_, "DTIME", start, count, arr_for_dt_measurement.data());
     forc_dt_ = arr_for_dt_measurement(1) - arr_for_dt_measurement(0);
   }
 
   // get forcing time series time index (from file start time) immediately prior to model_time
   const auto file_t_idx = forc_t_idx(model_time, file_start_time_);
   update_data_start_time(file_t_idx);
-  assert(data_.extent(0) == ntimes);
-  assert(data_.extent(1) == dd.n_local[0] * dd.n_local[1]);
+  assert(static_cast<size_t>(data_.extent(0)) == ntimes);
+  assert(static_cast<size_t>(data_.extent(1)) == dd.n_local[0] * dd.n_local[1]);
 
   // maps data_(ntimes, ncells) = arr_for_read(ii, jj, kk)
   // where (ii, jj, kk) are references to some arbitrary permutation of {ntimes, nlongitude, nlatitude}
   // get references to file array start indices
   const auto [si, sj, sk] = input_idx_order(dd.comm, file_t_idx, dd.start[0], dd.start[1]);
-  std::array<GO, 3> start = {si, sj, sk};
+  std::array<size_t, 3> start = {si, sj, sk};
 
   // get references to file array size
   const auto [ci, cj, ck] = input_idx_order(dd.comm, ntimes, dd.n_local[0], dd.n_local[1]);
-  std::array<GO, 3> count = {ci, cj, ck};
-  ELM::Array<double, 3> arr_for_read(ci, cj, ck);
+  std::array<size_t, 3> count = {ci, cj, ck};
 
   // read data from file
-  IO::read(dd.comm, fname_, varname_, start, count, arr_for_read.data());
+  ELM::Array<double, 3> arr_for_read(ci, cj, ck);
+  IO::read_netcdf(dd.comm, fname_, varname_, start, count, arr_for_read.data());
 
   // get references to loop indices 
-  GO i, j, k;
+  size_t i, j, k;
   const auto [ii, jj, kk] = input_idx_order(dd.comm, i, j, k);
   // copy file data into model host array
   for (i = 0; i != ntimes; ++i) {
@@ -205,7 +208,7 @@ constexpr void ForcData<ArrayD1, ArrayD2, type>::read_atm_forcing(const Utils::D
 template<typename ArrayD1, typename ArrayD2, forcDataType type>
 template<typename... Args>
 constexpr void ForcData<ArrayD1, ArrayD2, type>::get_forcing(const double& model_dt, const Utils::Date& model_time, Args&&...args) {
-  const GO t_idx = forc_t_idx_checks(model_dt, model_time, data_start_time_);
+  const size_t t_idx = forc_t_idx_checks(model_dt, model_time, data_start_time_);
   const auto [wt1, wt2] = forcing_time_weights(t_idx, model_time);
   const auto thisDataObject = [&] {
     if constexpr(type == forcDataType::TBOT) {
@@ -227,7 +230,7 @@ constexpr void ForcData<ArrayD1, ArrayD2, type>::get_forcing(const double& model
     }
   }();
 
-  for (int i = 0; i != ncells_; ++i) {
+  for (int i = 0; i != static_cast<int>(ncells_); ++i) {
     std::invoke(thisDataObject, i);
   }
 }

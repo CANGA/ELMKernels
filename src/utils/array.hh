@@ -77,22 +77,22 @@ template <typename T> class Array<T, 1> : public Impl::Data_<T> {
 
 public:
   // forward construction
-  Array(int N) : Impl::Data_<T>(N) {}
-  Array(const std::string& name, int N) : name_(name), Impl::Data_<T>(N) {}
-  Array(std::array<int, 1> N) : Impl::Data_<T>(std::get<0>(N)) {}
-  Array(const std::string& name, std::array<int, 1> N) : name_(name), Impl::Data_<T>(std::get<0>(N)) {}
+  Array(int N) : Impl::Data_<T>(N), name_("") {}
+  Array(const std::string& name, int N) : Impl::Data_<T>(N), name_(name) {}
+  Array(std::array<int, 1> N) : Impl::Data_<T>(std::get<0>(N)), name_("") {}
+  Array(const std::string& name, std::array<int, 1> N) : Impl::Data_<T>(std::get<0>(N)), name_(name) {}
 
   // forward construction
-  Array(int N, T t) : Impl::Data_<T>(N, t) {}
-  Array(const std::string& name, int N, T t) : name_(name), Impl::Data_<T>(N, t) {}
-  Array(std::array<int, 1> N, T t) : Impl::Data_<T>(std::get<0>(N), t) {}
-  Array(const std::string& name, std::array<int, 1> N, T t) : name_(name), Impl::Data_<T>(std::get<0>(N), t) {}
+  Array(int N, T t) : Impl::Data_<T>(N, t), name_("") {}
+  Array(const std::string& name, int N, T t) : Impl::Data_<T>(N, t), name_(name) {}
+  Array(std::array<int, 1> N, T t) : Impl::Data_<T>(std::get<0>(N), t), name_("") {}
+  Array(const std::string& name, std::array<int, 1> N, T t) : Impl::Data_<T>(std::get<0>(N), t), name_(name) {}
 
   // forward construction
-  Array(int N, T *d) : Impl::Data_<T>(N, d) {}
-  Array(const std::string& name, int N, T *d) : name_(name), Impl::Data_<T>(N, d) {}
-  Array(std::array<int, 1> N, T *d) : Impl::Data_<T>(std::get<0>(N), d) {}
-  Array(const std::string& name, std::array<int, 1> N, T *d) : name_(name), Impl::Data_<T>(std::get<0>(N), d) {}
+  Array(int N, T *d) : Impl::Data_<T>(N, d), name_("") {}
+  Array(const std::string& name, int N, T *d) : Impl::Data_<T>(N, d), name_(name) {}
+  Array(std::array<int, 1> N, T *d) : Impl::Data_<T>(std::get<0>(N), d), name_("") {}
+  Array(const std::string& name, std::array<int, 1> N, T *d) : Impl::Data_<T>(std::get<0>(N), d), name_(name) {}
 
   // forward construction
   Array(const Array<T, 1> &other) = default;
@@ -138,7 +138,7 @@ public:
 protected:
   using Impl::Data_<T>::len_;
   using Impl::Data_<T>::d_;
-  const std::string name_ = ("");
+  std::string name_;
 };
 
 // 2D specialization
@@ -147,28 +147,28 @@ template <typename T> class Array<T, 2> : public Impl::Data_<T> {
 
 public:
   // forward construction
-  Array(int M, int N) : Impl::Data_<T>(N * M), M_(M), N_(N) {}
-  Array(const std::string& name, int M, int N) : name_(name), Impl::Data_<T>(N * M), M_(M), N_(N) {}
+  Array(int M, int N) : Impl::Data_<T>(N * M), M_(M), N_(N), name_("") {}
+  Array(const std::string& name, int M, int N) : Impl::Data_<T>(N * M), M_(M), N_(N), name_(name) {}
   Array(std::array<int, 2> N)
-      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 2> N)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)), name_(name) {}
 
   // forward construction
-  Array(int M, int N, T t) : Impl::Data_<T>(N * M, t), M_(M), N_(N) {}
-  Array(const std::string& name, int M, int N, T t) : name_(name), Impl::Data_<T>(N * M, t), M_(M), N_(N) {}
+  Array(int M, int N, T t) : Impl::Data_<T>(N * M, t), M_(M), N_(N), name_("") {}
+  Array(const std::string& name, int M, int N, T t) : Impl::Data_<T>(N * M, t), M_(M), N_(N), name_(name) {}
   Array(std::array<int, 2> N, T t)
-      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 2> N, T t)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)), name_(name) {}
 
   // forward construction
-  Array(int M, int N, T *d) : Impl::Data_<T>(N * M, d), M_(M), N_(N) {}
-  Array(const std::string& name, int M, int N, T *d) : name_(name), Impl::Data_<T>(N * M, d), M_(M), N_(N) {}
+  Array(int M, int N, T *d) : Impl::Data_<T>(N * M, d), M_(M), N_(N), name_("") {}
+  Array(const std::string& name, int M, int N, T *d) : Impl::Data_<T>(N * M, d), M_(M), N_(N), name_(name) {}
   Array(std::array<int, 2> N, T *d)
-      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 2> N, T *d)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)), name_(name) {}
 
   // forward construction
   Array(const Array<T, 2> &other) = default;
@@ -215,7 +215,7 @@ public:
 protected:
   int M_, N_;
   using Impl::Data_<T>::d_;
-  const std::string name_ = ("");
+  std::string name_;
 };
 
 // 3D specialization
@@ -224,34 +224,34 @@ template <typename T> class Array<T, 3> : public Impl::Data_<T> {
 
 public:
   // forward construction
-  Array(int M, int N, int P) : Impl::Data_<T>(N * M * P), M_(M), N_(N), P_(P) {}
-  Array(const std::string& name, int M, int N, int P) : name_(name), Impl::Data_<T>(N * M * P), M_(M), N_(N), P_(P) {}
+  Array(int M, int N, int P) : Impl::Data_<T>(N * M * P), M_(M), N_(N), P_(P), name_("") {}
+  Array(const std::string& name, int M, int N, int P) : Impl::Data_<T>(N * M * P), M_(M), N_(N), P_(P), name_(name) {}
   Array(std::array<int, 3> N)
       : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+        P_(std::get<2>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 3> N)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N)), M_(std::get<0>(N)), N_(std::get<1>(N)),
+        P_(std::get<2>(N)), name_(name) {}
 
   // forward construction
-  Array(int M, int N, int P, T t) : Impl::Data_<T>(N * M * P, t), M_(M), N_(N), P_(P) {}
-  Array(const std::string& name, int M, int N, int P, T t) : name_(name), Impl::Data_<T>(N * M * P, t), M_(M), N_(N), P_(P) {}
+  Array(int M, int N, int P, T t) : Impl::Data_<T>(N * M * P, t), M_(M), N_(N), P_(P), name_("") {}
+  Array(const std::string& name, int M, int N, int P, T t) : Impl::Data_<T>(N * M * P, t), M_(M), N_(N), P_(P), name_(name) {}
   Array(std::array<int, 3> N, T t)
       : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+        P_(std::get<2>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 3> N, T t)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), t), M_(std::get<0>(N)), N_(std::get<1>(N)),
+        P_(std::get<2>(N)), name_(name) {}
 
   // forward construction
-  Array(int M, int N, int P, T *d) : Impl::Data_<T>(N * M * P, d), M_(M), N_(N), P_(P) {}
-  Array(const std::string& name, int M, int N, int P, T *d) : name_(name), Impl::Data_<T>(N * M * P, d), M_(M), N_(N), P_(P) {}
+  Array(int M, int N, int P, T *d) : Impl::Data_<T>(N * M * P, d), M_(M), N_(N), P_(P), name_("") {}
+  Array(const std::string& name, int M, int N, int P, T *d) : Impl::Data_<T>(N * M * P, d), M_(M), N_(N), P_(P), name_(name) {}
   Array(std::array<int, 3> N, T *d)
       : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+        P_(std::get<2>(N)), name_("") {}
   Array(const std::string& name, std::array<int, 3> N, T *d)
-      : name_(name), Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)),
-        P_(std::get<2>(N)) {}
+      : Impl::Data_<T>(std::get<0>(N) * std::get<1>(N) * std::get<2>(N), d), M_(std::get<0>(N)), N_(std::get<1>(N)),
+        P_(std::get<2>(N)), name_(name) {}
 
 
   // forward construction
@@ -300,7 +300,7 @@ public:
 protected:
   int M_, N_, P_;
   using Impl::Data_<T>::d_;
-  const std::string name_ = ("");
+  std::string name_;
 };
 
 // 4D specialization
