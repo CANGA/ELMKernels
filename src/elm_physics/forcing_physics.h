@@ -7,10 +7,9 @@
 #include "elm_constants.h"
 
 
-
 namespace ELM::forcing_physics {
 
-using forcDataType = ELMconstants::forcDataType;
+using AtmForcType = ELMconstants::AtmForcType;
 
 // calc forcing given two raw forcing inputs and corresponding weights 
 double interp_forcing(const double& wt1, const double& wt2, const double& forc1, const double& forc2);
@@ -85,7 +84,7 @@ private:
 
 
 // functor to calculate specific humidity and relative humidty
-template<typename ArrayD1, typename ArrayD2, forcDataType type>
+template<typename ArrayD1, typename ArrayD2, AtmForcType type>
 struct ProcessQBOT {
   ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_qbot, 
               const ArrayD1& forc_tbot, const ArrayD1& forc_pbot, ArrayD1& forc_qbot, ArrayD1& forc_rh);

@@ -17,26 +17,25 @@
 Class to read, parse, and operate on atmospheric forcing input
 
 
-
 instantaneous measurement data like TBOT, QBOT, PBOT, RH, FLDS, WIND
 are assumed to be point measurements and are interpolated for use in this model
 
 continuous flux data like FSDS and PREC are assumed to be averaged over their timesteps
-and are used without interpoating
+and are used without interpolating
 
-ELM uses two different time schemes for forcing data. Instantaneous values are defined at 
-a forc_dt/2 offset from t=0 -- forc_T0 = -forc_dt/2, forc_T1 = forc_dt/2, forc_T2 = 3forc_dt/2.
+ELM uses two different time schemes for forcing data. Instantaneous values are defined at
+a forc_dt/2 offset from t=0 -- forc_T(n) (n=0) = -forc_dt/2, forc_dt/2, 3forc_dt/2, ..., (n)forc_dt - forc_dt/2
 
 Continuous flux values in ELM are defined without any offset -- forc_T0 = 0, forc_T1 = forc_dt, forc_T2 = 2forc_dt.
 
 We choose to define all forcing inputs for this model at multiples of t=forc_dt, the way ELM defines continuous data.
 
 
-EXAMPLE
-ELM time indexng for point data compared to the indexing method used here (equivaent to ELM indexing for continuos data).
-with model_dt = 1800s and forc_dt = 3600s
+EXAMPLE TABLE OF FORCING DATA ORIENTATION
+ELM time indexing for point data compared to the indexing method used in this model.
+with model_dt = 1800s and forc_dt = 3600s:
 
-                                      ELM                                              THIS MODEL
+                                      ELM                       THIS MODEL (equivalent to ELM for continuous data)
 nstep t_start t_end ELM_forc_lb_t ELM_forc_lb_t forc_t_idices | NEW_forc_lb_t NEW_forc_lb_t forc_t_idices
 1        0     1800         -1800          1800        (0,1)  |             0          3600         (0,1)
 2     1800     3600          1800          5400        (1,2)  |             0          3600         (0,1)
@@ -46,7 +45,7 @@ nstep t_start t_end ELM_forc_lb_t ELM_forc_lb_t forc_t_idices | NEW_forc_lb_t NE
 |
 
 
-VISUAL REPRESENTATION
+VISUAL REPRESENTATION OF FORCING TIME ORIENTATION
 
   staggered S[]; -- ELM point data
   centered C[]; -- this model
@@ -71,41 +70,30 @@ VISUAL REPRESENTATION
 
 */
 
+namespace ELM::atm_data_manager {
 
-
-namespace ELM::forc_data_manager {
-
-//using forcDataType = forcing_physics::forcDataType;
-using forcDataType = ELMconstants::forcDataType;
-//enum class forcDataType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
+//enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
+using AtmForcType = ELMconstants::AtmForcType;
 
 // return name associated with enum type
-template<forcDataType type>
-constexpr auto vname ();
+template<AtmForcType ftype>
+constexpr auto get_varname ();
 
-// return reference to variable that maps to dim_idx
+// return reference to variable that maps to dim_idx for a file_array with 3 dimensions
 template<typename T, typename U> 
 constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y);
 
-// return reference to variable that maps to dim_idx
+// return reference to variable that maps to dim_idx for a file_array with 2 dimensions
 template<typename T, typename U> 
 constexpr T& get_dim_ref(const U dim_idx, T& t, T& x);
 
 
-template<typename ArrayD1, typename ArrayD2, forcDataType type>
-class ForcData {
-
-private:
-  ArrayD2 data_;
-  std::string varname_, fname_;
-  Utils::Date file_start_time_;
-  int ntimes_, ncells_;
-  
-  Utils::Date data_start_time_;
-  double forc_dt_{0.0};
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+class AtmDataManager {
 
 public:
-  constexpr ForcData(const std::string& filename, const Utils::Date &file_start_time, const size_t ntimes, const size_t ncells);
+
+  constexpr AtmDataManager(const std::string& filename, const Utils::Date &file_start_time, const size_t ntimes, const size_t ncells);
 
   // interface to update forcing file info
   constexpr void update_file_info(const Utils::Date& new_file_start_time, const std::string& new_filename);
@@ -114,8 +102,8 @@ public:
   constexpr void update_data_start_time(const size_t t_idx);
 
   // calculate t_idx at model_time and check bounds
-  // assumes model_time is centered on the model_dt interval, ie  = model_step_start + model_dt/2
-  constexpr size_t forc_t_idx_checks(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+  // assumes model_time is centered on the model_dt interval, ie parameter model_time = model_step_start_time + model_dt/2
+  constexpr size_t forc_t_idx_check_bounds(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
 
   // calculate t_idx at model_time relative to forc_record_start_time
   constexpr size_t forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
@@ -129,26 +117,41 @@ public:
   // the other option is to define the values staggered by +- forc_dt/2
   constexpr std::pair<double,double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
 
-  // return a tuple of references to the passed in parameters based on the ordering of the file array
-  // requires data(ntimes, nlon * nlat) and file_data(*,*,*) in {ntimes,nlon,nlat}
-  template<typename T>
-  constexpr auto input_idx_order(const Comm_type& comm, T& t, T& x, T& y) const;
-
-  // requires data(ntimes, ncells) and file_data(ntimes, ncells)or(ncells, ntimes)
-  template<typename T>
-  constexpr auto input_idx_order(const Comm_type& comm, T& t, T& x) const;
-
-  // read forcing data from a file 
+  // read forcing data from a file
   constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes);
+
+  // read forcing data from a file - update file info and call main read_atm method
+  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes, const Utils::Date& new_file_start_time, const std::string& new_filename);
 
   // get forcing data for the current timestep
   // interpolate point values
   // process data
   template<typename... Args>
-  constexpr void get_forcing(const double& model_dt, const Utils::Date& model_time, Args&&...args);
+  constexpr void get_atm_forcing(const double& model_dt, const Utils::Date& model_time, Args&&...args);
 
+private:
+
+  // return reference to arg in Args that matches position of dimension dimname in file array
+  template<typename...Args, size_t D>
+  constexpr auto& get_ref_to_dim(const std::string& dimname, const Comm_type& comm, const std::array<int, D>& dimids, Args&&...args) const;
+
+  // return a tuple of references to the passed in parameters based on the ordering of the file array
+  // requires data(ntimes, nlon * nlat) and file_data(*,*,*) in {ntimes,nlon,nlat}
+  template<typename T>
+  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x, T& y) const;
+
+  // requires data(ntimes, ncells) and file_data(ntimes, ncells)or(ncells, ntimes)
+  template<typename T>
+  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
+
+  ArrayD2 data_; // 2D (ntimes, ncells) array-like object of forcing data -- host array
+  std::string varname_, fname_; // variable name and full file name including path - "src/xyz/file.nc"
+  Utils::Date file_start_time_; // date object containing file dataset start time
+  size_t ntimes_, ncells_; // dimensions for data_
+  Utils::Date data_start_time_; // start time of forcing read from file into data_
+  double forc_dt_; // forcing data timestep (days) - recalc at every read; assume constant between reads
 };
 
-} // namespace ELM::forc_data_manager
+} // namespace ELM::atm_data_manager
 
 #include "forcdata_impl.hh"

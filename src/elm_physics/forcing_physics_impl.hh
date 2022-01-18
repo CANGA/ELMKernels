@@ -1,13 +1,8 @@
 
 #pragma once
 
-//#include "array.hh"
-//#include "elm_constants.h"
-
 
 namespace ELM::forcing_physics {
-
-using forcDataType = ELMconstants::forcDataType;
 
 template<typename ArrayD1>
 ConstitutiveAirProperties<ArrayD1>::ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, const ArrayD1& forc_tbot, ArrayD1& forc_vp, ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2) 
@@ -45,21 +40,21 @@ constexpr void ProcessPBOT<ArrayD1, ArrayD2>::operator()(const int i) const {
   forc_pbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_pbot_(t_idx_, i), atm_pbot_(t_idx_+1, i)), 4.0e4);
 }
 
-template<typename ArrayD1, typename ArrayD2, forcDataType type>
-ProcessQBOT<ArrayD1, ArrayD2, type>::ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_qbot, 
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+ProcessQBOT<ArrayD1, ArrayD2, ftype>::ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_qbot, 
               const ArrayD1& forc_tbot, const ArrayD1& forc_pbot, ArrayD1& forc_qbot, ArrayD1& forc_rh) 
   : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_qbot_(atm_qbot), forc_tbot_(forc_tbot), forc_pbot_(forc_pbot), 
     forc_qbot_(forc_qbot), forc_rh_(forc_rh) { }
 
 // functor to calculate specific humidity and relative humidity
-template<typename ArrayD1, typename ArrayD2, forcDataType type>
-constexpr void ProcessQBOT<ArrayD1, ArrayD2, type>::operator()(const int i) const {
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+constexpr void ProcessQBOT<ArrayD1, ArrayD2, ftype>::operator()(const int i) const {
   forc_qbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_qbot_(t_idx_, i), atm_qbot_(t_idx_+1, i)), 1.0e-9);
   double e = (forc_tbot_(i) > ELMconstants::TFRZ) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
   double qsat = 0.622 * e / (forc_pbot_(i) - 0.378 * e);
-  if constexpr (type == forcDataType::QBOT) {
+  if constexpr (ftype == AtmForcType::QBOT) {
     forc_rh_(i) = 100.0 * (forc_qbot_(i) / qsat);
-  } else if constexpr (type == forcDataType::RH) {
+  } else if constexpr (ftype == AtmForcType::RH) {
     forc_rh_(i) = forc_qbot_(i);
     forc_qbot_(i) = qsat * forc_rh_(i) / 100.0;
   }

@@ -98,7 +98,7 @@ inline int get_dimid(const MPI_Comm &comm, const std::string &filename,
 // return an array of dimension ids corresponding to the dimensions of variable named by varname
 //
 template <int D>
-inline std::array<int, D> get_vardimids(const MPI_Comm &comm, const std::string &filename,
+inline std::array<int, D> get_var_dimids(const MPI_Comm &comm, const std::string &filename,
                                         const std::string &varname) {
   MPI_Info info;
   MPI_Info_create(&info);

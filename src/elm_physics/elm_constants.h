@@ -139,5 +139,5 @@ inline constexpr double CO2_PPMV = 355.0; // atmospheric CO2 molar ratio (by vol
 
 inline constexpr int numrad = 2;   // number of solar radiation bands: vis, nir
 
-enum class forcDataType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
+enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 } // namespace ELM::constants

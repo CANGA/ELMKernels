@@ -93,7 +93,7 @@ inline int get_dimid(const Comm_type &comm, const std::string &filename,
 // return an array of dimension ids corresponding to the dimensions of variable named by varname
 //
 template <int D>
-inline std::array<int, D> get_vardimids(const Comm_type &comm, const std::string &filename,
+inline std::array<int, D> get_var_dimids(const Comm_type &comm, const std::string &filename,
                                         const std::string &varname) {
   int nc_id = -1;
   auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
