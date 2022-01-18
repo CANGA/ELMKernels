@@ -156,23 +156,23 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string
   }
 
   // get mxsoil_color
-  Array<int, 1> mxsoil_color(1);
+  int mxsoil_color;
   {
     std::array<size_t, 1> start = {0};
     std::array<size_t, 1> count = {1};
     //IO::read(dd.comm, filename, "mxsoil_color", start, count, mxsoil_color.data());
-    IO::read_netcdf(dd.comm, filename, "mxsoil_color", start, count, mxsoil_color.data());
+    IO::read_netcdf(dd.comm, filename, "mxsoil_color", start, count, &mxsoil_color);
   }
 
   // resize albsat and albdry if needed
-  if (albsat.extent(0) != mxsoil_color(0)) {
-    resize(albsat, mxsoil_color(0), ELMconstants::numrad); }
-  if (albdry.extent(0) != mxsoil_color(0)) {
-    resize(albdry, mxsoil_color(0), ELMconstants::numrad); }
+  if (albsat.extent(0) != mxsoil_color) {
+    resize(albsat, mxsoil_color, ELMconstants::numrad); }
+  if (albdry.extent(0) != mxsoil_color) {
+    resize(albdry, mxsoil_color, ELMconstants::numrad); }
 
   // get correct albsat and albdry arrays based on mxsoil_color
-  get_albsat(mxsoil_color(0), albsat);
-  get_albdry(mxsoil_color(0), albdry);
+  get_albsat(mxsoil_color, albsat);
+  get_albdry(mxsoil_color, albdry);
 }
 
 } // namespace ELM::read_soil
