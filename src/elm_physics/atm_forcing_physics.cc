@@ -1,8 +1,8 @@
 
-#include "forcing_physics.h"
+#include "atm_forcing_physics.h"
 
 
-namespace ELM::forcing_physics {
+namespace ELM::atm_forcing_physics {
 
 // calc forcing given two raw forcing inputs and corresponding weights 
 double interp_forcing(const double& wt1, const double& wt2, const double& forc1, 
@@ -45,5 +45,5 @@ double derive_forc_pco2 (const double& forc_pbot)
 { return ELMconstants::CO2_PPMV * 1.0e-6 * forc_pbot; }
 
 
-} // namespace ELM::forcing_physics
+} // namespace ELM::atm_forcing_physics
 

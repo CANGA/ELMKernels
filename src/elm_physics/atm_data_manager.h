@@ -11,7 +11,7 @@
 #include "array.hh"
 #include "read_input.hh"
 
-#include "forcing_physics.h"
+#include "atm_forcing_physics.h"
 
 /*
 Class to read, parse, and operate on atmospheric forcing input
@@ -154,4 +154,4 @@ private:
 
 } // namespace ELM::atm_data_manager
 
-#include "forcdata_impl.hh"
+#include "atm_data_manager_impl.hh"

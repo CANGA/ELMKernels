@@ -2,7 +2,7 @@
 #pragma once
 
 
-namespace ELM::forcing_physics {
+namespace ELM::atm_forcing_physics {
 
 template<typename ArrayD1>
 ConstitutiveAirProperties<ArrayD1>::ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, const ArrayD1& forc_tbot, ArrayD1& forc_vp, ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2) 
@@ -147,5 +147,5 @@ constexpr void ProcessZBOT<ArrayD1>::operator()(const int i) const {
   forc_hgt_q_(i) = forc_hgt_(i);  // observational height of humidity [m]
 }
 
-} // namespace ELM::forcing_physics
+} // namespace ELM::atm_forcing_physics
 

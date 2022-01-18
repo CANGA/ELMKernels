@@ -217,21 +217,21 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::get_atm_forcing(const do
   const auto [wt1, wt2] = forcing_time_weights(t_idx, model_time);
   const auto physics_object = [this, t_idx, &wt1, &wt2, &args...] {
     if constexpr(ftype == AtmForcType::TBOT) {
-      return forcing_physics::ProcessTBOT(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessTBOT(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::PBOT) {
-      return forcing_physics::ProcessPBOT(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessPBOT(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::QBOT || ftype == AtmForcType::RH) {
-      return forcing_physics::ProcessQBOT<ArrayD1, ArrayD2, ftype>(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessQBOT<ArrayD1, ArrayD2, ftype>(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::FLDS) {
-      return forcing_physics::ProcessFLDS(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessFLDS(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::FSDS) {
-      return forcing_physics::ProcessFSDS(data_[t_idx], std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessFSDS(data_[t_idx], std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::PREC) {
-      return forcing_physics::ProcessPREC(data_[t_idx], std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessPREC(data_[t_idx], std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::WIND) {
-      return forcing_physics::ProcessWIND(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessWIND(t_idx, wt1, wt2, data_, std::forward<Args>(args)...);
     } else if constexpr (ftype == AtmForcType::ZBOT) {
-      return forcing_physics::ProcessZBOT(std::forward<Args>(args)...);
+      return atm_forcing_physics::ProcessZBOT(std::forward<Args>(args)...);
     }
   }();
 

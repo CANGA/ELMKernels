@@ -7,7 +7,7 @@
 #include "elm_constants.h"
 
 
-namespace ELM::forcing_physics {
+namespace ELM::atm_forcing_physics {
 
 using AtmForcType = ELMconstants::AtmForcType;
 
@@ -168,6 +168,6 @@ private:
   ArrayD1 forc_hgt_, forc_hgt_u_, forc_hgt_t_, forc_hgt_q_;
 };
 
-} // namespace ELM::forcing_physics
+} // namespace ELM::atm_forcing_physics
 
-#include "forcing_physics_impl.hh"
+#include "atm_forcing_physics_impl.hh"
