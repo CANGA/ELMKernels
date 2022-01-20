@@ -63,6 +63,20 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::update_data_start_time(c
   data_start_time_.increment_seconds(static_cast<int>(round(86400.0 * forc_dt_ * t_idx)));
 }
 
+// interface to return date of working data start time
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+constexpr Utils::Date AtmDataManager<ArrayD1, ArrayD2, ftype>::get_data_start_time() {
+  return data_start_time_;
+}
+
+// interface to return forc_dt_ in days
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+constexpr double AtmDataManager<ArrayD1, ArrayD2, ftype>::get_forc_dt_days() { return forc_dt_; }
+
+// interface to return forc_dt_ in seconds
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+constexpr double AtmDataManager<ArrayD1, ArrayD2, ftype>::get_forc_dt_secs() { return 86400.0 * forc_dt_; }
+
 // calculate t_idx at model_time and check bounds
 // assumes model_time is centered on the model_dt interval, ie  = model_step_start + model_dt/2
 // assumes model timestep falls entirely between two forcing timesteps

@@ -137,7 +137,7 @@ constexpr void get_albdry(int mxsoil_color, ArrayD2& albdry) {
 template <typename ArrayI1, typename ArrayD2>
 void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayI1& isoicol, ArrayD2& albsat, ArrayD2& albdry)
 {
-  // get soli color
+  // get soil color
   {
     // get file start idx and size to read
     std::array<size_t, 2> start = {dd.start[0], dd.start[1]};
@@ -174,5 +174,53 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string
   get_albsat(mxsoil_color, albsat);
   get_albdry(mxsoil_color, albdry);
 }
+
+
+template <typename ArrayD2>
+void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayD2& pct_sand, ArrayD2& pct_clay, ArrayD2& organic)
+{
+  // get pct_sand and pct_clay
+  // get file start idx and size to read
+  std::array<size_t, 3> start = {0, dd.start[0], dd.start[1]};
+  std::array<size_t, 3> count = {ELM::nlevsoi, dd.n_local[0], dd.n_local[1]};
+
+  // read pct_sand
+  Array<double, 3> arr_for_read(ELM::nlevsoi, dd.n_local[0], dd.n_local[1]);
+  IO::read_netcdf(dd.comm, filename, "PCT_SAND", start, count, arr_for_read.data());
+
+  // place data into [ncells, nlevsoi] order
+  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+      for (int k = 0; k != ELM::nlevsoi; ++k) {
+        pct_sand(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+      }
+    }
+  }
+
+  // read pct_clay
+  IO::read_netcdf(dd.comm, filename, "PCT_CLAY", start, count, arr_for_read.data());
+  // place data into [ncells, nlevsoi] order
+  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+      for (int k = 0; k != ELM::nlevsoi; ++k) {
+        pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+      }
+    }
+  }
+
+  // read organic
+  IO::read_netcdf(dd.comm, filename, "ORGANIC", start, count, arr_for_read.data());
+  // place data into [ncells, nlevsoi] order
+  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+      for (int k = 0; k != ELM::nlevsoi; ++k) {
+        pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+      }
+    }
+  }
+
+}
+
+
 
 } // namespace ELM::read_soil

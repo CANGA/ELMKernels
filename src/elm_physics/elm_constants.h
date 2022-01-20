@@ -116,6 +116,14 @@ static const double o2_molar_const = 0.209;       // constant atmospheric O2 mol
 static const bool perchroot = false;     // calculate root function only in unfrozen soil, based on instantaneous temp
 static const bool perchroot_alt = false; // calculate root function only in active layer - estimated from past 2 years
 
+
+
+
+
+// should be read from file - hardwired for now
+static const double organic_max = 130.0; // Organic matter content where soil is assumed to act like peat for diffusion ~ kg/m3
+static const double secspday = 86400.0; // seconds per day
+
 } // namespace ELM
 
 namespace ELM::ELMconstants {

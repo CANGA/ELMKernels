@@ -32,9 +32,9 @@ install(TARGETS test_SurfAlb)
 
 
 
-add_executable (test_CanHydro_newphysics test_CanHydro_newphysics.cc)
-target_link_libraries (test_CanHydro_newphysics LINK_PUBLIC elm_physics elm_utils)
-install(TARGETS test_CanHydro_newphysics)
+#add_executable (test_CanHydro_newphysics test_CanHydro_newphysics.cc)
+#target_link_libraries (test_CanHydro_newphysics LINK_PUBLIC elm_physics elm_utils)
+#install(TARGETS test_CanHydro_newphysics)
 
 
 
