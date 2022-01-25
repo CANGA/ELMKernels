@@ -22,9 +22,9 @@ double daylength(const double& lat, const double& decl) {
   const double pole = ELM_PI/2.0;
   const double offset_pole = pole - lat_epsilon;
   
-  assert((std::abs(lat) >= (pole + lat_epsilon)) && 
+  assert((std::abs(lat) <= (pole + lat_epsilon)) && 
     "lat must be less than pi/2 within a small tolerance");
-  assert((std::abs(decl) >= pole) && "decl must be strictly less than pi/2");
+  assert((std::abs(decl) <= pole) && "decl must be strictly less than pi/2");
 
   // Ensure that latitude isn't too close to pole, to avoid problems with cos(lat) being negative
   double my_lat = std::min(offset_pole, std::max(1.0 * offset_pole, lat));
