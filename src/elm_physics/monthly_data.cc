@@ -13,7 +13,7 @@ double MonthlyDataManager::month_frac(const Utils::Date& model_time) {
   
 std::pair<int, int> MonthlyDataManager::month_indices(const Utils::Date& model_time) {
   const double t = month_frac(model_time);
-  const int t1 = t + 0.5; // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t > 0.5
+  const int t1 = t + 0.5; // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
   const int t2 = t1 + 1;
   const int kmo = std::get<1>(model_time.date()); // month
   int m1 = kmo + t1 - 1;
@@ -31,7 +31,7 @@ std::pair<int, int> MonthlyDataManager::month_indices(const Utils::Date& model_t
   
 std::pair<double, double> MonthlyDataManager::monthly_data_weights(const Utils::Date& model_time) {
   const double t = month_frac(model_time);
-  const int t1 = t + 0.5; // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t > 0.5
+  const int t1 = t + 0.5; // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
   double wt1 = (t1 + 0.5) - t; // 
   return std::make_pair(wt1, 1.0 - wt1);
 }

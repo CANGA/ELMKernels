@@ -32,7 +32,6 @@ IDX   VARNAME
 13   "DSTX03WD"
 14   "DSTX04WD"
 
-
 VARS USED IN THIS MODEL      input dependencies(elm index)
 mss_cnc_bcphi                3
 mss_cnc_bcpho                1 & 2
@@ -40,7 +39,6 @@ mss_cnc_dst1                 7 & 8
 mss_cnc_dst2                 9 & 10
 mss_cnc_dst3                 11 & 12
 mss_cnc_dst4                 13 & 14
-
 
 ALIAS TO DATA FROM FILE
 "BCDEPWET"  bcdep
@@ -81,6 +79,9 @@ using ArrayD2 = ELM::Array<double, 2>;
 
 
 // functor to calculate aerosol deposition
+// this is from AerosolMod.F90
+// should be run after inter-layer aerosol fluxes are accounted for in 
+// SnowHydrologyMod.F90::SnowWater()
 template<typename T, typename ArrayI1>
 struct ComputeAerosolDeposition {
   ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl, AerosolMasses& aerosol_masses);
@@ -95,6 +96,8 @@ private:
 
 
 // functor to calculate aerosol mass and concentration in snow layers
+// this is from AerosolMod.F90
+// gets run in ELM directly after hydrology is called
 template<typename ArrayI1, typename ArrayD1, typename ArrayD2>
 struct ComputeAerosolConcenAndMass {
   ComputeAerosolConcenAndMass(const bool& do_capsnow, const double& dtime, const ArrayI1& snl, const ArrayD2& h2osoi_liq,

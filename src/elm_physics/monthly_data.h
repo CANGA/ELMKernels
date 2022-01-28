@@ -38,7 +38,9 @@ kmo        m1 m2    m1 m2
  11 (10)   9  10    10 11
  12 (11)   10 11    11 0
 
- WEIGHTS:          switch
+
+                switch to next
+ WEIGHTS:         index pair
 (0.5, 0.5) -> (0,1)   |  (1,0) -> (0.5, 0.5)  
     t=0      t=0.25       t=0.5       t=0.75
  wt1  wt2   wt1   wt2    wt1   wt2   wt1   wt2
@@ -47,7 +49,7 @@ kmo        m1 m2    m1 m2
 
 namespace ELM {
 
-// base class for monthly data (lai, aerosols)
+// base class for monthly data (phenology, aerosols)
 // provides methods:
 // month_frac() - returns elapsed month fraction
 // month_indices() - return monthly data timeseries indices bracketing model_time input parameter
