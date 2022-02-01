@@ -102,8 +102,8 @@ std::pair<size_t, size_t> AerosolDataManager::get_nearest_indices(const Comm_typ
 }
 
 auto AerosolDataManager::get_aerosol_source(const Utils::Date& model_time, const double& dtime) {
-  auto [wt1, wt2] = monthly_data_weights(model_time);
-  auto [m1, m2] = month_indices(model_time);
+  auto [wt1, wt2] = monthly_data::monthly_data_weights(model_time);
+  auto [m1, m2] = monthly_data::month_indices(model_time);
   double forc_bcphi = (wt1 * bcphi_(m1) + wt2 * bcphi_(m2)) * dtime;
   double forc_bcpho = (wt1 * (bcdep_(m1) + bcpho_(m1)) + wt2 * (bcdep_(m2) + bcpho_(m2))) * dtime;
   double forc_dst1 = (wt1 * (dst1_1_(m1) + dst1_2_(m1)) + wt2 * (dst1_1_(m2) + dst1_2_(m2))) * dtime;

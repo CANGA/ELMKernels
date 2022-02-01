@@ -125,7 +125,7 @@ void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime,
   AerosolConcentrations& aerosol_concentrations);
 
 // class to manage aerosol data
-class AerosolDataManager : public MonthlyDataManager {
+class AerosolDataManager {
 
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
@@ -133,10 +133,6 @@ using ArrayD1 = ELM::Array<double, 1>;
 public:
 
   AerosolDataManager();
-
-  // read a slice from file and reshape into 1D array
-  void read_variable_slice(const Comm_type &comm, const std::string& filename, const std::string& varname,
-    const size_t& lon_idx, const size_t& lat_idx, ArrayD1& arr);
 
   // read 12 months of values at closest point to lon_d and lat_d
   void read_data(const Comm_type &comm, const std::string& filename, const double& lon_d, const double& lat_d);
@@ -152,8 +148,13 @@ public:
   void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1& snl,
     AerosolMasses& aerosol_masses);
 
-protected:
-  ArrayD1 bcdep_, bcpho_, bcphi_, dst1_1_, dst1_2_, dst2_1_; 
+private:
+
+  // read a slice from file and reshape into 1D array
+  void read_variable_slice(const Comm_type &comm, const std::string& filename, const std::string& varname,
+    const size_t& lon_idx, const size_t& lat_idx, ArrayD1& arr);
+
+  ArrayD1 bcdep_, bcpho_, bcphi_, dst1_1_, dst1_2_, dst2_1_;
   ArrayD1 dst2_2_, dst3_1_, dst3_2_, dst4_1_, dst4_2_;
 
 };

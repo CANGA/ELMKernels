@@ -47,23 +47,19 @@ kmo        m1 m2    m1 m2
  0.5  0.5   0.25  0.75   1.0   0.0   0.75  0.25
 */
 
-namespace ELM {
+namespace ELM::monthly_data {
 
-// base class for monthly data (phenology, aerosols)
-// provides methods:
+// utility namespace for monthly data (phenology, aerosols)
 // month_frac() - returns elapsed month fraction
 // month_indices() - return monthly data timeseries indices bracketing model_time input parameter
 // monthly_data_weights() - return weights for monthly data 
-class MonthlyDataManager {
 
-public:
+double month_frac(const Utils::Date& model_time);
+int first_month_idx(const Utils::Date& model_time);
+std::pair<int, int> month_indices(const Utils::Date& model_time);
+int third_month_idx(const Utils::Date& model_time);
+std::tuple<int,int,int> triple_month_indices(const Utils::Date& model_time);
+std::pair<double, double> monthly_data_weights(const Utils::Date& model_time);
 
-  double month_frac(const Utils::Date& model_time);
-  
-  std::pair<int, int> month_indices(const Utils::Date& model_time);
-  
-  std::pair<double, double> monthly_data_weights(const Utils::Date& model_time);
 
-};
-
-} // namespace ELM
+} // namespace ELM::monthly_data
