@@ -1,9 +1,13 @@
 // InitCold() from SoilStateType.F90
 // sets watsat, sucsat, bsw, etc.
 
+// also contains code from ColumnDataType.F90 col_ws_init, col_es_init
+// should maybe also include some reads from col_*_restart -- later
+
 //#include <RootBioPhys.hh>
 #include "array.hh"
 #include "elm_constants.h"
+#include "landtype.h"
 
 namespace ELM {
 
@@ -173,6 +177,214 @@ for (int i = ELM::nlevsoi; i < ELM::nlevgrnd; ++i) {
 }
 
 }
+
+
+
+// from ColumnDataType.F90
+//-----------------------------------------------------------------------
+// set cold-start initial values for select members of col_es
+//-----------------------------------------------------------------------
+template <typename ArrayD1>
+void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, double& t_grnd) {
+
+  // Snow level temperatures - all land points
+  if (snl < 0) {
+    for (int i = 0; i < ELM::nlevsno; ++i) { t_soisno(i) = 250.0; }
+  }
+
+  // Below snow temperatures - nonlake points (lake points are set below)
+  if (!Land.lakpoi) {
+    if (Land.ltype == istice || Land.ltype == istice_mec) {
+      for (int i = ELM::nlevsno; i < ELM::nlevgrnd; ++i) { t_soisno(i) = 250.0; }
+    } else if (Land.ltype == istwet) {
+        for (int i = ELM::nlevsno; i < ELM::nlevgrnd; ++i) { t_soisno(i) = 277.0; }
+    } else if (Land.urbpoi) {
+      if (Land.ctype == icol_road_perv || Land.ctype == icol_road_imperv) {
+        for (int i = ELM::nlevsno; i < ELM::nlevgrnd; ++i) { t_soisno(i) = 274.0; }
+      } else if (Land.ctype == icol_sunwall || Land.ctype == icol_shadewall || Land.ctype == icol_roof) {
+        // Set sunwall, shadewall, roof to fairly high temperature to avoid initialization
+        // shock from large heating/air conditioning flux
+        for (int i = ELM::nlevsno; i < ELM::nlevurb; ++i) { t_soisno(i) = 292.0; }
+      }
+    } else {
+      for (int i = ELM::nlevsno; i < ELM::nlevgrnd; ++i) { t_soisno(i) = 274.0; }
+    }
+    t_grnd = t_soisno(ELM::nlevsno - snl);
+  }
+}
+
+
+// from ColumnDataType.F90 and WaterStateType.F90
+//-----------------------------------------------------------------------
+// set cold-start initial values for select members of col_ws
+//-----------------------------------------------------------------------
+template <typename ArrayD1>
+void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth, double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno, ArrayD1 snw_rds) {
+
+  // this could be intitialized from input data - 0.0 for now
+  h2osno = 0.0;
+  int_snow = 0.0;
+  snow_depth  = 0.0;
+  h2osfc = 0.0;
+  h2ocan = 0.0;
+  frac_h2osfc = 0.0;
+  fwet = 0.0;
+  fdry = 0.0;
+
+  // initial snow fraction
+  if (urbpoi) {
+    // From Bonan 1996 (LSM technical note)
+    frac_sno = std::min(snow_depth / 0.05, 1.0);
+  } else {
+    frac_sno = 0.0;
+    // snow cover fraction as in Niu and Yang 2007
+    if(snow_depth > 0.0) {
+      const double snowbd = std::min(400.0, h2osno / snow_depth); // bulk density of snow (kg/m3)
+      const double fmelt = pow(snowbd/100.0, 1.0);
+      // 100 is the assumed fresh snow density; 1 is a melting factor that could be
+      // reconsidered, optimal value of 1.5 in Niu et al., 2007
+      frac_sno = tanh(snow_depth / (2.5 * zlnd * fmelt));
+    }
+  }
+  
+  // initial snow radius
+  if (snl > 0) {
+    for (int i = 0; i < ELM::nlevsno-snl; ++i) { snw_rds(i) = 0.0; }
+    for (int i = ELM::nlevsno-snl; i < ELM::nlevsno; ++i) { snw_rds(i) = snw_rds_min; }
+  } else if (h2osno > 0.0) {
+    snw_rds(ELM::nlevsno-1) = snw_rds_min;
+    for (int i = 0; i < ELM::nlevsno-1; ++i) { snw_rds(i) = 0.0; }
+  } else {
+    for (int i = 0; i < ELM::nlevsno; ++i) { snw_rds(i) = 0.0; }
+  }
+}
+
+
+
+
+      
+
+// from ColumnDataType.F90 and WaterStateType.F90
+//--------------------------------------------
+// Set soil water
+//--------------------------------------------
+// volumetric water is set first and liquid content and ice lens are obtained
+// NOTE: h2osoi_vol, h2osoi_liq and h2osoi_ice only have valid values over soil
+// and urban pervious road (other urban columns have zero soil water)
+template <typename ArrayD1>
+void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& watsat, const ArrayD1& t_soisno, const ArrayD1& dz, ArrayD1 h2osoi_vol, ArrayD1 h2osoi_liq, ArrayD1 h2osoi_ice) 
+
+{
+  for (int i = 0; i < ELM::nlevgrnd; ++i) { h2osoi_vol(i) = spval; }
+  for (int i = 0; i < ELM::nlevgrnd; ++i) { h2osoi_liq(i) = spval; }
+  for (int i = 0; i < ELM::nlevgrnd; ++i) { h2osoi_ice(i) = spval; }
+
+
+
+  int nlevs = ELM::nlevgrnd;
+  if (!Land.lakpoi) {
+  
+    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+      for (int i = 0; i < ELM::nlevgrnd; ++i) {
+        if (i >= ELM::nlevbed) {
+          h2osoi_vol(i) = 0.0;
+        } else {
+          //if (use_fates_planthydro .or. use_hydrstress) {
+          //  h2osoi_vol(i) = 0.70_r8*watsat(i) !0.15_r8 to avoid very dry conditions that cause errors in FATES HYDRO
+          //} else {
+          h2osoi_vol(i) = 0.15;
+        }
+      } 
+    } else if (Land.urbpoi) {
+      if (Land.ctype == icol_road_perv) {
+        for (int i = 0; i < ELM::nlevgrnd; ++i) {
+          if (i < ELM::nlevbed) {
+            h2osoi_vol(i) = 0.3;
+          } else {
+            h2osoi_vol(i) = 0.0;
+          }
+        }
+      } else if (Land.ctype == icol_road_imperv) {
+        for (int i = 0; i < ELM::nlevgrnd; ++i) {
+          h2osoi_vol(i) = 0.0;
+        }
+      } else {
+        nlevs = ELM::nlevurb;
+        for (int i = 0; i < ELM::nlevurb; ++i) {
+          h2osoi_vol(i) = 0.0;
+        }
+      }
+    } else if (Land.ltype == istwet) {
+      for (int i = 0; i < ELM::nlevgrnd; ++i) {
+        if (i >= ELM::nlevbed) {
+          h2osoi_vol(i) = 0.0;
+        } else {
+          h2osoi_vol(i) = 1.0;
+        }
+      }
+    } else if (Land.ltype == istice || Land.ltype == istice_mec) {
+      for (int i = 0; i < ELM::nlevgrnd; ++i) {
+        h2osoi_vol(i) = 1.0;
+      }
+    }
+    for (int i = 0; i < nlevs; ++i) {
+      const int snw_offset = i+ELM::nlevsno;
+      h2osoi_vol(i) = std::min(h2osoi_vol(i), watsat(i));
+      if (t_soisno(snw_offset) <= ELM::tfrz) {
+        h2osoi_ice(snw_offset) = dz(snw_offset) * ELM::denice * h2osoi_vol(i);
+        h2osoi_liq(snw_offset) = 0.0;
+      } else {
+        h2osoi_ice(snw_offset) = 0.0;
+        h2osoi_liq(snw_offset) = dz(snw_offset) * ELM::denh2o * h2osoi_vol(i);
+      }
+    }
+  
+    for (int i = 0; i < ELM::nlevsno; ++i) {
+      if (i >= ELM::nlevsno-snl) {
+        h2osoi_ice(i) = dz(i) * 250.0;
+        h2osoi_liq(i) = 0.0;
+      }
+    }
+  } else {
+    //--------------------------------------------
+    // Set Lake water
+    //--------------------------------------------
+    for (int i = 0; i < ELM::nlevsno; ++i) {
+      if (i >= ELM::nlevsno-snl) {
+        h2osoi_ice(i) = dz(i) * bdsno;
+        h2osoi_liq(i) = 0.0;
+      }
+    }
+    for (int i = 0; i < ELM::nlevgrnd; ++i) {
+      const int snw_offset = i+ELM::nlevsno;
+      if (i < ELM::nlevsoi) { // soil
+         h2osoi_vol(i) = watsat(i);
+         h2osoi_liq(snw_offset) = spval;
+         h2osoi_ice(snw_offset) = spval;
+      } else { // bedrock
+         h2osoi_vol(i) = 0.0;
+      }
+    }
+  }
+
+  //--------------------------------------------
+  // For frozen layers !TODO - does the following make sense ???? it seems to overwrite everything
+  //--------------------------------------------
+  for (int i = 0; i < ELM::nlevgrnd; ++i) {
+    const int snw_offset = i+ELM::nlevsno;
+    if (t_soisno(snw_offset) <= ELM::tfrz) {
+      h2osoi_ice(snw_offset) = dz(snw_offset) * denice * h2osoi_vol(i);
+      h2osoi_liq(snw_offset) = 0.0;
+    } else {
+      h2osoi_ice(snw_offset) = 0.0;
+      h2osoi_liq(snw_offset) = dz(snw_offset) * denh2o * h2osoi_vol(i);
+    }
+  }
+  //h2osoi_liq_old(c,:) = h2osoi_liq(c,:)
+  //h2osoi_ice_old(c,:) = h2osoi_ice(c,:)
+}
+  
+
 
 
 } // namespace ELM
