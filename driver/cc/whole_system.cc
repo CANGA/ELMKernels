@@ -33,15 +33,21 @@
 //#include "ReadTestData.hh"
 
 #include "incident_shortwave.h"
+#include "daylength.h"
 
 #include "canopy_hydrology.h"
 #include "surface_radiation.h"
 #include "canopy_temperature.h"
 #include "bareground_fluxes.h"
-
+#include "canopy_fluxes.h"
+#include "aerosol_data.h"
+#include "phenology_data.h"
+#include "surface_albedo.h"
+#include "snow_snicar.h"
 
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
+using ArrayI2 = ELM::Array<int, 2>;
 using ArrayS1 = ELM::Array<std::string, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
@@ -66,22 +72,29 @@ atm_forc_util<ftype> create_forc_util(const std::string& filename, const ELM::Ut
 
 int main(int argc, char **argv) {
 
-  int MPI_COMM_WORLD;
-  const int n_procs = 1;
-  const int ncells = 1;
-  const int ntimes = 100;
-  const int myrank = 0;
-  const double dtime = 1800.0;
-  const double dtime_d = 1800.0 / 86400.0;
-  const auto start = ELM::Utils::Date(2012, 7, 1);
-  ELM::LandType Land;
-  Land.ltype = 1;
-  Land.ctype = 1;
-  Land.vtype = 12;
+int MPI_COMM_WORLD;
+const int n_procs = 1;
+const int ncells = 1;
+const int ntimes = 1000;
+const int myrank = 0;
+const double dtime = 1800.0;
+const double dtime_d = 1800.0 / 86400.0;
+const auto start = ELM::Utils::Date(2014, 7, 15);
+ELM::LandType Land;
+Land.ltype = 1;
+Land.ctype = 1;
+Land.vtype = 12;
 
-  // this is what sat phenology wants
-  auto vtype = create<ArrayI1>("vtype", ncells); // pft type
-  assign(vtype, 12);
+auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
+std::cout << " proc_decomp: " << proc_decomp[0] << "," << proc_decomp[1] << std::endl;
+
+auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,
+        { 1, 1 },
+        { 0, 0 });
+
+// this is what sat phenology wants
+auto vtype = create<ArrayI1>("vtype", ncells); // pft type
+assign(vtype, 12);
 
 
 // hardwired grid info
@@ -117,65 +130,20 @@ auto zsoi = create<ArrayD2>("zsoi", ncells, ELM::nlevsno + ELM::nlevgrnd, zsoi_h
 auto zisoi = create<ArrayD2>("zisoi", ncells, ELM::nlevsno + ELM::nlevgrnd + 1, zisoi_hardwire);
 
 
-  auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
-  std::cout << " proc_decomp: " << proc_decomp[0] << "," << proc_decomp[1] << std::endl;
-
-  auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,
-          { 1, 1 },
-          { 0, 0 });
-
 // subsurface params that should be defined by hydrology code:
 // ELM uses soil texture to estimate soil hydraulic properties via Clapp & Hornberger
 // input vars are percent sand/clay & organic matter
 
-std::string fname_surfdata(
-"/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/surfdata_map/surfdata_1x1pt_US-Brw_simyr1850.nc");
-
-auto isoicol = create<ArrayI1>("isoicol", ncells);
-auto albsat = create<ArrayD2>("albsat", ncells, 2);
-auto albdry = create<ArrayD2>("albdry", ncells, 2);
-ELM::read_soil::read_soil_colors(dd, fname_surfdata, isoicol, albsat, albdry);
-
-auto pct_sand = create<ArrayD2>("pct_sand", ncells, ELM::nlevsoi);
-auto pct_clay = create<ArrayD2>("pct_clay", ncells, ELM::nlevsoi);
-auto organic = create<ArrayD2>("organic", ncells, ELM::nlevsoi);
-ELM::read_soil::read_soil_texture(dd, fname_surfdata, pct_sand, pct_clay, organic);
-
-
-std::string fname_snicar(
-  "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_mam_c160322.nc");
-ELM::snicar_data::SnicarData *snicar_data = new ELM::snicar_data::SnicarData();
-ELM::snicar_data::read_snicar_data(dd.comm, fname_snicar, snicar_data);
-
-
-int nsteps = ntimes + 1; // need n+1 forc data for an n length period of record
-std::string fname_forc(
-  "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/datm7/CLM1PT_data/1x1pt_US-Brw_19852015/all_halfhourly.nc");
-auto test_TBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::TBOT>(fname_forc, start, nsteps, ncells);
-auto test_PBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::PBOT>(fname_forc, start, nsteps, ncells);
-auto test_QBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::RH>(fname_forc, start, nsteps, ncells);
-auto test_FLDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FLDS>(fname_forc, start, nsteps, ncells);
-auto test_FSDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FSDS>(fname_forc, start, nsteps, ncells);
-auto test_PREC = create_forc_util<ELM::atm_data_manager::AtmForcType::PREC>(fname_forc, start, nsteps, ncells);
-auto test_WIND = create_forc_util<ELM::atm_data_manager::AtmForcType::WIND>(fname_forc, start, nsteps, ncells);
-auto test_ZBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::ZBOT>(fname_forc, start, nsteps, ncells);
-
-std::string data_dir(
-  "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata");
-std::string fname_pft(
-  "lnd/clm2/paramdata/clm_params_c180524.nc");
-ELM::VegData<ArrayD1, ArrayD2> vegdata;
-  vegdata.read_veg_data(data_dir, fname_pft);
-
-
 // hardwired
-auto smpmin = create<ArrayD1>("smpmin", ncells, -1.0e8);
+//auto smpmin = create<ArrayD1>("smpmin", ncells, -1.0e8);
 auto topo_slope = create<ArrayD1>("topo_slope", ncells, 0.070044865858546);
 auto topo_std = create<ArrayD1>("topo_std", ncells, 3.96141847422387);
-auto t_grnd = create<ArrayD1>("t_grnd", ncells, 275.87936473562456);
-auto h2ocan = create<ArrayD1>("t_grnd", ncells, 5.264645812293883e-06); // - BeginGridWaterBalance() - other stuff, too
-const double lat = 71.3225;
-const double lon = 203.3741;
+//auto t_grnd = create<ArrayD1>("t_grnd", ncells, 275.87936473562456);
+//auto h2ocan = create<ArrayD1>("h2ocan", ncells, 5.264645812293883e-06); // - BeginGridWaterBalance() - other stuff, too
+auto t_grnd = create<ArrayD1>("t_grnd", ncells);
+auto h2ocan = create<ArrayD1>("h2ocan", ncells); // - BeginGridWaterBalance() - other stuff, too
+const double lat = 71.323;
+const double lon = 203.3886;
 const double lat_r = lat * ELM::ELM_PI / 180.0;
 const double lon_r = lon * ELM::ELM_PI / 180.0;
 const double dewmx = 0.1;
@@ -193,12 +161,9 @@ auto qflx_glcice = create<ArrayD1>("qflx_glcice", ncells); // don't need this, e
 auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", ncells);
 auto frac_iceold = create<ArrayD2>("frac_iceold", ncells, ELM::nlevsno + ELM::nlevgrnd);
 auto h2osno = create<ArrayD1>("h2osno", ncells);
-auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", ncells, ELM::nlevsno + ELM::nlevgrnd);
-auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", ncells, ELM::nlevsno + ELM::nlevgrnd);
+auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", ncells, ELM::nlevsno + ELM::nlevgrnd, 0.0);
+auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", ncells, ELM::nlevsno + ELM::nlevgrnd, 0.0);
 auto snw_rds = create<ArrayD2>("snw_rds", ncells, ELM::nlevsno);
-
-
-
 
 // forcing data
 auto forc_tbot = create<ArrayD1>("forc_tbot", ncells);
@@ -218,30 +183,13 @@ auto forc_hgt = create<ArrayD1>("forc_hgt", ncells);
 auto forc_hgt_u = create<ArrayD1>("forc_hgt_u", ncells);
 auto forc_hgt_t = create<ArrayD1>("forc_hgt_t", ncells);
 auto forc_hgt_q = create<ArrayD1>("forc_hgt_q", ncells);
-
 auto forc_vp = create<ArrayD1>("forc_vp", ncells);
 auto forc_rho = create<ArrayD1>("forc_rho", ncells);
 auto forc_po2 = create<ArrayD1>("forc_po2", ncells);
 auto forc_pco2 = create<ArrayD1>("forc_pco2", ncells);
-
-
-
 auto snow_depth = create<ArrayD1>("snow_depth", ncells, 0.0); // NEED VALUES! - probably always init at 0
 auto frac_sno = create<ArrayD1>("frac_sno", ncells, 0.0);     // NEED VALUES!  \ if not glc, icemec, etc, always init these @ 0.0
 auto int_snow = create<ArrayD1>("int_snow", ncells, 0.0);     // NEED VALUES!
-
-
- // allocate 2 months of LAI, SAI, HTOP, HBOT for interpolation
-auto mlai2t = create<ArrayD2>("mlai2t", ncells, 2);
-auto msai2t = create<ArrayD2>("msai2t", ncells, 2);
-auto mhvt2t = create<ArrayD2>("mhvt2t", ncells, 2);
-auto mhvb2t = create<ArrayD2>("mhvb2t", ncells, 2);
-
-// calculate monthly weights; read 2 months of LAI, SAI, HTOP, HBOT if required
-auto timwt = create<ArrayD1>("timwt", 2);            // time weights for lai/sai/hgt
-const int n_pfts = 17;
-std::string basename_phen("");
-
 
 // prescribed sat phenology
 auto tlai = create<ArrayD1>("tlai", ncells);
@@ -252,48 +200,23 @@ auto htop = create<ArrayD1>("htop", ncells);
 auto hbot = create<ArrayD1>("hbot", ncells);
 auto frac_veg_nosno_alb = create<ArrayI1>("frac_veg_nosno_alb", ncells);
 
-
-
-
-ELM::Utils::Date time_plus_half_dt(start);
-time_plus_half_dt.increment_seconds(900);
-
-test_TBOT.read_atm_forcing(dd, start, nsteps);
-test_PBOT.read_atm_forcing(dd, start, nsteps);
-test_QBOT.read_atm_forcing(dd, start, nsteps);
-test_FLDS.read_atm_forcing(dd, start, nsteps);
-test_FSDS.read_atm_forcing(dd, start, nsteps);
-test_PREC.read_atm_forcing(dd, start, nsteps);
-test_WIND.read_atm_forcing(dd, start, nsteps);
-test_ZBOT.read_atm_forcing(dd, start, nsteps);
-
+// soil hydraulics
 auto watsat = create<ArrayD2>("watsat", ncells, ELM::nlevgrnd);
 auto sucsat = create<ArrayD2>("sucsat", ncells, ELM::nlevgrnd);
 auto bsw = create<ArrayD2>("bsw", ncells, ELM::nlevgrnd);
 auto watdry = create<ArrayD2>("watdry", ncells, ELM::nlevgrnd);
 auto watopt = create<ArrayD2>("watopt", ncells, ELM::nlevgrnd);
 auto watfc = create<ArrayD2>("watfc", ncells, ELM::nlevgrnd);
-ELM::init_soil_hydraulics(pct_sand[0], pct_clay[0], organic[0], zsoi[0], 
-  watsat[0], bsw[0], sucsat[0], watdry[0], watopt[0], watfc[0]);
 
-
+// topo, microtopography
 auto n_melt = create<ArrayD1>("n_melt", ncells);
 auto micro_sigma = create<ArrayD1>("micro_sigma", ncells);
-auto snl = create<ArrayI1>("snl", ncells);
-
-ELM::InitTopoSlope(topo_slope[0]);
-ELM::InitMicroTopo(Land.ltype, topo_slope[0], topo_std[0], n_melt[0], micro_sigma[0]);
-ELM::InitSnowLayers(snow_depth[0], lakpoi, snl[0], dz[0], zsoi[0], zisoi[0]);
-
-
-
-
-
+auto snl = create<ArrayI1>("snl", ncells, 0);
 
 // for Canopy hydrology
 auto qflx_prec_grnd = create<ArrayD1>("qflx_prec_grnd", ncells);
 auto qflx_snwcp_liq = create<ArrayD1>("qflx_snwcp_liq", ncells);
-auto qflx_snwcp_ice = create<ArrayD1>("qflx_snwcp_ice", ncells);
+auto qflx_snwcp_ice = create<ArrayD1>("qflx_snwcp_ice", ncells, 0.0);
 auto qflx_snow_grnd = create<ArrayD1>("qflx_snow_grnd", ncells);
 auto qflx_rain_grnd = create<ArrayD1>("qflx_rain_grnd", ncells);
 auto fwet = create<ArrayD1>("fwet", ncells);
@@ -305,7 +228,20 @@ auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", ncells);
 auto swe_old = create<ArrayD2>("swe_old", ncells, ELM::nlevsno);
 auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
 
-
+// for can_sun_shade
+auto nrad = create<ArrayI1>("nrad", ncells);
+auto laisun = create<ArrayD1>("laisun", ncells);
+auto laisha = create<ArrayD1>("laisha", ncells);
+auto tlai_z = create<ArrayD2>("tlai_z", ncells, ELM::nlevcan);
+auto fsun_z = create<ArrayD2>("fsun_z", ncells, ELM::nlevcan);
+auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", ncells, ELM::nlevcan);
+auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", ncells, ELM::nlevcan);
+auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", ncells, ELM::nlevcan);
+auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", ncells, ELM::nlevcan);
+auto parsun_z = create<ArrayD2>("parsun_z", ncells, ELM::nlevcan);
+auto parsha_z = create<ArrayD2>("parsha_z", ncells, ELM::nlevcan);
+auto laisun_z = create<ArrayD2>("laisun_z", ncells, ELM::nlevcan);
+auto laisha_z = create<ArrayD2>("laisha_z", ncells, ELM::nlevcan);
 
 // for surface rad
 auto sabg_soil = create<ArrayD1>("sabg_soil", ncells);
@@ -332,10 +268,6 @@ auto flx_absiv = create<ArrayD2>("flx_absiv", ncells, ELM::nlevsno + 1);
 auto flx_absin = create<ArrayD2>("flx_absin", ncells, ELM::nlevsno + 1);
 auto albd = create<ArrayD2>("albd", ncells, ELM::numrad);
 auto albi = create<ArrayD2>("albi", ncells, ELM::numrad);
-
-
-
-
 
 // variables for CanopyTemperature
 auto t_h2osfc = create<ArrayD1>("t_h2osfc", ncells);
@@ -385,24 +317,20 @@ auto rootr_road_perv =
     create<ArrayD2>("rootr_road_perv", ncells, ELM::nlevgrnd); // comes from SoilStateType.F90
 //auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);  // comes from SoilStateType.F90
 
-
-
-
-
 // bareground fluxes
 //auto forc_u = create<ArrayD1>("forc_u", ncells);
 //auto forc_v = create<ArrayD1>("forc_v", ncells);
 auto dlrad = create<ArrayD1>("dlrad", ncells);
 auto ulrad = create<ArrayD1>("ulrad", ncells);
 //auto forc_rho = create<ArrayD1>("forc_rho", ncells);
-auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", ncells);
-auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells);
-auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells);
-auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells);
-auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells);
-auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells);
-auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", ncells);
-auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", ncells);
+auto eflx_sh_grnd = create<ArrayD1>("eflx_sh_grnd", ncells, 0.0);
+auto eflx_sh_snow = create<ArrayD1>("eflx_sh_snow", ncells, 0.0);
+auto eflx_sh_soil = create<ArrayD1>("eflx_sh_soil", ncells, 0.0);
+auto eflx_sh_h2osfc = create<ArrayD1>("eflx_sh_h2osfc", ncells, 0.0);
+auto qflx_evap_soi = create<ArrayD1>("qflx_evap_soi", ncells, 0.0);
+auto qflx_ev_snow = create<ArrayD1>("qflx_ev_snow", ncells, 0.0);
+auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", ncells, 0.0);
+auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", ncells, 0.0);
 auto t_ref2m = create<ArrayD1>("t_ref2m", ncells);
 auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", ncells);
 auto q_ref2m = create<ArrayD1>("q_ref2m", ncells);
@@ -412,18 +340,11 @@ auto cgrnds = create<ArrayD1>("cgrnds", ncells);
 auto cgrndl = create<ArrayD1>("cgrndl", ncells);
 auto cgrnd = create<ArrayD1>("cgrnd", ncells);
 
-
-
-
-
-
-
-// canopy fluxes 
+// canopy fluxes
+//auto max_dayl = create<ArrayD1>("max_dayl", ncells);
+//auto dayl = create<ArrayD1>("dayl", ncells);
 auto altmax_indx = create<ArrayI1>("altmax_indx", ncells);
 auto altmax_lastyear_indx = create<ArrayI1>("altmax_lastyear_indx", ncells);
-
-auto max_dayl = create<ArrayD1>("max_dayl", ncells);
-auto dayl = create<ArrayD1>("dayl", ncells);
 auto tc_stress = create<ArrayD1>("tc_stres", ncells);
 //auto forc_lwrad = create<ArrayD1>("forc_lwrad", ncells);
 auto t10 = create<ArrayD1>("t10", ncells);
@@ -433,7 +354,6 @@ auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", ncells);
 //auto forc_po2 = create<ArrayD1>("forc_po2", ncells);
 auto btran = create<ArrayD1>("btran", ncells);
 auto t_veg = create<ArrayD1>("t_veg", ncells);
-
 auto rootfr = create<ArrayD2>("rootfr", ncells, ELM::nlevgrnd);
 auto smpso = create<ArrayD2>("smpso", ncells, ELM::numpft);
 auto smpsc = create<ArrayD2>("smpsc", ncells, ELM::numpft);
@@ -441,77 +361,411 @@ auto dleaf = create<ArrayD2>("dleaf", ncells, ELM::numpft);
 auto rootr = create<ArrayD2>("rootr", ncells, ELM::nlevgrnd);
 auto eff_porosity = create<ArrayD2>("eff_porosity", ncells, ELM::nlevgrnd);
 
+// surface albedo and snicar
+// required for SurfaceAlbedo kernels
+// I1
+auto snl_top = create<ArrayI1>("snl_top", ncells);
+auto snl_btm = create<ArrayI1>("snl_btm", ncells);
+//auto snl = create<ArrayI1>("snl", n_grid_cells);
+//auto nrad = create<ArrayI1>("nrad", n_grid_cells);
+auto ncan = create<ArrayI1>("ncan", ncells);
+auto flg_nosnl = create<ArrayI1>("flg_nosnl", ncells);
+// I2
+auto snw_rds_lcl = create<ArrayI2>("snw_rds_lcl", ncells, ELM::nlevsno);
+// D1
+//auto coszen = create<ArrayD1>("coszen", n_grid_cells);
+//auto elai = create<ArrayD1>("elai", n_grid_cells);
+//auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
+//auto esai = create<ArrayD1>("esai", n_grid_cells);
+//auto tlai = create<ArrayD1>("tlai", n_grid_cells);
+//auto tsai = create<ArrayD1>("tsai", n_grid_cells);
+//auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", n_grid_cells);
+//auto vcmaxcintsha = create<ArrayD1>("vcmaxcintsha", n_grid_cells);
+//auto t_veg = create<ArrayD1>("t_veg", n_grid_cells);
+//auto fwet = create<ArrayD1>("fwet", n_grid_cells);
+//auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
+auto mu_not = create<ArrayD1>("mu_not", ncells);
+// D2
+//auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_bcphi = create<ArrayD2>("mss_cnc_bcphi", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_bcpho = create<ArrayD2>("mss_cnc_bcpho", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_dst1 = create<ArrayD2>("mss_cnc_dst1", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_dst2 = create<ArrayD2>("mss_cnc_dst2", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_dst3 = create<ArrayD2>("mss_cnc_dst3", n_grid_cells, ELM::nlevsno);
+//auto mss_cnc_dst4 = create<ArrayD2>("mss_cnc_dst4", n_grid_cells, ELM::nlevsno);
+//auto albsod = create<ArrayD2>("albsod", n_grid_cells, ELM::numrad);
+//auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, ELM::numrad);
+//auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad);
+//auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad);
+//auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad);
+//auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad);
+//auto fabd = create<ArrayD2>("fabd", n_grid_cells, ELM::numrad);
+auto fabd_sun = create<ArrayD2>("fabd_sun", ncells, ELM::numrad);
+auto fabd_sha = create<ArrayD2>("fabd_sha", ncells, ELM::numrad);
+//auto fabi = create<ArrayD2>("fabi", n_grid_cells, ELM::numrad);
+auto fabi_sun = create<ArrayD2>("fabi_sun", ncells, ELM::numrad);
+auto fabi_sha = create<ArrayD2>("fabi_sha", ncells, ELM::numrad);
+//auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, ELM::numrad);
+//auto ftid = create<ArrayD2>("ftid", n_grid_cells, ELM::numrad);
+//auto ftii = create<ArrayD2>("ftii", n_grid_cells, ELM::numrad);
+//auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno+1);
+//auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno+1);
+//auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno+1);
+//auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno+1);
+auto albsnd = create<ArrayD2>("albsnd", ncells, ELM::numrad);
+auto albsni = create<ArrayD2>("albsni", ncells, ELM::numrad);
+//auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
+auto tsai_z = create<ArrayD2>("tsai_z", ncells, ELM::nlevcan);
+//auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, ELM::nlevcan);
+//auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, ELM::nlevcan);
+//auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan);
+//auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan);
+//auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan);
+//auto albsat = create<ArrayD2>("albsat", n_grid_cells, ELM::numrad);
+//auto albdry = create<ArrayD2>("albdry", n_grid_cells, ELM::numrad);
+auto h2osoi_vol = create<ArrayD2>("h2osoi_vol", ncells, ELM::nlevgrnd);
+// D3
+auto mss_cnc_aer_in_fdb = create<ArrayD3>("mss_cnc_aer_in_fdb", ncells, ELM::nlevsno, ELM::snow_snicar::sno_nbr_aer);
+auto flx_absd_snw = create<ArrayD3>("flx_absd_snw", ncells, ELM::nlevsno+1, ELM::numrad);
+auto flx_absi_snw = create<ArrayD3>("flx_absi_snw", ncells, ELM::nlevsno+1, ELM::numrad);
+auto flx_abs_lcl = create<ArrayD3>("flx_abs_lcl", ncells, ELM::nlevsno+1, ELM::snow_snicar::numrad_snw);
+//auto flx_abs = create<ArrayD3>("flx_abs", n_grid_cells, ELM::nlevsno+1, ELM::numrad);
+// remaining variables required for SNICAR kernels
+// D1
+//auto h2osno = create<ArrayD1>("h2osno", n_grid_cells);
+//auto ss_alb_oc1 = create<ArrayD1>("ss_alb_oc1", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_oc1 = create<ArrayD1>("asm_prm_oc1", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_oc1 = create<ArrayD1>("ext_cff_mss_oc1", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_oc2 = create<ArrayD1>("ss_alb_oc2", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_oc2 = create<ArrayD1>("asm_prm_oc2", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_oc2 = create<ArrayD1>("ext_cff_mss_oc2", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_dst1 = create<ArrayD1>("ss_alb_dst1", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_dst1 = create<ArrayD1>("asm_prm_dst1", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_dst1 = create<ArrayD1>("ext_cff_mss_dst1", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_dst2 = create<ArrayD1>("ss_alb_dst2", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_dst2 = create<ArrayD1>("asm_prm_dst2", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_dst2 = create<ArrayD1>("ext_cff_mss_dst2", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_dst3 = create<ArrayD1>("ss_alb_dst3", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_dst3 = create<ArrayD1>("asm_prm_dst3", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_dst3 = create<ArrayD1>("ext_cff_mss_dst3", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_dst4 = create<ArrayD1>("ss_alb_dst4", ELM::snow_snicar::numrad_snw);
+//auto asm_prm_dst4 = create<ArrayD1>("asm_prm_dst4", ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_dst4 = create<ArrayD1>("ext_cff_mss_dst4", ELM::snow_snicar::numrad_snw);
+// D2
+//auto ss_alb_snw_drc = create<ArrayD2>("ss_alb_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto asm_prm_snw_drc = create<ArrayD2>("asm_prm_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ext_cff_mss_snw_drc = create<ArrayD2>("ext_cff_mss_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ss_alb_snw_dfs = create<ArrayD2>("ss_alb_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto asm_prm_snw_dfs = create<ArrayD2>("asm_prm_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ext_cff_mss_snw_dfs = create<ArrayD2>("ext_cff_mss_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ss_alb_bc1 = create<ArrayD2>("ss_alb_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+//auto asm_prm_bc1 = create<ArrayD2>("asm_prm_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_bc1 = create<ArrayD2>("ext_cff_mss_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+//auto ss_alb_bc2 = create<ArrayD2>("ss_alb_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+//auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+//auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+auto albout_lcl = create<ArrayD2>("albout_lcl", ncells, ELM::snow_snicar::numrad_snw);
+auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", ncells, ELM::snow_snicar::numrad_snw);
+auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", ncells, ELM::snow_snicar::numrad_snw);
+//auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+//auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+auto h2osoi_ice_lcl = create<ArrayD2>("h2osoi_ice_lcl", ncells, ELM::nlevsno);
+auto h2osoi_liq_lcl = create<ArrayD2>("h2osoi_liq_lcl", ncells, ELM::nlevsno);
+// D3
+//auto bcenh = create<ArrayD3>("bcenh", ELM::snow_snicar::idx_bcint_icerds_max+1, ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
+auto g_star = create<ArrayD3>("g_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+auto omega_star = create<ArrayD3>("omega_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+auto tau_star = create<ArrayD3>("tau_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+
+
+
+
+
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/*                          input files                                                                */
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    std::string fname_surfdata(
+    "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/surfdata_map/surfdata_1x1pt_US-Brw_simyr1850.nc");
+    std::string fname_snicar(
+      "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_mam_c160322.nc");
+    std::string fname_forc(
+      "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/datm7/1x1pt_US-Brw/cpl_bypass_full/all_hourly.nc");
+    std::string data_dir(
+      "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata");
+    std::string fname_pft(
+      "lnd/clm2/paramdata/clm_params_c180524.nc");
+    std::string fname_aerosol(
+      "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/cam/chem/trop_mozart_aero/aero/aerosoldep_monthly_2000_mean_1.9x2.5_c090421.nc");
+
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// init data containers and read time-invariant data from files
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    int nsteps = ntimes + 1; // need n+1 forc data for an n length period of record
+    const auto fstart = ELM::Utils::Date(1985, 1, 1);
+    auto test_TBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::TBOT>(fname_forc, fstart, nsteps, ncells);
+    auto test_PBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::PBOT>(fname_forc, fstart, nsteps, ncells);
+    auto test_QBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::RH>(fname_forc, fstart, nsteps, ncells);
+    auto test_FLDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FLDS>(fname_forc, fstart, nsteps, ncells);
+    auto test_FSDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FSDS>(fname_forc, fstart, nsteps, ncells);
+    auto test_PREC = create_forc_util<ELM::atm_data_manager::AtmForcType::PREC>(fname_forc, fstart, nsteps, ncells);
+    auto test_WIND = create_forc_util<ELM::atm_data_manager::AtmForcType::WIND>(fname_forc, fstart, nsteps, ncells);
+    auto test_ZBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::ZBOT>(fname_forc, fstart, nsteps, ncells);
+    
+    ELM::aerosol_data::AerosolMasses aerosol_masses(ncells);
+    ELM::aerosol_data::AerosolConcentrations aerosol_concentrations(ncells);
+    ELM::phenology_data::PhenologyDataManager phen_data(ncells, 17);
+    
+    auto isoicol = create<ArrayI1>("isoicol", ncells);
+    auto albsat = create<ArrayD2>("albsat", ncells, 2);
+    auto albdry = create<ArrayD2>("albdry", ncells, 2);
+    ELM::read_soil::read_soil_colors(dd, fname_surfdata, isoicol, albsat, albdry);
+    
+    auto pct_sand = create<ArrayD2>("pct_sand", ncells, ELM::nlevsoi);
+    auto pct_clay = create<ArrayD2>("pct_clay", ncells, ELM::nlevsoi);
+    auto organic = create<ArrayD2>("organic", ncells, ELM::nlevsoi);
+    ELM::read_soil::read_soil_texture(dd, fname_surfdata, pct_sand, pct_clay, organic);
+    
+    ELM::snicar_data::SnicarData *snicar_data = new ELM::snicar_data::SnicarData();
+    ELM::snicar_data::read_snicar_data(dd.comm, fname_snicar, snicar_data);
+    
+    ELM::VegData<ArrayD1, ArrayD2> vegdata;
+    vegdata.read_veg_data(data_dir, fname_pft);
+
+    //ELM::aerosol_data::AerosolDataManager<ArrayD1> aerosoldata;
+    ELM::aerosol_data::AerosolDataManager aerosol_data;
+    aerosol_data.read_data(dd.comm, fname_aerosol, lon, lat);
+
+
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// some free functions that calculate initial values
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    ELM::init_soil_hydraulics(pct_sand[0], pct_clay[0], organic[0], zsoi[0], 
+      watsat[0], bsw[0], sucsat[0], watdry[0], watopt[0], watfc[0]);
+    ELM::InitTopoSlope(topo_slope[0]);
+    ELM::InitMicroTopo(Land.ltype, topo_slope[0], topo_std[0], n_melt[0], micro_sigma[0]);
+    ELM::InitSnowLayers(snow_depth[0], lakpoi, snl[0], dz[0], zsoi[0], zisoi[0]);
+    ELM::init_soil_temp(Land, snl[0], t_soisno[0], t_grnd[0]);
+    ELM::init_snow_state(Land.urbpoi, snl[0], h2osno[0], int_snow[0], snow_depth[0], h2osfc[0], h2ocan[0], frac_h2osfc[0], fwet[0], fdry[0], frac_sno[0], snw_rds[0]);
+    ELM::init_soilh2o_state(Land, snl[0], watsat[0], t_soisno[0], dz[0], h2osoi_vol[0], h2osoi_liq[0], h2osoi_ice[0]);
+
+
+
+
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/*                          TIME LOOP                                                                  */
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// these calls should be inside time loop
+test_TBOT.read_atm_forcing(dd, start, nsteps);
+test_PBOT.read_atm_forcing(dd, start, nsteps);
+test_QBOT.read_atm_forcing(dd, start, nsteps);
+test_FLDS.read_atm_forcing(dd, start, nsteps);
+test_FSDS.read_atm_forcing(dd, start, nsteps);
+test_PREC.read_atm_forcing(dd, start, nsteps);
+test_WIND.read_atm_forcing(dd, start, nsteps);
+test_ZBOT.read_atm_forcing(dd, start, nsteps);
 
 ELM::Utils::Date current(start);
-
+ELM::Utils::Date big(start);
+int idx = 0; // hardwire for ncells = 1
 for (int t = 0; t < ntimes; ++t) {
 
 ELM::Utils::Date time_plus_half_dt(current);
-time_plus_half_dt.increment_seconds(900);
+//time_plus_half_dt.increment_seconds(900);
 
 
-// coszen
-double coszen;
-{
-  ELM::Utils::Date forc_dt_start{test_FSDS.get_data_start_time()};
-  forc_dt_start.increment_seconds(round(test_FSDS.forc_t_idx(time_plus_half_dt, test_FSDS.get_data_start_time()) * test_FSDS.get_forc_dt_secs()));
-  //std::cout << "forc_dt_start: " << forc_dt_start.doy << "  " << forc_dt_start.sec << "  " << forc_dt_start.year << std::endl;
-  //std::cout << "forc_dt_start: " << test_FSDS.forc_t_idx(time_plus_half_dt, test_FSDS.get_data_start_time()) << "  " << test_FSDS.get_forc_dt_secs() << std::endl;
-  //std::cout << "time_plus_half_dt: " << time_plus_half_dt.doy << "  " << time_plus_half_dt.sec << std::endl;
-  //std::cout << "current: " << current.doy << "  " << current.sec << std::endl;
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// get coszen - should make this a function
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    double coszen[1];
+    double max_dayl;
+    double dayl;
+    {
+      ELM::Utils::Date forc_dt_start{test_FSDS.get_data_start_time()};
+      forc_dt_start.increment_seconds(round(test_FSDS.forc_t_idx(time_plus_half_dt, test_FSDS.get_data_start_time()) * test_FSDS.get_forc_dt_secs()));
+      //std::cout << "forc_dt_start: " << forc_dt_start.doy << "  " << forc_dt_start.sec << "  " << forc_dt_start.year << std::endl;
+      //std::cout << "forc_dt_start: " << test_FSDS.forc_t_idx(time_plus_half_dt, test_FSDS.get_data_start_time()) << "  " << test_FSDS.get_forc_dt_secs() << std::endl;
+      //std::cout << "time_plus_half_dt: " << time_plus_half_dt.doy << "  " << time_plus_half_dt.sec << std::endl;
+      //std::cout << "current: " << current.doy << "  " << current.sec << std::endl;
+    
+      int cosz_doy = current.doy + 1;
+      double declin = ELM::incident_shortwave::declination_angle2(cosz_doy); // should be the same for model and forcing - don't cross day barrier in forcing timeseries
+      double cosz_decday = ELM::Utils::decimal_doy(current) + 1.0;
+      double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
+      double cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, declin, test_FSDS.get_forc_dt_secs(), cosz_forc_decday);
+      double thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, cosz_decday + dtime_d / 2.0);
+    
+      double cosz_factor = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
+      coszen[0] = thiscosz * cosz_factor;
+      max_dayl = ELM::max_daylength(lat_r);
+      dayl = ELM::daylength(lat_r, declin);
+    }
 
-  int cosz_doy = current.doy + 1;
-  double declin = ELM::incident_shortwave::declination_angle2(cosz_doy); // should be the same for model and forcing - don't cross day barrier in forcing timeseries
-  double cosz_decday = ELM::Utils::decimal_doy(current) + 1.0;
-  double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
-  double cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, declin, test_FSDS.get_forc_dt_secs(), cosz_forc_decday);
-  double thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, cosz_decday + dtime_d / 2.0);
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// read time-variable data
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    phen_data.read_data(dd, fname_surfdata, big, vtype); // if needed
+    phen_data.get_data(big, snow_depth, frac_sno, vtype, elai, esai,
+    htop, hbot, tlai, tsai, frac_veg_nosno_alb);
+    // should read forcing data here
 
-  double cosz_factor = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
-  coszen = thiscosz * cosz_factor;
-}
-std::cout << "coszen: " << coszen << std::endl;
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// timestep init functions
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    test_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
+    test_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
+    test_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
+    test_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
+    test_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, cos1, forc_solai, forc_solad);
+    test_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
+    test_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
+    test_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
 
+    // calc constitutive air props - call properly later
+    ELM::atm_forcing_physics::ConstitutiveAirProperties air_constitutive(forc_qbot, forc_pbot, 
+                             forc_tbot, forc_vp,
+                             forc_rho, forc_po2, forc_pco2);
+    air_constitutive(0); // - call properly
 
+    // get aerosol mss and cnc
+    aerosol_data.invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_masses);
+    ELM::aerosol_data::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
+    h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
 
-
-
-
-
-ELM::InitTimestep(lakpoi, h2osno[0], veg_active[0], snl[0], h2osoi_ice[0], h2osoi_liq[0],
+    ELM::InitTimestep(lakpoi, h2osno[0], veg_active[0], snl[0], h2osoi_ice[0], h2osoi_liq[0],
                     frac_veg_nosno_alb[0], h2osno_old[0], do_capsnow, eflx_bot[0], qflx_glcice[0],
                     frac_veg_nosno[0], frac_iceold[0]);
 
-ELM::interp_monthly_veg<ArrayD3>(current, dtime, n_pfts, fname_surfdata, basename_phen, dd, vtype, timwt, mlai2t, msai2t, mhvt2t,
-                      mhvb2t);
 
-test_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
-test_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
-test_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
-test_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
-test_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, cos1, forc_solai, forc_solad);
-test_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
-test_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
-test_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call surface albedo kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+{
+  // parse pft data for Land.vtype
+  ELM::AlbedoVegData albveg = vegdata.get_pft_albveg(Land.vtype);
 
-ELM::atm_forcing_physics::ConstitutiveAirProperties air_constitutive(forc_qbot, forc_pbot, 
-                             forc_tbot, forc_vp,
-                             forc_rho, forc_po2, forc_pco2);
-air_constitutive(0);
-//for (auto i : forc_rho) std::cout << "forc_rho: " << i << std::endl;
-//for (auto i : forc_pco2) std::cout << "forc_pco2: " << i << std::endl;
-//for (auto i : forc_po2) std::cout << "forc_po2: " << i << std::endl;  
+  ELM::surface_albedo::init_timestep(Land.urbpoi, elai[idx], aerosol_concentrations.mss_cnc_bcphi[idx], aerosol_concentrations.mss_cnc_bcpho[idx], 
+    aerosol_concentrations.mss_cnc_dst1[idx], aerosol_concentrations.mss_cnc_dst2[idx], aerosol_concentrations.mss_cnc_dst3[idx], aerosol_concentrations.mss_cnc_dst4[idx], vcmaxcintsun[idx], 
+    vcmaxcintsha[idx], albsod[idx], albsoi[idx], albgrd[idx], albgri[idx], albd[idx], albi[idx], 
+    fabd[idx], fabd_sun[idx], fabd_sha[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], ftdd[idx], 
+    ftid[idx], ftii[idx], flx_absdv[idx], flx_absdn[idx], flx_absiv[idx], flx_absin[idx], 
+    mss_cnc_aer_in_fdb[idx]);
 
-ELM::satellite_phenology(mlai2t[0], msai2t[0], mhvt2t[0], mhvb2t[0], timwt, Land.vtype, snow_depth[0],
-                          frac_sno[0], tlai[0], tsai[0], htop[0], hbot[0], elai[0], esai[0],
-                          frac_veg_nosno_alb[0]);
+  ELM::surface_albedo::soil_albedo(
+    Land, snl[idx], t_grnd[idx], coszen[idx], h2osoi_vol[idx], 
+    albsat[idx], albdry[idx], albsod[idx], albsoi[idx]);
+
+  {
+    int flg_slr_in = 1; // direct-beam
+
+    ELM::snow_snicar::init_timestep (Land.urbpoi, flg_slr_in, coszen[idx], h2osno[idx], snl[idx], 
+      h2osoi_liq[idx], h2osoi_ice[idx], snw_rds[idx], snl_top[idx], snl_btm[idx], 
+      flx_abs_lcl[idx], flx_absd_snw[idx], flg_nosnl[idx], h2osoi_ice_lcl[idx], 
+      h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], flx_slrd_lcl[idx], 
+      flx_slri_lcl[idx]);
 
 
+    ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+      h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snicar_data->ss_alb_oc1, snicar_data->asm_prm_oc1, 
+      snicar_data->ext_cff_mss_oc1, snicar_data->ss_alb_oc2, snicar_data->asm_prm_oc2, snicar_data->ext_cff_mss_oc2, snicar_data->ss_alb_dst1, snicar_data->asm_prm_dst1, 
+      snicar_data->ext_cff_mss_dst1, snicar_data->ss_alb_dst2, snicar_data->asm_prm_dst2, snicar_data->ext_cff_mss_dst2, snicar_data->ss_alb_dst3, snicar_data->asm_prm_dst3, 
+      snicar_data->ext_cff_mss_dst3, snicar_data->ss_alb_dst4, snicar_data->asm_prm_dst4, snicar_data->ext_cff_mss_dst4, snicar_data->ss_alb_snw_drc, 
+      snicar_data->asm_prm_snw_drc, snicar_data->ext_cff_mss_snw_drc, snicar_data->ss_alb_snw_dfs, snicar_data->asm_prm_snw_dfs, snicar_data->ext_cff_mss_snw_dfs, 
+      snicar_data->ss_alb_bc1, snicar_data->asm_prm_bc1, snicar_data->ext_cff_mss_bc1, snicar_data->ss_alb_bc2, snicar_data->asm_prm_bc2, snicar_data->ext_cff_mss_bc2, 
+      snicar_data->bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
 
 
+    ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
+      snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], 
+      albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
 
-int idx = 0; 
-{                                  // canopyhydrology calls
+
+    ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+      h2osno[idx], snw_rds_lcl[idx], albsoi[idx],albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], 
+      flx_absd_snw[idx]);
+  }
+
+
+  {
+    int flg_slr_in = 2; // diffuse
+
+    ELM::snow_snicar::init_timestep (Land.urbpoi,
+      flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+      snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absi_snw[idx],
+      flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], 
+      flx_slrd_lcl[idx], flx_slri_lcl[idx]);
+
+
+    ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+      h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snicar_data->ss_alb_oc1, snicar_data->asm_prm_oc1, 
+      snicar_data->ext_cff_mss_oc1, snicar_data->ss_alb_oc2, snicar_data->asm_prm_oc2, snicar_data->ext_cff_mss_oc2, snicar_data->ss_alb_dst1, snicar_data->asm_prm_dst1, 
+      snicar_data->ext_cff_mss_dst1, snicar_data->ss_alb_dst2, snicar_data->asm_prm_dst2, snicar_data->ext_cff_mss_dst2, snicar_data->ss_alb_dst3, snicar_data->asm_prm_dst3, 
+      snicar_data->ext_cff_mss_dst3, snicar_data->ss_alb_dst4, snicar_data->asm_prm_dst4, snicar_data->ext_cff_mss_dst4, snicar_data->ss_alb_snw_drc, 
+      snicar_data->asm_prm_snw_drc, snicar_data->ext_cff_mss_snw_drc, snicar_data->ss_alb_snw_dfs, snicar_data->asm_prm_snw_dfs, snicar_data->ext_cff_mss_snw_dfs, 
+      snicar_data->ss_alb_bc1, snicar_data->asm_prm_bc1, snicar_data->ext_cff_mss_bc1, snicar_data->ss_alb_bc2, snicar_data->asm_prm_bc2, snicar_data->ext_cff_mss_bc2, 
+      snicar_data->bcenh, mss_cnc_aer_in_fdb[idx], 
+      g_star[idx], omega_star[idx], tau_star[idx]);
+
+
+    ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
+      coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], 
+      omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
+
+
+    ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+      h2osno[idx], snw_rds_lcl[idx], albsoi[idx], albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], 
+      flx_absi_snw[idx]);
+  }
+
+
+  ELM::surface_albedo::ground_albedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
+    albsoi[idx], albsnd[idx], albsni[idx], albgrd[idx], albgri[idx]);
+
+
+  ELM::surface_albedo::flux_absorption_factor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
+    albsnd[idx], albsni[idx], flx_absd_snw[idx], flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], 
+    flx_absiv[idx], flx_absin[idx]);
+
+
+  ELM::surface_albedo::canopy_layer_lai(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
+    nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
+    fabi_sun_z[idx], fabi_sha_z[idx]);
+
+
+  ELM::surface_albedo::two_stream_solver(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
+    esai[idx], tlai_z[idx], tsai_z[idx], albgrd[idx], albgri[idx], albveg, vcmaxcintsun[idx], 
+    vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], 
+    albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 
+    fabd_sha_z[idx], fabi_sun_z[idx], fabi_sha_z[idx]);
+
+}
+
+
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call canopy_hydrology kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+{
     // local vars - these need to be thread local in parallel runs
     static const double dewmx = 0.1; // hardwired
     // static const bool do_capsnow = false; // hardwired
@@ -542,7 +796,31 @@ int idx = 0;
                     frac_h2osfc[idx]);
 
   }
-
+for (auto i : h2ocan) std::cout << "h2ocan:  " << i << std::endl;
+for (auto i : qflx_prec_grnd) std::cout << "qflx_prec_grnd:  " << i << std::endl;
+for (auto i : qflx_snwcp_liq) std::cout << "qflx_snwcp_liq:  " << i << std::endl;
+for (auto i : qflx_snwcp_ice) std::cout << "qflx_snwcp_ice:  " << i << std::endl;
+for (auto i : qflx_snow_grnd) std::cout << "qflx_snow_grnd:  " << i << std::endl;
+for (auto i : qflx_rain_grnd) std::cout << "qflx_rain_grnd:  " << i << std::endl;
+for (auto i : fwet) std::cout << "fwet:  " << i << std::endl;
+for (auto i : fdry) std::cout << "fdry:  " << i << std::endl;
+for (auto i : snow_depth) std::cout << "snow_depth:  " << i << std::endl;
+for (auto i : h2osno) std::cout << "h2osno:  " << i << std::endl;
+for (auto i : int_snow) std::cout << "int_snow:  " << i << std::endl;
+for (auto i : swe_old) std::cout << "swe_old:  " << i << std::endl;
+for (auto i : h2osoi_liq) std::cout << "h2osoi_liq:  " << i << std::endl;
+for (auto i : h2osoi_ice) std::cout << "h2osoi_ice:  " << i << std::endl;
+for (auto i : t_soisno) std::cout << "t_soisno:  " << i << std::endl;
+for (auto i : frac_iceold) std::cout << "frac_iceold:  " << i << std::endl;
+for (auto i : snl) std::cout << "snl:  " << i << std::endl;
+for (auto i : dz) std::cout << "dz:  " << i << std::endl;
+for (auto i : zsoi) std::cout << "zsoi:  " << i << std::endl;
+for (auto i : zisoi) std::cout << "zisoi:  " << i << std::endl;
+for (auto i : snw_rds) std::cout << "snw_rds:  " << i << std::endl;
+for (auto i : frac_sno_eff) std::cout << "frac_sno_eff:  " << i << std::endl;
+for (auto i : frac_sno) std::cout << "frac_sno:  " << i << std::endl;
+for (auto i : h2osfc) std::cout << "h2osfc:  " << i << std::endl;
+for (auto i : frac_h2osfc) std::cout << "frac_h2osfc:  " << i << std::endl;
   //for (auto i : h2ocan) std::cout << "h2ocan: " << i << std::endl;
   //for (auto i : fwet) std::cout << "fwet: " << i << std::endl;
   //for (auto i : fdry) std::cout << "fdry: " << i << std::endl;
@@ -552,13 +830,25 @@ int idx = 0;
 
 
 
-
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call surface_radiation kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 {
   // local to these kernel calls
     double trd[ELM::numrad] = {0.0,0.0};
     double tri[ELM::numrad] = {0.0,0.0};
 
-    // call SurfaceRadiation kernels
+    // call canopy_sunshade_fractions kernel
+    ELM::surface_radiation::canopy_sunshade_fractions(
+        Land, nrad[idx], elai[idx], tlai_z[idx], fsun_z[idx],
+        forc_solad[idx], forc_solai[idx],
+        fabd_sun_z[idx], fabd_sha_z[idx],
+        fabi_sun_z[idx], fabi_sha_z[idx],
+        parsun_z[idx], parsha_z[idx],
+        laisun_z[idx], laisha_z[idx], laisun[idx], laisha[idx]);
+
     ELM::surface_radiation::initialize_flux(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
                           sabg_lyr[idx]);
 
@@ -585,9 +875,12 @@ int idx = 0;
 
 
 
-
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call canopy_temperature kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 {
-  // call CanopyTemperature kernels
   double qred; // soil surface relative humidity
   double hr;   // relative humidity
 
@@ -596,7 +889,7 @@ int idx = 0;
     ELM::canopy_temperature::ground_temp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
                              t_grnd[idx]);
 
-    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], ELM::smpmin, h2osoi_liq[idx], h2osoi_ice[idx],
                             dz[idx], t_soisno[idx], watsat[idx], sucsat[idx], bsw[idx], watdry[idx], watopt[idx],
                             rootfr_road_perv[idx], rootr_road_perv[idx], qred, hr, soilalpha[idx], soilalpha_u[idx]);
 
@@ -628,9 +921,13 @@ int idx = 0;
 
 
   
-
-{ // call bareground_fluxes kernels
-  int fake_frac_veg_nosno = 0;
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call bareground_fluxes kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+{
+  int fake_frac_veg_nosno = frac_veg_nosno(0);
 
   // temporary data to pass between functions
   double zldis;   // reference height "minus" zero displacement height [m]
@@ -662,13 +959,127 @@ int idx = 0;
 }
 
 
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+// call canopy_fluxes kernels
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+/* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+{
 
+  const ELM::PSNVegData psnveg = vegdata.get_pft_psnveg(Land.vtype);
+  // temporary data to pass between functions
+  double wtg = 0.0;         // heat conductance for ground [m/s]
+  double wtgq = 0.0;        // latent heat conductance for ground [m/s]
+  double wtalq = 0.0;       // normalized latent heat cond. for air and leaf [-]
+  double wtlq0 = 0.0;       // normalized latent heat conductance for leaf [-]
+  double wtaq0 = 0.0;       // normalized latent heat conductance for air [-]
+  double wtl0 = 0.0;        // normalized heat conductance for leaf [-]
+  double wta0 = 0.0;        // normalized heat conductance for air [-]
+  double wtal = 0.0;        // normalized heat conductance for air and leaf [-]
+  double dayl_factor = 0.0; // scalar (0-1) for daylength effect on Vcmax
+  double air = 0.0;         // atmos. radiation temporay set
+  double bir = 0.0;         // atmos. radiation temporay set
+  double cir = 0.0;         // atmos. radiation temporay set
+  double el = 0.0;          // vapor pressure on leaf surface [pa]
+  double qsatl = 0.0;       // leaf specific humidity [kg/kg]
+  double qsatldT = 0.0;     // derivative of "qsatl" on "t_veg"
+  double taf = 0.0;         // air temperature within canopy space [K]
+  double qaf = 0.0;         // humidity of canopy air [kg/kg]
+  double um = 0.0;          // wind speed including the stablity effect [m/s]
+  double ur = 0.0;          // wind speed at reference height [m/s]
+  double dth = 0.0;         // diff of virtual temp. between ref. height and surface
+  double dqh = 0.0;         // diff of humidity between ref. height and surface
+  double obu = 0.0;         // Monin-Obukhov length (m)
+  double zldis = 0.0;       // reference height "minus" zero displacement height [m]
+  double temp1 = 0.0;       // relation for potential temperature profile
+  double temp2 = 0.0;       // relation for specific humidity profile
+  double temp12m = 0.0;     // relation for potential temperature profile applied at 2-m
+  double temp22m = 0.0;     // relation for specific humidity profile applied at 2-m
+  double tlbef = 0.0;       // leaf temperature from previous iteration [K]
+  double delq = 0.0;        // temporary
+  double dt_veg = 0.0;      // change in t_veg, last iteration (Kelvin)
 
+    ELM::canopy_fluxes::initialize_flux(
+        Land, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u[idx],
+        thm[idx], thv[idx], max_dayl, dayl, altmax_indx[idx], altmax_lastyear_indx[idx], 
+        t_soisno[idx], h2osoi_ice[idx], h2osoi_liq[idx], dz[idx], rootfr[idx], psnveg.tc_stress, 
+        sucsat[idx], watsat[idx], bsw[idx], psnveg.smpso, psnveg.smpsc, elai[idx], esai[idx], 
+        emv[idx], emg[idx], qg[idx], t_grnd[idx], forc_tbot[idx], forc_pbot[idx], forc_lwrad[idx], 
+        forc_u[idx], forc_v[idx], forc_qbot[idx], forc_thbot[idx], z0mg[idx], btran[idx], displa[idx], 
+        z0mv[idx], z0hv[idx], z0qv[idx], rootr[idx], eff_porosity[idx], dayl_factor, air, bir, 
+        cir, el, qsatl, qsatldT, taf, qaf, um, ur, obu, zldis, delq, t_veg[idx]);
 
+    ELM::canopy_fluxes::stability_iteration(
+        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], forc_hgt_u[idx], 
+        forc_hgt_t[idx], forc_hgt_q[idx], fwet[idx], fdry[idx], laisun[idx], 
+        laisha[idx], forc_rho[idx], snow_depth[idx], soilbeta[idx], frac_h2osfc[idx], 
+        t_h2osfc[idx], sabv[idx], h2ocan[idx], htop[idx],t_soisno[idx], air, bir, cir, 
+        ur, zldis, displa[idx], elai[idx], esai[idx], t_grnd[idx],forc_pbot[idx], 
+        forc_qbot[idx], forc_thbot[idx], z0mg[idx], z0mv[idx], z0hv[idx], z0qv[idx], thm[idx], 
+        thv[idx], qg[idx], psnveg, nrad[idx], t10[idx], tlai_z[idx], vcmaxcintsha[idx], 
+        vcmaxcintsun[idx], parsha_z[idx], parsun_z[idx], laisha_z[idx], laisun_z[idx], 
+        forc_pco2[idx], forc_po2[idx], dayl_factor, btran[idx], qflx_tran_veg[idx], 
+        qflx_evap_veg[idx], eflx_sh_veg[idx], wtg, wtl0, wta0, wtal, el, qsatl, qsatldT, 
+        taf, qaf, um, dth, dqh, obu, temp1, temp2, temp12m, temp22m, tlbef, delq, dt_veg, 
+        t_veg[idx], wtgq, wtalq, wtlq0, wtaq0);
+
+    ELM::canopy_fluxes::compute_flux(
+        Land, dtime, snl[idx], frac_veg_nosno[idx], frac_sno[idx], t_soisno[idx], frac_h2osfc[idx], 
+        t_h2osfc[idx], sabv[idx], qg_snow[idx], qg_soil[idx], qg_h2osfc[idx], dqgdT[idx], htvp[idx], 
+        wtg, wtl0, wta0, wtal, air, bir, cir, qsatl, qsatldT, dth, dqh, temp1, temp2, temp12m, 
+        temp22m, tlbef, delq, dt_veg, t_veg[idx], t_grnd[idx], forc_pbot[idx], qflx_tran_veg[idx], 
+        qflx_evap_veg[idx], eflx_sh_veg[idx], forc_qbot[idx], forc_rho[idx], thm[idx], emv[idx], 
+        emg[idx], forc_lwrad[idx], wtgq, wtalq, wtlq0, wtaq0, h2ocan[idx], eflx_sh_grnd[idx], 
+        eflx_sh_snow[idx], eflx_sh_soil[idx], eflx_sh_h2osfc[idx], qflx_evap_soi[idx], 
+        qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx], dlrad[idx], ulrad[idx], 
+        cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], t_ref2m_r[idx], q_ref2m[idx], 
+        rh_ref2m[idx], rh_ref2m_r[idx]);
+}
 
 
 current.increment_seconds(1800);
 
+
+//for (auto i : eflx_sh_snow) std::cout << "eflx_sh_snow: " << i << std::endl;
+//for (auto i : eflx_sh_soil) std::cout << "eflx_sh_soil: " << i << std::endl;
+//for (auto i : qflx_ev_snow) std::cout << "qflx_ev_snow: " << i << std::endl;
+//for (auto i : qflx_ev_soil) std::cout << "qflx_ev_soil: " << i << std::endl;
+//for (auto i : eflx_sh_grnd) std::cout << "eflx_sh_grnd: " << i << std::endl;
+//for (auto i : qflx_evap_soi) std::cout << "qflx_evap_soi: " << i << std::endl;
+//for (auto i : forc_rho) std::cout << "forc_rho: " << i << std::endl;
+//  for (auto i : forc_qbot) std::cout << "forc_qbot: " << i << std::endl;
+
+
+std::cout << "forc_tbot: " << forc_tbot(0) << std::endl;
+std::cout << "forc_thbot: " << forc_thbot(0) << std::endl;
+std::cout << "forc_pbot: " << forc_pbot(0) << std::endl;
+std::cout << "forc_qbot: " << forc_qbot(0) << std::endl;
+std::cout << "forc_rh: " << forc_rh(0) << std::endl;
+std::cout << "forc_lwrad: " << forc_lwrad(0) << std::endl;
+std::cout << "forc_rain: " << forc_rain(0) << std::endl;
+std::cout << "forc_snow: " << forc_snow(0) << std::endl;
+std::cout << "forc_u: " << forc_u(0) << std::endl;
+std::cout << "forc_v: " << forc_v(0) << std::endl;
+std::cout << "forc_hgt: " << forc_hgt(0) << std::endl;
+std::cout << "forc_hgt_u: " << forc_hgt_u(0) << std::endl;
+std::cout << "forc_hgt_t: " << forc_hgt_t(0) << std::endl;
+std::cout << "forc_hgt_q: " << forc_hgt_q(0) << std::endl;
+std::cout << "forc_vp: " << forc_vp(0) << std::endl;
+std::cout << "forc_rho: " << forc_rho(0) << std::endl;
+std::cout << "forc_po2: " << forc_po2(0) << std::endl;
+std::cout << "forc_pco2: " << forc_pco2(0) << std::endl;
+
+for (auto i : eflx_sh_veg) std::cout << "eflx_sh_veg: " << i << std::endl;
+for (auto i : eflx_sh_snow) std::cout << "eflx_sh_snow: " << i << std::endl;
+for (auto i : eflx_sh_soil) std::cout << "eflx_sh_soil: " << i << std::endl;
+for (auto i : qflx_ev_snow) std::cout << "qflx_ev_snow: " << i << std::endl;
+for (auto i : qflx_ev_soil) std::cout << "qflx_ev_soil: " << i << std::endl;
+for (auto i : eflx_sh_grnd) std::cout << "eflx_sh_grnd: " << i << std::endl;
+for (auto i : qflx_evap_soi) std::cout << "qflx_evap_soi: " << i << std::endl;
+for (auto i : qflx_evap_veg) std::cout << "qflx_evap_veg: " << i << std::endl;
+for (auto i : qflx_tran_veg) std::cout << "qflx_tran_veg: " << i << std::endl;
+
+std::cout << "END STEP   " << t << std::endl;
 }
 
 
