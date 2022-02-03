@@ -21,13 +21,15 @@ ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_
   
 template<typename T, typename ArrayI1>
 void ComputeAerosolDeposition<T, ArrayI1>::operator()(const int i) const {
-  const int j = ELM::nlevsno-snl_(i);
-  aerosol_masses_.mss_bcphi(i,j) += forc_bcphi_;
-  aerosol_masses_.mss_bcpho(i,j) += forc_bcpho_;
-  aerosol_masses_.mss_dst1(i,j) += forc_dst1_;
-  aerosol_masses_.mss_dst2(i,j) += forc_dst2_;
-  aerosol_masses_.mss_dst3(i,j) += forc_dst3_;
-  aerosol_masses_.mss_dst4(i,j) += forc_dst4_;
+  if (snl_(i) > 0) {
+    const int j = ELM::nlevsno-snl_(i);
+    aerosol_masses_.mss_bcphi(i,j) += forc_bcphi_;
+    aerosol_masses_.mss_bcpho(i,j) += forc_bcpho_;
+    aerosol_masses_.mss_dst1(i,j) += forc_dst1_;
+    aerosol_masses_.mss_dst2(i,j) += forc_dst2_;
+    aerosol_masses_.mss_dst3(i,j) += forc_dst3_;
+    aerosol_masses_.mss_dst4(i,j) += forc_dst4_;
+  }
 }
 
 template<typename ArrayI1, typename ArrayD1, typename ArrayD2>

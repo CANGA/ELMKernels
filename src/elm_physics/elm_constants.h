@@ -2,6 +2,9 @@
 
 namespace ELM {
 
+// from SoilStateType
+static const double smpmin = -1.e8; // restriction for min of soil potential (mm)
+
 // from CanopyHydrology() - move to CanopyHydrology header when ready
 // set shape factor for accumulation of snow
 static const double accum_factor = 0.1;

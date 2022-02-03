@@ -110,6 +110,9 @@ public:
   // interface to return forc_dt_ in seconds
   constexpr double get_forc_dt_secs();
 
+  // included for testing
+  constexpr size_t forc_t_idx_aligned(const double& delta_to_model_time, const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+
   // calculate t_idx at model_time and check bounds
   // assumes model_time is centered on the model_dt interval, ie parameter model_time = model_step_start_time + model_dt/2
   constexpr size_t forc_t_idx_check_bounds(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
@@ -159,6 +162,10 @@ private:
   size_t ntimes_, ncells_; // dimensions for data_
   Utils::Date data_start_time_; // start time of forcing read from file into data_
   double forc_dt_; // forcing data timestep (days) - recalc at every read; assume constant between reads
+  // the next two variables allow compatibility with ELM forcing data that is stored in a short int
+  // format and then scaled and potentially added to
+  double scale_factor_{1.0}; // factor for scaling input data - maybe needed when using some ELM input data
+  double add_offset_{0.0}; // offset to add to input data - maybe needed when using some ELM input data
 };
 
 } // namespace ELM::atm_data_manager

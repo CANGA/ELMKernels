@@ -70,6 +70,26 @@ inline std::array<GO, D> get_dimensions(const Comm_type &comm, const std::string
   return dims;
 }
 
+template <typename T>
+inline int get_attribute(const Comm_type &comm, const std::string &filename, const std::string &varname,
+                          const std::string &attname, T& value) {
+  int nc_id = -1;
+  auto status = nc_open(filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "nc_open", filename);
+
+  int var_id = -1;
+  status = nc_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "nc_inq_varid", filename, varname);
+
+  // optional read attribute - return error code if attname doesn't exist
+  auto err = nc_get_att(nc_id, var_id, attname.c_str(), &value);
+
+  status = nc_close(nc_id);
+  error(status, "nc_close", filename);
+
+  return err;
+}
+
 //
 // get id of dimension variable named by varname
 //  

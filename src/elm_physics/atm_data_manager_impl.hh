@@ -77,26 +77,50 @@ constexpr double AtmDataManager<ArrayD1, ArrayD2, ftype>::get_forc_dt_days() { r
 template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr double AtmDataManager<ArrayD1, ArrayD2, ftype>::get_forc_dt_secs() { return 86400.0 * forc_dt_; }
 
+// calc t index when model_time == a forcing time interval
+// assumes model_time is start of model_dt
+// included for testing
+template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+constexpr size_t AtmDataManager<ArrayD1, ArrayD2, ftype>::forc_t_idx_aligned(const double& delta_to_model_time, const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
+  const double model_dt_start = delta_to_model_time;
+  const double model_dt_end = model_dt_start + model_dt;
+  const int forc_t_idx = static_cast<int>(round(delta_to_model_time / forc_dt_));
+  const double forc_dt_start = forc_t_idx * forc_dt_;
+  const double forc_dt_end = (forc_t_idx + 1) * forc_dt_;
+  constexpr double eps = 1.0e-8;
+  assert((model_dt_start + eps * forc_dt_) >= forc_dt_start && 
+    "model_dt start is less than forc_dt start, even with a 1e-8 * forc_dt error tolerance");
+  assert((model_dt_end - eps * forc_dt_) <= forc_dt_end && 
+    "model_dt end is greater than forc_dt end, even with a 1e-8 * forc_dt error tolerance");
+  return forc_t_idx;
+}
+
 // calculate t_idx at model_time and check bounds
+// model timesteps must fall within a single forcing time interval
 // assumes model_time is centered on the model_dt interval, ie  = model_step_start + model_dt/2
-// assumes model timestep falls entirely between two forcing timesteps
+// includes a (probably temporary) functionality to correctly calc the index in situations where 
+// model_time == a forcing time interval -- this is included for testing
 template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr size_t AtmDataManager<ArrayD1, ArrayD2, ftype>::forc_t_idx_check_bounds(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const {
   const double delta_to_model_time = Utils::days_since(model_time, forc_record_start_time);
+  const bool aligned = (abs(remainder(delta_to_model_time, forc_dt_)) < 1.e-8) ? true : false;
+  if (aligned) {
+    return forc_t_idx_aligned(delta_to_model_time, model_dt, model_time, forc_record_start_time);
+  }
   const double halfdt = model_dt * 0.5;
   const double model_dt_start = delta_to_model_time - halfdt;
   const double model_dt_end = delta_to_model_time + halfdt;
-  const int idx_model_halfdt = static_cast<int>(delta_to_model_time / forc_dt_);
-  const double forc_dt_start = idx_model_halfdt * forc_dt_;
-  const double forc_dt_end = (idx_model_halfdt + 1) * forc_dt_;
-  assert(forc_dt_ > 0.0 && "forc_dt is <= 0.0");
+  const int forc_t_idx = static_cast<int>(delta_to_model_time / forc_dt_);
+  const double forc_dt_start = forc_t_idx * forc_dt_;
+  const double forc_dt_end = (forc_t_idx + 1) * forc_dt_;
   constexpr double eps = 1.0e-8;
+  assert(forc_dt_ > 0.0 && "forc_dt is <= 0.0");
   assert((model_dt_start + eps * forc_dt_) >= 0.0 && "difference in dates is negative");
   assert((model_dt_start + eps * forc_dt_) >= forc_dt_start && 
     "model_dt start is less than forc_dt start, even with a 1e-8 * forc_dt error tolerance");
   assert((model_dt_end - eps * forc_dt_) <= forc_dt_end && 
     "model_dt end is greater than forc_dt end, even with a 1e-8 * forc_dt error tolerance");
-  return idx_model_halfdt;
+  return forc_t_idx;
 }
 
 // calculate t_idx at model_time relative to forc_record_start_time
@@ -179,6 +203,13 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::read_atm_forcing(const U
     forc_dt_ = arr_for_dt_measurement(1) - arr_for_dt_measurement(0);
   }
 
+  {  // get scale factor and offset if available
+    int err = IO::get_attribute(dd.comm, fname_, varname_, "scale_factor", scale_factor_);
+    if (err < 0) {scale_factor_ = 1.0; }
+    err = IO::get_attribute(dd.comm, fname_, varname_, "add_offset", add_offset_);
+    if (err < 0) {add_offset_ = 0.0; }
+  }
+
   // get forcing time series time index (from file start time) immediately prior to model_time
   const auto file_t_idx = forc_t_idx(model_time, file_start_time_);
   update_data_start_time(file_t_idx);
@@ -207,7 +238,7 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::read_atm_forcing(const U
   for (i = 0; i != ntimes; ++i) {
     for (j = 0; j != dd.n_local[0]; ++j) {
       for (k = 0; k != dd.n_local[1]; ++k) {
-        data_(i, j * dd.n_local[1] + k) = arr_for_read(ii, jj, kk);
+        data_(i, j * dd.n_local[1] + k) = arr_for_read(ii, jj, kk) * scale_factor_ + add_offset_;
       }
     }
   }
