@@ -214,7 +214,7 @@ void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::strin
   for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
     for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
       for (int k = 0; k != ELM::nlevsoi; ++k) {
-        pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+        organic(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
       }
     }
   }

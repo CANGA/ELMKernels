@@ -24,7 +24,7 @@ double declination_angle2(int doy) {
 
 // cosine of the solar zenith angle
 double coszen(double latrad, double lonrad, double jday) {
-  double decrad = declination_angle(floor(jday));
+  double decrad = declination_angle2(floor(jday));
   double cosz = sin(latrad)*sin(decrad) - cos(latrad)*cos(decrad) * cos((jday-floor(jday))*TWO_PI + lonrad);
   return cosz > 0.001 ? cosz : 0.001;
 }

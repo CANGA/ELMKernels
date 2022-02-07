@@ -39,12 +39,13 @@ inline void error(int status, const std::string &func, const std::string &file, 
 //
 template <size_t D>
 inline std::array<GO, D> get_dimensions(const MPI_Comm &comm, const std::string &filename, const std::string &varname) {
+  
   MPI_Info info;
   MPI_Info_create(&info);
-
   int nc_id = -1;
   auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, info, &nc_id);
   error(status, "nc_open", filename);
+  MPI_Info_free(&info);
 
   int var_id = -1;
   status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
@@ -69,9 +70,33 @@ inline std::array<GO, D> get_dimensions(const MPI_Comm &comm, const std::string 
   status = ncmpi_close(nc_id);
   error(status, "ncmpi_close", filename);
 
-  MPI_Info_free(&info);
   return dims;
 }
+
+
+template <typename T>
+inline int get_attribute(const MPI_Comm &comm, const std::string &filename, const std::string &varname,
+                          const std::string &attname, T& value) {
+  MPI_Info info;
+  MPI_Info_create(&info);
+  int nc_id = -1;
+  auto status = ncmpi_open(comm, filename.c_str(), NC_NOWRITE, &nc_id);
+  error(status, "ncmpi_open", filename);
+  MPI_Info_free(&info);
+
+  int var_id = -1;
+  status = ncmpi_inq_varid(nc_id, varname.c_str(), &var_id);
+  error(status, "ncmpi_inq_varid", filename, varname);
+
+  // optional read attribute - return error code if attname doesn't exist
+  auto err = ncmpi_get_att(nc_id, var_id, attname.c_str(), &value);
+
+  status = ncmpi_close(nc_id);
+  error(status, "ncmpi_close", filename);
+
+  return err;
+}
+
 
 //
 // get id of dimension variable named by varname
