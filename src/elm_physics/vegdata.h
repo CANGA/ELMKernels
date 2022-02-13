@@ -7,7 +7,7 @@
 #include "array.hh"
 #include "read_input.hh"
 #include "utils.hh"
-#include <assert.h>
+#include <cassert>
 
 
 namespace ELM {

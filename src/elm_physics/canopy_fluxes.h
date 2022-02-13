@@ -19,8 +19,7 @@ Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 #include <assert.h>
 #include <cmath>
 
-namespace ELM {
-namespace canopy_fluxes {
+namespace ELM::canopy_fluxes {
 
 /*! Initialize variables for photosynthesis and call monin_obukhov_length() for vegetated cells.
 
@@ -297,7 +296,6 @@ void compute_flux(const LandType &Land, const double &dtime, const int &snl, con
                      double &cgrndl, double &cgrnd, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
                      double &rh_ref2m, double &rh_ref2m_r);
 
-} // namespace canopy_fluxes
-} // namespace ELM
+} // namespace ELM::canopy_fluxes
 
 #include "canopy_fluxes_impl.hh"

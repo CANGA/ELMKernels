@@ -13,8 +13,7 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 #include <cmath>
 #include <stdexcept>
 
-namespace ELM {
-namespace snow_snicar {
+namespace ELM::snow_snicar {
 
 constexpr int numrad_snw = 5; // number of spectral bands used in snow model [nbr]
 constexpr int nir_bnd_bgn = 1; // first band index in near-IR spectrum [idx]
@@ -240,8 +239,7 @@ const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,
 ArrayD1 albout, ArrayD2 flx_abs);
 
 
-} // namespace snow_snicar
-} // namespace ELM
+} // namespace ELM::snow_snicar
 
 
 #include "snow_snicar_impl.hh"

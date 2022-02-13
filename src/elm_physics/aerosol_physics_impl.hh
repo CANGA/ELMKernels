@@ -1,8 +1,7 @@
 
-
 #pragma once
 
-namespace ELM::aerosol_data {
+namespace ELM::aerosols {
 
 template<typename T, typename ArrayI1>
 ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl,
@@ -94,5 +93,5 @@ void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime,
   }
 }
 
-} // namespace ELM::aerosol_data
+} // namespace ELM::aerosols
 

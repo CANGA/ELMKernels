@@ -1,11 +1,8 @@
 
 #pragma once
 
-
-
-namespace ELM {
-namespace incident_shortwave {
-
+namespace ELM::incident_shortwave {
+  
 // declination angle calc from ats/landlab
 // doy [int]      day of year
 // returns delination angle [radians]
@@ -100,6 +97,5 @@ cosine of the solar zenith angle averaged over dt
 */
 double average_cosz(double latrad, double lonrad, double declin, double dt, double jday);
 
-} // namespace incident_shortwave
-} // namespace ELM
+} // namespace ELM::incident_shortwave
 

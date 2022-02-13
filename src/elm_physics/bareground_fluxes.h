@@ -19,8 +19,7 @@ It is not the same as the displa calculated in CanopyTemperature
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
-namespace bareground_fluxes {
+namespace ELM::bareground_fluxes {
 
 /*! Initialize variables and call monin_obukhov_length() for bare-ground cells.
 
@@ -139,8 +138,7 @@ void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &sn
                     double &qflx_ev_soil, double &qflx_ev_h2osfc, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
                     double &rh_ref2m, double &rh_ref2m_r);
 
-} // namespace bareground_fluxes
-} // namespace ELM
+} // namespace ELM::bareground_fluxes
 
 #include "bareground_fluxes_impl.hh"
 

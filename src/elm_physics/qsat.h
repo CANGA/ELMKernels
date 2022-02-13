@@ -3,11 +3,10 @@
 */
 #pragma once
 
-namespace ELM {
-namespace qsat {
+namespace ELM::qsat {
 
 /*! Computes saturation mixing ratio and the change in saturation. (internal) */
 void qsat(const double &T, const double &p, double &es, double &esdT, double &qs, double &qsdT);
 
-} // namespace qsat
-} // namespace ELM
+} // namespace ELM::qsat
+

@@ -2,6 +2,7 @@
 #define ELM_UTILS_DATE_TIME_HH_
 
 #include <iomanip>
+#include <cassert>
 
 namespace ELM {
 namespace Utils {

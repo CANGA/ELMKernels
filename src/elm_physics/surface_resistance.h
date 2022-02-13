@@ -7,8 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
-namespace surface_resistance {
+namespace ELM::surface_resistance {
 
 /* calc_soilevap_stress()
 DESCRIPTION:
@@ -47,8 +46,7 @@ void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const do
 */
 double getlblcef(const double &rho, const double &temp);
 
-} // namespace surface_resistance
-} // namespace ELM
+} // namespace ELM::surface_resistance
 
 #include <surface_resistance_impl.hh>
 

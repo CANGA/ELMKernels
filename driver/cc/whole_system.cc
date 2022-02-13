@@ -41,6 +41,7 @@
 #include "bareground_fluxes.h"
 #include "canopy_fluxes.h"
 #include "aerosol_data.h"
+#include "aerosol_physics.h"
 #include "phenology_data.h"
 #include "surface_albedo.h"
 #include "snow_snicar.h"
@@ -65,11 +66,12 @@ template <class Array_t, class T> Array_t create(const std::string &name, int D0
 template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t val) { ELM::deep_copy(arr, val); }
 
 
+using AtmForcType = ELM::ELMconstants::AtmForcType;
 
-template<ELM::atm_data_manager::AtmForcType ftype>
-using atm_forc_util = ELM::atm_data_manager::AtmDataManager<ArrayD1, ArrayD2, ftype>;
+template<AtmForcType ftype>
+using atm_forc_util = ELM::AtmDataManager<ArrayD1, ArrayD2, ftype>;
 
-template <ELM::atm_data_manager::AtmForcType ftype>
+template <AtmForcType ftype>
 atm_forc_util<ftype> create_forc_util(const std::string& filename, const ELM::Utils::Date &file_start_time, const int ntimes, const int ncells) {
   return atm_forc_util<ftype>(filename, file_start_time, ntimes, ncells); }
 
@@ -535,18 +537,18 @@ std::string fname_aerosol(
     //int nsteps = ntimes + 1; // need n+1 forc data for an n length period of record
     int nsteps = 543120; // for testing
     const auto fstart = ELM::Utils::Date(1985, 1, 1);
-    auto test_TBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::TBOT>(fname_forc, fstart, nsteps, ncells);
-    auto test_PBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::PBOT>(fname_forc, fstart, nsteps, ncells);
-    auto test_QBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::RH>(fname_forc, fstart, nsteps, ncells);
-    auto test_FLDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FLDS>(fname_forc, fstart, nsteps, ncells);
-    auto test_FSDS = create_forc_util<ELM::atm_data_manager::AtmForcType::FSDS>(fname_forc, fstart, nsteps, ncells);
-    auto test_PREC = create_forc_util<ELM::atm_data_manager::AtmForcType::PREC>(fname_forc, fstart, nsteps, ncells);
-    auto test_WIND = create_forc_util<ELM::atm_data_manager::AtmForcType::WIND>(fname_forc, fstart, nsteps, ncells);
-    auto test_ZBOT = create_forc_util<ELM::atm_data_manager::AtmForcType::ZBOT>(fname_forc, fstart, nsteps, ncells);
+    auto test_TBOT = create_forc_util<AtmForcType::TBOT>(fname_forc, fstart, nsteps, ncells);
+    auto test_PBOT = create_forc_util<AtmForcType::PBOT>(fname_forc, fstart, nsteps, ncells);
+    auto test_QBOT = create_forc_util<AtmForcType::RH>(fname_forc, fstart, nsteps, ncells);
+    auto test_FLDS = create_forc_util<AtmForcType::FLDS>(fname_forc, fstart, nsteps, ncells);
+    auto test_FSDS = create_forc_util<AtmForcType::FSDS>(fname_forc, fstart, nsteps, ncells);
+    auto test_PREC = create_forc_util<AtmForcType::PREC>(fname_forc, fstart, nsteps, ncells);
+    auto test_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, fstart, nsteps, ncells);
+    auto test_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, fstart, nsteps, ncells);
     
-    ELM::aerosol_data::AerosolMasses aerosol_masses(ncells);
-    ELM::aerosol_data::AerosolConcentrations aerosol_concentrations(ncells);
-    ELM::phenology_data::PhenologyDataManager phen_data(ncells, 17);
+    ELM::AerosolMasses aerosol_masses(ncells);
+    ELM::AerosolConcentrations aerosol_concentrations(ncells);
+    ELM::PhenologyDataManager phen_data(ncells, 17);
     
     auto isoicol = create<ArrayI1>("isoicol", ncells);
     auto albsat = create<ArrayD2>("albsat", ncells, 2);
@@ -558,14 +560,14 @@ std::string fname_aerosol(
     auto organic = create<ArrayD2>("organic", ncells, ELM::nlevgrnd);
     ELM::read_soil::read_soil_texture(dd, fname_surfdata, pct_sand, pct_clay, organic);
     
-    ELM::snicar_data::SnicarData *snicar_data = new ELM::snicar_data::SnicarData();
-    ELM::snicar_data::read_snicar_data(dd.comm, fname_snicar, snicar_data);
+    ELM::SnicarData *snicar_data = new ELM::SnicarData();
+    ELM::read_snicar_data(dd.comm, fname_snicar, snicar_data);
     
     ELM::VegData<ArrayD1, ArrayD2> vegdata;
     vegdata.read_veg_data(data_dir, fname_pft);
 
-    //ELM::aerosol_data::AerosolDataManager<ArrayD1> aerosoldata;
-    ELM::aerosol_data::AerosolDataManager aerosol_data;
+    //ELM::AerosolDataManager<ArrayD1> aerosoldata;
+    ELM::AerosolDataManager aerosol_data;
     aerosol_data.read_data(dd.comm, fname_aerosol, lon, lat);
 
 
@@ -706,7 +708,7 @@ time_plus_half_dt.increment_seconds(900);
 
     // get aerosol mss and cnc
     aerosol_data.invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_masses);
-    ELM::aerosol_data::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
+    ELM::aerosols::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
     h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
 
     ELM::InitTimestep(lakpoi, h2osno[0], veg_active[0], snl[0], h2osoi_ice[0], h2osoi_liq[0],

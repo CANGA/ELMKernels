@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace ELM {
-namespace snow_snicar {
+namespace ELM::snow_snicar {
 
 //  subroutine SnowAge_grain(bounds, &
 //       num_snowc, filter_snowc, num_nosnowc, filter_nosnowc, &
@@ -910,5 +909,5 @@ void snow_albedo_radiation_factor(const bool &urbpoi, const int &flg_slr_in, con
 } // snow_albedo_radiation_factor()
 
 
-} // namespace snow_snicar
-} // namespace ELM
+} // namespace ELM::snow_snicar
+

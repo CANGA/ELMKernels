@@ -1,14 +1,25 @@
 
 #pragma once
 
-#include <string>
-#include <array>
-
 #include "array.hh"
 #include "utils.hh"
 #include "read_input.hh"
 
-namespace ELM::snicar_data {
+#include <string>
+#include <array>
+
+
+namespace ELM::snicar_utils {
+
+// read and manipulate data
+template <typename ArrayT, typename T, size_t D>
+void read_and_fill_array(const Comm_type &comm, const std::string &filename, const std::string &varname,
+                 Array<T, D> &arr_for_read, ArrayT& arrout);
+
+} // namespace ELM::snicar_utils
+
+
+namespace ELM {
 
 struct SnicarData {
 // use this for now - I don't want to template this class
@@ -52,15 +63,11 @@ ArrayD3 bcenh;
 SnicarData();
 };
 
-// read and manipulate data
-template <typename ArrayT, typename T, size_t D>
-void read_and_fill_array(const Comm_type &comm, const std::string &filename, const std::string &varname,
-                 Array<T, D> &arr_for_read, ArrayT& arrout);
-
+using namespace ELM::snicar_utils;
 // read all fields in SnicarData
 void read_snicar_data(const Comm_type &comm, const std::string& filename, SnicarData *snicar_data);
 
-} // namespace ELM::snicar_data
+} // namespace ELM
 
 #include "snicar_data_impl.hh"
 

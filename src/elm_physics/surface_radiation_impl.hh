@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace ELM {
-namespace surface_radiation {
+namespace ELM::surface_radiation {
 
 template <class ArrayD1>
 void initialize_flux(const LandType &Land, double &sabg_soil, double &sabg_snow, double &sabg, double &sabv,
@@ -225,5 +224,4 @@ void canopy_sunshade_fractions(const LandType &Land, const int &nrad, const doub
   }
 }
 
-} // namespace surface_radiation
-} // namespace ELM
+} // namespace ELM::surface_radiation

@@ -13,8 +13,7 @@ Call sequence: interception() -> Irrigation() -> ground_flux() -> fraction_wet()
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
-namespace canopy_hydrology {
+namespace ELM::canopy_hydrology {
 
 /*! Calculate interception and partition incoming precipitation
 into canopy storage, canopy runoff, rain and snow throughfall.
@@ -148,7 +147,6 @@ void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const doub
 
                 double &h2osfc, ArrayD1 h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc);
 
-} // namespace canopy_hydrology
-} // namespace ELM
+} // namespace ELM::canopy_hydrology
 
 #include "canopy_hydrology_impl.hh"

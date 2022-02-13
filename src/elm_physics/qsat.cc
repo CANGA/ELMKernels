@@ -3,8 +3,7 @@
 #include "qsat.h"
 #include "elm_constants.h"
 
-namespace ELM {
-namespace qsat {
+namespace ns = ELM::qsat;
 
 // For water vapor (temperature range 0C-100C)
 static const double a0 = 6.11213476;
@@ -47,7 +46,7 @@ static const double d6 = 0.133268878e-10;
 static const double d7 = 0.394116744e-13;
 static const double d8 = 0.498070196e-16;
 
-void qsat(const double &T, const double &p,
+void ns::qsat(const double &T, const double &p,
 
           double &es, double &esdT, double &qs, double &qsdT) {
   double td, vp, vp1, vp2, T_limit;
@@ -79,5 +78,3 @@ void qsat(const double &T, const double &p,
   qsdT = esdT * vp2 * p; // 1 / K
 }
 
-} // namespace qsat
-} // namespace ELM

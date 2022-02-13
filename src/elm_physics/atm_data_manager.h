@@ -1,17 +1,19 @@
 
 #pragma once
 
-#include <cmath>
-#include <string>
-#include <array>
-#include <tuple>
-
+#include "atm_forcing_physics.h"
 #include "elm_constants.h"
 #include "utils.hh"
 #include "array.hh"
 #include "read_input.hh"
 
-#include "atm_forcing_physics.h"
+#include <cmath>
+#include <string>
+#include <array>
+#include <utility>
+#include <tuple>
+#include <stdexcept>
+
 
 /*
 Class to read, parse, and operate on atmospheric forcing input
@@ -70,7 +72,7 @@ VISUAL REPRESENTATION OF FORCING TIME ORIENTATION
 
 */
 
-namespace ELM::atm_data_manager {
+namespace ELM::atm_utils {
 
 //enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 using AtmForcType = ELMconstants::AtmForcType;
@@ -87,7 +89,12 @@ constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y);
 template<typename T, typename U> 
 constexpr T& get_dim_ref(const U dim_idx, T& t, T& x);
 
+} // namespace ELM::atm_utils
 
+
+using namespace ELM::atm_utils;
+
+namespace ELM {
 template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 class AtmDataManager {
 
@@ -168,6 +175,6 @@ private:
   double add_offset_{0.0}; // offset to add to input data - maybe needed when using some ELM input data
 };
 
-} // namespace ELM::atm_data_manager
+} // namespace ELM
 
 #include "atm_data_manager_impl.hh"

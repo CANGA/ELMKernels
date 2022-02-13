@@ -12,8 +12,7 @@ Irrigation() can be called anytime after InitializeFlux()
 */
 #pragma once
 
-namespace ELM {
-namespace canopy_fluxes {
+namespace ELM::canopy_fluxes {
 // */
 // void Irrigation(
 //  const LandType& Land,
@@ -530,5 +529,4 @@ void compute_flux(const LandType &Land, const double &dtime, const int &snl, con
   }
 } // compute_flux()
 
-} // namespace canopy_fluxes
-} // namespace ELM
+} // namespace ELM::canopy_fluxes

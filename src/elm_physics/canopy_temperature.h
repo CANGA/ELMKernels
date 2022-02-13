@@ -13,11 +13,11 @@ ground_properties() -> forcing_height() -> init_energy_fluxes()
 #include "landtype.h"
 #include "qsat.h"
 #include "surface_resistance.h"
+
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
-namespace canopy_temperature {
+namespace ELM::canopy_temperature {
 
 /*! Record t_h2osfc and t_soisno prior to updating.
 
@@ -200,8 +200,7 @@ void init_energy_fluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_
                             double &eflx_lh_tot, double &eflx_lh_tot_u, double &eflx_lh_tot_r, double &eflx_sh_veg,
                             double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg);
 
-} // namespace canopy_temperature
-} // namespace ELM
+} // namespace ELM::canopy_temperature
 
 #include "canopy_temperature_impl.hh"
 

@@ -1,10 +1,9 @@
 
 #pragma once
 
-namespace ELM::snicar_data {
 
 template <typename ArrayT, typename T, size_t D>
-inline void read_and_fill_array(const Comm_type &comm, const std::string &filename, const std::string &varname,
+inline void ELM::snicar_utils::read_and_fill_array(const Comm_type &comm, const std::string &filename, const std::string &varname,
                  Array<T, D> &arr_for_read, ArrayT& arrout) {
   std::array<size_t, D> start{0};
   std::array<size_t, D> count;
@@ -27,4 +26,3 @@ inline void read_and_fill_array(const Comm_type &comm, const std::string &filena
   return;
 }
 
-} // namespace ELM::snicar_data

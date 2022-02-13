@@ -1,11 +1,10 @@
 
 #pragma once
 
-#include <cmath>
-
 #include "array.hh"
 #include "elm_constants.h"
 
+#include <cmath>
 
 namespace ELM::atm_forcing_physics {
 

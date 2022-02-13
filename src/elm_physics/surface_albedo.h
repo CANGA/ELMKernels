@@ -42,7 +42,9 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 #include "elm_constants.h"
 #include "landtype.h"
 #include "vegdata.h"
+
 #include <cmath>
+#include <algorithm>
 #include <stdexcept>
 
 namespace ELM {

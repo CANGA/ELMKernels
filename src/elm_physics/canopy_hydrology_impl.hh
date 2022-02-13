@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace ELM {
-namespace canopy_hydrology {
+namespace ELM::canopy_hydrology {
   
 template <class ArrayD1>
 void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
@@ -213,7 +212,5 @@ void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const doub
   }
 } // fraction_h2osfc
 
-} // namespace canopy_hydrology
-} // namespace ELM
-
+} // namespace ELM::canopy_hydrology
 

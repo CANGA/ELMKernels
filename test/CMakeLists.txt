@@ -28,6 +28,10 @@ add_executable (test_SurfAlb test_SurfAlb.cc)
 target_link_libraries (test_SurfAlb LINK_PUBLIC elm_physics elm_utils)
 install(TARGETS test_SurfAlb)
 
+add_executable (test_SurfAlb_input test_SurfAlb_input.cc)
+target_link_libraries (test_SurfAlb_input LINK_PUBLIC elm_physics elm_utils)
+install(TARGETS test_SurfAlb_input)
+
 
 
 

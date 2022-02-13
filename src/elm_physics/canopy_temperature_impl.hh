@@ -2,8 +2,7 @@
 
 #pragma once
 
-namespace ELM {
-namespace canopy_temperature {
+namespace ELM::canopy_temperature {
 
 template <class ArrayD1>
 void old_ground_temp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
@@ -227,5 +226,5 @@ void ground_properties(const LandType &Land, const int &snl, const double &frac_
   }
 } // ground_properties
 
-} // namespace canopy_temperature
-} // namespace ELM
+} // namespace ELM::canopy_temperature
+

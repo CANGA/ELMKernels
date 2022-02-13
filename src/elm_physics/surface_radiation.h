@@ -10,11 +10,11 @@ CanopySunShadeFrac() -> initialize_flux() -> total_absorbed_radiation() -> layer
 
 #include "elm_constants.h"
 #include "landtype.h"
-#include <assert.h>
+
+#include <cassert>
 #include <cmath>
 
-namespace ELM {
-namespace surface_radiation {
+namespace ELM::surface_radiation {
 
 /*! Zero out fluxes before surface radiation calculations.
 
@@ -131,7 +131,6 @@ void canopy_sunshade_fractions(const LandType &Land, const int &nrad, const doub
                              const ArrayD1 fabi_sha_z, ArrayD1 parsun_z, ArrayD1 parsha_z,
                              ArrayD1 laisun_z, ArrayD1 laisha_z, double &laisun, double &laisha);
 
-} // namespace surface_radiation
-} // namespace ELM
+} // namespace ELM::surface_radiation
 
 #include "surface_radiation_impl.hh"

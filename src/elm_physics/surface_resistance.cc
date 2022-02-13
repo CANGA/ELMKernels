@@ -2,10 +2,9 @@
 
 #include "surface_resistance.h"
 
-namespace ELM {
-namespace surface_resistance {
+namespace ns = ELM::surface_resistance;
 
-double getlblcef(const double &rho, const double &temp) {
+double ns::getlblcef(const double &rho, const double &temp) {
   const double C = 120.0;      // K
   const double T0 = 291.25;    // K
   const double mu0 = 18.27e-6; // Pa s
@@ -18,5 +17,3 @@ double getlblcef(const double &rho, const double &temp) {
   return result;
 }
 
-} // namespace surface_resistance
-} // namespace ELM

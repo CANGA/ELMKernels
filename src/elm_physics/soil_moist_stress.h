@@ -19,8 +19,7 @@ soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without d
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
-namespace soil_moist_stress {
+namespace ELM::soil_moist_stress {
 
 /*
 DESCRIPTION: normalize array elements with respect to array sum
@@ -114,8 +113,7 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
                             const double &smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
                             const int &altmax_lastyear_indx, ArrayD1 rootr, double &btran);
 
-} // namespace soil_moist_stress
-} // namespace ELM
+} // namespace ELM::soil_moist_stress
 
 #include "soil_moist_stress_impl.hh"
 

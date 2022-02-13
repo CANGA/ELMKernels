@@ -10,10 +10,9 @@
 #include "bareground_fluxes.h"
 #include "friction_velocity.h"
 
-namespace ELM {
-namespace bareground_fluxes {
+namespace ns = ELM::bareground_fluxes;
 
-void initialize_flux(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
+void ns::initialize_flux(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
                        const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
                        const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
                        double &ulrad, double &zldis, double &displa, double &dth, double &dqh, double &obu, double &ur,
@@ -34,7 +33,7 @@ void initialize_flux(const LandType &Land, const int &frac_veg_nosno, const doub
   }
 } // initialize_flux()
 
-void stability_iteration(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
+void ns::stability_iteration(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
                            const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
                            const double &zldis, const double &displa,
                            const double &dth, const double &dqh, const double &ur, const double &forc_q,
@@ -82,5 +81,3 @@ void stability_iteration(const LandType &Land, const int &frac_veg_nosno, const 
   }
 } // stability_iteration()
 
-} // namespace bareground_fluxes
-} // namespace ELM

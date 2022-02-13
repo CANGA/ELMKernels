@@ -2,10 +2,9 @@
 
 #include "canopy_temperature.h"
 
-namespace ELM {
-namespace canopy_temperature {
+namespace ns = ELM::canopy_temperature;
 
-void forcing_height(const LandType &Land, const bool &veg_active, const int &frac_veg_nosno,
+void ns::forcing_height(const LandType &Land, const bool &veg_active, const int &frac_veg_nosno,
                             const double &forc_hgt_u, const double &forc_hgt_t, const double &forc_hgt_q,
                             const double &z0m, const double &z0mg, const double &z_0_town, const double &z_d_town,
                             const double &forc_t, const double &displa, double &forc_hgt_u_patch,
@@ -41,7 +40,7 @@ void forcing_height(const LandType &Land, const bool &veg_active, const int &fra
   thm = forc_t + 0.0098 * forc_hgt_t_patch;
 } // forcing_height
 
-void init_energy_fluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_sh_tot_u, double &eflx_sh_tot_r,
+void ns::init_energy_fluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_sh_tot_u, double &eflx_sh_tot_r,
                             double &eflx_lh_tot, double &eflx_lh_tot_u, double &eflx_lh_tot_r, double &eflx_sh_veg,
                             double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg) {
   // Initial set (needed for history tape fields)
@@ -63,5 +62,3 @@ void init_energy_fluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_
   qflx_tran_veg = 0.0;
 } // init_energy_fluxes
 
-} // namespace canopy_temperature
-} // namespace ELM

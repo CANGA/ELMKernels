@@ -5,13 +5,13 @@
 
 #include "elm_constants.h"
 #include "vegdata.h"
+
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <iostream>
 
-namespace ELM {
-namespace photosynthesis {
+namespace ELM::photosynthesis {
 
 constexpr double sco = 0.5 * 0.209 / (42.75 / 1.e06); // relative specificity of rubisco
 
@@ -142,8 +142,7 @@ void photosynthesis_total(const double &psnsun, const double &psnsun_wc, const d
                          const double &psnsha_wj, const double &psnsha_wp, const double &laisha, double &fpsn,
                          double &fpsn_wc, double &fpsn_wj, double &fpsn_wp);
 
-} // namespace photosynthesis
-} // namespace ELM
+} // namespace namespace ELM::photosynthesis
 
 #include <photosynthesis_impl.hh>
 

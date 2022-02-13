@@ -1,10 +1,9 @@
 
 #include "soil_moist_stress.h"
 
-namespace ELM {
-namespace soil_moist_stress {
+namespace ns = ELM::soil_moist_stress;
   
-void array_normalization(double *arr_inout) {
+void ns::array_normalization(double *arr_inout) {
   double arr_sum = 0.0;
 
   for (int i = 0; i < nlevgrnd; i++) {
@@ -18,10 +17,7 @@ void array_normalization(double *arr_inout) {
 }
 
 
-void soil_suction(const double &smpsat, const double &s, const double &bsw, double &smp) {
+void ns::soil_suction(const double &smpsat, const double &s, const double &bsw, double &smp) {
   smp = -smpsat * pow(s, (-bsw));
 }
-
-} // namespace soil_moist_stress
-} // namespace ELM
 

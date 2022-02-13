@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace ELM::atm_data_manager {
+namespace ELM::atm_utils {
 
 // return name associated with enum type
 template<AtmForcType ftype>
@@ -38,6 +38,9 @@ constexpr T& get_dim_ref(const U dim_idx, T& t, T& x) {
   throw std::runtime_error("ELM ERROR: NetCDF variable dimension index not in {0,1}");
 }
 
+} // namespace ELM::atm_utils
+
+namespace ELM {
 template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr AtmDataManager<ArrayD1, ArrayD2, ftype>::AtmDataManager(const std::string& filename, const Utils::Date &file_start_time,
   const size_t ntimes, const size_t ncells) : data_(get_varname<ftype>(), ntimes, ncells),

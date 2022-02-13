@@ -2,11 +2,10 @@
 
 #include "photosynthesis.h"
 
-namespace ELM {
-namespace photosynthesis {
+namespace ns = ELM::photosynthesis;
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
-void quadratic(const double &a, const double &b, const double &c, double &r1, double &r2) {
+void ns::quadratic(const double &a, const double &b, const double &c, double &r1, double &r2) {
   double q;
   if (a == 0.0) {
     throw std::runtime_error("ELM ERROR: quadratic solution a == 0.0");
@@ -27,7 +26,7 @@ void quadratic(const double &a, const double &b, const double &c, double &r1, do
 //void TimeStepInit() {}
 
 // DESCRIPTION: evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
-void ci_func(const double &ci, // intracellular leaf CO2 (Pa)
+void ns::ci_func(const double &ci, // intracellular leaf CO2 (Pa)
              double &fval,     // return function of the value f(ci)
              // const int& iv, // canopy index
              const double &gb_mol, // leaf boundary layer conductance (umol H2O/m**2/s)
@@ -114,7 +113,7 @@ void ci_func(const double &ci, // intracellular leaf CO2 (Pa)
 // DESCRIPTION: Use Brent's method to find the root of a single variable function ci_func, which is known to exist
 // between x1 and x2. The found root will be updated until its accuracy is tol. modified from numerical recipes in F90
 // by press et al. 1188-1189
-void brent(
+void ns::brent(
     double &x, // indepedent variable of the single value function ci_func(x)
     const double
         &x1, // minimum and maximum of the variable domain to search for the solution ci_func(x1) = f1, ci_func(x2)=f2
@@ -234,7 +233,7 @@ void brent(
 // DESCRIPTION: use a hybrid solver to find the root of equation f(x) = x- h(x), we want to find x, s.t. f(x) = 0.
 // the hybrid approach combines the strength of the newton secant approach (find the solution domain)
 // and the bisection approach implemented with the Brent's method to guarrantee convergence.
-void hybrid(
+void ns::hybrid(
     double &x0, // initial guess and final value of the solution
     // const int& iv, // canopy index
     const double &gb_mol, // leaf boundary layer conductance (umol H2O/m**2/s)
@@ -339,15 +338,15 @@ void hybrid(
   } // while loop
 } // hybrid
 
-double ft(const double &tl, const double &ha) {
+double ns::ft(const double &tl, const double &ha) {
   return exp(ha / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)) * (1.0 - (tfrz + 25.0) / tl));
 }
 
-double fth(const double &tl, const double &hd, const double &se, const double &scaleFactor) {
+double ns::fth(const double &tl, const double &hd, const double &se, const double &scaleFactor) {
   return scaleFactor / (1.0 + exp((-hd + se * tl) / (ELM_RGAS * 1.0e-3 * tl)));
 }
 
-double fth25(const double &hd, const double &se) {
+double ns::fth25(const double &hd, const double &se) {
   return 1.0 + exp((-hd + se * (tfrz + 25.0)) / (ELM_RGAS * 1.0e-3 * (tfrz + 25.0)));
 }
 
@@ -356,7 +355,7 @@ double fth25(const double &hd, const double &se) {
 
 
 */
-void photosynthesis_total(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
+void ns::photosynthesis_total(const double &psnsun, const double &psnsun_wc, const double &psnsun_wj,
                          const double &psnsun_wp, const double &laisun, const double &psnsha, const double &psnsha_wc,
                          const double &psnsha_wj, const double &psnsha_wp, const double &laisha, double &fpsn,
                          double &fpsn_wc, double &fpsn_wj, double &fpsn_wp) {
@@ -366,5 +365,4 @@ void photosynthesis_total(const double &psnsun, const double &psnsun_wc, const d
   fpsn_wp = psnsun_wp * laisun + psnsha_wp * laisha;
 }
 
-} // namespace photosynthesis
-} // namespace ELM
+

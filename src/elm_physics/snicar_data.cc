@@ -1,10 +1,9 @@
 
-#include "snow_snicar.h"
 #include "snicar_data.h"
+#include "snow_snicar.h"
 
-namespace ELM::snicar_data {
 
-SnicarData::SnicarData() : 
+ELM::SnicarData::SnicarData() : 
     ss_alb_oc1("ss_alb_oc1", snow_snicar::numrad_snw),
     asm_prm_oc1("asm_prm_oc1", snow_snicar::numrad_snw),
     ext_cff_mss_oc1("ext_cff_mss_oc1", snow_snicar::numrad_snw),
@@ -39,7 +38,7 @@ SnicarData::SnicarData() :
       snow_snicar::numrad_snw)  { }
 
 
-void read_snicar_data(const Comm_type &comm, const std::string& filename, SnicarData *snicar_data) {
+void ELM::read_snicar_data(const Comm_type &comm, const std::string& filename, SnicarData *snicar_data) {
 
   // get file start idx and size to read for 1D arrays
   {
@@ -111,5 +110,3 @@ void read_snicar_data(const Comm_type &comm, const std::string& filename, Snicar
   }
 }
 
-
-} // namespace ELM::snicar_data

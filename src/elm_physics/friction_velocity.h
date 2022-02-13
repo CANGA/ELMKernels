@@ -10,8 +10,7 @@ Vol. 11, 2628-2644.
 
 #pragma once
 
-namespace ELM {
-namespace friction_velocity {
+namespace ELM::friction_velocity {
 
 /*! Initialization of the Monin-Obukhov length. The scheme is based on the work of
 Zeng et al. (1998): Intercomparison of bulk aerodynamic algorithms for the computation of sea
@@ -82,5 +81,5 @@ INPUTS:
 void friction_velocity_humidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
                                 double &temp22m);
 
-} // namespace friction_velocity
-} // namespace ELM
+} // namespace ELM::friction_velocity
+

@@ -1,8 +1,7 @@
 
 #pragma once
 
-namespace ELM {
-namespace bareground_fluxes {
+namespace ELM::bareground_fluxes {
 
 template <class ArrayD1>
 void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
@@ -83,5 +82,4 @@ void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &sn
   }
 } // compute_flux
 
-} // namespace bareground_fluxes
-} // namespace ELM
+} // namespace ELM::bareground_fluxes

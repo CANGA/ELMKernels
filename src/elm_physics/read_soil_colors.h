@@ -1,13 +1,13 @@
 
 #pragma once 
 
-#include <string>
-#include <array>
-
 #include "elm_constants.h"
 #include "utils.hh"
 #include "array.hh"
 #include "read_input.hh"
+
+#include <string>
+#include <array>
 
 namespace ELM::read_soil {
 

@@ -1,11 +1,12 @@
 
 #include "surface_fluxes.h"
 
-namespace ELM::surface_fluxes {
+namespace ns = ELM::surface_fluxes;
+
 // calculate previous t_grnd for flux correction
 //tssbef_snotop = tssbef(ELM::nlevsno-snl)
 //tssbef_soitop = tssbef(EML::nlevsno)
-double prev_tgrnd(const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& tssbef_snotop, const double& tssbef_soitop) {
+double ns::prev_tgrnd(const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& tssbef_snotop, const double& tssbef_soitop) {
   if (snl > 0) {
     return frac_sno_eff * tssbef_snotop + (1.0 - frac_sno_eff - frac_h2osfc) * tssbef_soitop + frac_h2osfc * t_h2osfc_bef;
   } else {
@@ -14,7 +15,7 @@ double prev_tgrnd(const int& snl, const double& frac_sno_eff, const double& frac
 }
 
 // calculate difference in soil temperature from last time step, for flux corrections
-double delta_t(const double& t_grnd, const double& t_grnd0) {
+double ns::delta_t(const double& t_grnd, const double& t_grnd0) {
   return t_grnd - t_grnd0;
 }
 
@@ -23,7 +24,7 @@ double delta_t(const double& t_grnd, const double& t_grnd0) {
 // !!!! ATTENTION: call AFTER qflx_evap_soi is updated by initial_flux_calc()
 //h2osoi_ice_snotop = (ELM::nlevsno-snl)
 //h2osoi_liq_snotop = (ELM::nlevsno-snl)
-double evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop, const double& dtime, const double& qflx_evap_soi) {
+double ns::evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop, const double& dtime, const double& qflx_evap_soi) {
   // Determine ratio of topsoil_evap_tot
   double egsmax = (h2osoi_ice_snotop + h2osoi_liq_snotop) / dtime;
   // added to trap very small negative soil water,ice
@@ -60,7 +61,7 @@ qflx_ev_h2osfc
 // must CALL BEFORE any other surface flux functions
 //tssbef_snotop = tssbef(ELM::nlevsno-snl)
 //tssbef_soitop = tssbef(EML::nlevsno)
-void initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& tssbef_snotop, const double& tssbef_soitop,
+void ns::initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& tssbef_snotop, const double& tssbef_soitop,
   const double& t_grnd, const double& cgrnds, const double& cgrndl, double& eflx_sh_grnd, double& qflx_evap_soi, double& qflx_ev_snow, double& qflx_ev_soil,
   double& qflx_ev_h2osfc) 
 {
@@ -130,7 +131,7 @@ qflx_snwcp_ice
 //h2osoi_liq_snotop = (ELM::nlevsno-snl)
 //tssbef_snotop = tssbef(ELM::nlevsno-snl)
 //tssbef_soitop = tssbef(EML::nlevsno)
-void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime, const double& t_grnd, const double& htvp, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& sabg_soil,
+void ns::update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime, const double& t_grnd, const double& htvp, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef, const double& sabg_soil,
   const double& sabg_snow, const double& dlrad, const double& frac_veg_nosno, const double& emg, const double& forc_lwrad, const double& tssbef_snotop, const double& tssbef_soitop,
   const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop, 
 const double& eflx_sh_veg,
@@ -219,7 +220,7 @@ const double& qflx_evap_veg, double& qflx_evap_soi, double& eflx_sh_grnd, double
 // to the outgoing longwave and the net longwave.
 //tssbef_snotop = tssbef(ELM::nlevsno-snl)
 //tssbef_soitop = tssbef(EML::nlevsno)
-void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad, const double& frac_sno_eff, const double& tssbef_snotop, const double& tssbef_soitop,
+void ns::lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad, const double& frac_sno_eff, const double& tssbef_snotop, const double& tssbef_soitop,
   const double& frac_h2osfc, const double& t_h2osfc_bef, const double& t_grnd, const double& ulrad, const double& emg, double& eflx_lwrad_out, double& eflx_lwrad_net) {
 
   if (!urbpoi) {
@@ -236,5 +237,4 @@ void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosn
   }
 }
 
-} // namespace ELM::surface_fluxes
 
