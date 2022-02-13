@@ -10,7 +10,7 @@ ground_properties() -> forcing_height() -> init_energy_fluxes()
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include "qsat.h"
 #include "surface_resistance.h"
 

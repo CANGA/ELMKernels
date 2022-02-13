@@ -3,7 +3,7 @@
 #include "read_input.hh"
 #include "read_netcdf.hh"
 #include "utils.hh"
-#include "vegdata.h"
+#include "pft_data.h"
 #include <iostream>
 #include <string>
 
@@ -12,7 +12,7 @@
 #include "InitSnowLayers.hh"
 #include "InitTimestep.hh"
 #include "InitTopography.hh"
-#include "landtype.h"
+#include "land_data.h"
 #include "read_atmosphere.h"
 //#include "ReadTestData.hh"
 #include "satellite_phenology.h"

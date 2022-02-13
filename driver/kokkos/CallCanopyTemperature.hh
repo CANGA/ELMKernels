@@ -3,7 +3,7 @@
 #include "canopy_temperature.h"
 #include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "landtype.h"
+#include "land_data.h"
 
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayB1 = Kokkos::View<bool *>;

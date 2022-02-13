@@ -2,7 +2,7 @@
 #include "canopy_hydrology.h"
 #include "CanopyHydrology_newphysics.hh"
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include "read_test_input.hh"
 #include "array.hh"
 

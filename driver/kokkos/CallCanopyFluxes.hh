@@ -4,8 +4,8 @@
 #include "canopy_fluxes.h"
 #include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "landtype.h"
-#include "vegdata.h"
+#include "land_data.h"
+#include "pft_data.h"
 
 using ArrayI1 = Kokkos::View<int *>;
 using ArrayD1 = Kokkos::View<double *>;

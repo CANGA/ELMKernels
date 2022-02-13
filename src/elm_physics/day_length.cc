@@ -1,8 +1,8 @@
-/*! \file daylength.h
+/*! \file day_length.cc
 \brief Functions derived from DaylengthMod.F90
 */
 
-#include "daylength.h"
+#include "day_length.h"
 #include "elm_constants.h"
 #include <cmath>
 #include <limits>

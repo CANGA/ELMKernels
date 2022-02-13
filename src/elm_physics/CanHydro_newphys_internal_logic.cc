@@ -3,7 +3,7 @@
 
 #include "array.hh"
 #include "elm_constants.h"
-#include "LandType.h"
+#include "land_data.h"
 #include <algorithm>
 #include <cmath>
 

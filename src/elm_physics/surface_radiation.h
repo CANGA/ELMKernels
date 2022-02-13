@@ -9,7 +9,7 @@ CanopySunShadeFrac() -> initialize_flux() -> total_absorbed_radiation() -> layer
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 
 #include <cassert>
 #include <cmath>

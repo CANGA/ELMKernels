@@ -1,5 +1,5 @@
 
-#include "atm_forcing_physics.h"
+#include "atm_physics.h"
 
 
 namespace ns = ELM::atm_forcing_physics;

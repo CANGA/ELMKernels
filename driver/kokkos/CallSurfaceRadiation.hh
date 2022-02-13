@@ -2,7 +2,7 @@
 #pragma once
 #include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "landtype.h"
+#include "land_data.h"
 #include "surface_radiation.h"
 
 using ArrayD1 = Kokkos::View<double *>;

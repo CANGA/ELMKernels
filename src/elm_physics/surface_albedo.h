@@ -40,8 +40,8 @@ mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
-#include "vegdata.h"
+#include "land_data.h"
+#include "pft_data.h"
 
 #include <cmath>
 #include <algorithm>

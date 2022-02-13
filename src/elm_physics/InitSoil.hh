@@ -9,7 +9,7 @@
 //#include "RootBioPhys.hh"
 #include "array.hh"
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 
 namespace ELM {
 

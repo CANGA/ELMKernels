@@ -7,8 +7,8 @@
 
 #include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "landtype.h"
-#include "vegdata.h"
+#include "land_data.h"
+#include "pft_data.h"
 
 using ArrayB1 = Kokkos::View<bool *>;
 using ArrayI1 = Kokkos::View<int *>;

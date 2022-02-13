@@ -1,7 +1,7 @@
 
 #include "canopy_hydrology.h"
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include "read_test_input.hh"
 #include "array.hh"
 

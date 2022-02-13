@@ -4,7 +4,7 @@
 #pragma once
 
 #include "elm_constants.h"
-#include "vegdata.h"
+#include "pft_data.h"
 
 #include <algorithm>
 #include <cmath>

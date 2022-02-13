@@ -2,10 +2,10 @@
 #include "surface_albedo.h"
 #include "snow_snicar.h"
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include "read_test_input.hh"
 #include "array.hh"
-#include "vegdata.h"
+#include "pft_data.h"
 #include <iostream>
 #include <string>
 

@@ -14,7 +14,7 @@ It is not the same as the displa calculated in CanopyTemperature
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include "qsat.h"
 #include <algorithm>
 #include <cmath>

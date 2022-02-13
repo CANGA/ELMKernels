@@ -5,7 +5,7 @@
 
 #include "array.hh"
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include <algorithm>
 #include <cmath>
 //#include "CanopyHydrology_newphysics.hh"

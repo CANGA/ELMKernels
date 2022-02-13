@@ -1,7 +1,7 @@
 #include "bareground_fluxes.h"
 #include "elm_constants.h"
 #include "Kokkos_Core.hpp"
-#include "landtype.h"
+#include "land_data.h"
 
 using ArrayD1 = Kokkos::View<double *>;
 using ArrayI1 = Kokkos::View<int *>;

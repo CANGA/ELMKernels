@@ -14,9 +14,9 @@
 #include "elm_constants.h"
 
 // input data readers and structs
-#include "vegdata.h"
-#include "atm_data_manager.h"
-#include "read_soil_colors.h"
+#include "pft_data.h"
+#include "atm_data.h"
+#include "soil_data.h"
 #include "snicar_data.h"
 //#include "satellite_phenology.h"
 
@@ -28,12 +28,12 @@
 #include "InitSnowLayers.hh"
 #include "InitTimestep.hh"
 #include "InitTopography.hh"
-#include "landtype.h"
+#include "land_data.h"
 //#include "read_atmosphere.h"
 //#include "ReadTestData.hh"
 
 #include "incident_shortwave.h"
-#include "daylength.h"
+#include "day_length.h"
 
 #include "canopy_hydrology.h"
 #include "surface_radiation.h"

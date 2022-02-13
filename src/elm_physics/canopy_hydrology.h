@@ -9,7 +9,7 @@ Call sequence: interception() -> Irrigation() -> ground_flux() -> fraction_wet()
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
+#include "land_data.h"
 #include <algorithm>
 #include <cmath>
 

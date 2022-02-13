@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "atm_forcing_physics.h"
+#include "atm_physics.h"
 #include "elm_constants.h"
 #include "utils.hh"
 #include "array.hh"
@@ -177,4 +177,4 @@ private:
 
 } // namespace ELM
 
-#include "atm_data_manager_impl.hh"
+#include "atm_data_impl.hh"

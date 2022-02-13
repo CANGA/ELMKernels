@@ -9,8 +9,8 @@ Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 #pragma once
 
 #include "elm_constants.h"
-#include "landtype.h"
-#include "vegdata.h"
+#include "land_data.h"
+#include "pft_data.h"
 #include "friction_velocity.h"
 #include "photosynthesis.h"
 #include "qsat.h"

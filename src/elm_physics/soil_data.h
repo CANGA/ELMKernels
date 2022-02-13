@@ -26,4 +26,4 @@ void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::strin
 
 } // namespace ELM::read_soil
 
-#include "read_soil_colors_impl.hh"
+#include "soil_data_impl.hh"

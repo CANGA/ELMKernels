@@ -1,4 +1,4 @@
-/*! \file daylength.h
+/*! \file day_length.h
 \brief Functions derived from DaylengthMod.F90
 */
 #pragma once
