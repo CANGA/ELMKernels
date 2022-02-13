@@ -18,7 +18,7 @@
 #include "atm_data_manager.h"
 #include "read_soil_colors.h"
 #include "snicar_data.h"
-#include "satellite_phenology.h"
+//#include "satellite_phenology.h"
 
 #include "InitSoil.hh"
 

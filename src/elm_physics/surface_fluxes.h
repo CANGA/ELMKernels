@@ -109,7 +109,7 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
 
 // Soil Energy balance check
 template<typename ArrayD1>
-double soil_energy_balance(const bool& ctype, const int& snl, const double& eflx_soil_grnd, const double& xmf, const double& xmf_h2osfc, const double& frac_h2osfc, const double& t_h2osfc,
+double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_soil_grnd, const double& xmf, const double& xmf_h2osfc, const double& frac_h2osfc, const double& t_h2osfc,
   const double& t_h2osfc_bef, const double& dtime, const double& eflx_h2osfc_to_snow, const double& eflx_building_heat, const double&frac_sno_eff, const ArrayD1 t_soisno, const ArrayD1 tssbef, const ArrayD1 fact);
 
 // Outgoing long-wave radiation from vegetation + ground
