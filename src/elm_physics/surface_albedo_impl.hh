@@ -1,13 +1,14 @@
-//Functions derived from SurfaceAlbedoMod.F90
+// Functions derived from SurfaceAlbedoMod.F90
 
-// call sequence -> SurfAlbInitTimestep() -> soil_albedo() -> SNICAR_AD_RT() (once for both wavebands) -> ground_albedo() -> flux_absorption_factor()
-// CanopyLayers() -> two_stream_solver()
+// call sequence -> SurfAlbInitTimestep() -> soil_albedo() -> SNICAR_AD_RT() (once for both wavebands) ->
+// ground_albedo() -> flux_absorption_factor() CanopyLayers() -> two_stream_solver()
 
 // will need to finish zenith angle ATS code, Aerosol functions
 
 // need to initialize h2osoi_vol[nlevgrnd]
 // need to read in soil color NetCDF, initialize isoicol, albsat, albdry
-// need to figure out doalb - during nstep == 0 SurfaceAlbedo doesn't get called and values for the outputs are provided by SurfaceAlbedoType::InitCold
+// need to figure out doalb - during nstep == 0 SurfaceAlbedo doesn't get called and values for the outputs are provided
+// by SurfaceAlbedoType::InitCold
 //  why does SurfAlb calc at nstep+1? there must be a reason
 //  from CLM 4.5 tech note:
 /*
@@ -24,10 +25,8 @@ So it's for the ATM coupling
 so we can probably calc at beginning of nstep with current solar zenith angle
 
 
-these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to flux_absorption_factor()
-flx_absd_snw
-flx_absi_snw
-mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
+these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to
+flux_absorption_factor() flx_absd_snw flx_absi_snw mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 
 */
 
@@ -36,31 +35,28 @@ mss_cnc_aer_in_fdb - from SurfAlbInitTimestep() to SNICAR_AD_RT()
 namespace ELM {
 namespace surface_albedo {
 
-
 // not sure if necessary
 // maybe for nstep == 0 this should be run, don't call surfalb, but call evrything else?
 //  will need to investigate initialization of coupled system - ELM calls dummy nstep == 0 for a reason
-//void SurfaceAlbedo_InitCold() {
-//albgrd[numrad] = {0.2};
-//albgri[numrad] = {0.2};
-//albsod[numrad] = {0.2};
-//albsoi[numrad] = {0.2};
-//albd[numrad] = {0.2};
-//albi[numrad] = {0.2};
-//fabi[numrad] = {0.0};
-//fabd[numrad] = {0.0};
-//fabi_sun[numrad] = {0.0};
-//fabd_sun[numrad] = {0.0};
-//fabd_sha[numrad] = {0.0};
-//fabi_sha[numrad] = {0.0};
-//ftdd[numrad] = {1.0};
-//ftid[numrad] = {0.0};
-//ftii[numrad] = {1.0};
+// void SurfaceAlbedo_InitCold() {
+// albgrd[numrad] = {0.2};
+// albgri[numrad] = {0.2};
+// albsod[numrad] = {0.2};
+// albsoi[numrad] = {0.2};
+// albd[numrad] = {0.2};
+// albi[numrad] = {0.2};
+// fabi[numrad] = {0.0};
+// fabd[numrad] = {0.0};
+// fabi_sun[numrad] = {0.0};
+// fabd_sun[numrad] = {0.0};
+// fabd_sha[numrad] = {0.0};
+// fabi_sha[numrad] = {0.0};
+// ftdd[numrad] = {1.0};
+// ftid[numrad] = {0.0};
+// ftii[numrad] = {1.0};
 //}
 
-
-
-inline bool vegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+inline bool vegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
   if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
     return true;
   } else {
@@ -68,8 +64,7 @@ inline bool vegsol(const LandType &Land, const double &coszen, const double &ela
   }
 }
 
-
-inline bool novegsol(const LandType &Land, const double &coszen, const double &elai, const double &esai) {
+inline bool novegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
   if (!Land.urbpoi && coszen > 0.0) {
     if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
       return true;
@@ -78,14 +73,14 @@ inline bool novegsol(const LandType &Land, const double &coszen, const double &e
   return false;
 }
 
-
 template <class ArrayD1, class ArrayD2>
-void init_timestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho, 
-  const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3, const ArrayD1 mss_cnc_dst4,
-  double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod, ArrayD1 albsoi, ArrayD1 albgrd, ArrayD1 albgri, ArrayD1 albd, 
-  ArrayD1 albi, ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 fabi, ArrayD1 fabi_sun, ArrayD1 fabi_sha, 
-  ArrayD1 ftdd, ArrayD1 ftid, ArrayD1 ftii, ArrayD1 flx_absdv, ArrayD1 flx_absdn, ArrayD1 flx_absiv, ArrayD1 flx_absin, 
-  ArrayD2 mss_cnc_aer_in_fdb) {
+void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho,
+                   const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3,
+                   const ArrayD1 mss_cnc_dst4, double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod,
+                   ArrayD1 albsoi, ArrayD1 albgrd, ArrayD1 albgri, ArrayD1 albd, ArrayD1 albi, ArrayD1 fabd,
+                   ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 fabi, ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 ftdd,
+                   ArrayD1 ftid, ArrayD1 ftii, ArrayD1 flx_absdv, ArrayD1 flx_absdn, ArrayD1 flx_absiv,
+                   ArrayD1 flx_absin, ArrayD2 mss_cnc_aer_in_fdb) {
 
   // Initialize output because solar radiation only done if coszen > 0
   if (!urbpoi) {
@@ -115,14 +110,14 @@ void init_timestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc
     if (nlevcan == 1) {
       vcmaxcintsun = 0.0;
       vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn;
-      if (elai > 0.0) { 
+      if (elai > 0.0) {
         vcmaxcintsha /= elai;
       } else {
         vcmaxcintsha = 0.0;
       }
     } else if (nlevcan > 1) {
-       vcmaxcintsun = 0.0;
-       vcmaxcintsha = 0.0;
+      vcmaxcintsun = 0.0;
+      vcmaxcintsha = 0.0;
     }
   }
   // set soot and dust aerosol concentrations:
@@ -138,10 +133,9 @@ void init_timestep(const bool &urbpoi, const double &elai, const ArrayD1 mss_cnc
   }
 } // init_timestep
 
-
 template <class ArrayD1>
-void ground_albedo(const bool &urbpoi, const double &coszen, const double &frac_sno, const ArrayD1 albsod, 
-  const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri) {
+void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
+                   const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri) {
   if (!urbpoi && coszen > 0.0) {
     for (int ib = 0; ib < numrad; ++ib) {
       albgrd[ib] = albsod[ib] * (1.0 - frac_sno) + albsnd[ib] * frac_sno;
@@ -150,13 +144,11 @@ void ground_albedo(const bool &urbpoi, const double &coszen, const double &frac_
   }
 } // ground_albedo
 
-
-
 template <class ArrayD1, class ArrayD2>
-void flux_absorption_factor(const LandType &Land, const double &coszen, const double &frac_sno,
-const ArrayD1 albsod, const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
-const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv, ArrayD1 flx_absdn, 
-ArrayD1 flx_absiv, ArrayD1 flx_absin) {
+void flux_absorption_factor(const LandType& Land, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
+                            const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
+                            const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv,
+                            ArrayD1 flx_absdn, ArrayD1 flx_absiv, ArrayD1 flx_absin) {
   // ground albedos and snow-fraction weighting of snow absorption factors
   if (!Land.urbpoi && coszen > 0.0) {
     for (int i = 0; i <= nlevsno; ++i) {
@@ -167,15 +159,15 @@ ArrayD1 flx_absiv, ArrayD1 flx_absin) {
         if (subgridflag == 0 || Land.ltype == istdlak) {
           if (ib == 0) {
             flx_absdv[i] = flx_absd_snw[i][ib] * frac_sno +
-                  ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
+                           ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
             flx_absiv[i] = flx_absi_snw[i][ib] * frac_sno +
-                  ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
+                           ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
           } else if (ib == 1) {
             flx_absdn[i] = flx_absd_snw[i][ib] * frac_sno +
-                  ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
+                           ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
             flx_absin[i] = flx_absi_snw[i][ib] * frac_sno +
-                  ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
-              }
+                           ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
+          }
         } else {
           if (ib == 0) {
             flx_absdv[i] = flx_absd_snw[i][ib] * (1.0 - albsnd[ib]);
@@ -185,16 +177,15 @@ ArrayD1 flx_absiv, ArrayD1 flx_absin) {
             flx_absin[i] = flx_absi_snw[i][ib] * (1.0 - albsni[ib]);
           }
         } // if subgridflag
-      } // for numrad
-    } // for nlevsno +1 layers
-  } // if !Land.urbpoi && coszen > 0.0
+      }   // for numrad
+    }     // for nlevsno +1 layers
+  }       // if !Land.urbpoi && coszen > 0.0
 } // flux_absorption_factor
 
-
 template <class ArrayD1>
-void canopy_layer_lai(const int &urbpoi, const double &elai, const double &esai, const double &tlai, const double &tsai, 
-  int &nrad, int &ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z, 
-  ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
+void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
+                      int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
+                      ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 
   if (!urbpoi) {
     if (nlevcan == 1) {
@@ -240,7 +231,7 @@ void canopy_layer_lai(const int &urbpoi, const double &elai, const double &esai,
       laisum += tlai_z[iv];
       saisum += tsai_z[iv];
     }
-    
+
     if (std::abs(laisum - elai) > mpe || std::abs(saisum - esai) > mpe) {
       throw std::runtime_error("ELM ERROR: multi-layer canopy error 1 in SurfaceAlbedo");
     }
@@ -293,17 +284,14 @@ void canopy_layer_lai(const int &urbpoi, const double &elai, const double &esai,
   } // if !urbpoi
 } // canopy_layer_lai
 
-
-
 template <class ArrayD1>
-void two_stream_solver(const LandType &Land, const int &nrad, const double &coszen, 
-const double &t_veg, const double &fwet, const double &elai, const double &esai,
-const ArrayD1 tlai_z, const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri,
-const AlbedoVegData& albveg,
-double &vcmaxcintsun, double &vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
-ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
-ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
-ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
+void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
+                       const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
+                       const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const AlbedoVegData& albveg,
+                       double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
+                       ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
+                       ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
+                       ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
 
   if (vegsol(Land, coszen, elai, esai)) {
 
@@ -436,9 +424,9 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
       fabd[ib] = 1.0 - albd[ib] - (1.0 - albgrd[ib]) * ftdd[ib] - (1.0 - albgri[ib]) * ftid[ib];
 
       double a1 = h1 / sigma * (1.0 - s2 * s2) / (2.0 * twostext) + h2 * (1.0 - s2 * s1) / (twostext + h) +
-           h3 * (1.0 - s2 / s1) / (twostext - h);
+                  h3 * (1.0 - s2 / s1) / (twostext - h);
       double a2 = h4 / sigma * (1.0 - s2 * s2) / (2.0 * twostext) + h5 * (1.0 - s2 * s1) / (twostext + h) +
-           h6 * (1.0 - s2 / s1) / (twostext - h);
+                  h6 * (1.0 - s2 / s1) / (twostext - h);
 
       fabd_sun[ib] = (1.0 - omega[ib]) * (1.0 - s2 + 1.0 / avmu * (a1 + a2));
       fabd_sha[ib] = fabd[ib] - fabd_sun[ib];
@@ -490,16 +478,16 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
           fabi_sha_z[0] = fabi_sha[ib] / ((1.0 - fsun_z[0]) * laisum);
 
           // leaf to canopy scaling coefficients
-           double extkb = twostext;
-           vcmaxcintsun = (1.0 - exp(-(extkn + extkb) * elai)) / (extkn + extkb);
-           vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn - vcmaxcintsun;
-           if (elai > 0.0) {
-             vcmaxcintsun = vcmaxcintsun / (fsun_z[0] * elai);
-             vcmaxcintsha = vcmaxcintsha / ((1.0 - fsun_z[0]) * elai);
-           } else {
-             vcmaxcintsun = 0.0;
-             vcmaxcintsha = 0.0;
-           }
+          double extkb = twostext;
+          vcmaxcintsun = (1.0 - exp(-(extkn + extkb) * elai)) / (extkn + extkb);
+          vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn - vcmaxcintsun;
+          if (elai > 0.0) {
+            vcmaxcintsun = vcmaxcintsun / (fsun_z[0] * elai);
+            vcmaxcintsha = vcmaxcintsha / ((1.0 - fsun_z[0]) * elai);
+          } else {
+            vcmaxcintsun = 0.0;
+            vcmaxcintsha = 0.0;
+          }
 
         } else if (nlevcan > 1) {
           for (int iv = 0; iv < nrad; iv++) {
@@ -563,9 +551,9 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
             double dh6 = (v * du - u * dv) / (v * v);
 
             double da1 = h1 / sigma * s2 * s2 + h2 * s2 * s1 + h3 * s2 / s1 + (1.0 - s2 * s1) / (twostext + h) * dh2 +
-                  (1.0 - s2 / s1) / (twostext - h) * dh3;
+                         (1.0 - s2 / s1) / (twostext - h) * dh3;
             double da2 = h4 / sigma * s2 * s2 + h5 * s2 * s1 + h6 * s2 / s1 + (1.0 - s2 * s1) / (twostext + h) * dh5 +
-                  (1.0 - s2 / s1) / (twostext - h) * dh6;
+                         (1.0 - s2 / s1) / (twostext - h) * dh6;
 
             // Flux derivatives
             double d_ftid = -twostext * h4 / sigma * s2 - h * h5 * s1 + h * h6 / s1 + dh5 * s1 + dh6 / s1;
@@ -636,9 +624,9 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
             fabi_sun_z[iv] = fabi_sun_z[iv] / fsun_z[iv];
             fabi_sha_z[iv] = fabi_sha_z[iv] / (1.0 - fsun_z[iv]);
           } // for nrad
-        } // if nlevcan > 1
-      } // if ib == 0
-    } // for numrad
+        }   // if nlevcan > 1
+      }     // if ib == 0
+    }       // for numrad
   } else if (novegsol(Land, coszen, elai, esai)) {
     for (int ib = 0; ib < numrad; ++ib) {
       fabd[ib] = 0.0;
@@ -656,41 +644,38 @@ ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
   }
 } // two_stream_solver
 
-
-
 template <class ArrayD1>
-void soil_albedo(
-  const LandType &Land, const int &snl, const double &t_grnd, const double &coszen, 
-  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry,
-  ArrayD1 albsod, ArrayD1 albsoi) {
+void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
+                 const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi) {
 
   if (!Land.urbpoi) {
     if (coszen > 0.0) {
       for (int ib = 0; ib < numrad; ib++) {
         if (Land.ltype == istsoil || Land.ltype == istcrop) {
           double inc = std::max(0.11 - 0.40 * h2osoi_vol[0], 0.0); // soil water correction factor for soil albedo
-          //double soilcol = isoicol;
+          // double soilcol = isoicol;
           albsod[ib] = std::min(albsat[ib] + inc, albdry[ib]);
           albsoi[ib] = albsod[ib];
         } else if (Land.ltype == istice || Land.ltype == istice_mec) {
           albsod[ib] = albice[ib];
           albsoi[ib] = albsod[ib];
-          //comment out lake logic for now
-       // } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac[0] < 1.0 &&
-       //                              lake_icefrac[1] > 0.0)) { // maybe get rid of lake logic?
-       //   albsod[ib] = 0.05 / (std::max(0.001, coszen) + 0.15);
-       //   // This expression is apparently from BATS according to Yongjiu Dai.
-       //   // The diffuse albedo should be an average over the whole sky of an angular-dependent direct expression.
-       //   // The expression above may have been derived to encompass both (e.g. Henderson-Sellers 1986),
-       //   // but I'll assume it applies more appropriately to the direct form for now.
-       //   // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
-       //   // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
-       //   if (Land.ltype == istdlak) {
-       //     albsoi[ib] = 0.10;
-       //   } else {
-       //     albsoi[ib] = albsod[ib];
-       //   }
-  
+          // comment out lake logic for now
+          // } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac[0]
+          // < 1.0 &&
+          //                              lake_icefrac[1] > 0.0)) { // maybe get rid of lake logic?
+          //   albsod[ib] = 0.05 / (std::max(0.001, coszen) + 0.15);
+          //   // This expression is apparently from BATS according to Yongjiu Dai.
+          //   // The diffuse albedo should be an average over the whole sky of an angular-dependent direct expression.
+          //   // The expression above may have been derived to encompass both (e.g. Henderson-Sellers 1986),
+          //   // but I'll assume it applies more appropriately to the direct form for now.
+          //   // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
+          //   // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
+          //   if (Land.ltype == istdlak) {
+          //     albsoi[ib] = 0.10;
+          //   } else {
+          //     albsoi[ib] = albsod[ib];
+          //   }
+
         } else {
           // frozen lake, wetland
           // Introduce crude surface frozen fraction according to D. Mironov (2010)

@@ -5,9 +5,9 @@
 namespace ELM::surface_resistance {
 
 template <class ArrayD1>
-void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                          const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
-                          const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta) {
+void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
+                          const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                          double& soilbeta) {
   if (!Land.lakpoi) {
 
     // local variables
@@ -42,5 +42,3 @@ void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const do
 }
 
 } // namespace ELM::surface_resistance
-
-

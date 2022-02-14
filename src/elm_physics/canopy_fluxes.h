@@ -1,17 +1,18 @@
-/*! \file canopy_fluxes.h 
+/*! \file canopy_fluxes.h
 \brief Functions derived from CanopyFluxesMod.F90
 
 Calculate leaf temperature, leaf fluxes, transpiration, photosynthesis and update the dew accumulation due to
-evaporation. Also calculates the irrigation rate (not currently active). Irrigation() can be called anytime after InitializeFlux()
+evaporation. Also calculates the irrigation rate (not currently active). Irrigation() can be called anytime after
+InitializeFlux()
 
 Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 */
 #pragma once
 
 #include "elm_constants.h"
+#include "friction_velocity.h"
 #include "land_data.h"
 #include "pft_data.h"
-#include "friction_velocity.h"
 #include "photosynthesis.h"
 #include "qsat.h"
 #include "soil_moist_stress.h"
@@ -83,20 +84,19 @@ namespace ELM::canopy_fluxes {
 \param[out] t_veg                           [double]  vegetation temperature (Kelvin)
 */
 template <class ArrayD1>
-void initialize_flux(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
-                        const double &forc_hgt_u_patch, const double &thm, const double &thv, const double &max_dayl,
-                        const double &dayl, const int &altmax_indx, const int &altmax_lastyear_indx,
-                        const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
-                        const ArrayD1 dz, const ArrayD1 rootfr, const double &tc_stress,
-                        const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
-                        const double &smpso, const double &smpsc, const double &elai, const double &esai,
-                        const double &emv, const double &emg, const double &qg, const double &t_grnd,
-                        const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
-                        const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
-                        double &btran, double &displa, double &z0mv, double &z0hv, double &z0qv, ArrayD1 rootr,
-                        ArrayD1 eff_porosity, double &dayl_factor, double &air, double &bir, double &cir,
-                        double &el, double &qsatl, double &qsatldT, double &taf, double &qaf, double &um, double &ur,
-                        double &obu, double &zldis, double &delq, double &t_veg);
+void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
+                     const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
+                     const double& dayl, const int& altmax_indx, const int& altmax_lastyear_indx,
+                     const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq, const ArrayD1 dz,
+                     const ArrayD1 rootfr, const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat,
+                     const ArrayD1 bsw, const double& smpso, const double& smpsc, const double& elai,
+                     const double& esai, const double& emv, const double& emg, const double& qg, const double& t_grnd,
+                     const double& forc_t, const double& forc_pbot, const double& forc_lwrad, const double& forc_u,
+                     const double& forc_v, const double& forc_q, const double& forc_th, const double& z0mg,
+                     double& btran, double& displa, double& z0mv, double& z0hv, double& z0qv, ArrayD1 rootr,
+                     ArrayD1 eff_porosity, double& dayl_factor, double& air, double& bir, double& cir, double& el,
+                     double& qsatl, double& qsatldT, double& taf, double& qaf, double& um, double& ur, double& obu,
+                     double& zldis, double& delq, double& t_veg);
 
 /*! Calculate Monin-Obukhov length and wind speed, call photosynthesis, calculate ET & SH flux
 Iterates until convergence, up to 40 iterations, calling friction velocity functions, then
@@ -186,28 +186,24 @@ photosynthesis for both sun & shade.
 \param[out] wtaq0                      [double] normalized latent heat conductance for air [-]
 */
 template <class ArrayD1>
-void stability_iteration(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
-                            const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
-                            const double &forc_hgt_q_patch, const double &fwet,
-                            const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
-                            const double &snow_depth, const double &soilbeta, const double &frac_h2osfc,
-                            const double &t_h2osfc, const double &sabv, const double &h2ocan, const double &htop,
-                            const ArrayD1 t_soisno, const double &air, const double &bir, const double &cir,
-                            const double &ur, const double &zldis, const double &displa, const double &elai,
-                            const double &esai, const double &t_grnd, const double &forc_pbot, const double &forc_q,
-                            const double &forc_th, const double &z0mg, const double &z0mv, const double &z0hv,
-                            const double &z0qv, const double &thm, const double &thv, const double &qg,
-                            const PSNVegData &psnveg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
-                            const double &vcmaxcintsha, const double &vcmaxcintsun, const ArrayD1 parsha_z,
-                            const ArrayD1 parsun_z, const ArrayD1 laisha_z, const ArrayD1 laisun_z,
-                            const double &forc_pco2, const double &forc_po2, const double &dayl_factor, double &btran,
-                            double &qflx_tran_veg, double &qflx_evap_veg, double &eflx_sh_veg, double &wtg,
-                            double &wtl0, double &wta0, double &wtal, double &el, double &qsatl, double &qsatldT,
-                            double &taf, double &qaf, double &um, double &dth, double &dqh, double &obu, double &temp1,
-                            double &temp2, double &temp12m, double &temp22m, double &tlbef, double &delq,
-                            double &dt_veg, double &t_veg, double &wtgq, double &wtalq, double &wtlq0, double &wtaq0);
+void stability_iteration(
+    const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
+    const double& forc_hgt_u_patch, const double& forc_hgt_t_patch, const double& forc_hgt_q_patch, const double& fwet,
+    const double& fdry, const double& laisun, const double& laisha, const double& forc_rho, const double& snow_depth,
+    const double& soilbeta, const double& frac_h2osfc, const double& t_h2osfc, const double& sabv, const double& h2ocan,
+    const double& htop, const ArrayD1 t_soisno, const double& air, const double& bir, const double& cir,
+    const double& ur, const double& zldis, const double& displa, const double& elai, const double& esai,
+    const double& t_grnd, const double& forc_pbot, const double& forc_q, const double& forc_th, const double& z0mg,
+    const double& z0mv, const double& z0hv, const double& z0qv, const double& thm, const double& thv, const double& qg,
+    const PSNVegData& psnveg, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
+    const double& vcmaxcintsun, const ArrayD1 parsha_z, const ArrayD1 parsun_z, const ArrayD1 laisha_z,
+    const ArrayD1 laisun_z, const double& forc_pco2, const double& forc_po2, const double& dayl_factor, double& btran,
+    double& qflx_tran_veg, double& qflx_evap_veg, double& eflx_sh_veg, double& wtg, double& wtl0, double& wta0,
+    double& wtal, double& el, double& qsatl, double& qsatldT, double& taf, double& qaf, double& um, double& dth,
+    double& dqh, double& obu, double& temp1, double& temp2, double& temp12m, double& temp22m, double& tlbef,
+    double& delq, double& dt_veg, double& t_veg, double& wtgq, double& wtalq, double& wtlq0, double& wtaq0);
 
-/*! Calculate water and energy fluxes for vegetated surfaces. 
+/*! Calculate water and energy fluxes for vegetated surfaces.
 
 \param[in]  Land                       [LandType] struct containing information about landtype
 \param[in]  dtime                      [double] timestep size (sec)
@@ -278,23 +274,21 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
 \param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
-void compute_flux(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
-                     const double &frac_sno, const ArrayD1 t_soisno, const double &frac_h2osfc,
-                     const double &t_h2osfc, const double &sabv, const double &qg_snow, const double &qg_soil,
-                     const double &qg_h2osfc, const double &dqgdT, const double &htvp, const double &wtg,
-                     const double &wtl0, const double &wta0, const double &wtal, const double &air, const double &bir,
-                     const double &cir, const double &qsatl, const double &qsatldT, const double &dth,
-                     const double &dqh, const double &temp1, const double &temp2, const double &temp12m,
-                     const double &temp22m, const double &tlbef, const double &delq, const double &dt_veg,
-                     const double &t_veg, const double &t_grnd, const double &forc_pbot, const double &qflx_tran_veg,
-                     const double &qflx_evap_veg, const double &eflx_sh_veg, const double &forc_q,
-                     const double &forc_rho, const double &thm, const double &emv, const double &emg,
-                     const double &forc_lwrad, const double &wtgq, const double &wtalq, const double &wtlq0,
-                     const double &wtaq0, double &h2ocan, double &eflx_sh_grnd, double &eflx_sh_snow,
-                     double &eflx_sh_soil, double &eflx_sh_h2osfc, double &qflx_evap_soi, double &qflx_ev_snow,
-                     double &qflx_ev_soil, double &qflx_ev_h2osfc, double &dlrad, double &ulrad, double &cgrnds,
-                     double &cgrndl, double &cgrnd, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
-                     double &rh_ref2m, double &rh_ref2m_r);
+void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
+                  const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,
+                  const double& sabv, const double& qg_snow, const double& qg_soil, const double& qg_h2osfc,
+                  const double& dqgdT, const double& htvp, const double& wtg, const double& wtl0, const double& wta0,
+                  const double& wtal, const double& air, const double& bir, const double& cir, const double& qsatl,
+                  const double& qsatldT, const double& dth, const double& dqh, const double& temp1, const double& temp2,
+                  const double& temp12m, const double& temp22m, const double& tlbef, const double& delq,
+                  const double& dt_veg, const double& t_veg, const double& t_grnd, const double& forc_pbot,
+                  const double& qflx_tran_veg, const double& qflx_evap_veg, const double& eflx_sh_veg,
+                  const double& forc_q, const double& forc_rho, const double& thm, const double& emv, const double& emg,
+                  const double& forc_lwrad, const double& wtgq, const double& wtalq, const double& wtlq0,
+                  const double& wtaq0, double& h2ocan, double& eflx_sh_grnd, double& eflx_sh_snow, double& eflx_sh_soil,
+                  double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_ev_snow, double& qflx_ev_soil,
+                  double& qflx_ev_h2osfc, double& dlrad, double& ulrad, double& cgrnds, double& cgrndl, double& cgrnd,
+                  double& t_ref2m, double& t_ref2m_r, double& q_ref2m, double& rh_ref2m, double& rh_ref2m_r);
 
 } // namespace ELM::canopy_fluxes
 

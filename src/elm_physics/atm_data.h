@@ -1,19 +1,18 @@
 
 #pragma once
 
+#include "array.hh"
 #include "atm_physics.h"
 #include "elm_constants.h"
-#include "utils.hh"
-#include "array.hh"
 #include "read_input.hh"
+#include "utils.hh"
 
-#include <cmath>
-#include <string>
 #include <array>
-#include <utility>
-#include <tuple>
+#include <cmath>
 #include <stdexcept>
-
+#include <string>
+#include <tuple>
+#include <utility>
 
 /*
 Class to read, parse, and operate on atmospheric forcing input
@@ -54,53 +53,48 @@ VISUAL REPRESENTATION OF FORCING TIME ORIENTATION
 
       -fdt/2      fdt/2     fdt3/2          - S forcing times
               t=0      t=fdt    t=2fdt      - C forcing times
-          X----|----X----|----X----|      
+          X----|----X----|----X----|
         S[0]       S[1]      S[2]
               C[0]      C[1]      C[2]
 
  S        X---------X---------X       alignment of forcing data
  C             X---------X---------X
               /           \
-             /             \ physics timestepping with 4 model_dt per forc_dt 
-            /               \  
+             /             \ physics timestepping with 4 model_dt per forc_dt
+            /               \
         t=0/                 \ t = forc_dt = 4 * model_dt
  C        |-xx-|-xx-|-xx-|-xx-| model timesteps within 1 forc_dt
           C0                  C1
-                                      
-   We interpolate the ingested forcing data at the midpoint of the model timestep (xx), 
+
+   We interpolate the ingested forcing data at the midpoint of the model timestep (xx),
    model_step_interp_time = model_timestep_start + model_dt / 2
 
 */
 
 namespace ELM::atm_utils {
 
-//enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
+// enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 using AtmForcType = ELMconstants::AtmForcType;
 
 // return name associated with enum type
-template<AtmForcType ftype>
-constexpr auto get_varname ();
+template <AtmForcType ftype> constexpr auto get_varname();
 
 // return reference to variable that maps to dim_idx for a file_array with 3 dimensions
-template<typename T, typename U> 
-constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y);
+template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y);
 
 // return reference to variable that maps to dim_idx for a file_array with 2 dimensions
-template<typename T, typename U> 
-constexpr T& get_dim_ref(const U dim_idx, T& t, T& x);
+template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t, T& x);
 
 } // namespace ELM::atm_utils
-
 
 using namespace ELM::atm_utils;
 
 namespace ELM {
-template<typename ArrayD1, typename ArrayD2, AtmForcType ftype>
-class AtmDataManager {
+template <typename ArrayD1, typename ArrayD2, AtmForcType ftype> class AtmDataManager {
 
 public:
-
-  constexpr AtmDataManager(const std::string& filename, const Utils::Date &file_start_time, const size_t ntimes, const size_t ncells);
+  constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time, const size_t ntimes,
+                           const size_t ncells);
 
   // interface to update forcing file info
   constexpr void update_file_info(const Utils::Date& new_file_start_time, const std::string& new_filename);
@@ -118,11 +112,14 @@ public:
   constexpr double get_forc_dt_secs();
 
   // included for testing
-  constexpr size_t forc_t_idx_aligned(const double& delta_to_model_time, const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+  constexpr size_t forc_t_idx_aligned(const double& delta_to_model_time, const double& model_dt,
+                                      const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
 
   // calculate t_idx at model_time and check bounds
-  // assumes model_time is centered on the model_dt interval, ie parameter model_time = model_step_start_time + model_dt/2
-  constexpr size_t forc_t_idx_check_bounds(const double& model_dt, const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
+  // assumes model_time is centered on the model_dt interval, ie parameter model_time = model_step_start_time +
+  // model_dt/2
+  constexpr size_t forc_t_idx_check_bounds(const double& model_dt, const Utils::Date& model_time,
+                                           const Utils::Date& forc_record_start_time) const;
 
   // calculate t_idx at model_time relative to forc_record_start_time
   constexpr size_t forc_t_idx(const Utils::Date& model_time, const Utils::Date& forc_record_start_time) const;
@@ -130,49 +127,50 @@ public:
   // calculate linear interpolation of [t1,t2] interval at t = model_time
   // only used for instantaneous point measurement data like TBOT, QBOT, PBOT, RH, FLDS, WIND
   // !! ASSUMES instantaneous forcing measured at time corresponding to t_idx
-  // ie given a model_t bounded by the forcing data interval [lb, ub], 
+  // ie given a model_t bounded by the forcing data interval [lb, ub],
   // lb_time = data_start_time_ + forc_dt * t_idx and ub_time = data_start_time_ + forc_dt * (t_idx + 1)
   // forc_data_times_of_measurement =  {0, forc_dt, ..., Nforc_dt}
   // the other option is to define the values staggered by +- forc_dt/2
-  constexpr std::pair<double,double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
+  constexpr std::pair<double, double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
 
   // read forcing data from a file
-  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes);
+  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
+                                  const size_t ntimes);
 
   // read forcing data from a file - update file info and call main read_atm method
-  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2> &dd, const Utils::Date& model_time, const size_t ntimes, const Utils::Date& new_file_start_time, const std::string& new_filename);
+  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
+                                  const size_t ntimes, const Utils::Date& new_file_start_time,
+                                  const std::string& new_filename);
 
   // get forcing data for the current timestep
   // interpolate point values
   // process data
-  template<typename... Args>
+  template <typename... Args>
   constexpr void get_atm_forcing(const double& model_dt, const Utils::Date& model_time, Args&&...args);
 
 private:
-
   // return reference to arg in Args that matches position of dimension dimname in file array
-  template<typename...Args, size_t D>
-  constexpr auto& get_ref_to_dim(const std::string& dimname, const Comm_type& comm, const std::array<int, D>& dimids, Args&&...args) const;
+  template <typename... Args, size_t D>
+  constexpr auto& get_ref_to_dim(const std::string& dimname, const Comm_type& comm, const std::array<int, D>& dimids,
+                                 Args&&...args) const;
 
   // return a tuple of references to the passed in parameters based on the ordering of the file array
   // requires data(ntimes, nlon * nlat) and file_data(*,*,*) in {ntimes,nlon,nlat}
-  template<typename T>
-  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x, T& y) const;
+  template <typename T> constexpr auto order_inputs(const Comm_type& comm, T& t, T& x, T& y) const;
 
   // requires data(ntimes, ncells) and file_data(ntimes, ncells)or(ncells, ntimes)
-  template<typename T>
-  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
+  template <typename T> constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
 
-  ArrayD2 data_; // 2D (ntimes, ncells) array-like object of forcing data -- host array
+  ArrayD2 data_;                // 2D (ntimes, ncells) array-like object of forcing data -- host array
   std::string varname_, fname_; // variable name and full file name including path - "src/xyz/file.nc"
   Utils::Date file_start_time_; // date object containing file dataset start time
-  size_t ntimes_, ncells_; // dimensions for data_
+  size_t ntimes_, ncells_;      // dimensions for data_
   Utils::Date data_start_time_; // start time of forcing read from file into data_
-  double forc_dt_; // forcing data timestep (days) - recalc at every read; assume constant between reads
+  double forc_dt_;              // forcing data timestep (days) - recalc at every read; assume constant between reads
   // the next two variables allow compatibility with ELM forcing data that is stored in a short int
   // format and then scaled and potentially added to
   double scale_factor_{1.0}; // factor for scaling input data - maybe needed when using some ELM input data
-  double add_offset_{0.0}; // offset to add to input data - maybe needed when using some ELM input data
+  double add_offset_{0.0};   // offset to add to input data - maybe needed when using some ELM input data
 };
 
 } // namespace ELM

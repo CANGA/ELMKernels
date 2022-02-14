@@ -4,16 +4,16 @@
 namespace ELM::bareground_fluxes {
 
 template <class ArrayD1>
-void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
-                    const double &soilbeta, const double &dqgdT, const double &htvp, const double &t_h2osfc,
-                    const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const ArrayD1 t_soisno,
-                    const double &forc_pbot, const double &dth, const double &dqh, const double &temp1,
-                    const double &temp2, const double &temp12m, const double &temp22m, const double &ustar,
-                    const double &forc_q, const double &thm, double &cgrnds, double &cgrndl, double &cgrnd,
-                    double &eflx_sh_grnd, double &eflx_sh_tot, double &eflx_sh_snow, double &eflx_sh_soil,
-                    double &eflx_sh_h2osfc, double &qflx_evap_soi, double &qflx_evap_tot, double &qflx_ev_snow,
-                    double &qflx_ev_soil, double &qflx_ev_h2osfc, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
-                    double &rh_ref2m, double &rh_ref2m_r) {
+void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
+                  const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,
+                  const double& qg_snow, const double& qg_soil, const double& qg_h2osfc, const ArrayD1 t_soisno,
+                  const double& forc_pbot, const double& dth, const double& dqh, const double& temp1,
+                  const double& temp2, const double& temp12m, const double& temp22m, const double& ustar,
+                  const double& forc_q, const double& thm, double& cgrnds, double& cgrndl, double& cgrnd,
+                  double& eflx_sh_grnd, double& eflx_sh_tot, double& eflx_sh_snow, double& eflx_sh_soil,
+                  double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_evap_tot, double& qflx_ev_snow,
+                  double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& t_ref2m_r, double& q_ref2m,
+                  double& rh_ref2m, double& rh_ref2m_r) {
 
   if (!Land.lakpoi) {
     // Initial set for calculation

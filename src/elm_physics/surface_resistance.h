@@ -30,9 +30,9 @@ OUTPUTS:
 soilbeta [double] factor that reduces ground evaporation
 */
 template <class ArrayD1>
-void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                          const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
-                          const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta);
+void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
+                          const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                          double& soilbeta);
 
 /* getlblcef()
 !compute the scaling paramter for laminar boundary resistance
@@ -44,9 +44,8 @@ void calc_soilevap_stress(const LandType &Land, const double &frac_sno, const do
      !   Sci = v/Di, Di is diffusivity of gas i
      !   v : kinetic viscosity
 */
-double getlblcef(const double &rho, const double &temp);
+double getlblcef(const double& rho, const double& temp);
 
 } // namespace ELM::surface_resistance
 
 #include <surface_resistance_impl.hh>
-

@@ -33,8 +33,8 @@ double StabilityFunc2(double zeta) {
   return retval;
 }
 
-void ns::monin_obukhov_length(const double &ur, const double &thv, const double &dthv, const double &zldis, const double &z0m,
-                  double &um, double &obu) {
+void ns::monin_obukhov_length(const double& ur, const double& thv, const double& dthv, const double& zldis,
+                              const double& z0m, double& um, double& obu) {
   double rib;  // bulk Richardson number
   double zeta; // dimensionless height used in Monin-Obukhov theory
   // double ustar = 0.06; // friction velocity [m/s] -- in CLM, but not used
@@ -61,8 +61,8 @@ void ns::monin_obukhov_length(const double &ur, const double &thv, const double 
   obu = zldis / zeta;
 }
 
-void ns::friction_velocity_wind(const double &forc_hgt_u_patch, const double &displa, const double &um, const double &obu,
-                          const double &z0m, double &ustar) {
+void ns::friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa, const double& um,
+                                const double& obu, const double& z0m, double& ustar) {
   const double zetam = 1.574;                     // transition point of flux-gradient relation (wind profile)
   const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
@@ -80,8 +80,8 @@ void ns::friction_velocity_wind(const double &forc_hgt_u_patch, const double &di
   }
 }
 
-void ns::friction_velocity_temp(const double &forc_hgt_t_patch, const double &displa, const double &obu,
-                                 const double &z0h, double &temp1) {
+void ns::friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa, const double& obu,
+                                const double& z0h, double& temp1) {
   const double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
   const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
@@ -98,9 +98,9 @@ void ns::friction_velocity_temp(const double &forc_hgt_t_patch, const double &di
   }
 }
 
-void ns::friction_velocity_humidity(const double &forc_hgt_q_patch, const double &forc_hgt_t_patch, const double &displa,
-                              const double &obu, const double &z0h, const double &z0q, const double &temp1,
-                              double &temp2) {
+void ns::friction_velocity_humidity(const double& forc_hgt_q_patch, const double& forc_hgt_t_patch,
+                                    const double& displa, const double& obu, const double& z0h, const double& z0q,
+                                    const double& temp1, double& temp2) {
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
 
   if (forc_hgt_q_patch == forc_hgt_t_patch && z0q == z0h) {
@@ -121,7 +121,7 @@ void ns::friction_velocity_humidity(const double &forc_hgt_q_patch, const double
   }
 }
 
-void ns::friction_velocity_temp2m(const double &obu, const double &z0h, double &temp12m) {
+void ns::friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m) {
   const double zldis = 2.0 + z0h;
   const double zeta = zldis / obu;
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
@@ -138,8 +138,8 @@ void ns::friction_velocity_temp2m(const double &obu, const double &z0h, double &
   }
 }
 
-void ns::friction_velocity_humidity2m(const double &obu, const double &z0h, const double &z0q, const double &temp12m,
-                                double &temp22m) {
+void ns::friction_velocity_humidity2m(const double& obu, const double& z0h, const double& z0q, const double& temp12m,
+                                      double& temp22m) {
   if (z0q == z0h) {
     temp22m = temp12m;
   } else {
@@ -158,4 +158,3 @@ void ns::friction_velocity_humidity2m(const double &obu, const double &z0h, cons
     }
   }
 }
-

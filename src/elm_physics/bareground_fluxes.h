@@ -45,11 +45,11 @@ namespace ELM::bareground_fluxes {
 \param[out] ur               [double] wind speed at reference height [m/s]
 \param[out] um               [double] wind speed including the stablity effect [m/s]
 */
-void initialize_flux(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
-                       const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
-                       const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
-                       double &ulrad, double &zldis, double &displa, double &dth, double &dqh, double &obu, double &ur,
-                       double &um);
+void initialize_flux(const LandType& Land, const int& frac_veg_nosno, const double& forc_u, const double& forc_v,
+                     const double& forc_q, const double& forc_th, const double& forc_hgt_u_patch, const double& thm,
+                     const double& thv, const double& t_grnd, const double& qg, const double& z0mg, double& dlrad,
+                     double& ulrad, double& zldis, double& displa, double& dth, double& dqh, double& obu, double& ur,
+                     double& um);
 
 /*! Perform fixed 3-stage stability iteration over bare-ground cells.
 Determine friction velocity and potential temperature and humidity
@@ -76,12 +76,12 @@ profiles of the surface boundary layer.
 \param[out] temp22m          [double] relation for specific humidity profile applied at 2-m
 \param[out] ustar            [double] friction velocity [m/s]
 */
-void stability_iteration(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
-                           const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
-                           const double &zldis, const double &displa,
-                           const double &dth, const double &dqh, const double &ur, const double &forc_q,
-                           const double &forc_th, const double &thv, double &z0hg, double &z0qg, double &obu,
-                           double &um, double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar);
+void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const double& forc_hgt_t_patch,
+                         const double& forc_hgt_u_patch, const double& forc_hgt_q_patch, const double& z0mg,
+                         const double& zldis, const double& displa, const double& dth, const double& dqh,
+                         const double& ur, const double& forc_q, const double& forc_th, const double& thv, double& z0hg,
+                         double& z0qg, double& obu, double& um, double& temp1, double& temp2, double& temp12m,
+                         double& temp22m, double& ustar);
 
 /*! Calculate bare-ground water and energy fluxes.
 
@@ -127,18 +127,17 @@ void stability_iteration(const LandType &Land, const int &frac_veg_nosno, const 
 \param[out] rh_ref2m                   [double] 2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
-void compute_flux(const LandType &Land, const int &frac_veg_nosno, const int &snl, const double &forc_rho,
-                    const double &soilbeta, const double &dqgdT, const double &htvp, const double &t_h2osfc,
-                    const double &qg_snow, const double &qg_soil, const double &qg_h2osfc, const ArrayD1 t_soisno,
-                    const double &forc_pbot, const double &dth, const double &dqh, const double &temp1,
-                    const double &temp2, const double &temp12m, const double &temp22m, const double &ustar,
-                    const double &forc_q, const double &thm, double &cgrnds, double &cgrndl, double &cgrnd,
-                    double &eflx_sh_grnd, double &eflx_sh_tot, double &eflx_sh_snow, double &eflx_sh_soil,
-                    double &eflx_sh_h2osfc, double &qflx_evap_soi, double &qflx_evap_tot, double &qflx_ev_snow,
-                    double &qflx_ev_soil, double &qflx_ev_h2osfc, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
-                    double &rh_ref2m, double &rh_ref2m_r);
+void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
+                  const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,
+                  const double& qg_snow, const double& qg_soil, const double& qg_h2osfc, const ArrayD1 t_soisno,
+                  const double& forc_pbot, const double& dth, const double& dqh, const double& temp1,
+                  const double& temp2, const double& temp12m, const double& temp22m, const double& ustar,
+                  const double& forc_q, const double& thm, double& cgrnds, double& cgrndl, double& cgrnd,
+                  double& eflx_sh_grnd, double& eflx_sh_tot, double& eflx_sh_snow, double& eflx_sh_soil,
+                  double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_evap_tot, double& qflx_ev_snow,
+                  double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& t_ref2m_r, double& q_ref2m,
+                  double& rh_ref2m, double& rh_ref2m_r);
 
 } // namespace ELM::bareground_fluxes
 
 #include "bareground_fluxes_impl.hh"
-

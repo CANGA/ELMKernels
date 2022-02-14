@@ -5,8 +5,8 @@
 namespace ELM::soil_moist_stress {
 
 template <class ArrayD1>
-void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int &altmax_indx,
-                               const int &altmax_lastyear_indx, double *rootfr_unf) {
+void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
+                               const int& altmax_lastyear_indx, double *rootfr_unf) {
 
   if (perchroot || perchroot_alt) { // Define rootfraction for unfrozen soil only
     if (perchroot_alt) {            // use total active layer (defined as max thaw depth for current and prior year)
@@ -30,10 +30,8 @@ void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, con
   array_normalization(rootfr_unf); // normalize the root fraction
 }
 
-
 template <class ArrayD1>
-void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
-                                 ArrayD1 eff_por) {
+void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por) {
 
   double vol_ice;
   for (int i = 0; i < nlevgrnd; i++) {
@@ -44,10 +42,8 @@ void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice,
   }
 }
 
-
 template <class ArrayD1>
-void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz,
-                            double *vol_liq) {
+void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq) {
 
   for (int i = 0; i < nlevgrnd; i++) {
     // volume of liquid is no greater than effective void space
@@ -55,13 +51,11 @@ void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, con
   }
 }
 
-
 template <class ArrayD1>
-void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
-                            const ArrayD1 t_soisno, const double &tc_stress, const ArrayD1 sucsat,
-                            const ArrayD1 watsat, const ArrayD1 bsw, const double &smpso,
-                            const double &smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
-                            const int &altmax_lastyear_indx, ArrayD1 rootr, double &btran) {
+void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
+                            const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
+                            const double& smpso, const double& smpsc, const ArrayD1 eff_porosity,
+                            const int& altmax_indx, const int& altmax_lastyear_indx, ArrayD1 rootr, double& btran) {
   double s_node, smp_node;
   const double btran0 = 0.0;
   double rootfr_unf[nlevgrnd] = {0.0}; // unfrozen root fraction
@@ -78,8 +72,7 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
       s_node = std::max(h2osoi_liqvol[nlevsno + i] / eff_porosity[i], 0.01);
       smp_node = soil_suction(sucsat[i], s_node, bsw[i]);
       smp_node = std::max(smpsc, smp_node);
-      rresis[i] =
-          std::min((eff_porosity[i] / watsat[i]) * (smp_node - smpsc) / (smpso - smpsc), 1.0);
+      rresis[i] = std::min((eff_porosity[i] / watsat[i]) * (smp_node - smpsc) / (smpso - smpsc), 1.0);
 
       if (!perchroot && !perchroot_alt) {
         rootr[i] = rootfr[i] * rresis[i];
@@ -101,4 +94,3 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
 }
 
 } // namespace ELM::soil_moist_stress
-

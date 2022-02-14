@@ -3,16 +3,15 @@
 #pragma once
 
 namespace ELM::canopy_hydrology {
-  
-template <class ArrayD1>
-void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow, const int &oldfflag,
-              const double &forc_t, const double &t_grnd, const double &qflx_snow_grnd, const double &qflx_snow_melt,
-              const double &n_melt,
 
-              double &snow_depth, double &h2osno, double &int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
-              ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int &snl, ArrayD1 dz,
-              ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds, double &frac_sno_eff,
-              double &frac_sno) {
+template <class ArrayD1>
+void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow, const int& oldfflag,
+               const double& forc_t, const double& t_grnd, const double& qflx_snow_grnd, const double& qflx_snow_melt,
+               const double& n_melt,
+
+               double& snow_depth, double& h2osno, double& int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
+               ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi,
+               ArrayD1 snw_rds, double& frac_sno_eff, double& frac_sno) {
 
   if (!Land.lakpoi) {
     double temp_snow_depth, dz_snowf, newsnow, bifall, snowmelt, accum_factor, temp_intsnow, z_avg;
@@ -117,7 +116,7 @@ void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow
             }
           }
         } else {
-          //z_avg = 0.0;
+          // z_avg = 0.0;
           snow_depth = 0.0;
           frac_sno = 0.0;
         }
@@ -126,7 +125,7 @@ void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow
       h2osno = h2osno + newsnow; // update h2osno for new snow
       int_snow = int_snow + newsnow;
       dz_snowf = (snow_depth - temp_snow_depth); // update change in snow depth
-    }                                                    // end else do_capsnow
+    }                                            // end else do_capsnow
     // set frac_sno_eff variable
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
       if (subgridflag == 1) {
@@ -167,9 +166,9 @@ void snow_init(const LandType &Land, const double &dtime, const bool &do_capsnow
 } // snow_init
 
 template <class ArrayD1>
-void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const double &h2osno,
+void fraction_h2osfc(const LandType& Land, const double& micro_sigma, const double& h2osno,
 
-                double &h2osfc, ArrayD1 h2osoi_liq, double &frac_sno, double &frac_sno_eff, double &frac_h2osfc) {
+                     double& h2osfc, ArrayD1 h2osoi_liq, double& frac_sno, double& frac_sno_eff, double& frac_h2osfc) {
 
   if (!Land.lakpoi) {
     double d, fd, dfdd, sigma;
@@ -213,4 +212,3 @@ void fraction_h2osfc(const LandType &Land, const double &micro_sigma, const doub
 } // fraction_h2osfc
 
 } // namespace ELM::canopy_hydrology
-

@@ -4,8 +4,8 @@
 
 #include "date_time.hh"
 
-#include <utility>
 #include <tuple>
+#include <utility>
 
 /*
 
@@ -39,7 +39,7 @@ kmo        m1 m2    m1 m2
 
                 switch to next
  WEIGHTS:         index pair
-(0.5, 0.5) -> (0,1)   |  (1,0) -> (0.5, 0.5)  
+(0.5, 0.5) -> (0,1)   |  (1,0) -> (0.5, 0.5)
     t=0      t=0.25       t=0.5       t=0.75
  wt1  wt2   wt1   wt2    wt1   wt2   wt1   wt2
  0.5  0.5   0.25  0.75   1.0   0.0   0.75  0.25
@@ -50,14 +50,13 @@ namespace ELM::monthly_data {
 // utility namespace for monthly data (phenology, aerosols)
 // month_frac() - returns elapsed month fraction
 // month_indices() - return monthly data timeseries indices bracketing model_time input parameter
-// monthly_data_weights() - return weights for monthly data 
+// monthly_data_weights() - return weights for monthly data
 
 double month_frac(const Utils::Date& model_time);
 int first_month_idx(const Utils::Date& model_time);
 std::pair<int, int> month_indices(const Utils::Date& model_time);
 int third_month_idx(const Utils::Date& model_time);
-std::tuple<int,int,int> triple_month_indices(const Utils::Date& model_time);
+std::tuple<int, int, int> triple_month_indices(const Utils::Date& model_time);
 std::pair<double, double> monthly_data_weights(const Utils::Date& model_time);
-
 
 } // namespace ELM::monthly_data

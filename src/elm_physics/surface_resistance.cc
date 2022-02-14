@@ -4,7 +4,7 @@
 
 namespace ns = ELM::surface_resistance;
 
-double ns::getlblcef(const double &rho, const double &temp) {
+double ns::getlblcef(const double& rho, const double& temp) {
   const double C = 120.0;      // K
   const double T0 = 291.25;    // K
   const double mu0 = 18.27e-6; // Pa s
@@ -16,4 +16,3 @@ double ns::getlblcef(const double &rho, const double &temp) {
   double result = 2.0 / vkc * pow(sc / prandtl, 2.0 / 3.0);
   return result;
 }
-

@@ -4,10 +4,10 @@
 
 namespace ns = ELM::canopy_hydrology;
 
-void ns::interception(const LandType &Land, const int &frac_veg_nosno, const double &forc_rain, const double &forc_snow,
-                  const double &dewmx, const double &elai, const double &esai, const double &dtime, double &h2ocan,
-                  double &qflx_candrip, double &qflx_through_snow, double &qflx_through_rain, double &fracsnow,
-                  double &fracrain) {
+void ns::interception(const LandType& Land, const int& frac_veg_nosno, const double& forc_rain, const double& forc_snow,
+                      const double& dewmx, const double& elai, const double& esai, const double& dtime, double& h2ocan,
+                      double& qflx_candrip, double& qflx_through_snow, double& qflx_through_rain, double& fracsnow,
+                      double& fracrain) {
 
   if (!Land.lakpoi) {
     // Canopy interception/storage and throughfall
@@ -65,7 +65,7 @@ void ns::interception(const LandType &Land, const int &frac_veg_nosno, const dou
   }
 } // interception
 
-void ns::Irrigation(const LandType &Land, const double &irrig_rate, int &n_irrig_steps_left, double &qflx_irrig) {
+void ns::Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_steps_left, double& qflx_irrig) {
   if (!Land.lakpoi) {
     if (n_irrig_steps_left > 0) {
       qflx_irrig = irrig_rate;
@@ -76,11 +76,11 @@ void ns::Irrigation(const LandType &Land, const double &irrig_rate, int &n_irrig
   }
 } // Irrigation
 
-void ns::ground_flux(const LandType &Land, const bool &do_capsnow, const int &frac_veg_nosno, const double &forc_rain,
-                const double &forc_snow, const double &qflx_irrig, const double &qflx_candrip,
-                const double &qflx_through_snow, const double &qflx_through_rain, const double &fracsnow,
-                const double &fracrain, double &qflx_prec_grnd, double &qflx_snwcp_liq, double &qflx_snwcp_ice,
-                double &qflx_snow_grnd, double &qflx_rain_grnd) {
+void ns::ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
+                     const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
+                     const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
+                     const double& fracrain, double& qflx_prec_grnd, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
+                     double& qflx_snow_grnd, double& qflx_rain_grnd) {
 
   if (!Land.lakpoi) {
     double qflx_prec_grnd_snow, qflx_prec_grnd_rain;
@@ -117,16 +117,16 @@ void ns::ground_flux(const LandType &Land, const bool &do_capsnow, const int &fr
   }
 } // ground_flux
 
-void ns::fraction_wet(const LandType &Land, const int &frac_veg_nosno, const double &dewmx, const double &elai,
-             const double &esai, const double &h2ocan, double &fwet, double &fdry) {
+void ns::fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double& dewmx, const double& elai,
+                      const double& esai, const double& h2ocan, double& fwet, double& fdry) {
 
   if (!Land.lakpoi) {
     if (frac_veg_nosno == 1) {
       if (h2ocan > 0.0) {
         double vegt = frac_veg_nosno * (elai + esai);
         double dewmxi = 1.0 / dewmx;
-        fwet = pow(((dewmxi / vegt) * h2ocan), 0.666666666666); //2.0 / 3.0); -- change ELM to 2./3. ?
-        fwet = std::min(fwet, 1.0); // Check for maximum limit of fwet
+        fwet = pow(((dewmxi / vegt) * h2ocan), 0.666666666666); // 2.0 / 3.0); -- change ELM to 2./3. ?
+        fwet = std::min(fwet, 1.0);                             // Check for maximum limit of fwet
       } else {
         fwet = 0.0;
       }
@@ -137,4 +137,3 @@ void ns::fraction_wet(const LandType &Land, const int &frac_veg_nosno, const dou
     }
   }
 } // fraction_wet
-

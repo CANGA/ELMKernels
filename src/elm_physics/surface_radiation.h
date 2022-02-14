@@ -4,7 +4,8 @@
 Compute canopy sun/shade fractions, radiation absorbed by surface/layers, and radiation reflected.
 
 Call sequence:
-CanopySunShadeFrac() -> initialize_flux() -> total_absorbed_radiation() -> layer_absorbed_radiation() -> reflected_radiation()
+CanopySunShadeFrac() -> initialize_flux() -> total_absorbed_radiation() -> layer_absorbed_radiation() ->
+reflected_radiation()
 */
 #pragma once
 
@@ -27,8 +28,8 @@ namespace ELM::surface_radiation {
 \param[out] sabg_lyr[nlevsno+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 template <class ArrayD1>
-void initialize_flux(const LandType &Land, double &sabg_soil, double &sabg_snow, double &sabg, double &sabv,
-                       double &fsa, ArrayD1 sabg_lyr);
+void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow, double& sabg, double& sabv,
+                     double& fsa, ArrayD1 sabg_lyr);
 
 /*! Calculate solar flux absorbed by canopy, soil, snow, and ground.
 
@@ -56,12 +57,12 @@ void initialize_flux(const LandType &Land, double &sabg_soil, double &sabg_snow,
 \param[out] tri[numrad]       [double] transmitted solar radiation: diffuse (W/m**2)
 */
 template <class ArrayD1>
-void total_absorbed_radiation(const LandType &Land, const int &snl, const ArrayD1 ftdd, const ArrayD1 ftid,
-                     const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
-                     const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
-                     const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
-                     const ArrayD1 albgri, double &sabv, double &fsa, double &sabg, double &sabg_soil,
-                     double &sabg_snow, double trd[numrad], double tri[numrad]);
+void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD1 ftdd, const ArrayD1 ftid,
+                              const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
+                              const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
+                              const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
+                              const ArrayD1 albgri, double& sabv, double& fsa, double& sabg, double& sabg_soil,
+                              double& sabg_snow, double trd[numrad], double tri[numrad]);
 
 /*! Compute absorbed flux in each snow layer and top soil layer.
 
@@ -79,10 +80,10 @@ void total_absorbed_radiation(const LandType &Land, const int &snl, const ArrayD
 \param[out] sabg_lyr[nlevsno+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 template <class ArrayD1>
-void layer_absorbed_radiation(const LandType &Land, const int &snl, const double &sabg, const double &sabg_snow,
-                   const double &snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
-                   const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[numrad],
-                   const double tri[numrad], ArrayD1 sabg_lyr);
+void layer_absorbed_radiation(const LandType& Land, const int& snl, const double& sabg, const double& sabg_snow,
+                              const double& snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
+                              const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[numrad],
+                              const double tri[numrad], ArrayD1 sabg_lyr);
 
 /*! Calculate reflected solar radiation.
 
@@ -94,8 +95,8 @@ void layer_absorbed_radiation(const LandType &Land, const int &snl, const double
 \param[out] fsr                [double] solar radiation reflected (W/m**2)
 */
 template <class ArrayD1>
-void reflected_radiation(const LandType &Land, const ArrayD1 albd, const ArrayD1 albi,
-                      const ArrayD1 forc_solad, const ArrayD1 forc_solai, double &fsr);
+void reflected_radiation(const LandType& Land, const ArrayD1 albd, const ArrayD1 albi, const ArrayD1 forc_solad,
+                         const ArrayD1 forc_solai, double& fsr);
 
 /*!
 This subroutine calculates and returns:
@@ -125,11 +126,11 @@ This subroutine calculates and returns:
 \param[out] laisha              [double] shaded  leaf area
 */
 template <class ArrayD1>
-void canopy_sunshade_fractions(const LandType &Land, const int &nrad, const double &elai, const ArrayD1 tlai_z,
-                             const ArrayD1 fsun_z, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
-                             const ArrayD1 fabd_sun_z, const ArrayD1 fabd_sha_z, const ArrayD1 fabi_sun_z,
-                             const ArrayD1 fabi_sha_z, ArrayD1 parsun_z, ArrayD1 parsha_z,
-                             ArrayD1 laisun_z, ArrayD1 laisha_z, double &laisun, double &laisha);
+void canopy_sunshade_fractions(const LandType& Land, const int& nrad, const double& elai, const ArrayD1 tlai_z,
+                               const ArrayD1 fsun_z, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
+                               const ArrayD1 fabd_sun_z, const ArrayD1 fabd_sha_z, const ArrayD1 fabi_sun_z,
+                               const ArrayD1 fabi_sha_z, ArrayD1 parsun_z, ArrayD1 parsha_z, ArrayD1 laisun_z,
+                               ArrayD1 laisha_z, double& laisun, double& laisha);
 
 } // namespace ELM::surface_radiation
 

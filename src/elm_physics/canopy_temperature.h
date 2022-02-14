@@ -28,8 +28,8 @@ namespace ELM::canopy_temperature {
 \param[out] tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update
 */
 template <class ArrayD1>
-void old_ground_temp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
-                    ArrayD1 tssbef);
+void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno, double& t_h2osfc_bef,
+                     ArrayD1 tssbef);
 
 /*! Calculate average ground temp.
 
@@ -42,8 +42,8 @@ void old_ground_temp(const LandType &Land, const double &t_h2osfc, const ArrayD1
 \param[out] t_grnd                     [double] ground temperature (Kelvin)
 */
 template <class ArrayD1>
-void ground_temp(const LandType &Land, const int &snl, const double &frac_sno_eff, const double &frac_h2osfc,
-                         const double &t_h2osfc, const ArrayD1 t_soisno, double &t_grnd);
+void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
+                 const double& t_h2osfc, const ArrayD1 t_soisno, double& t_grnd);
 
 /*! Calculate soilalpha factor that reduces ground saturated specific humidity.
 It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and hr do.
@@ -69,12 +69,11 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[out] soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
 */
 template <class ArrayD1>
-void calc_soilalpha(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double &smpmin,
-                        const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
-                        const ArrayD1 t_soisno, const ArrayD1 watsat, const ArrayD1 sucsat,
-                        const ArrayD1 bsw, const ArrayD1 watdry, const ArrayD1 watopt,
-                        const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double &qred, double &hr,
-                        double &soilalpha, double &soilalpha_u);
+void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const double& smpmin,
+                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
+                    const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
+                    const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
+                    double& hr, double& soilalpha, double& soilalpha_u);
 
 /*! Calculate soilbeta parameter.
 
@@ -89,9 +88,9 @@ void calc_soilalpha(const LandType &Land, const double &frac_sno, const double &
 \param[out] soilbeta                     [double] factor that reduces ground evaporation
 */
 template <class ArrayD1>
-void calc_soilbeta(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                       const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
-                       const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta);
+void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
+                   const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                   double& soilbeta);
 
 /*! Calculate saturated vapor pressure, specific humidity and their derivatives at ground surface.
 Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
@@ -115,11 +114,10 @@ Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
 \param[out] dqgdT                      [double] d(qg)/dT
 */
 template <class ArrayD1>
-void humidities(const LandType &Land, const int &snl, const double &forc_q, const double &forc_pbot,
-                         const double &t_h2osfc, const double &t_grnd, const double &frac_sno,
-                         const double &frac_sno_eff, const double &frac_h2osfc, const double &qred, const double &hr,
-                         const ArrayD1 t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
-                         double &dqgdT);
+void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
+                const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,
+                const double& frac_h2osfc, const double& qred, const double& hr, const ArrayD1 t_soisno,
+                double& qg_snow, double& qg_soil, double& qg, double& qg_h2osfc, double& dqgdT);
 
 /*! Calculate ground emissivity, latent heat constant, roughness lengths,
 potential temp and wind speed.
@@ -150,12 +148,11 @@ potential temp and wind speed.
 \param[out] displa                       [double] displacement height (m)
 */
 template <class ArrayD1>
-void ground_properties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
-                      const double &forc_q, const double &elai, const double &esai, const double &htop,
-                      const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
-                      const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
-                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &thv,
-                      double &z0m, double &displa);
+void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
+                       const double& forc_q, const double& elai, const double& esai, const double& htop,
+                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
+                       double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
+                       double& z0hv, double& z0qv, double& thv, double& z0m, double& displa);
 
 /*! Calculate roughness length, displacement height, and forcing height for wind, temp, and humidity.
 
@@ -176,11 +173,10 @@ void ground_properties(const LandType &Land, const int &snl, const double &frac_
 \param[out] forc_hgt_q_patch [double] observational height of specific humidity at pft level [m]
 \param[out] thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 */
-void forcing_height(const LandType &Land, const bool &veg_active, const int &frac_veg_nosno,
-                            const double &forc_hgt_u, const double &forc_hgt_t, const double &forc_hgt_q,
-                            const double &z0m, const double &z0mg, const double &z_0_town, const double &z_d_town,
-                            const double &forc_t, const double &displa, double &forc_hgt_u_patch,
-                            double &forc_hgt_t_patch, double &forc_hgt_q_patch, double &thm);
+void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno, const double& forc_hgt_u,
+                    const double& forc_hgt_t, const double& forc_hgt_q, const double& z0m, const double& z0mg,
+                    const double& z_0_town, const double& z_d_town, const double& forc_t, const double& displa,
+                    double& forc_hgt_u_patch, double& forc_hgt_t_patch, double& forc_hgt_q_patch, double& thm);
 
 /*! Set energy flux terms to 0.0 before calculation.
 
@@ -196,11 +192,10 @@ void forcing_height(const LandType &Land, const bool &veg_active, const int &fra
 \param[out] qflx_evap_veg    [double] vegetation evaporation (mm H2O/s) (+ = to atm)
 \param[out] qflx_tran_veg    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
 */
-void init_energy_fluxes(const LandType &Land, double &eflx_sh_tot, double &eflx_sh_tot_u, double &eflx_sh_tot_r,
-                            double &eflx_lh_tot, double &eflx_lh_tot_u, double &eflx_lh_tot_r, double &eflx_sh_veg,
-                            double &qflx_evap_tot, double &qflx_evap_veg, double &qflx_tran_veg);
+void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_sh_tot_u, double& eflx_sh_tot_r,
+                        double& eflx_lh_tot, double& eflx_lh_tot_u, double& eflx_lh_tot_r, double& eflx_sh_veg,
+                        double& qflx_evap_tot, double& qflx_evap_veg, double& qflx_tran_veg);
 
 } // namespace ELM::canopy_temperature
 
 #include "canopy_temperature_impl.hh"
-

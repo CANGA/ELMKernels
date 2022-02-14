@@ -12,11 +12,11 @@
 
 namespace ns = ELM::bareground_fluxes;
 
-void ns::initialize_flux(const LandType &Land, const int &frac_veg_nosno, const double &forc_u, const double &forc_v,
-                       const double &forc_q, const double &forc_th, const double &forc_hgt_u_patch, const double &thm,
-                       const double &thv, const double &t_grnd, const double &qg, const double &z0mg, double &dlrad,
-                       double &ulrad, double &zldis, double &displa, double &dth, double &dqh, double &obu, double &ur,
-                       double &um) {
+void ns::initialize_flux(const LandType& Land, const int& frac_veg_nosno, const double& forc_u, const double& forc_v,
+                         const double& forc_q, const double& forc_th, const double& forc_hgt_u_patch, const double& thm,
+                         const double& thv, const double& t_grnd, const double& qg, const double& z0mg, double& dlrad,
+                         double& ulrad, double& zldis, double& displa, double& dth, double& dqh, double& obu,
+                         double& ur, double& um) {
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
     ur = std::max(1.0, std::sqrt(forc_u * forc_u + forc_v * forc_v));
@@ -33,12 +33,12 @@ void ns::initialize_flux(const LandType &Land, const int &frac_veg_nosno, const 
   }
 } // initialize_flux()
 
-void ns::stability_iteration(const LandType &Land, const int &frac_veg_nosno, const double &forc_hgt_t_patch,
-                           const double &forc_hgt_u_patch, const double &forc_hgt_q_patch, const double &z0mg,
-                           const double &zldis, const double &displa,
-                           const double &dth, const double &dqh, const double &ur, const double &forc_q,
-                           const double &forc_th, const double &thv, double &z0hg, double &z0qg, double &obu,
-                           double &um, double &temp1, double &temp2, double &temp12m, double &temp22m, double &ustar) {
+void ns::stability_iteration(const LandType& Land, const int& frac_veg_nosno, const double& forc_hgt_t_patch,
+                             const double& forc_hgt_u_patch, const double& forc_hgt_q_patch, const double& z0mg,
+                             const double& zldis, const double& displa, const double& dth, const double& dqh,
+                             const double& ur, const double& forc_q, const double& forc_th, const double& thv,
+                             double& z0hg, double& z0qg, double& obu, double& um, double& temp1, double& temp2,
+                             double& temp12m, double& temp22m, double& ustar) {
 
   double tstar;                     // temperature scaling parameter
   double qstar;                     // moisture scaling parameter
@@ -47,7 +47,7 @@ void ns::stability_iteration(const LandType &Land, const int &frac_veg_nosno, co
   double zeta;                      // dimensionless height used in Monin-Obukhov theory
   static const int niters = 3;      // number of iterations
   static const double beta = 1.0;   // coefficient of convective velocity [-]
-  static const double zii = 1000.0; //convective boundary height [m]
+  static const double zii = 1000.0; // convective boundary height [m]
 
   for (int i = 0; i < niters; i++) {
 
@@ -56,7 +56,8 @@ void ns::stability_iteration(const LandType &Land, const int &frac_veg_nosno, co
       // friction velocity calls
       friction_velocity::friction_velocity_wind(forc_hgt_u_patch, displa, um, obu, z0mg, ustar);
       friction_velocity::friction_velocity_temp(forc_hgt_t_patch, displa, obu, z0hg, temp1);
-      friction_velocity::friction_velocity_humidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1, temp2);
+      friction_velocity::friction_velocity_humidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hg, z0qg, temp1,
+                                                    temp2);
       friction_velocity::friction_velocity_temp2m(obu, z0hg, temp12m);
       friction_velocity::friction_velocity_humidity2m(obu, z0hg, z0qg, temp12m, temp22m);
 
@@ -80,4 +81,3 @@ void ns::stability_iteration(const LandType &Land, const int &frac_veg_nosno, co
     }
   }
 } // stability_iteration()
-

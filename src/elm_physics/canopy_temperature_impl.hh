@@ -5,8 +5,8 @@
 namespace ELM::canopy_temperature {
 
 template <class ArrayD1>
-void old_ground_temp(const LandType &Land, const double &t_h2osfc, const ArrayD1 t_soisno, double &t_h2osfc_bef,
-                    ArrayD1 tssbef) {
+void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno, double& t_h2osfc_bef,
+                     ArrayD1 tssbef) {
 
   if (!Land.lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
@@ -22,8 +22,8 @@ void old_ground_temp(const LandType &Land, const double &t_h2osfc, const ArrayD1
 } // old_ground_temp
 
 template <class ArrayD1>
-void ground_temp(const LandType &Land, const int &snl, const double &frac_sno_eff, const double &frac_h2osfc,
-                         const double &t_h2osfc, const ArrayD1 t_soisno, double &t_grnd) {
+void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
+                 const double& t_h2osfc, const ArrayD1 t_soisno, double& t_grnd) {
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
   if (!Land.lakpoi) {
     if (snl > 0) {
@@ -36,12 +36,11 @@ void ground_temp(const LandType &Land, const int &snl, const double &frac_sno_ef
 } // ground_temp
 
 template <class ArrayD1>
-void calc_soilalpha(const LandType &Land, const double &frac_sno, const double &frac_h2osfc, const double &smpmin,
-                        const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
-                        const ArrayD1 t_soisno, const ArrayD1 watsat, const ArrayD1 sucsat,
-                        const ArrayD1 bsw, const ArrayD1 watdry, const ArrayD1 watopt,
-                        const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double &qred, double &hr,
-                        double &soilalpha, double &soilalpha_u) {
+void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const double& smpmin,
+                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
+                    const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
+                    const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
+                    double& hr, double& soilalpha, double& soilalpha_u) {
   qred = 1.0; // soil surface relative humidity
 
   if (!Land.lakpoi) {
@@ -106,19 +105,19 @@ void calc_soilalpha(const LandType &Land, const double &frac_sno, const double &
 } // calc_soilalpha
 
 template <class ArrayD1>
-void calc_soilbeta(const LandType &Land, const double &frac_sno, const double &frac_h2osfc,
-                       const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
-                       const ArrayD1 h2osoi_ice, const ArrayD1 dz, double &soilbeta) {
+void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
+                   const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
+                   double& soilbeta) {
 
-  surface_resistance::calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz, soilbeta);
+  surface_resistance::calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz,
+                                           soilbeta);
 } // calc_soilbeta()
 
 template <class ArrayD1>
-void humidities(const LandType &Land, const int &snl, const double &forc_q, const double &forc_pbot,
-                         const double &t_h2osfc, const double &t_grnd, const double &frac_sno,
-                         const double &frac_sno_eff, const double &frac_h2osfc, const double &qred, const double &hr,
-                         const ArrayD1 t_soisno, double &qg_snow, double &qg_soil, double &qg, double &qg_h2osfc,
-                         double &dqgdT) {
+void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
+                const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,
+                const double& frac_h2osfc, const double& qred, const double& hr, const ArrayD1 t_soisno,
+                double& qg_snow, double& qg_soil, double& qg, double& qg_h2osfc, double& dqgdT) {
   if (!Land.lakpoi) {
 
     double eg;      // water vapor pressure at temperature T [pa]
@@ -173,12 +172,11 @@ void humidities(const LandType &Land, const int &snl, const double &forc_q, cons
 } // humidities
 
 template <class ArrayD1>
-void ground_properties(const LandType &Land, const int &snl, const double &frac_sno, const double &forc_th,
-                      const double &forc_q, const double &elai, const double &esai, const double &htop,
-                      const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq,
-                      const ArrayD1 h2osoi_ice, double &emg, double &emv, double &htvp, double &z0mg, double &z0hg,
-                      double &z0qg, double &z0mv, double &z0hv, double &z0qv, double &thv,
-                      double &z0m, double &displa) {
+void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
+                       const double& forc_q, const double& elai, const double& esai, const double& htop,
+                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
+                       double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
+                       double& z0hv, double& z0qv, double& thv, double& z0m, double& displa) {
   if (!Land.lakpoi) {
     double avmuir; // ir inverse optical depth per unit leaf area
 
@@ -222,9 +220,7 @@ void ground_properties(const LandType &Land, const int &snl, const double &frac_
 
     // Virtual potential temperature
     thv = forc_th * (1.0 + 0.61 * forc_q);
-
   }
 } // ground_properties
 
 } // namespace ELM::canopy_temperature
-

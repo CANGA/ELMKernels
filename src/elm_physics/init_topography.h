@@ -8,8 +8,7 @@ namespace ELM::init_topo {
 /*! Set minimum slope value
 /param topo_slope [double] slope (-)
 */
-void init_topo_slope(double &topo_slope);
-
+void init_topo_slope(double& topo_slope);
 
 /*! Initialize n_melt and micro_sigma for SCA calculations.
 \param[in]  ltype       [integer] landunit type
@@ -18,7 +17,7 @@ void init_topo_slope(double &topo_slope);
 \param[out] n_melt      [double] SCA shape parameter
 \param[out] micro_sigma [double] microtopography pdf sigma (m)
 */
-void init_micro_topo(const int &ltype, const double &topo_slope, const double &topo_std, double &n_melt,
-                   double &micro_sigma);
+void init_micro_topo(const int& ltype, const double& topo_slope, const double& topo_std, double& n_melt,
+                     double& micro_sigma);
 
-} // namespace ELM
+} // namespace ELM::init_topo

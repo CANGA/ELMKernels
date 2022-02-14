@@ -91,20 +91,19 @@ namespace ELM::canopy_fluxes {
 //} // Irrigation
 
 template <class ArrayD1>
-void initialize_flux(const LandType &Land, const int &snl, const int &frac_veg_nosno, const double &frac_sno,
-                        const double &forc_hgt_u_patch, const double &thm, const double &thv, const double &max_dayl,
-                        const double &dayl, const int &altmax_indx, const int &altmax_lastyear_indx,
-                        const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq,
-                        const ArrayD1 dz, const ArrayD1 rootfr, const double &tc_stress,
-                        const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
-                        const double &smpso, const double &smpsc, const double &elai, const double &esai,
-                        const double &emv, const double &emg, const double &qg, const double &t_grnd,
-                        const double &forc_t, const double &forc_pbot, const double &forc_lwrad, const double &forc_u,
-                        const double &forc_v, const double &forc_q, const double &forc_th, const double &z0mg,
-                        double &btran, double &displa, double &z0mv, double &z0hv, double &z0qv, ArrayD1 rootr,
-                        ArrayD1 eff_porosity, double &dayl_factor, double &air, double &bir, double &cir,
-                        double &el, double &qsatl, double &qsatldT, double &taf, double &qaf, double &um, double &ur,
-                        double &obu, double &zldis, double &delq, double &t_veg) {
+void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
+                     const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
+                     const double& dayl, const int& altmax_indx, const int& altmax_lastyear_indx,
+                     const ArrayD1 t_soisno, const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq, const ArrayD1 dz,
+                     const ArrayD1 rootfr, const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat,
+                     const ArrayD1 bsw, const double& smpso, const double& smpsc, const double& elai,
+                     const double& esai, const double& emv, const double& emg, const double& qg, const double& t_grnd,
+                     const double& forc_t, const double& forc_pbot, const double& forc_lwrad, const double& forc_u,
+                     const double& forc_v, const double& forc_q, const double& forc_th, const double& z0mg,
+                     double& btran, double& displa, double& z0mv, double& z0hv, double& z0qv, ArrayD1 rootr,
+                     ArrayD1 eff_porosity, double& dayl_factor, double& air, double& bir, double& cir, double& el,
+                     double& qsatl, double& qsatldT, double& taf, double& qaf, double& um, double& ur, double& obu,
+                     double& zldis, double& delq, double& t_veg) {
   // -----------------------------------------------------------------
   // Time step initialization of photosynthesis variables
   // -----------------------------------------------------------------
@@ -140,8 +139,8 @@ void initialize_flux(const LandType &Land, const int &snl, const int &frac_veg_n
       double h2osoi_liqvol[nlevgrnd + nlevsno];
       soil_moist_stress::calc_volumetric_h2oliq(eff_porosity, h2osoi_liq, dz, h2osoi_liqvol);
       // calculate root moisture stress
-      soil_moist_stress::calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso, smpsc,
-                             eff_porosity, altmax_indx, altmax_lastyear_indx, rootr, btran);
+      soil_moist_stress::calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso,
+                                                smpsc, eff_porosity, altmax_indx, altmax_lastyear_indx, rootr, btran);
 
       // Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
       // removed alpha_aero (const 1.0) from computation of egvf
@@ -180,37 +179,33 @@ void initialize_flux(const LandType &Land, const int &snl, const int &frac_veg_n
 } // initialize_flux()
 
 template <class ArrayD1>
-void stability_iteration(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
-                            const double &frac_sno, const double &forc_hgt_u_patch, const double &forc_hgt_t_patch,
-                            const double &forc_hgt_q_patch, const double &fwet,
-                            const double &fdry, const double &laisun, const double &laisha, const double &forc_rho,
-                            const double &snow_depth, const double &soilbeta, const double &frac_h2osfc,
-                            const double &t_h2osfc, const double &sabv, const double &h2ocan, const double &htop,
-                            const ArrayD1 t_soisno, const double &air, const double &bir, const double &cir,
-                            const double &ur, const double &zldis, const double &displa, const double &elai,
-                            const double &esai, const double &t_grnd, const double &forc_pbot, const double &forc_q,
-                            const double &forc_th, const double &z0mg, const double &z0mv, const double &z0hv,
-                            const double &z0qv, const double &thm, const double &thv, const double &qg,
-                            const PSNVegData& psnveg, const int &nrad, const double &t10, const ArrayD1 tlai_z,
-                            const double &vcmaxcintsha, const double &vcmaxcintsun, const ArrayD1 parsha_z,
-                            const ArrayD1 parsun_z, const ArrayD1 laisha_z, const ArrayD1 laisun_z,
-                            const double &forc_pco2, const double &forc_po2, const double &dayl_factor, double &btran,
-                            double &qflx_tran_veg, double &qflx_evap_veg, double &eflx_sh_veg, double &wtg,
-                            double &wtl0, double &wta0, double &wtal, double &el, double &qsatl, double &qsatldT,
-                            double &taf, double &qaf, double &um, double &dth, double &dqh, double &obu, double &temp1,
-                            double &temp2, double &temp12m, double &temp22m, double &tlbef, double &delq,
-                            double &dt_veg, double &t_veg, double &wtgq, double &wtalq, double &wtlq0, double &wtaq0) {
+void stability_iteration(
+    const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
+    const double& forc_hgt_u_patch, const double& forc_hgt_t_patch, const double& forc_hgt_q_patch, const double& fwet,
+    const double& fdry, const double& laisun, const double& laisha, const double& forc_rho, const double& snow_depth,
+    const double& soilbeta, const double& frac_h2osfc, const double& t_h2osfc, const double& sabv, const double& h2ocan,
+    const double& htop, const ArrayD1 t_soisno, const double& air, const double& bir, const double& cir,
+    const double& ur, const double& zldis, const double& displa, const double& elai, const double& esai,
+    const double& t_grnd, const double& forc_pbot, const double& forc_q, const double& forc_th, const double& z0mg,
+    const double& z0mv, const double& z0hv, const double& z0qv, const double& thm, const double& thv, const double& qg,
+    const PSNVegData& psnveg, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
+    const double& vcmaxcintsun, const ArrayD1 parsha_z, const ArrayD1 parsun_z, const ArrayD1 laisha_z,
+    const ArrayD1 laisun_z, const double& forc_pco2, const double& forc_po2, const double& dayl_factor, double& btran,
+    double& qflx_tran_veg, double& qflx_evap_veg, double& eflx_sh_veg, double& wtg, double& wtl0, double& wta0,
+    double& wtal, double& el, double& qsatl, double& qsatldT, double& taf, double& qaf, double& um, double& dth,
+    double& dqh, double& obu, double& temp1, double& temp2, double& temp12m, double& temp22m, double& tlbef,
+    double& delq, double& dt_veg, double& t_veg, double& wtgq, double& wtalq, double& wtlq0, double& wtaq0) {
 
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
     bool stop = false;
     int itmax = 40; // maximum number of iterations [-]
     int itmin = 2;  // minimum number of iterations [-]
     int itlef = 0;
-    int nmozsgn = 0;       // number of times stability changes sign
-    double del = 0.0;      // absolute change in leaf temp in current iteration [K]
-    //double csoilc = 0.004; // Drag coefficient for soil under canopy [-]
-    double efeb = 0.0;     // latent heat flux from leaf (previous iter) [mm/s]
-    double obuold = 0.0;   // monin-obukhov length from previous iteration
+    int nmozsgn = 0;  // number of times stability changes sign
+    double del = 0.0; // absolute change in leaf temp in current iteration [K]
+    // double csoilc = 0.004; // Drag coefficient for soil under canopy [-]
+    double efeb = 0.0;   // latent heat flux from leaf (previous iter) [mm/s]
+    double obuold = 0.0; // monin-obukhov length from previous iteration
     double ustar, del2, uaf, cf, rb, ram, rah[2], raw[2];
     double csoilcn, csoilb, ri, ricsoilc, w, svpts, eah;
     double wta, wtl, wtshi, wtg0, wtga, wtsqi, wtgq0, wtgaq;
@@ -219,9 +214,10 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
     double tstar, qstar, thvstar, wc, zeta, wtaq, wtlq, dele, det, deldT;
     double rssun, rssha;
     static const double btran0 = 0.0;
-    static const double beta = 1.0; // coefficient of convective velocity [-]
+    static const double beta = 1.0;   // coefficient of convective velocity [-]
     static const double zii = 1000.0; // convective boundary layer height [m]
-    static const double ria = 0.5; // free parameter for stable formulation (currently = 0.5, "gamma" in Sakaguchi&Zeng,2008)
+    static const double ria =
+        0.5; // free parameter for stable formulation (currently = 0.5, "gamma" in Sakaguchi&Zeng,2008)
     static const double dlemin = 0.1; // max limit for energy flux convergence [w/m2]
     static const double dtmin = 0.01; // max limit for temperature convergence [K]
 
@@ -230,7 +226,8 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
       friction_velocity::friction_velocity_wind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
       friction_velocity::friction_velocity_temp(forc_hgt_t_patch, displa, obu, z0hv, temp1);
-      friction_velocity::friction_velocity_humidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hv, z0qv, temp1, temp2);
+      friction_velocity::friction_velocity_humidity(forc_hgt_q_patch, forc_hgt_t_patch, displa, obu, z0hv, z0qv, temp1,
+                                                    temp2);
       friction_velocity::friction_velocity_temp2m(obu, z0hv, temp12m);
       friction_velocity::friction_velocity_humidity2m(obu, z0hv, z0qv, temp12m, temp22m);
 
@@ -239,26 +236,29 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
       del2 = del;
       // Determine resistances
       ram = 1.0 / (ustar * ustar / um); // aerodynamical resistance (s/m)
-      rah[0] = 1.0 / (temp1 * ustar); // thermal resistance [s/m]
-      raw[0] = 1.0 / (temp2 * ustar); // moisture resistance [s/m]
+      rah[0] = 1.0 / (temp1 * ustar);   // thermal resistance [s/m]
+      raw[0] = 1.0 / (temp2 * ustar);   // moisture resistance [s/m]
       // Bulk boundary layer resistance of leaves
       uaf = um * std::sqrt(1.0 / (ram * um)); // velocity of air within foliage [m/s]
       // Use pft parameter for leaf characteristic width dleaf
       cf = 0.01 / (std::sqrt(uaf) * std::sqrt(psnveg.dleaf)); // heat transfer coefficient from leaves [-]
-      rb = 1.0 / (cf * uaf); // leaf boundary layer resistance [s/m]
+      rb = 1.0 / (cf * uaf);                                  // leaf boundary layer resistance [s/m]
 
       // Parameterization for variation of csoilc with canopy density from X. Zeng, University of Arizona
       w = exp(-(elai + esai));
       // changed by K.Sakaguchi from here
-      csoilb = (vkc / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45))); // turbulent transfer coefficient over bare soil (unitless)
+      csoilb =
+          (vkc / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45))); // turbulent transfer coefficient over bare soil (unitless)
       // compute the stability parameter for ricsoilc  ("S" in Sakaguchi&Zeng,2008)
-      ri = (grav * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0)); // stability parameter for under canopy air (unitless)
+      ri =
+          (grav * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0)); // stability parameter for under canopy air (unitless)
 
       // modify csoilc value (0.004) if the under-canopy is in stable condition
       if ((taf - t_grnd) > 0.0) {
         // decrease the value of csoilc by dividing it with (1+gamma*min(S, 10.0))
-        ricsoilc = csoilc / (1.0 + ria * std::min(ri, 10.0)); // modified transfer coefficient under dense canopy (unitless)
-        csoilcn = csoilb * w + ricsoilc * (1.0 - w); // interpolated csoilc for dense (stable?) canopies
+        ricsoilc =
+            csoilc / (1.0 + ria * std::min(ri, 10.0)); // modified transfer coefficient under dense canopy (unitless)
+        csoilcn = csoilb * w + ricsoilc * (1.0 - w);   // interpolated csoilc for dense (stable?) canopies
       } else {
         csoilcn = csoilb * w + csoilc * (1.0 - w); // interpolated csoilc for less than dense (less stable?) canopies
       }
@@ -277,7 +277,7 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
 
       // call photosynthesis (phase=sun)
       photosynthesis::photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
-                     dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
+                                     dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) {
         btran = std::min(1.0, btran * 1.25);
@@ -285,7 +285,7 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
 
       // call photosynthesis (phase=shade)
       photosynthesis::photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
-                     dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, ci_z, rssha);
+                                     dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, ci_z, rssha);
 
       // Sensible heat conductance for air, leaf and ground
       wta = 1.0 / rah[0];       // air
@@ -440,27 +440,25 @@ void stability_iteration(const LandType &Land, const double &dtime, const int &s
         }
       }
     } // stability iteration
-  } // land type
+  }   // land type
 } // stability_iteration()
 
 template <class ArrayD1>
-void compute_flux(const LandType &Land, const double &dtime, const int &snl, const int &frac_veg_nosno,
-                     const double &frac_sno, const ArrayD1 t_soisno, const double &frac_h2osfc,
-                     const double &t_h2osfc, const double &sabv, const double &qg_snow, const double &qg_soil,
-                     const double &qg_h2osfc, const double &dqgdT, const double &htvp, const double &wtg,
-                     const double &wtl0, const double &wta0, const double &wtal, const double &air, const double &bir,
-                     const double &cir, const double &qsatl, const double &qsatldT, const double &dth,
-                     const double &dqh, const double &temp1, const double &temp2, const double &temp12m,
-                     const double &temp22m, const double &tlbef, const double &delq, const double &dt_veg,
-                     const double &t_veg, const double &t_grnd, const double &forc_pbot, const double &qflx_tran_veg,
-                     const double &qflx_evap_veg, const double &eflx_sh_veg, const double &forc_q,
-                     const double &forc_rho, const double &thm, const double &emv, const double &emg,
-                     const double &forc_lwrad, const double &wtgq, const double &wtalq, const double &wtlq0,
-                     const double &wtaq0, double &h2ocan, double &eflx_sh_grnd, double &eflx_sh_snow,
-                     double &eflx_sh_soil, double &eflx_sh_h2osfc, double &qflx_evap_soi, double &qflx_ev_snow,
-                     double &qflx_ev_soil, double &qflx_ev_h2osfc, double &dlrad, double &ulrad, double &cgrnds,
-                     double &cgrndl, double &cgrnd, double &t_ref2m, double &t_ref2m_r, double &q_ref2m,
-                     double &rh_ref2m, double &rh_ref2m_r) {
+void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
+                  const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,
+                  const double& sabv, const double& qg_snow, const double& qg_soil, const double& qg_h2osfc,
+                  const double& dqgdT, const double& htvp, const double& wtg, const double& wtl0, const double& wta0,
+                  const double& wtal, const double& air, const double& bir, const double& cir, const double& qsatl,
+                  const double& qsatldT, const double& dth, const double& dqh, const double& temp1, const double& temp2,
+                  const double& temp12m, const double& temp22m, const double& tlbef, const double& delq,
+                  const double& dt_veg, const double& t_veg, const double& t_grnd, const double& forc_pbot,
+                  const double& qflx_tran_veg, const double& qflx_evap_veg, const double& eflx_sh_veg,
+                  const double& forc_q, const double& forc_rho, const double& thm, const double& emv, const double& emg,
+                  const double& forc_lwrad, const double& wtgq, const double& wtalq, const double& wtlq0,
+                  const double& wtaq0, double& h2ocan, double& eflx_sh_grnd, double& eflx_sh_snow, double& eflx_sh_soil,
+                  double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_ev_snow, double& qflx_ev_soil,
+                  double& qflx_ev_h2osfc, double& dlrad, double& ulrad, double& cgrnds, double& cgrndl, double& cgrnd,
+                  double& t_ref2m, double& t_ref2m_r, double& q_ref2m, double& rh_ref2m, double& rh_ref2m_r) {
 
   if (!Land.lakpoi) {
     // Initial set for calculation

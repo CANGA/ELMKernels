@@ -11,7 +11,7 @@ I call calc_root_moist_stress() -> normalize_unfrozen_rootfr() -> array_normaliz
                                    >
                                      soil_suction()
 
-  
+
 -- note: rootfr_unf[nlevgrnd] needs to be initialized to
 
 soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without derivative
@@ -41,7 +41,7 @@ bsw      [double] shape parameter
 OUTPUTS:
 [double] soil suction, negative, [mm]
 */
-double soil_suction(const double &smpsat, const double &s, const double &bsw);
+double soil_suction(const double& smpsat, const double& s, const double& bsw);
 
 /*
 bsw      [double] shape parameter
@@ -51,8 +51,7 @@ s        [double] relative saturation [0-1]
 OUTPUTS:
 [double] d(smp)/ds [mm]
 */
-double dsuction_dsat(const double &bsw, const double &smp, const double &s);
-
+double dsuction_dsat(const double& bsw, const double& smp, const double& s);
 
 /*
 DESCRIPTION: normalize root fraction for total unfrozen depth
@@ -67,8 +66,8 @@ OUTPUTS:
 rootfr_unf[nlevgrnd]       [double] root fraction defined for unfrozen layers only
 */
 template <class ArrayD1>
-void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int &altmax_indx,
-                               const int &altmax_lastyear_indx, double *rootfr_unf);
+void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
+                               const int& altmax_lastyear_indx, double *rootfr_unf);
 
 /*
 DESCRIPTION: compute the effective soil porosity
@@ -82,8 +81,7 @@ OUTPUTS:
 eff_porosity[nlevgrnd]       [double] effective soil porosity
 */
 template <class ArrayD1>
-void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
-                                 ArrayD1 eff_por);
+void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por);
 
 /*
 DESCRIPTION: compute the volumetric liquid water content
@@ -97,8 +95,7 @@ OUTPUTS:
 vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
 */
 template <class ArrayD1>
-void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz,
-                            double *vol_liq);
+void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq);
 
 /*
 DESCRIPTION: compute integrated soil water stress (btran), also effective root fraction
@@ -121,13 +118,11 @@ rootr[nlevgrnd]                 [double] effective fraction of roots in each soi
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 template <class ArrayD1>
-void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr,
-                            const ArrayD1 t_soisno, const double &tc_stress, const ArrayD1 sucsat,
-                            const ArrayD1 watsat, const ArrayD1 bsw, const double &smpso,
-                            const double &smpsc, const ArrayD1 eff_porosity, const int &altmax_indx,
-                            const int &altmax_lastyear_indx, ArrayD1 rootr, double &btran);
+void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
+                            const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
+                            const double& smpso, const double& smpsc, const ArrayD1 eff_porosity,
+                            const int& altmax_indx, const int& altmax_lastyear_indx, ArrayD1 rootr, double& btran);
 
 } // namespace ELM::soil_moist_stress
 
 #include "soil_moist_stress_impl.hh"
-

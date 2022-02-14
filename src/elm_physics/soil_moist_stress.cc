@@ -2,7 +2,7 @@
 #include "soil_moist_stress.h"
 
 namespace ns = ELM::soil_moist_stress;
-  
+
 void ns::array_normalization(double *arr_inout) {
   double arr_sum = 0.0;
 
@@ -16,12 +16,6 @@ void ns::array_normalization(double *arr_inout) {
   }
 }
 
+double ns::soil_suction(const double& smpsat, const double& s, const double& bsw) { return -smpsat * pow(s, (-bsw)); }
 
-double ns::soil_suction(const double &smpsat, const double &s, const double &bsw) {
-  return -smpsat * pow(s, (-bsw));
-}
-
-
-double ns::dsuction_dsat(const double &bsw, const double &smp, const double &s) {
-  return -bsw * smp / s;
-}
+double ns::dsuction_dsat(const double& bsw, const double& smp, const double& s) { return -bsw * smp / s; }

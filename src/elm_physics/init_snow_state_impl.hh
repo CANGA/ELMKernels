@@ -8,7 +8,9 @@ namespace ELM::init_snow_state {
 // set cold-start initial values for select members of col_ws
 //-----------------------------------------------------------------------
 template <typename ArrayD1>
-void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth, double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno, ArrayD1 snw_rds) {
+void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth,
+                     double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno,
+                     ArrayD1 snw_rds) {
 
   // this should/will be intitialized from input data - 0.0 for now
   // if given swe (h2osno): snow_depth = h2osno / bdsno;
@@ -29,30 +31,37 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
   } else {
     frac_sno = 0.0;
     // snow cover fraction as in Niu and Yang 2007
-    if(snow_depth > 0.0) {
+    if (snow_depth > 0.0) {
       const double snowbd = std::min(400.0, h2osno / snow_depth); // bulk density of snow (kg/m3)
-      const double fmelt = pow(snowbd/100.0, 1.0);
+      const double fmelt = pow(snowbd / 100.0, 1.0);
       // 100 is the assumed fresh snow density; 1 is a melting factor that could be
       // reconsidered, optimal value of 1.5 in Niu et al., 2007
       frac_sno = tanh(snow_depth / (2.5 * zlnd * fmelt));
     }
   }
-  
+
   // initial snow radius
   if (snl > 0) {
-    for (int i = 0; i < ELM::nlevsno-snl; ++i) { snw_rds(i) = 0.0; }
-    for (int i = ELM::nlevsno-snl; i < ELM::nlevsno; ++i) { snw_rds(i) = snw_rds_min; }
+    for (int i = 0; i < ELM::nlevsno - snl; ++i) {
+      snw_rds(i) = 0.0;
+    }
+    for (int i = ELM::nlevsno - snl; i < ELM::nlevsno; ++i) {
+      snw_rds(i) = snw_rds_min;
+    }
   } else if (h2osno > 0.0) {
-    snw_rds(ELM::nlevsno-1) = snw_rds_min;
-    for (int i = 0; i < ELM::nlevsno-1; ++i) { snw_rds(i) = 0.0; }
+    snw_rds(ELM::nlevsno - 1) = snw_rds_min;
+    for (int i = 0; i < ELM::nlevsno - 1; ++i) {
+      snw_rds(i) = 0.0;
+    }
   } else {
-    for (int i = 0; i < ELM::nlevsno; ++i) { snw_rds(i) = 0.0; }
+    for (int i = 0; i < ELM::nlevsno; ++i) {
+      snw_rds(i) = 0.0;
+    }
   }
 }
 
-
 template <class ArrayD1>
-void init_snow_layers(const double &snow_depth, const bool &lakpoi, int &snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi) {
+void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi) {
 
   for (int i = 0; i < nlevsno; i++) {
     dz[i] = spval;
@@ -135,4 +144,3 @@ void init_snow_layers(const double &snow_depth, const bool &lakpoi, int &snl, Ar
 }
 
 } // namespace ELM::init_snow_state
-

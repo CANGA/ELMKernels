@@ -12,10 +12,9 @@ namespace ELM {
 // decl [double]    solar declination angle [radians]
 double daylength(const double& lat, const double& decl);
 
-
 // compute maximum daylength [seconds]
 // based on latitude and maximum declination
-// maximum declination hardwired for present-day orbital parameters, 
+// maximum declination hardwired for present-day orbital parameters,
 // +/- 23.4667 degrees = +/- 0.409571 radians, use negative value for S. Hem
 // lat  [double]    latitude [radians]
 double max_daylength(const double& lat);

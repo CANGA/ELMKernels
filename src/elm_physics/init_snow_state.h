@@ -1,10 +1,10 @@
 
 #pragma once
 
-#include "elm_constants.h"
 #include "array.hh"
-#include <cmath>
+#include "elm_constants.h"
 #include <algorithm>
+#include <cmath>
 
 namespace ELM::init_snow_state {
 
@@ -13,13 +13,14 @@ namespace ELM::init_snow_state {
 // set cold-start initial values for select members of col_ws
 //-----------------------------------------------------------------------
 template <typename ArrayD1>
-void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth, double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno, ArrayD1 snw_rds);
+void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth,
+                     double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno,
+                     ArrayD1 snw_rds);
 
 // derived from initVerticalMod.F90
 template <class ArrayD1>
-void init_snow_layers(const double &snow_depth, const bool &lakpoi, int &snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi);
+void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi);
 
 } // namespace ELM::init_snow_state
 
 #include "init_snow_state_impl.hh"
-

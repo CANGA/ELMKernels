@@ -2,7 +2,7 @@
 #pragma once
 
 namespace ELM::incident_shortwave {
-  
+
 // declination angle calc from ats/landlab
 // doy [int]      day of year
 // returns delination angle [radians]
@@ -19,9 +19,6 @@ double declination_angle2(int doy);
 // jday   [double]    Julian day of year
 double coszen(double latrad, double lonrad, double jday);
 
-
-
-
 // average coszen functions
 // derived from shr_orb_avg_cosz() in shr_orb_mod.F90
 
@@ -32,25 +29,25 @@ double ensure_tan_defined(double var);
 // convert model dt from seconds to radians wrt daylength
 // dt [double]    timestep [seconds]
 // returns model dt [radians]
-double dt_radians (double dt);
+double dt_radians(double dt);
 
 // define dt start time of day on the period -2*p1 to 2*pi
 // jday   [double]    Julian day of year
 // lonrad [double]    longitude [radians]
 // returns dt start time of day [-2pi to 2pi]
-double dt_start_rad (double jday, double lonrad);
+double dt_start_rad(double jday, double lonrad);
 
-// define time of day at end of dt 
+// define time of day at end of dt
 // t_start [double]    start time of day [-2pi to 2pi]
 // dtrad   [double]    timestep [radians]
 // returns dt end time of day [-2pi to 2pi]
-double dt_end_rad (double t_start, double dtrad);
+double dt_end_rad(double t_start, double dtrad);
 
 // define the cosine of the half-day length [0 to pi]
 // adjust for cases of all daylight or all night
 // latrad [double]    latitude [radians]
 // declin [double]    solar declination angle [radians]
-double coshalfday (double latrad, double declin);
+double coshalfday(double latrad, double declin);
 
 // define the hour angle
 // force it to be between -cos_h and cos_h
@@ -73,9 +70,7 @@ void avg_hourangle(double t_start, double t_end, double dtrad, double cos_h, dou
 // latrad   [double]    latitude [radians]
 // declin   [double]    solar declination angle [radians]
 // returns time-integrated cosine of the solar zenith angle
-double integrate_cosz(double t_start, double t_end, double dtrad, double cos_h, 
-  double latrad, double declin);
-
+double integrate_cosz(double t_start, double t_end, double dtrad, double cos_h, double latrad, double declin);
 
 /* evaluate average cosine(zenith) for a given dt
 
@@ -98,4 +93,3 @@ cosine of the solar zenith angle averaged over dt
 double average_cosz(double latrad, double lonrad, double declin, double dt, double jday);
 
 } // namespace ELM::incident_shortwave
-

@@ -5,47 +5,30 @@
 #include "monthly_data.h"
 #include "read_input.hh"
 
-#include <tuple>
-#include <cmath>
 #include <array>
+#include <cmath>
 #include <functional>
-
+#include <tuple>
 
 ELM::AerosolMasses::AerosolMasses(const int ncells)
-  : 
-    mss_bcphi("mss_bcphi", ncells, ELM::nlevsno, 0.0),
-    mss_bcpho("mss_bcpho", ncells, ELM::nlevsno, 0.0),
-    mss_dst1("mss_dst1", ncells, ELM::nlevsno, 0.0),
-    mss_dst2("mss_dst2", ncells, ELM::nlevsno, 0.0),
-    mss_dst3("mss_dst3", ncells, ELM::nlevsno, 0.0),
-    mss_dst4("mss_dst4", ncells, ELM::nlevsno, 0.0) {}
-
+    : mss_bcphi("mss_bcphi", ncells, ELM::nlevsno, 0.0), mss_bcpho("mss_bcpho", ncells, ELM::nlevsno, 0.0),
+      mss_dst1("mss_dst1", ncells, ELM::nlevsno, 0.0), mss_dst2("mss_dst2", ncells, ELM::nlevsno, 0.0),
+      mss_dst3("mss_dst3", ncells, ELM::nlevsno, 0.0), mss_dst4("mss_dst4", ncells, ELM::nlevsno, 0.0) {}
 
 ELM::AerosolConcentrations::AerosolConcentrations(const int ncells)
-  : 
-    mss_cnc_bcphi("mss_cnc_bcphi", ncells, ELM::nlevsno, 0.0),
-    mss_cnc_bcpho("mss_cnc_bcpho", ncells, ELM::nlevsno, 0.0),
-    mss_cnc_dst1("mss_cnc_dst1", ncells, ELM::nlevsno, 0.0),
-    mss_cnc_dst2("mss_cnc_dst2", ncells, ELM::nlevsno, 0.0),
-    mss_cnc_dst3("mss_cnc_dst3", ncells, ELM::nlevsno, 0.0),
-    mss_cnc_dst4("mss_cnc_dst4", ncells, ELM::nlevsno, 0.0) {}
+    : mss_cnc_bcphi("mss_cnc_bcphi", ncells, ELM::nlevsno, 0.0),
+      mss_cnc_bcpho("mss_cnc_bcpho", ncells, ELM::nlevsno, 0.0),
+      mss_cnc_dst1("mss_cnc_dst1", ncells, ELM::nlevsno, 0.0), mss_cnc_dst2("mss_cnc_dst2", ncells, ELM::nlevsno, 0.0),
+      mss_cnc_dst3("mss_cnc_dst3", ncells, ELM::nlevsno, 0.0), mss_cnc_dst4("mss_cnc_dst4", ncells, ELM::nlevsno, 0.0) {
+}
 
 ELM::AerosolDataManager::AerosolDataManager()
-  : 
-    bcdep_(12),
-    bcpho_(12),
-    bcphi_(12),
-    dst1_1_(12),
-    dst1_2_(12),
-    dst2_1_(12),
-    dst2_2_(12),
-    dst3_1_(12),
-    dst3_2_(12),
-    dst4_1_(12),
-    dst4_2_(12) {}
+    : bcdep_(12), bcpho_(12), bcphi_(12), dst1_1_(12), dst1_2_(12), dst2_1_(12), dst2_2_(12), dst3_1_(12), dst3_2_(12),
+      dst4_1_(12), dst4_2_(12) {}
 
-void ELM::AerosolDataManager::read_variable_slice(const Comm_type &comm, const std::string& filename, const std::string& varname,
-  const size_t& lon_idx, const size_t& lat_idx, ArrayD1& arr) {
+void ELM::AerosolDataManager::read_variable_slice(const Comm_type& comm, const std::string& filename,
+                                                  const std::string& varname, const size_t& lon_idx,
+                                                  const size_t& lat_idx, ArrayD1& arr) {
   Array<double, 3> file_data(12, 1, 1); // one year of monthly data
   std::array<size_t, 3> start{0, lat_idx, lon_idx};
   std::array<size_t, 3> count{12, 1, 1};
@@ -56,9 +39,9 @@ void ELM::AerosolDataManager::read_variable_slice(const Comm_type &comm, const s
   }
 }
 
+void ELM::AerosolDataManager::read_data(const Comm_type& comm, const std::string& filename, const double& lon_d,
+                                        const double& lat_d) {
 
-void ELM::AerosolDataManager::read_data(const Comm_type &comm, const std::string& filename, const double& lon_d, const double& lat_d) {
-  
   auto [lon_idx, lat_idx] = get_nearest_indices(comm, filename, lon_d, lat_d);
 
   read_variable_slice(comm, filename, "BCDEPWET", lon_idx, lat_idx, bcdep_);
@@ -74,7 +57,9 @@ void ELM::AerosolDataManager::read_data(const Comm_type &comm, const std::string
   read_variable_slice(comm, filename, "DSTX04WD", lon_idx, lat_idx, dst4_2_);
 }
 
-std::pair<size_t, size_t> ELM::AerosolDataManager::get_nearest_indices(const Comm_type &comm, const std::string& filename, const double& lon_d, const double& lat_d) {
+std::pair<size_t, size_t> ELM::AerosolDataManager::get_nearest_indices(const Comm_type& comm,
+                                                                       const std::string& filename, const double& lon_d,
+                                                                       const double& lat_d) {
   Array<double, 1> file_lon(144);
   Array<double, 1> file_lat(96);
   std::array<size_t, 1> start{0};
@@ -87,17 +72,20 @@ std::pair<size_t, size_t> ELM::AerosolDataManager::get_nearest_indices(const Com
   size_t lat_idx;
   for (size_t thisx = 0; thisx < 144; ++thisx) {
     for (size_t thisy = 0; thisy < 96; ++thisy) {
-  
-      if (lon_d < 0.0) { 
-        if (file_lon(thisx) >= 180.0) { file_lon(thisx) -= 360.0; }
+
+      if (lon_d < 0.0) {
+        if (file_lon(thisx) >= 180.0) {
+          file_lon(thisx) -= 360.0;
+        }
       } else if (lon_d >= 180.0) {
-        if (file_lon(thisx) < 0.0) file_lon(thisx) += 360.0;
+        if (file_lon(thisx) < 0.0)
+          file_lon(thisx) += 360.0;
       }
-  
+
       double dlon2 = pow(file_lon(thisx) - lon_d, 2.0);
       double dlat2 = pow(file_lat(thisy) - lat_d, 2.0);
       double thisdist = 100.0 * pow(dlon2 + dlat2, 0.5);
-  
+
       if (thisdist < mindist) {
         mindist = thisdist;
         lon_idx = thisx;
@@ -120,12 +108,11 @@ auto ELM::AerosolDataManager::get_aerosol_source(const Utils::Date& model_time, 
   return std::make_tuple(forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4);
 }
 
-void ELM::AerosolDataManager::invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1& snl,
-  AerosolMasses& aerosol_masses) {
+void ELM::AerosolDataManager::invoke_aerosol_source(const Utils::Date& model_time, const double& dtime,
+                                                    const ArrayI1& snl, AerosolMasses& aerosol_masses) {
   auto aerosol_forc_flux = get_aerosol_source(model_time, dtime);
   aerosols::ComputeAerosolDeposition aerosol_source_object(aerosol_forc_flux, snl, aerosol_masses);
   for (int i = 0; i < snl.extent(0); ++i) {
     std::invoke(aerosol_source_object, i);
   }
 }
-
