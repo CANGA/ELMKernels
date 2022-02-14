@@ -20,14 +20,18 @@
 #include "snicar_data.h"
 //#include "satellite_phenology.h"
 
-#include "InitSoil.hh"
+//#include "InitSoil.hh"
+#include "init_soil_state.h"
+#include "init_snow_state.h"
 
 
 
 
-#include "InitSnowLayers.hh"
-#include "InitTimestep.hh"
-#include "InitTopography.hh"
+//#include "InitSnowLayers.hh"
+//#include "InitTimestep.hh"
+#include "init_timestep.h"
+//#include "InitTopography.hh"
+#include "init_topography.h"
 #include "land_data.h"
 //#include "read_atmosphere.h"
 //#include "ReadTestData.hh"
@@ -45,8 +49,9 @@
 #include "phenology_data.h"
 #include "surface_albedo.h"
 #include "snow_snicar.h"
-#include "RootBioPhys.hh"
+//#include "root_biophys.h"
 #include "surface_fluxes.h"
+#include "soil_texture_hydraulic_model.h"
 
 
 
@@ -578,14 +583,14 @@ std::string fname_aerosol(
 /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     
-    ELM::InitTopoSlope(topo_slope[0]);
-    ELM::InitMicroTopo(Land.ltype, topo_slope[0], topo_std[0], n_melt[0], micro_sigma[0]);
-    ELM::InitSnowLayers(snow_depth[0], lakpoi, snl[0], dz[0], zsoi[0], zisoi[0]);
+    ELM::init_topo::init_topo_slope(topo_slope[0]);
+    ELM::init_topo::init_micro_topo(Land.ltype, topo_slope[0], topo_std[0], n_melt[0], micro_sigma[0]);
+    ELM::init_snow_state::init_snow_layers(snow_depth[0], lakpoi, snl[0], dz[0], zsoi[0], zisoi[0]);
 
-    ELM::init_soil_hydraulics(pct_sand[0], pct_clay[0], organic[0], zsoi[0], 
+    ELM::soil_hydraulics::init_soil_hydraulics(pct_sand[0], pct_clay[0], organic[0], zsoi[0], 
       watsat[0], bsw[0], sucsat[0], watdry[0], watopt[0], watfc[0]);
-    ELM::init_vegrootfr(vtype[0], vegdata.roota_par[vtype[0]], vegdata.rootb_par[vtype[0]], zisoi[0], rootfr[0]);
-    ELM::init_soil_temp(Land, snl[0], t_soisno[0], t_grnd[0]);
+    ELM::init_soil_state::init_vegrootfr(vtype[0], vegdata.roota_par[vtype[0]], vegdata.rootb_par[vtype[0]], zisoi[0], rootfr[0]);
+    ELM::init_soil_state::init_soil_temp(Land, snl[0], t_soisno[0], t_grnd[0]);
     
     // !!!!! testing !!!!!!!!!!
     for (int q = 0; q < 20; ++q) {
@@ -594,8 +599,8 @@ std::string fname_aerosol(
     t_grnd[0] = t_soisno(0, ELM::nlevsno - snl(0));
 
 
-    ELM::init_snow_state(Land.urbpoi, snl[0], h2osno[0], int_snow[0], snow_depth[0], h2osfc[0], h2ocan[0], frac_h2osfc[0], fwet[0], fdry[0], frac_sno[0], snw_rds[0]);
-    ELM::init_soilh2o_state(Land, snl[0], watsat[0], t_soisno[0], dz[0], h2osoi_vol[0], h2osoi_liq[0], h2osoi_ice[0]);
+    ELM::init_snow_state::init_snow_state(Land.urbpoi, snl[0], h2osno[0], int_snow[0], snow_depth[0], h2osfc[0], h2ocan[0], frac_h2osfc[0], fwet[0], fdry[0], frac_sno[0], snw_rds[0]);
+    ELM::init_soil_state::init_soilh2o_state(Land, snl[0], watsat[0], t_soisno[0], dz[0], h2osoi_vol[0], h2osoi_liq[0], h2osoi_ice[0]);
 
 double h2osoi_ice_test[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 51.095355179469955, 131.99213225849098, 17.829256395227745, 95.72899575304584, 155.31526899797177, 0.01, 0.01, 0.01, 0.01, 0.01};
 double h2osoi_liq_test[] = {0.0, 0.0, 0.0, 0.0, 0.0, 7.045411435071487, 14.353496179256807, 36.308518784697064, 62.46145027256513, 97.14000248023912, 97.47148319510016, 78.52160092062527, 65.63904088905001, 41.25305599181871, 70.8566046019581, 0.01, 0.01, 0.01, 0.01, 0.01};
@@ -711,7 +716,7 @@ time_plus_half_dt.increment_seconds(900);
     ELM::aerosols::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
     h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
 
-    ELM::InitTimestep(lakpoi, h2osno[0], veg_active[0], snl[0], h2osoi_ice[0], h2osoi_liq[0],
+    ELM::init_timestep(lakpoi, h2osno[0], veg_active[0], snl[0], h2osoi_ice[0], h2osoi_liq[0],
                     frac_veg_nosno_alb[0], h2osno_old[0], do_capsnow, eflx_bot[0], qflx_glcice[0],
                     frac_veg_nosno[0], frac_iceold[0]);
 

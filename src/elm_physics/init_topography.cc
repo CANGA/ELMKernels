@@ -1,17 +1,18 @@
 // derived from initVerticalMod.F90
 
+#include "init_topography.h"
 #include "elm_constants.h"
 #include <algorithm>
 #include <cmath>
 
-namespace ELM {
+namespace ns = ELM::init_topo;
 
-void InitTopoSlope(double &topo_slope) {
+void ns::init_topo_slope(double &topo_slope) {
   // check for near zero slopes, set minimum value
   topo_slope = std::max(topo_slope, 0.2);
 }
 
-void InitMicroTopo(const int &ltype, const double &topo_slope, const double &topo_std, double &n_melt,
+void ns::init_micro_topo(const int &ltype, const double &topo_slope, const double &topo_std, double &n_melt,
                    double &micro_sigma) {
   if (ltype == istice_mec) {
     /* ice_mec columns already account for subgrid topographic variability through
@@ -29,4 +30,3 @@ void InitMicroTopo(const int &ltype, const double &topo_slope, const double &top
   micro_sigma = pow((topo_slope + slope0), -slopebeta);
 }
 
-} // namespace ELM

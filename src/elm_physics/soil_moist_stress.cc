@@ -17,7 +17,11 @@ void ns::array_normalization(double *arr_inout) {
 }
 
 
-void ns::soil_suction(const double &smpsat, const double &s, const double &bsw, double &smp) {
-  smp = -smpsat * pow(s, (-bsw));
+double ns::soil_suction(const double &smpsat, const double &s, const double &bsw) {
+  return -smpsat * pow(s, (-bsw));
 }
 
+
+double ns::dsuction_dsat(const double &bsw, const double &smp, const double &s) {
+  return -bsw * smp / s;
+}

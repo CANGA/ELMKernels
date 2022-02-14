@@ -6,10 +6,13 @@ ELM calc_root_moist_stress() call tree:
 calc_root_moist_stress() -> normalize_unfrozen_rootfr() -> array_normalization()
                             >
                               calc_root_moist_stress_clm45default() -> soil_water_retention_curve%soil_suction()
-I remove the original calc_root_moist_stress() and instead call
-normalize_unfrozen_rootfr(), which calls array_normalization() -- note: rootfr_unf[nlevgrnd] needs to be initialized to
-0.0 calc_root_moist_stress_clm45default(), which calls soil_water_retention_curve%soil_suction()
 
+I call calc_root_moist_stress() -> normalize_unfrozen_rootfr() -> array_normalization()
+                                   >
+                                     soil_suction()
+
+  
+-- note: rootfr_unf[nlevgrnd] needs to be initialized to
 
 soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without derivative
 */
@@ -36,9 +39,20 @@ s        [double] relative saturation [0-1]
 bsw      [double] shape parameter
 
 OUTPUTS:
-smp      [double] soil suction, negative, [mm]
+[double] soil suction, negative, [mm]
 */
-void soil_suction(const double &smpsat, const double &s, const double &bsw, double &smp);
+double soil_suction(const double &smpsat, const double &s, const double &bsw);
+
+/*
+bsw      [double] shape parameter
+smp      [double] soil suction, negative, [mm]
+s        [double] relative saturation [0-1]
+
+OUTPUTS:
+[double] d(smp)/ds [mm]
+*/
+double dsuction_dsat(const double &bsw, const double &smp, const double &s);
+
 
 /*
 DESCRIPTION: normalize root fraction for total unfrozen depth
