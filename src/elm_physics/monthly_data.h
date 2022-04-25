@@ -9,7 +9,7 @@
 
 /*
 
-monthly weights and indexing is reliant on implicit type conversions - could be replaced by round()
+monthly weights and indexing are reliant on implicit type conversions - could be replaced by round()
 assumes data is defined at the center of the month:  t_data = thismonth_start + thismonth_length/2
 when t < t_data (t < midpoint of current month):  t_indices = prev_month, curr_month
 when t >= t_data (t >= midpoint of current month):  t_indices = curr_month, next_month

@@ -61,7 +61,6 @@ struct SnicarData {
   SnicarData();
 };
 
-using namespace ELM::snicar_utils;
 // read all fields in SnicarData
 void read_snicar_data(const Comm_type& comm, const std::string& filename, SnicarData *snicar_data);
 

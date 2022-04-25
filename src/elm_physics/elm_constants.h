@@ -123,6 +123,8 @@ static const double organic_max =
     130.0; // Organic matter content where soil is assumed to act like peat for diffusion ~ kg/m3
 static const double secspday = 86400.0; // seconds per day
 
+
+enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 } // namespace ELM
 
 namespace ELM::ELMconstants {
@@ -143,6 +145,4 @@ inline constexpr double O2_MOLAR_CONST = 0.209; // constant atmospheric O2 molar
 inline constexpr double CO2_PPMV = 355.0; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
 inline constexpr int numrad = 2; // number of solar radiation bands: vis, nir
-
-enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 } // namespace ELM::ELMconstants

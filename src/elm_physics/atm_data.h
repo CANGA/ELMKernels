@@ -73,9 +73,6 @@ VISUAL REPRESENTATION OF FORCING TIME ORIENTATION
 
 namespace ELM::atm_utils {
 
-// enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
-using AtmForcType = ELMconstants::AtmForcType;
-
 // return name associated with enum type
 template <AtmForcType ftype> constexpr auto get_varname();
 
@@ -87,7 +84,6 @@ template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t
 
 } // namespace ELM::atm_utils
 
-using namespace ELM::atm_utils;
 
 namespace ELM {
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype> class AtmDataManager {

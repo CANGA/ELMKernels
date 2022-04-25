@@ -31,6 +31,8 @@ ELM::SnicarData::SnicarData()
 
 void ELM::read_snicar_data(const Comm_type& comm, const std::string& filename, SnicarData *snicar_data) {
 
+  using namespace ELM::snicar_utils;
+
   // get file start idx and size to read for 1D arrays
   {
     std::array<size_t, 1> start = {0};

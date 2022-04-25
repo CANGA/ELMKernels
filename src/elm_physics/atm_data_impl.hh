@@ -70,7 +70,7 @@ template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr AtmDataManager<ArrayD1, ArrayD2, ftype>::AtmDataManager(const std::string& filename,
                                                                   const Utils::Date& file_start_time,
                                                                   const size_t ntimes, const size_t ncells)
-    : data_(get_varname<ftype>(), ntimes, ncells), varname_{get_varname<ftype>()}, fname_{filename},
+    : data_(atm_utils::get_varname<ftype>(), ntimes, ncells), varname_{atm_utils::get_varname<ftype>()}, fname_{filename},
       file_start_time_{file_start_time}, ntimes_{ntimes}, ncells_{ncells}, data_start_time_{}, forc_dt_{0.0} {}
 
 // interface to update forcing file info
@@ -197,7 +197,7 @@ AtmDataManager<ArrayD1, ArrayD2, ftype>::get_ref_to_dim(const std::string& dimna
   };
 
   const auto dim_idx = dimname_idx(dimname);
-  return get_dim_ref(dim_idx, std::forward<Args>(args)...);
+  return ELM::atm_utils::get_dim_ref(dim_idx, std::forward<Args>(args)...);
 }
 
 // return a tuple of references to the passed in parameters based on the ordering of the file array
