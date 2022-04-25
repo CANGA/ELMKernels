@@ -71,7 +71,7 @@ template <class Array_t, class T> Array_t create(const std::string &name, int D0
 template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t val) { ELM::deep_copy(arr, val); }
 
 
-using AtmForcType = ELM::ELMconstants::AtmForcType;
+using AtmForcType = ELM::AtmForcType;
 
 template<AtmForcType ftype>
 using atm_forc_util = ELM::AtmDataManager<ArrayD1, ArrayD2, ftype>;
@@ -95,6 +95,12 @@ ELM::LandType Land;
 Land.ltype = 1;
 Land.ctype = 1;
 Land.vtype = 12;
+
+#if ENABLE_KOKKOS
+printf("YES ENABLE_KOKKOS\n");
+#else
+printf("NO ENABLE_KOKKOS\n");
+#endif
 
 auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
 std::cout << " proc_decomp: " << proc_decomp[0] << "," << proc_decomp[1] << std::endl;

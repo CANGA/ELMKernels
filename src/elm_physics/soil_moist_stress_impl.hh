@@ -4,7 +4,28 @@
 
 namespace ELM::soil_moist_stress {
 
+ACCELERATED
+void array_normalization(double *arr_inout) {
+  double arr_sum = 0.0;
+
+  for (int i = 0; i < nlevgrnd; i++) {
+    arr_sum += arr_inout[i];
+  }
+  for (int i = 0; i < nlevgrnd; i++) {
+    if (arr_sum > 0.0) {
+      arr_inout[i] /= arr_sum;
+    }
+  }
+}
+
+ACCELERATED
+double soil_suction(const double& smpsat, const double& s, const double& bsw) { return -smpsat * pow(s, (-bsw)); }
+
+ACCELERATED
+double dsuction_dsat(const double& bsw, const double& smp, const double& s) { return -bsw * smp / s; }
+
 template <class ArrayD1>
+ACCELERATED
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
                                const int& altmax_lastyear_indx, double *rootfr_unf) {
 
@@ -31,6 +52,7 @@ void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, con
 }
 
 template <class ArrayD1>
+ACCELERATED
 void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por) {
 
   double vol_ice;
@@ -43,6 +65,7 @@ void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice,
 }
 
 template <class ArrayD1>
+ACCELERATED
 void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq) {
 
   for (int i = 0; i < nlevgrnd; i++) {
@@ -52,6 +75,7 @@ void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, con
 }
 
 template <class ArrayD1>
+ACCELERATED
 void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
                             const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
                             const double& smpso, const double& smpsc, const ArrayD1 eff_porosity,

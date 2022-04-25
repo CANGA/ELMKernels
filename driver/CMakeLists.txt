@@ -3,9 +3,9 @@ if (ENABLE_CC)
   add_subdirectory(cc)
 endif()
 
-if (ENABLE_Kokkos)
-  add_subdirectory(kokkos)
-endif()
+#if (ENABLE_KOKKOS)
+#  add_subdirectory(kokkos)
+#endif()
 
 # include_directories(${NetCDF_INCLUDE_DIR})
 # add_executable (ELM_driver driver.cc)

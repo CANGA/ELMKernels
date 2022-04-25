@@ -56,7 +56,16 @@ namespace surface_albedo {
 // ftii[numrad] = {1.0};
 //}
 
-inline bool vegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
+
+// returns the cosine of the solar zenith angle.
+// not currently used, i don't think
+ACCELERATED
+double calc_cosz(const double jday, const double lat, const double lon, const double declin) {
+  return sin(lat) * sin(declin) - cos(lat) * cos(declin) * cos((jday - floor(jday)) * 2.0 * ELM_PI + lon);
+}
+
+ACCELERATED
+bool vegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
   if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
     return true;
   } else {
@@ -64,7 +73,8 @@ inline bool vegsol(const LandType& Land, const double& coszen, const double& ela
   }
 }
 
-inline bool novegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
+ACCELERATED
+bool novegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai) {
   if (!Land.urbpoi && coszen > 0.0) {
     if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
       return true;
@@ -74,6 +84,7 @@ inline bool novegsol(const LandType& Land, const double& coszen, const double& e
 }
 
 template <class ArrayD1, class ArrayD2>
+ACCELERATED
 void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho,
                    const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3,
                    const ArrayD1 mss_cnc_dst4, double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod,
@@ -134,6 +145,7 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
 } // init_timestep
 
 template <class ArrayD1>
+ACCELERATED
 void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri) {
   if (!urbpoi && coszen > 0.0) {
@@ -145,6 +157,7 @@ void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_
 } // ground_albedo
 
 template <class ArrayD1, class ArrayD2>
+ACCELERATED
 void flux_absorption_factor(const LandType& Land, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                             const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
                             const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv,
@@ -183,6 +196,7 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
 } // flux_absorption_factor
 
 template <class ArrayD1>
+ACCELERATED
 void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
                       ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z) {
@@ -285,6 +299,7 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
 } // canopy_layer_lai
 
 template <class ArrayD1>
+ACCELERATED
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
                        const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const AlbedoVegData& albveg,

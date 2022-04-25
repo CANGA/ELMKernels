@@ -16,7 +16,9 @@ ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_
   forc_dst4_ = forc_dst4;
 }
 
-template <typename T, typename ArrayI1> void ComputeAerosolDeposition<T, ArrayI1>::operator()(const int i) const {
+template <typename T, typename ArrayI1>
+ACCELERATED
+void ComputeAerosolDeposition<T, ArrayI1>::operator()(const int i) const {
   if (snl_(i) > 0) {
     const int j = ELM::nlevsno - snl_(i);
     aerosol_masses_.mss_bcphi(i, j) += forc_bcphi_;
@@ -38,6 +40,7 @@ ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::ComputeAerosolConcenAndM
       aerosol_concentrations_(aerosol_concentrations) {}
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+ACCELERATED
 void ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::operator()(const int i) const {
   for (int sl = 0; sl < ELM::nlevsno; ++sl) {
     double snowmass = h2osoi_ice_(i, sl) + h2osoi_liq_(i, sl);

@@ -16,8 +16,11 @@ It is not the same as the displa calculated in CanopyTemperature
 #include "elm_constants.h"
 #include "land_data.h"
 #include "qsat.h"
+#include "friction_velocity.h"
 #include <algorithm>
 #include <cmath>
+
+#include "kokkos_includes.hh"
 
 namespace ELM::bareground_fluxes {
 
@@ -45,6 +48,7 @@ namespace ELM::bareground_fluxes {
 \param[out] ur               [double] wind speed at reference height [m/s]
 \param[out] um               [double] wind speed including the stablity effect [m/s]
 */
+ACCELERATED
 void initialize_flux(const LandType& Land, const int& frac_veg_nosno, const double& forc_u, const double& forc_v,
                      const double& forc_q, const double& forc_th, const double& forc_hgt_u_patch, const double& thm,
                      const double& thv, const double& t_grnd, const double& qg, const double& z0mg, double& dlrad,
@@ -76,6 +80,7 @@ profiles of the surface boundary layer.
 \param[out] temp22m          [double] relation for specific humidity profile applied at 2-m
 \param[out] ustar            [double] friction velocity [m/s]
 */
+ACCELERATED
 void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const double& forc_hgt_t_patch,
                          const double& forc_hgt_u_patch, const double& forc_hgt_q_patch, const double& z0mg,
                          const double& zldis, const double& displa, const double& dth, const double& dqh,
@@ -127,6 +132,7 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
 \param[out] rh_ref2m                   [double] 2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
+ACCELERATED
 void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
                   const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,
                   const double& qg_snow, const double& qg_soil, const double& qg_h2osfc, const ArrayD1 t_soisno,

@@ -5,6 +5,7 @@
 namespace ELM::canopy_temperature {
 
 template <class ArrayD1>
+ACCELERATED
 void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno, double& t_h2osfc_bef,
                      ArrayD1 tssbef) {
 
@@ -22,6 +23,7 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
 } // old_ground_temp
 
 template <class ArrayD1>
+ACCELERATED
 void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
                  const double& t_h2osfc, const ArrayD1 t_soisno, double& t_grnd) {
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
@@ -36,6 +38,7 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
 } // ground_temp
 
 template <class ArrayD1>
+ACCELERATED
 void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const double& smpmin,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
                     const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
@@ -105,6 +108,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 } // calc_soilalpha
 
 template <class ArrayD1>
+ACCELERATED
 void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
                    const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
                    double& soilbeta) {
@@ -114,6 +118,7 @@ void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& f
 } // calc_soilbeta()
 
 template <class ArrayD1>
+ACCELERATED
 void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
                 const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,
                 const double& frac_h2osfc, const double& qred, const double& hr, const ArrayD1 t_soisno,
@@ -172,6 +177,7 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
 } // humidities
 
 template <class ArrayD1>
+ACCELERATED
 void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
                        const double& forc_q, const double& elai, const double& esai, const double& htop,
                        const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
@@ -222,5 +228,65 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
     thv = forc_th * (1.0 + 0.61 * forc_q);
   }
 } // ground_properties
+
+ACCELERATED
+void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno,
+                        const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q, const double& z0m,
+                        const double& z0mg, const double& z_0_town, const double& z_d_town, const double& forc_t,
+                        const double& displa, double& forc_hgt_u_patch, double& forc_hgt_t_patch,
+                        double& forc_hgt_q_patch, double& thm) {
+  // Make forcing height a pft-level quantity that is the atmospheric forcing
+  // height plus each pft's z0m+displa
+  if (veg_active) {
+    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+      if (frac_veg_nosno == 0) {
+        forc_hgt_u_patch = forc_hgt_u + z0mg + displa;
+        forc_hgt_t_patch = forc_hgt_t + z0mg + displa;
+        forc_hgt_q_patch = forc_hgt_q + z0mg + displa;
+      } else {
+        forc_hgt_u_patch = forc_hgt_u + z0m + displa;
+        forc_hgt_t_patch = forc_hgt_t + z0m + displa;
+        forc_hgt_q_patch = forc_hgt_q + z0m + displa;
+      }
+    } else if (Land.ltype == istwet || Land.ltype == istice || Land.ltype == istice_mec) {
+      forc_hgt_u_patch = forc_hgt_u + z0mg;
+      forc_hgt_t_patch = forc_hgt_t + z0mg;
+      forc_hgt_q_patch = forc_hgt_q + z0mg;
+    } else if (Land.ltype == istdlak) {
+      forc_hgt_u_patch = forc_hgt_u;
+      forc_hgt_t_patch = forc_hgt_t;
+      forc_hgt_q_patch = forc_hgt_q;
+    } else if (Land.urbpoi) {
+      forc_hgt_u_patch = forc_hgt_u + z_0_town + z_d_town;
+      forc_hgt_t_patch = forc_hgt_t + z_0_town + z_d_town;
+      forc_hgt_q_patch = forc_hgt_q + z_0_town + z_d_town;
+    }
+  }
+
+  thm = forc_t + 0.0098 * forc_hgt_t_patch;
+} // forcing_height
+
+ACCELERATED
+void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_sh_tot_u, double& eflx_sh_tot_r,
+                            double& eflx_lh_tot, double& eflx_lh_tot_u, double& eflx_lh_tot_r, double& eflx_sh_veg,
+                            double& qflx_evap_tot, double& qflx_evap_veg, double& qflx_tran_veg) {
+  // Initial set (needed for history tape fields)
+  eflx_sh_tot = 0.0;
+  if (Land.urbpoi) {
+    eflx_sh_tot_u = 0.0;
+  } else if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    eflx_sh_tot_r = 0.0;
+  }
+  eflx_lh_tot = 0.0;
+  if (Land.urbpoi) {
+    eflx_lh_tot_u = 0.0;
+  } else if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    eflx_lh_tot_r = 0.0;
+  }
+  eflx_sh_veg = 0.0;
+  qflx_evap_tot = 0.0;
+  qflx_evap_veg = 0.0;
+  qflx_tran_veg = 0.0;
+} // init_energy_fluxes
 
 } // namespace ELM::canopy_temperature

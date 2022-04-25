@@ -3,11 +3,19 @@
 */
 #pragma once
 
+#include "init_topography.h"
+#include "elm_constants.h"
+#include <algorithm>
+#include <cmath>
+
+#include "kokkos_includes.hh"
+
 namespace ELM::init_topo {
 
 /*! Set minimum slope value
 /param topo_slope [double] slope (-)
 */
+ACCELERATED
 void init_topo_slope(double& topo_slope);
 
 /*! Initialize n_melt and micro_sigma for SCA calculations.
@@ -17,7 +25,10 @@ void init_topo_slope(double& topo_slope);
 \param[out] n_melt      [double] SCA shape parameter
 \param[out] micro_sigma [double] microtopography pdf sigma (m)
 */
+ACCELERATED
 void init_micro_topo(const int& ltype, const double& topo_slope, const double& topo_std, double& n_melt,
                      double& micro_sigma);
 
 } // namespace ELM::init_topo
+
+#include "init_topography_impl.hh"

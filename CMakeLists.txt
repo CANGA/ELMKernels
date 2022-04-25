@@ -29,9 +29,10 @@ find_package(NetCDF REQUIRED)
 message("Found NetCDF = ${NetCDF_C_LIBRARIES}")
 
 # options for drivers
-option(ENABLE_CC "Enable building with default C-style driver" OFF)
-option(ENABLE_Kokkos "Enable building with Kokkos driver" ON)
-if (ENABLE_Kokkos)
+option(ENABLE_CC "Enable building with default C-style driver" ON)
+option(ENABLE_KOKKOS "Enable building with Kokkos driver" OFF)
+if (ENABLE_KOKKOS)
+  add_compile_definitions(ENABLE_KOKKOS)
   find_package(Kokkos REQUIRED)
 endif()
 
@@ -39,6 +40,6 @@ endif()
 add_subdirectory (src)
 add_subdirectory (driver)
 
-add_subdirectory (test)
+#add_subdirectory (test)
 enable_testing ()
-add_test (NAME CanopyHydrology COMMAND test_CanHydro)
+#add_test (NAME CanopyHydrology COMMAND test_CanHydro)

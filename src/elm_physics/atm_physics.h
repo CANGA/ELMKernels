@@ -4,37 +4,47 @@
 #include "array.hh"
 #include "elm_constants.h"
 
+#include "kokkos_includes.hh"
+
 #include <cmath>
 
 namespace ELM::atm_forcing_physics {
 
-using AtmForcType = ELMconstants::AtmForcType;
+//using AtmForcType = ELMconstants::AtmForcType;
 
 // calc forcing given two raw forcing inputs and corresponding weights
+ACCELERATED
 double interp_forcing(const double& wt1, const double& wt2, const double& forc1, const double& forc2);
 
 // convert degrees K to C; bound on interval [-50,50]
+ACCELERATED
 double tdc(const double& t);
 
 // calc saturated vapor pressure as function of temp for t > freezing
 // Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
+ACCELERATED
 double esatw(const double& t);
 
 // calc saturated vapor pressure as function of temp for t <= freezing
 // Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
+ACCELERATED
 double esati(const double& t);
 
 // rho, pO2, pCO2
 // eq 26.10 in CLM tech note
 // derive atmospheric vapor pressure from specific humidity and pressure
+ACCELERATED
 double derive_forc_vp(const double& forc_qbot, const double& forc_pbot);
 
 // derive atmospheric density from pressure, vapor pressure, and temperature
+ACCELERATED
 double derive_forc_rho(const double& forc_pbot, const double& forc_vp, const double& forc_tbot);
 
 // derive partial O2 pressure from atmospheric pressure
+ACCELERATED
 double derive_forc_po2(const double& forc_pbot);
 // derive partial CO2 pressure from atmospheric pressure
+ACCELERATED
 double derive_forc_pco2(const double& forc_pbot);
 
 // functor to calculate all derived forcing quantities
@@ -42,6 +52,7 @@ template <typename ArrayD1> struct ConstitutiveAirProperties {
   ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, const ArrayD1& forc_tbot,
                             ArrayD1& forc_vp, ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -54,6 +65,7 @@ template <typename ArrayD1, typename ArrayD2> struct ProcessTBOT {
   ProcessTBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_tbot, ArrayD1& forc_tbot,
               ArrayD1& forc_thbot);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -67,6 +79,7 @@ private:
 template <typename ArrayD1, typename ArrayD2> struct ProcessPBOT {
   ProcessPBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_pbot, ArrayD1& forc_pbot);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -81,6 +94,7 @@ template <typename ArrayD1, typename ArrayD2, AtmForcType type> struct ProcessQB
   ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_qbot, const ArrayD1& forc_tbot,
               const ArrayD1& forc_pbot, ArrayD1& forc_qbot, ArrayD1& forc_rh);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -95,6 +109,7 @@ template <typename ArrayD1, typename ArrayD2> struct ProcessFLDS {
   ProcessFLDS(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_flds, const ArrayD1& forc_pbot,
               const ArrayD1& forc_qbot, const ArrayD1& forc_tbot, ArrayD1& forc_lwrad);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -108,6 +123,7 @@ private:
 template <typename ArrayD1, typename ArrayD2> struct ProcessFSDS {
   ProcessFSDS(const ArrayD1& atm_fsds, const ArrayD1& coszen, ArrayD2& forc_solai, ArrayD2& forc_solad);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -119,6 +135,7 @@ private:
 template <typename ArrayD1> struct ProcessPREC {
   ProcessPREC(const ArrayD1& atm_prec, const ArrayD1& forc_tbot, ArrayD1& forc_rain, ArrayD1& forc_snow);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -131,6 +148,7 @@ template <typename ArrayD1, typename ArrayD2> struct ProcessWIND {
   ProcessWIND(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_wind, ArrayD1& forc_u,
               ArrayD1& forc_v);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
@@ -145,6 +163,7 @@ private:
 template <typename ArrayD1> struct ProcessZBOT {
   ProcessZBOT(ArrayD1& forc_hgt, ArrayD1& forc_hgt_u, ArrayD1& forc_hgt_t, ArrayD1& forc_hgt_q);
 
+  ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:

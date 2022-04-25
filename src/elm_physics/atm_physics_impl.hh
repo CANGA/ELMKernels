@@ -11,7 +11,9 @@ ConstitutiveAirProperties<ArrayD1>::ConstitutiveAirProperties(const ArrayD1& for
       forc_po2_(forc_po2), forc_pco2_(forc_pco2) {}
 
 // functor to calculate all derived forcing quantities
-template <typename ArrayD1> constexpr void ConstitutiveAirProperties<ArrayD1>::operator()(const int i) const {
+template <typename ArrayD1>
+ACCELERATED
+constexpr void ConstitutiveAirProperties<ArrayD1>::operator()(const int i) const {
   forc_vp_(i) = derive_forc_vp(forc_qbot_(i), forc_pbot_(i));
   forc_rho_(i) = derive_forc_rho(forc_pbot_(i), forc_vp_(i), forc_tbot_(i));
   forc_po2_(i) = derive_forc_po2(forc_pbot_(i));
@@ -25,6 +27,7 @@ ProcessTBOT<ArrayD1, ArrayD2>::ProcessTBOT(const int& t_idx, const double& wt1, 
 
 // functor to calculate atmospheric temperature and potential temperature
 template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
 constexpr void ProcessTBOT<ArrayD1, ArrayD2>::operator()(const int i) const {
   forc_tbot_(i) = std::min(interp_forcing(wt1_, wt2_, atm_tbot_(t_idx_, i), atm_tbot_(t_idx_ + 1, i)), 323.0);
   forc_thbot_(i) = forc_tbot_(i);
@@ -37,6 +40,7 @@ ProcessPBOT<ArrayD1, ArrayD2>::ProcessPBOT(const int& t_idx, const double& wt1, 
 
 // functor to calculate atmospheric pressure
 template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
 constexpr void ProcessPBOT<ArrayD1, ArrayD2>::operator()(const int i) const {
   forc_pbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_pbot_(t_idx_, i), atm_pbot_(t_idx_ + 1, i)), 4.0e4);
 }
@@ -50,6 +54,7 @@ ProcessQBOT<ArrayD1, ArrayD2, ftype>::ProcessQBOT(const int& t_idx, const double
 
 // functor to calculate specific humidity and relative humidity
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+ACCELERATED
 constexpr void ProcessQBOT<ArrayD1, ArrayD2, ftype>::operator()(const int i) const {
   forc_qbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_qbot_(t_idx_, i), atm_qbot_(t_idx_ + 1, i)), 1.0e-9);
   double e = (forc_tbot_(i) > ELMconstants::TFRZ) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
@@ -71,6 +76,7 @@ ProcessFLDS<ArrayD1, ArrayD2>::ProcessFLDS(const int& t_idx, const double& wt1, 
 
 // functor to calculate downward longwave radiation
 template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
 constexpr void ProcessFLDS<ArrayD1, ArrayD2>::operator()(const int i) const {
   const double flds = interp_forcing(wt1_, wt2_, atm_flds_(t_idx_, i), atm_flds_(t_idx_ + 1, i));
   if (flds <= 50.0 || flds >= 600.0) {
@@ -89,6 +95,7 @@ ProcessFSDS<ArrayD1, ArrayD2>::ProcessFSDS(const ArrayD1& atm_fsds, const ArrayD
 
 // functor to calculate solar incident and diffuse radiation in the visible and NIR spectrums
 template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
 constexpr void ProcessFSDS<ArrayD1, ArrayD2>::operator()(const int i) const {
   // need to impement model for coszen factor
   // ELM uses fac = (cosz > 0.001) ? min(cosz/avg_forc_cosz, 10) : 0.0
@@ -115,7 +122,9 @@ ProcessPREC<ArrayD1>::ProcessPREC(const ArrayD1& atm_prec, const ArrayD1& forc_t
     : atm_prec_(atm_prec), forc_tbot_(forc_tbot), forc_rain_(forc_rain), forc_snow_(forc_snow) {}
 
 // functor to calculate liquid and solid precipitation
-template <typename ArrayD1> constexpr void ProcessPREC<ArrayD1>::operator()(const int i) const {
+template <typename ArrayD1>
+ACCELERATED
+constexpr void ProcessPREC<ArrayD1>::operator()(const int i) const {
   const double frac1 = (forc_tbot_(i) - ELMconstants::TFRZ) * 0.5; // ramp near freezing
   const double frac2 = std::min(1.0, std::max(0.0, frac1));        // bound in [0,1]
   forc_rain_(i) = frac2 * std::max(atm_prec_(i), 0.0);
@@ -129,6 +138,7 @@ ProcessWIND<ArrayD1, ArrayD2>::ProcessWIND(const int& t_idx, const double& wt1, 
 
 // functor to calculate wind speed
 template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
 constexpr void ProcessWIND<ArrayD1, ArrayD2>::operator()(const int i) const {
   forc_u_(i) = interp_forcing(wt1_, wt2_, atm_wind_(t_idx_, i), atm_wind_(t_idx_ + 1, i));
   forc_v_(i) = 0.0;
@@ -141,11 +151,63 @@ ProcessZBOT<ArrayD1>::ProcessZBOT(ArrayD1& forc_hgt, ArrayD1& forc_hgt_u, ArrayD
     : forc_hgt_(forc_hgt), forc_hgt_u_(forc_hgt_u), forc_hgt_t_(forc_hgt_t), forc_hgt_q_(forc_hgt_q) {}
 
 // hardwired at 30m for now
-template <typename ArrayD1> constexpr void ProcessZBOT<ArrayD1>::operator()(const int i) const {
+template <typename ArrayD1>
+ACCELERATED
+constexpr void ProcessZBOT<ArrayD1>::operator()(const int i) const {
   forc_hgt_(i) = 30.0;           // hardwired? what about zbot from forcing file?
   forc_hgt_u_(i) = forc_hgt_(i); // observational height of wind [m]
   forc_hgt_t_(i) = forc_hgt_(i); // observational height of temperature [m]
   forc_hgt_q_(i) = forc_hgt_(i); // observational height of humidity [m]
 }
+
+// calc forcing given two raw forcing inputs and corresponding weights
+ACCELERATED
+double interp_forcing(const double& wt1, const double& wt2, const double& forc1, const double& forc2) {
+  return forc1 * wt1 + forc2 * wt2;
+}
+
+// convert degrees K to C; bound on interval [-50,50]
+ACCELERATED
+double tdc(const double& t) { return std::min(50.0, std::max(-50.0, (t - ELMconstants::TFRZ))); }
+
+// calc saturated vapor pressure as function of temp for t > freezing
+// Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
+ACCELERATED
+double esatw(const double& t) {
+  static constexpr double a[7] = {6.107799961,     4.436518521e-01, 1.428945805e-02, 2.650648471e-04,
+                                  3.031240396e-06, 2.034080948e-08, 6.136820929e-11};
+  return 100.0 * (a[0] + t * (a[1] + t * (a[2] + t * (a[3] + t * (a[4] + t * (a[5] + t * a[6]))))));
+}
+
+// calc saturated vapor pressure as function of temp for t <= freezing
+// Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
+ACCELERATED
+double esati(const double& t) {
+  static constexpr double b[7] = {6.109177956,     5.034698970e-01, 1.886013408e-02, 4.176223716e-04,
+                                  5.824720280e-06, 4.838803174e-08, 1.838826904e-10};
+  return 100.0 * (b[0] + t * (b[1] + t * (b[2] + t * (b[3] + t * (b[4] + t * (b[5] + t * b[6]))))));
+}
+
+// vp, rho, pO2, pCO2
+// eq 26.10 in CLM tech note
+// derive atmospheric vapor pressure from specific humidity and pressure
+ACCELERATED
+double derive_forc_vp(const double& forc_qbot, const double& forc_pbot) {
+  return forc_qbot * forc_pbot / (0.622 + 0.378 * forc_qbot);
+}
+
+// derive atmospheric density from pressure, vapor pressure, and temperature
+ACCELERATED
+double derive_forc_rho(const double& forc_pbot, const double& forc_vp, const double& forc_tbot) {
+  return (forc_pbot - 0.378 * forc_vp) / (ELMconstants::RAIR * forc_tbot);
+}
+
+// derive partial O2 pressure from atmospheric pressure
+ACCELERATED
+double derive_forc_po2(const double& forc_pbot) { return ELMconstants::O2_MOLAR_CONST * forc_pbot; }
+
+// derive partial CO2 pressure from atmospheric pressure
+ACCELERATED
+double derive_forc_pco2(const double& forc_pbot) { return ELMconstants::CO2_PPMV * 1.0e-6 * forc_pbot; }
 
 } // namespace ELM::atm_forcing_physics

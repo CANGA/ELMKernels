@@ -11,18 +11,27 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::photosynthesis {
 
 constexpr double sco = 0.5 * 0.209 / (42.75 / 1.e06); // relative specificity of rubisco
 
+ACCELERATED
 double ft(const double& tl, const double& ha);
+
+ACCELERATED
 double fth(const double& tl, const double& hd, const double& se, const double& scaleFactor);
+
+ACCELERATED
 double fth25(const double& hd, const double& se);
 
 /*! Evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an. (internal) */
+ACCELERATED
 void quadratic(const double& a, const double& b, const double& c, double& r1, double& r2);
 
 /*! Evaluate the function f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an. (internal) */
+ACCELERATED
 void ci_func(const double& ci, // intracellular leaf CO2 (Pa)
              double& fval,     // return function of the value f(ci)
              // const int& iv, // canopy index
@@ -57,6 +66,7 @@ void ci_func(const double& ci, // intracellular leaf CO2 (Pa)
 /*! Use Brent's method to find the root of a single variable function ci_func, which is known to exist
  between x1 and x2. The found root will be updated until its accuracy is tol. modified from numerical recipes in F90
  by press et al. 1188-1189. (internal) */
+ACCELERATED
 void brent(
     double& x, // indepedent variable of the single value function ci_func(x)
     const double&
@@ -95,6 +105,7 @@ void brent(
 /*! Use a hybrid solver to find the root of equation f(x) = x- h(x), we want to find x, s.t. f(x) = 0.
  the hybrid approach combines the strength of the newton secant approach (find the solution domain)
  and the bisection approach implemented with the Brent's method to guarantee convergence. (internal) */
+ACCELERATED
 void hybrid(
     double& x0, // initial guess and final value of the solution
     // const int& iv, // canopy index
@@ -128,6 +139,7 @@ void hybrid(
 
 /*! Compute photosynthesis with iterative solution for vegetation in both sun and shade. (internal) */
 template <class ArrayD1>
+ACCELERATED
 void photosynthesis(const PSNVegData& psnveg, const int& nrad, const double& forc_pbot, const double& t_veg,
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,
                     const double& cair, const double& rb, const double& btran, const double& dayl_factor,
@@ -137,6 +149,7 @@ void photosynthesis(const PSNVegData& psnveg, const int& nrad, const double& for
 /*! Compute photosynthesis totals. (internal)
 note: none of these variables do anything - diagnostics maybe??
 */
+ACCELERATED
 void photosynthesis_total(const double& psnsun, const double& psnsun_wc, const double& psnsun_wj,
                           const double& psnsun_wp, const double& laisun, const double& psnsha, const double& psnsha_wc,
                           const double& psnsha_wj, const double& psnsha_wp, const double& laisha, double& fpsn,

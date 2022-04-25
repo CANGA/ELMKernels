@@ -8,6 +8,7 @@ namespace ELM::init_soil_state {
 // set cold-start initial values for select members of col_es
 //-----------------------------------------------------------------------
 template <typename ArrayD1>
+ACCELERATED
 void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, double& t_grnd) {
 
   // Snow level temperatures - all land points
@@ -56,6 +57,7 @@ void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, doub
 // NOTE: h2osoi_vol, h2osoi_liq and h2osoi_ice only have valid values over soil
 // and urban pervious road (other urban columns have zero soil water)
 template <typename ArrayD1>
+ACCELERATED
 void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& watsat, const ArrayD1& t_soisno,
                         const ArrayD1& dz, ArrayD1 h2osoi_vol, ArrayD1 h2osoi_liq, ArrayD1 h2osoi_ice)
 
@@ -174,6 +176,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& wat
 }
 
 template <typename ArrayD1>
+ACCELERATED
 void init_vegrootfr(const int& vtype, const double& roota_par, const double& rootb_par, const ArrayD1& zi,
                     ArrayD1 rootfr) {
   // (computing from surface, d is depth in meter): Y = 1 -1/2 (exp(-ad)+exp(-bd) under the constraint that

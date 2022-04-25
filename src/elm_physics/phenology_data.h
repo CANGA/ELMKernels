@@ -9,6 +9,8 @@
 #include <map>
 #include <string>
 
+#include "kokkos_includes.hh"
+
 // this is derived from SatellitePhenologyMod.F90
 namespace ELM {
 
@@ -55,5 +57,3 @@ private:
 };
 
 } // namespace ELM
-
-//#include "phenology_data_impl.hh"

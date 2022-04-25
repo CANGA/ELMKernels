@@ -4,14 +4,19 @@
 #include "elm_constants.h"
 #include <cmath>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::surface_fluxes {
+
 // calculate previous t_grnd for flux correction
 // tssbef_snotop = tssbef(ELM::nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
+ACCELERATED
 double prev_tgrnd(const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef,
                   const double& tssbef_snotop, const double& tssbef_soitop);
 
 // calculate difference in soil temperature from last time step, for flux corrections
+ACCELERATED
 double delta_t(const double& t_grnd, const double& t_grnd0);
 
 // get the ratio of evaporative demand to h2o availability
@@ -19,6 +24,7 @@ double delta_t(const double& t_grnd, const double& t_grnd0);
 // !!!! ATTENTION: call AFTER qflx_evap_soi is updated by initial_flux_calc()
 // h2osoi_ice_snotop = (ELM::nlevsno-snl)
 // h2osoi_liq_snotop = (ELM::nlevsno-snl)
+ACCELERATED
 double evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop, const double& dtime,
                   const double& qflx_evap_soi);
 
@@ -47,6 +53,7 @@ qflx_ev_h2osfc
 // must CALL BEFORE any other surface flux functions
 // tssbef_snotop = tssbef(ELM::nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
+ACCELERATED
 void initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
                        const double& t_h2osfc_bef, const double& tssbef_snotop, const double& tssbef_soitop,
                        const double& t_grnd, const double& cgrnds, const double& cgrndl, double& eflx_sh_grnd,
@@ -101,6 +108,7 @@ qflx_snwcp_ice
 // h2osoi_liq_snotop = (ELM::nlevsno-snl)
 // tssbef_snotop = tssbef(ELM::nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
+ACCELERATED
 void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime,
                            const double& t_grnd, const double& htvp, const double& frac_sno_eff,
                            const double& frac_h2osfc, const double& t_h2osfc_bef, const double& sabg_soil,
@@ -115,6 +123,7 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
 
 // Soil Energy balance check
 template <typename ArrayD1>
+ACCELERATED
 double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_soil_grnd, const double& xmf,
                            const double& xmf_h2osfc, const double& frac_h2osfc, const double& t_h2osfc,
                            const double& t_h2osfc_bef, const double& dtime, const double& eflx_h2osfc_to_snow,
@@ -128,6 +137,7 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
 // to the outgoing longwave and the net longwave.
 // tssbef_snotop = tssbef(ELM::nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
+ACCELERATED
 void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad,
                     const double& frac_sno_eff, const double& tssbef_snotop, const double& tssbef_soitop,
                     const double& frac_h2osfc, const double& t_h2osfc_bef, const double& t_grnd, const double& ulrad,

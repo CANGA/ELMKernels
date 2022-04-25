@@ -7,6 +7,8 @@
 #include "array.hh"
 #include "elm_constants.h"
 
+#include "kokkos_includes.hh"
+
 namespace ELM {
 
 /*! Initialize variables at the beginning of each time cycle.
@@ -26,6 +28,7 @@ namespace ELM {
 \param[out] frac_iceold                  [double] fraction of ice relative to the tot water
 */
 template <class ArrayD1>
+ACCELERATED
 void init_timestep(const bool& lakpoi, const double& h2osno, const bool& veg_active, const int& snl,
                    const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq, const int& frac_veg_nosno_alb,
                    double& h2osno_old, bool& do_capsnow, double& eflx_bot, double& qflx_glcice, int& frac_veg_nosno,

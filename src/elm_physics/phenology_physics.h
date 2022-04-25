@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::phenology {
 
 // functor to calculate phenology parameters for time = model_time
@@ -12,6 +14,7 @@ template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputePh
                    const double wt2, const int start_idx, ArrayD1& elai, ArrayD1& esai, ArrayD1& htop, ArrayD1& hbot,
                    ArrayD1& tlai, ArrayD1& tsai, ArrayI1& frac_veg_nosno_alb);
 
+  ACCELERATED
   void operator()(const int i) const;
 
 private:

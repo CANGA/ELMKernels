@@ -20,6 +20,8 @@ Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 #include <assert.h>
 #include <cmath>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::canopy_fluxes {
 
 /*! Initialize variables for photosynthesis and call monin_obukhov_length() for vegetated cells.
@@ -84,6 +86,7 @@ namespace ELM::canopy_fluxes {
 \param[out] t_veg                           [double]  vegetation temperature (Kelvin)
 */
 template <class ArrayD1>
+ACCELERATED
 void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
                      const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
                      const double& dayl, const int& altmax_indx, const int& altmax_lastyear_indx,
@@ -186,6 +189,7 @@ photosynthesis for both sun & shade.
 \param[out] wtaq0                      [double] normalized latent heat conductance for air [-]
 */
 template <class ArrayD1>
+ACCELERATED
 void stability_iteration(
     const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
     const double& forc_hgt_u_patch, const double& forc_hgt_t_patch, const double& forc_hgt_q_patch, const double& fwet,
@@ -274,6 +278,7 @@ void stability_iteration(
 \param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 template <class ArrayD1>
+ACCELERATED
 void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
                   const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,
                   const double& sabv, const double& qg_snow, const double& qg_soil, const double& qg_h2osfc,

@@ -10,6 +10,12 @@ Vol. 11, 2628-2644.
 
 #pragma once
 
+#include "elm_constants.h"
+#include <algorithm>
+#include <cmath>
+
+#include "kokkos_includes.hh"
+
 namespace ELM::friction_velocity {
 
 /*! Initialization of the Monin-Obukhov length. The scheme is based on the work of
@@ -24,6 +30,7 @@ surface fluxes using TOGA CORE and TAO data. J. Climate, Vol. 11, 2628-2644. (in
 \param[out] um    [double]  wind speed including the stability effect [m/s]
 \param[out] obu   [double]  monin-obukhov length (m)
 */
+ACCELERATED
 void monin_obukhov_length(const double& ur, const double& thv, const double& dthv, const double& zldis,
                           const double& z0m, double& um, double& obu);
 
@@ -36,6 +43,7 @@ forc_hgt_u_patch   [double] observational height of wind at pft level [m]
 \param[in]  z0m    [double] roughness length over vegetation, momentum [m]
 \param[out] ustar  [double] friction velocity [m/s]
 */
+ACCELERATED
 void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa, const double& um, const double& obu,
                             const double& z0m, double& ustar);
 
@@ -47,6 +55,7 @@ void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa
 \param[in]  z0h              [double] roughness length over vegetation, sensible heat [m]
 \param[out] temp1            [double] relation for potential temperature profile
 */
+ACCELERATED
 void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa, const double& obu, const double& z0h,
                             double& temp1);
 
@@ -60,6 +69,7 @@ void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa
 \param[in]  temp1            [double] relation for potential temperature profile
 \param[our] temp2            [double] relation for specific humidity profile
 */
+ACCELERATED
 void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& forc_hgt_t_patch, const double& displa,
                                 const double& obu, const double& z0h, const double& z0q, const double& temp1,
                                 double& temp2);
@@ -69,6 +79,7 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
 \param[in]  z0h     [double] roughness length over vegetation, sensible heat [m]
 \param[out] temp12m [double] relation for potential temperature profile applied at 2-m
 */
+ACCELERATED
 void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m);
 
 /*! Calculation of the relation for potential humidity at 2-m. (internal)
@@ -78,7 +89,17 @@ INPUTS:
 \param[in]  z0q     [double] roughness length over vegetation, latent heat [m]
 \param[out] temp22m [double] relation for specific humidity profile applied at 2-m
 */
+ACCELERATED
 void friction_velocity_humidity2m(const double& obu, const double& z0h, const double& z0q, const double& temp12m,
                                   double& temp22m);
 
+/* StabilityFunc1() - local func used in friction_velocity_wind() */
+ACCELERATED
+double StabilityFunc1(double zeta);
+/* StabilityFunc2() - local func used in friction_velocity_temp() and friction_velocity_humidity() */
+ACCELERATED
+double StabilityFunc2(double zeta);
+
 } // namespace ELM::friction_velocity
+
+#include "friction_velocity_impl.hh"

@@ -22,6 +22,8 @@ soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without d
 #include <algorithm>
 #include <cmath>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::soil_moist_stress {
 
 /*
@@ -29,6 +31,7 @@ DESCRIPTION: normalize array elements with respect to array sum
 IN/OUT:
 arr_inout[>=nlevgrnd]  [double] double array to normalize
 */
+ACCELERATED
 void array_normalization(double *arr_inout);
 
 /*
@@ -41,6 +44,7 @@ bsw      [double] shape parameter
 OUTPUTS:
 [double] soil suction, negative, [mm]
 */
+ACCELERATED
 double soil_suction(const double& smpsat, const double& s, const double& bsw);
 
 /*
@@ -51,6 +55,7 @@ s        [double] relative saturation [0-1]
 OUTPUTS:
 [double] d(smp)/ds [mm]
 */
+ACCELERATED
 double dsuction_dsat(const double& bsw, const double& smp, const double& s);
 
 /*
@@ -66,6 +71,7 @@ OUTPUTS:
 rootfr_unf[nlevgrnd]       [double] root fraction defined for unfrozen layers only
 */
 template <class ArrayD1>
+ACCELERATED
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
                                const int& altmax_lastyear_indx, double *rootfr_unf);
 
@@ -81,6 +87,7 @@ OUTPUTS:
 eff_porosity[nlevgrnd]       [double] effective soil porosity
 */
 template <class ArrayD1>
+ACCELERATED
 void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por);
 
 /*
@@ -95,6 +102,7 @@ OUTPUTS:
 vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
 */
 template <class ArrayD1>
+ACCELERATED
 void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq);
 
 /*
@@ -118,6 +126,7 @@ rootr[nlevgrnd]                 [double] effective fraction of roots in each soi
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 template <class ArrayD1>
+ACCELERATED
 void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
                             const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,
                             const double& smpso, const double& smpsc, const ArrayD1 eff_porosity,

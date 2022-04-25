@@ -5,6 +5,7 @@
 namespace ELM::surface_radiation {
 
 template <class ArrayD1>
+ACCELERATED
 void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow, double& sabg, double& sabv,
                      double& fsa, ArrayD1 sabg_lyr) {
 
@@ -23,6 +24,7 @@ void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow,
 }
 
 template <class ArrayD1>
+ACCELERATED
 void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD1 ftdd, const ArrayD1 ftid,
                               const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
                               const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
@@ -66,6 +68,7 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
 }
 
 template <class ArrayD1>
+ACCELERATED
 void layer_absorbed_radiation(const LandType& Land, const int& snl, const double& sabg, const double& sabg_snow,
                               const double& snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
                               const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[numrad],
@@ -164,6 +167,7 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
 }
 
 template <class ArrayD1>
+ACCELERATED
 void reflected_radiation(const LandType& Land, const ArrayD1 albd, const ArrayD1 albi, const ArrayD1 forc_solad,
                          const ArrayD1 forc_solai, double& fsr) {
 
@@ -186,6 +190,7 @@ void reflected_radiation(const LandType& Land, const ArrayD1 albd, const ArrayD1
 }
 
 template <class ArrayD1>
+ACCELERATED
 void canopy_sunshade_fractions(const LandType& Land, const int& nrad, const double& elai, const ArrayD1 tlai_z,
                                const ArrayD1 fsun_z, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
                                const ArrayD1 fabd_sun_z, const ArrayD1 fabd_sha_z, const ArrayD1 fabi_sun_z,

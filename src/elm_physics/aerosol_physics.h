@@ -5,6 +5,8 @@
 #include "array.hh"
 #include "elm_constants.h"
 
+#include "kokkos_includes.hh"
+
 #include <functional>
 
 namespace ELM::aerosols {
@@ -16,6 +18,7 @@ namespace ELM::aerosols {
 template <typename T, typename ArrayI1> struct ComputeAerosolDeposition {
   ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl, AerosolMasses& aerosol_masses);
 
+  ACCELERATED
   void operator()(const int i) const;
 
 private:
@@ -33,6 +36,7 @@ template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputeAe
                               const ArrayD1& qflx_snwcp_ice, AerosolMasses& aerosol_masses,
                               AerosolConcentrations& aerosol_concentrations);
 
+  ACCELERATED
   void operator()(const int i) const;
 
 private:

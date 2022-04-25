@@ -192,6 +192,7 @@ namespace ELM::snow_snicar {
 // } // SnowAge_grain
 
 template <class ArrayI1, class ArrayD1, class ArrayD2>
+ACCELERATED
 void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
@@ -285,6 +286,7 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
 }
 
 template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
+ACCELERATED
 void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
                              const double& coszen, const double& h2osno, const ArrayI1 snw_rds_lcl,
                              const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1,
@@ -483,6 +485,7 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
 }
 
 template <class ArrayD1, class ArrayD2>
+ACCELERATED
 void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
@@ -828,6 +831,7 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
 }
 
 template <class ArrayI1, class ArrayD1, class ArrayD2>
+ACCELERATED
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,
                                   const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,
