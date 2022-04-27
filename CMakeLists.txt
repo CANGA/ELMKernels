@@ -29,11 +29,14 @@ find_package(NetCDF REQUIRED)
 message("Found NetCDF = ${NetCDF_C_LIBRARIES}")
 
 # options for drivers
-option(ENABLE_CC "Enable building with default C-style driver" ON)
+# only build one
 option(ENABLE_KOKKOS "Enable building with Kokkos driver" OFF)
 if (ENABLE_KOKKOS)
   add_compile_definitions(ENABLE_KOKKOS)
   find_package(Kokkos REQUIRED)
+  option(ENABLE_CC "Enable building with default C-style driver" OFF)
+else()
+  option(ENABLE_CC "Enable building with default C-style driver" ON)
 endif()
 
 

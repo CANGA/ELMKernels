@@ -17,10 +17,6 @@ namespace ELM {
 // class to manage phenology data
 class PhenologyDataManager {
 
-  using ArrayI1 = ELM::Array<int, 1>;
-  using ArrayD1 = ELM::Array<double, 1>;
-  using ArrayD2 = ELM::Array<double, 2>;
-
 public:
   PhenologyDataManager(const size_t ncells, const size_t npfts);
 

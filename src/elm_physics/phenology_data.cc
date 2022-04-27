@@ -5,7 +5,8 @@
 #include "read_input.hh"
 
 #include <array>
-#include <functional>
+
+#include "invoke_kernel.hh"
 
 // this is derived from SatellitePhenologyMod.F90
 
@@ -47,9 +48,9 @@ void ELM::PhenologyDataManager::get_data(const Utils::Date& model_time, const Ar
   }
   phenology::ComputePhenology compute_phen(mlai_, msai_, mhtop_, mhbot_, snow_depth, frac_sno, vtype, wt1, wt2,
                                            start_idx, elai, esai, htop, hbot, tlai, tsai, frac_veg_nosno_alb);
-  for (int i = 0; i < elai.extent(0); ++i) {
-    std::invoke(compute_phen, i);
-  }
+
+  const std::string name("ComputePhenology");
+  invoke_kernel(compute_phen, std::make_tuple(elai.extent(0)));
 }
 
 // read 1 month of data from file (1, npfts, nlat, nlon) for input param month

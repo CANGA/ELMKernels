@@ -15,8 +15,7 @@ cmake ..\
     -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install \
     -DCMAKE_BUILD_TYPE:STRING=Debug \
     -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
-    -DENABLE_KOKKOS:BOOL=ON \
-    -DENABLE_CC:BOOL=ON
+    -DENABLE_KOKKOS:BOOL=ON
     ##-DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
 make -j6 VERBOSE=1
 make install

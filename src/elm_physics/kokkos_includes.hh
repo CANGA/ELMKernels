@@ -10,13 +10,4 @@ constexpr bool KOKKOS_ENABLED = true;
 #include "Kokkos_Core.hpp"
 #endif
 
-
-//?
-//template<class object>
-//void invoke_kernel() {
-//  if constexpr (KOKKOS_ENABLED) {
-//    kokkos::parallel_for();
-//  } else {
-//    std::invoke();
-//  }
-//}
+#include "kokkos_types.hh"
