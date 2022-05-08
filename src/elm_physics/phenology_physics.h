@@ -8,7 +8,9 @@
 namespace ELM::phenology {
 
 // functor to calculate phenology parameters for time = model_time
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputePhenology {
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+struct ComputePhenology {
+
   ComputePhenology(const ArrayD2& mlai, const ArrayD2& msai, const ArrayD2& mhtop, const ArrayD2& mhbot,
                    const ArrayD1& snow_depth, const ArrayD1& frac_sno, const ArrayI1& vtype, const double& wt1,
                    const double wt2, const int start_idx, ArrayD1& elai, ArrayD1& esai, ArrayD1& htop, ArrayD1& hbot,

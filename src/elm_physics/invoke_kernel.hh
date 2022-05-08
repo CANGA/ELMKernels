@@ -13,7 +13,7 @@
 
 #ifdef ENABLE_KOKKOS
 namespace impl {
-template <class F, class T, std::size_t... I>
+template <class F, typename T, std::size_t... I>
 constexpr decltype(auto) apply_kokkos_parallel_for(F&& obj, T&& args, const std::string& name, std::index_sequence<I...>)
 {
   auto run_kernel = [] (F&& obj, T&& args, const std::string& name) {
