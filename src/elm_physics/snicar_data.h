@@ -7,6 +7,9 @@
 
 #include <array>
 #include <string>
+#include <map>
+
+#include "kokkos_includes.hh"
 
 namespace ELM::snicar_utils {
 
@@ -20,10 +23,6 @@ void read_and_fill_array(const Comm_type& comm, const std::string& filename, con
 namespace ELM {
 
 struct SnicarData {
-  // use this for now - I don't want to template this class
-  using ArrayD1 = ELM::Array<double, 1>;
-  using ArrayD2 = ELM::Array<double, 2>;
-  using ArrayD3 = ELM::Array<double, 3>;
 
   // arrays to store snicar parameters
   ArrayD1 ss_alb_oc1;
@@ -62,7 +61,11 @@ struct SnicarData {
 };
 
 // read all fields in SnicarData
-void read_snicar_data(const Comm_type& comm, const std::string& filename, SnicarData *snicar_data);
+void read_snicar_data(
+  std::map<std::string, h_ArrayD1>& snicar_views_d1,
+  std::map<std::string, h_ArrayD2>& snicar_views_d2,
+  std::map<std::string, h_ArrayD3>& snicar_views_d3,
+  const Comm_type& comm, const std::string& filename);
 
 } // namespace ELM
 

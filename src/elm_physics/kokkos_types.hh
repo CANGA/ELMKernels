@@ -13,6 +13,10 @@ typedef ELM::Array<double, 2> ArrayD2;
 typedef ELM::Array<double, 3> ArrayD3;
 
 
+typedef ArrayD1 h_ArrayD1;
+typedef ArrayD2 h_ArrayD2;
+typedef ArrayD3 h_ArrayD3;
+
 #else
 
 typedef Kokkos::View<bool *> ArrayB1;
@@ -23,6 +27,9 @@ typedef Kokkos::View<double *> ArrayD1;
 typedef Kokkos::View<double **> ArrayD2;
 typedef Kokkos::View<double ***> ArrayD3;
 
+
+typedef ArrayD1::HostMirror h_ArrayD1;
 typedef ArrayD2::HostMirror h_ArrayD2;
+typedef ArrayD3::HostMirror h_ArrayD3;
 
 #endif

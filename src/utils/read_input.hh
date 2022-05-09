@@ -197,15 +197,13 @@ inline void read_and_reshape_forcing(const std::string &dir, const std::string &
 // Requires shape(arr) == { MAXPFTS }
 //
 template <class Array_t>
-inline void read_pft_var(const std::string &dir, const std::string &basename, const std::string &varname,
-                         Array_t &arr) {
+inline void read_pft_var(const Comm_type &comm, const std::string& filename,
+                         const std::string &varname, Array_t &arr)
+{
   Array<double, 1> arr_for_read(arr.extent(0));
-  int comm;
   std::array<GO, 1> start = {0};
   std::array<GO, 1> count = {(GO)arr.extent(0)};
-  std::stringstream fname_full;
-  fname_full << dir << "/" << basename;
-  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  read(comm, filename, varname, start, count, arr_for_read.data());
   for (int i = 0; i != arr.extent(0); ++i) {
     arr(i) = arr_for_read(i);
   }
@@ -217,16 +215,13 @@ inline void read_pft_var(const std::string &dir, const std::string &basename, co
 // Requires shape(arr) == { MAX_PFTS }
 //
 template <class Array_t>
-inline void read_names(const std::string &dir, const std::string &basename, const std::string &varname,
-                       const int strlen, Array_t &arr) {
+inline void read_names(const Comm_type &comm, const std::string& filename,
+                       const std::string &varname, const int strlen, Array_t &arr) {
   // ELM::Array of char
   Array<char, 1> arr_for_read(strlen * arr.extent(0) + 1);
   std::array<GO, 2> start = {0, 0};
   std::array<GO, 2> count = {(GO)arr.extent(0), (GO)strlen};
-  int comm;
-  std::stringstream fname_full;
-  fname_full << dir << "/" << basename;
-  read(comm, fname_full.str(), varname, start, count, arr_for_read.data());
+  read(comm, filename, varname, start, count, arr_for_read.data());
   // c string parsing
   char *token = strtok(arr_for_read.data(), " ");
   arr[0] = token;

@@ -1,4 +1,4 @@
-// functions from SurfaceResistanceMod.F90
+// functions derived from SurfaceResistanceMod.F90
 
 #pragma once
 

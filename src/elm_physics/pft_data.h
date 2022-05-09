@@ -7,7 +7,12 @@
 #include "elm_constants.h"
 #include "read_input.hh"
 #include "utils.hh"
+
 #include <cassert>
+#include <map>
+#include <string>
+
+#include "kokkos_includes.hh"
 
 namespace ELM {
 
@@ -75,7 +80,8 @@ template <typename ArrayD1, typename ArrayD2> struct VegData {
   ~VegData(){};
 
   // Read pft time-invariant file data into member variables
-  void read_veg_data(const std::string& data_dir, const std::string& basename_pfts);
+  void read_veg_data(std::map<std::string, h_ArrayD1>& pft_views,
+                     const Comm_type& comm, const std::string& fname_pft);
 
   // get struct of photosynthesis variables for vegetation == vegtype
   PSNVegData get_pft_psnveg(int vegtype) const;

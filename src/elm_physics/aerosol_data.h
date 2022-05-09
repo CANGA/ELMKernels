@@ -8,6 +8,8 @@
 #include <string>
 #include <utility>
 
+#include "kokkos_includes.hh"
+
 /*
 ELM MAPPING:
 IDX   VARNAME
@@ -59,13 +61,11 @@ mss_cnc_dst4 - dst4_1 & dst4_2
 namespace ELM {
 
 struct AerosolMasses {
-  using ArrayD2 = ELM::Array<double, 2>;
   ArrayD2 mss_bcphi, mss_bcpho, mss_dst1, mss_dst2, mss_dst3, mss_dst4;
   AerosolMasses(const int ncells);
 };
 
 struct AerosolConcentrations {
-  using ArrayD2 = ELM::Array<double, 2>;
   ArrayD2 mss_cnc_bcphi, mss_cnc_bcpho, mss_cnc_dst1, mss_cnc_dst2, mss_cnc_dst3, mss_cnc_dst4;
   AerosolConcentrations(const int ncells);
 };
@@ -73,14 +73,17 @@ struct AerosolConcentrations {
 // class to manage aerosol data
 class AerosolDataManager {
 
-  using ArrayI1 = ELM::Array<int, 1>;
-  using ArrayD1 = ELM::Array<double, 1>;
-
 public:
+
+  // public to allow access from driver
+  ArrayD1 bcdep_, bcpho_, bcphi_, dst1_1_, dst1_2_, dst2_1_;
+  ArrayD1 dst2_2_, dst3_1_, dst3_2_, dst4_1_, dst4_2_;
+
   AerosolDataManager();
 
   // read 12 months of values at closest point to lon_d and lat_d
-  void read_data(const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d);
+  void read_data(std::map<std::string, ArrayD1::HostMirror>& aerosol_views, const Comm_type& comm,
+    const std::string& filename,const double& lon_d, const double& lat_d);
 
   // get closest indices to [lon, lat]
   std::pair<size_t, size_t> get_nearest_indices(const Comm_type& comm, const std::string& filename, const double& lon_d,
@@ -96,10 +99,7 @@ public:
 private:
   // read a slice from file and reshape into 1D array
   void read_variable_slice(const Comm_type& comm, const std::string& filename, const std::string& varname,
-                           const size_t& lon_idx, const size_t& lat_idx, ArrayD1& arr);
-
-  ArrayD1 bcdep_, bcpho_, bcphi_, dst1_1_, dst1_2_, dst2_1_;
-  ArrayD1 dst2_2_, dst3_1_, dst3_2_, dst4_1_, dst4_2_;
+                           const size_t& lon_idx, const size_t& lat_idx, h_ArrayD1& arr);
 };
 
 } // namespace ELM

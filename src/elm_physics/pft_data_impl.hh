@@ -22,84 +22,92 @@ VegData<ArrayD1, ArrayD2>::VegData()
       taulnir("taulnir", ELM::numpft), tausvis("tausvis", ELM::numpft), tausnir("tausnir", ELM::numpft) {}
 
 template <typename ArrayD1, typename ArrayD2>
-void VegData<ArrayD1, ArrayD2>::read_veg_data(const std::string& data_dir, const std::string& basename_pfts) {
+void VegData<ArrayD1, ArrayD2>::read_veg_data(std::map<std::string, h_ArrayD1>& pft_views,
+                                              const Comm_type& comm, const std::string& fname_pft)
+{
 
   ELM::Array<std::string, 1> pftnames("pftnames", ELM::mxpft);
-  const std::array<std::string, ELM::mxpft> expected_pftnames = {"not_vegetated",
-                                                                 "needleleaf_evergreen_temperate_tree",
-                                                                 "needleleaf_evergreen_boreal_tree",
-                                                                 "needleleaf_deciduous_boreal_tree",
-                                                                 "broadleaf_evergreen_tropical_tree",
-                                                                 "broadleaf_evergreen_temperate_tree",
-                                                                 "broadleaf_deciduous_tropical_tree",
-                                                                 "broadleaf_deciduous_temperate_tree",
-                                                                 "broadleaf_deciduous_boreal_tree",
-                                                                 "broadleaf_evergreen_shrub",
-                                                                 "broadleaf_deciduous_temperate_shrub",
-                                                                 "broadleaf_deciduous_boreal_shrub",
-                                                                 "c3_arctic_grass",
-                                                                 "c3_non-arctic_grass",
-                                                                 "c4_grass",
-                                                                 "c3_crop",
-                                                                 "c3_irrigated",
-                                                                 "corn",
-                                                                 "irrigated_corn",
-                                                                 "spring_temperate_cereal",
-                                                                 "irrigated_spring_temperate_cereal",
-                                                                 "winter_temperate_cereal",
-                                                                 "irrigated_winter_temperate_cereal",
-                                                                 "soybean",
-                                                                 "irrigated_soybean"};
+  const std::array<std::string, ELM::mxpft> expected_pftnames = 
+    { "not_vegetated",
+      "needleleaf_evergreen_temperate_tree",
+      "needleleaf_evergreen_boreal_tree",
+      "needleleaf_deciduous_boreal_tree",
+      "broadleaf_evergreen_tropical_tree",
+      "broadleaf_evergreen_temperate_tree",
+      "broadleaf_deciduous_tropical_tree",
+      "broadleaf_deciduous_temperate_tree",
+      "broadleaf_deciduous_boreal_tree",
+      "broadleaf_evergreen_shrub",
+      "broadleaf_deciduous_temperate_shrub",
+      "broadleaf_deciduous_boreal_shrub",
+      "c3_arctic_grass",
+      "c3_non-arctic_grass",
+      "c4_grass",
+      "c3_crop",
+      "c3_irrigated",
+      "corn",
+      "irrigated_corn",
+      "spring_temperate_cereal",
+      "irrigated_spring_temperate_cereal",
+      "winter_temperate_cereal",
+      "irrigated_winter_temperate_cereal",
+      "soybean",
+      "irrigated_soybean"
+    };
 
   // read pftnames
   const int strlen = 40;
-  ELM::IO::read_names(data_dir, basename_pfts, "pftname", strlen, pftnames);
+  ELM::IO::read_names(comm, fname_pft, "pftname", strlen, pftnames);
 
   // check to make sure order is as expected
   for (int i = 0; i != pftnames.extent(0); i++)
     assert(pftnames[i] == expected_pftnames[i] && "pftname does not match expected pftname");
 
+  for (auto& [varname, arr] : pft_views) {
+    ELM::IO::read_pft_var(comm, fname_pft, varname, arr);
+  }
+
   // read pft constants
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "fnr", fnr);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "act25", act25);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "kcha", kcha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "koha", koha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "cpha", cpha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "vcmaxha", vcmaxha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "jmaxha", jmaxha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "tpuha", tpuha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "lmrha", lmrha);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "vcmaxhd", vcmaxhd);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "jmaxhd", jmaxhd);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "tpuhd", tpuhd);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "lmrhd", lmrhd);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "lmrse", lmrse);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "qe", qe);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "theta_cj", theta_cj);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "bbbopt", bbbopt);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "mbbopt", mbbopt);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "c3psn", c3psn);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "slatop", slatop);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "leafcn", leafcn);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "flnr", flnr);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "fnitr", fnitr);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "dleaf", dleaf);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "smpso", smpso);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "smpsc", smpsc);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "tc_stress", tc_stress);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "z0mr", z0mr);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "displar", displar);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "xl", xl);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "roota_par", roota_par);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "rootb_par", rootb_par);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "rholvis", rholvis);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "rholnir", rholnir);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "rhosvis", rhosvis);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "rhosnir", rhosnir);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "taulvis", taulvis);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "taulnir", taulnir);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "tausvis", tausvis);
-  ELM::IO::read_pft_var(data_dir, basename_pfts, "tausnir", tausnir);
+  //ELM::IO::read_pft_var(comm, fname_pft, "fnr", fnr);
+  //ELM::IO::read_pft_var(comm, fname_pft, "act25", act25);
+  //ELM::IO::read_pft_var(comm, fname_pft, "kcha", kcha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "koha", koha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "cpha", cpha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "vcmaxha", vcmaxha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "jmaxha", jmaxha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "tpuha", tpuha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "lmrha", lmrha);
+  //ELM::IO::read_pft_var(comm, fname_pft, "vcmaxhd", vcmaxhd);
+  //ELM::IO::read_pft_var(comm, fname_pft, "jmaxhd", jmaxhd);
+  //ELM::IO::read_pft_var(comm, fname_pft, "tpuhd", tpuhd);
+  //ELM::IO::read_pft_var(comm, fname_pft, "lmrhd", lmrhd);
+  //ELM::IO::read_pft_var(comm, fname_pft, "lmrse", lmrse);
+  //ELM::IO::read_pft_var(comm, fname_pft, "qe", qe);
+  //ELM::IO::read_pft_var(comm, fname_pft, "theta_cj", theta_cj);
+  //ELM::IO::read_pft_var(comm, fname_pft, "bbbopt", bbbopt);
+  //ELM::IO::read_pft_var(comm, fname_pft, "mbbopt", mbbopt);
+  //ELM::IO::read_pft_var(comm, fname_pft, "c3psn", c3psn);
+  //ELM::IO::read_pft_var(comm, fname_pft, "slatop", slatop);
+  //ELM::IO::read_pft_var(comm, fname_pft, "leafcn", leafcn);
+  //ELM::IO::read_pft_var(comm, fname_pft, "flnr", flnr);
+  //ELM::IO::read_pft_var(comm, fname_pft, "fnitr", fnitr);
+  //ELM::IO::read_pft_var(comm, fname_pft, "dleaf", dleaf);
+  //ELM::IO::read_pft_var(comm, fname_pft, "smpso", smpso);
+  //ELM::IO::read_pft_var(comm, fname_pft, "smpsc", smpsc);
+  //ELM::IO::read_pft_var(comm, fname_pft, "tc_stress", tc_stress);
+  //ELM::IO::read_pft_var(comm, fname_pft, "z0mr", z0mr);
+  //ELM::IO::read_pft_var(comm, fname_pft, "displar", displar);
+  //ELM::IO::read_pft_var(comm, fname_pft, "xl", xl);
+  //ELM::IO::read_pft_var(comm, fname_pft, "roota_par", roota_par);
+  //ELM::IO::read_pft_var(comm, fname_pft, "rootb_par", rootb_par);
+  //ELM::IO::read_pft_var(comm, fname_pft, "rholvis", rholvis);
+  //ELM::IO::read_pft_var(comm, fname_pft, "rholnir", rholnir);
+  //ELM::IO::read_pft_var(comm, fname_pft, "rhosvis", rhosvis);
+  //ELM::IO::read_pft_var(comm, fname_pft, "rhosnir", rhosnir);
+  //ELM::IO::read_pft_var(comm, fname_pft, "taulvis", taulvis);
+  //ELM::IO::read_pft_var(comm, fname_pft, "taulnir", taulnir);
+  //ELM::IO::read_pft_var(comm, fname_pft, "tausvis", tausvis);
+  //ELM::IO::read_pft_var(comm, fname_pft, "tausnir", tausnir);
 }
 
 template <typename ArrayD1, typename ArrayD2> PSNVegData VegData<ArrayD1, ArrayD2>::get_pft_psnveg(int vegtype) const {

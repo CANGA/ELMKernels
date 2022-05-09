@@ -9,6 +9,8 @@
 #include <array>
 #include <string>
 
+#include "kokkos_includes.hh"
+
 namespace ELM::read_soil {
 
 template <typename ArrayD2> constexpr void get_albsat(int mxsoil_color, ArrayD2& albsat);

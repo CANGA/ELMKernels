@@ -14,6 +14,9 @@
 #include <tuple>
 #include <utility>
 
+#include <map>
+#include "kokkos_includes.hh"
+
 /*
 Class to read, parse, and operate on atmospheric forcing input
 

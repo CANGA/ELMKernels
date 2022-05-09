@@ -164,10 +164,10 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string
 
   // resize albsat and albdry if needed
   if (albsat.extent(0) != mxsoil_color) {
-    resize(albsat, mxsoil_color, ELMconstants::numrad);
+    NS::resize(albsat, mxsoil_color, ELMconstants::numrad);
   }
   if (albdry.extent(0) != mxsoil_color) {
-    resize(albdry, mxsoil_color, ELMconstants::numrad);
+    NS::resize(albdry, mxsoil_color, ELMconstants::numrad);
   }
 
   // get correct albsat and albdry arrays based on mxsoil_color

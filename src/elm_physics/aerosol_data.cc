@@ -10,6 +10,8 @@
 #include <functional>
 #include <tuple>
 
+#include "invoke_kernel.hh"
+
 ELM::AerosolMasses::AerosolMasses(const int ncells)
     : mss_bcphi("mss_bcphi", ncells, ELM::nlevsno, 0.0), mss_bcpho("mss_bcpho", ncells, ELM::nlevsno, 0.0),
       mss_dst1("mss_dst1", ncells, ELM::nlevsno, 0.0), mss_dst2("mss_dst2", ncells, ELM::nlevsno, 0.0),
@@ -23,12 +25,13 @@ ELM::AerosolConcentrations::AerosolConcentrations(const int ncells)
 }
 
 ELM::AerosolDataManager::AerosolDataManager()
-    : bcdep_(12), bcpho_(12), bcphi_(12), dst1_1_(12), dst1_2_(12), dst2_1_(12), dst2_2_(12), dst3_1_(12), dst3_2_(12),
-      dst4_1_(12), dst4_2_(12) {}
+    : bcdep_("bcdep", 12), bcpho_("bcpho", 12), bcphi_("bcphi", 12), dst1_1_("dst1_1", 12), dst1_2_("dst1_2", 12),
+      dst2_1_("dst2_1", 12), dst2_2_("dst2_2", 12), dst3_1_("dst3_1", 12), dst3_2_("dst3_2", 12),
+      dst4_1_("dst4_1", 12), dst4_2_("dst4_2", 12) {}
 
 void ELM::AerosolDataManager::read_variable_slice(const Comm_type& comm, const std::string& filename,
                                                   const std::string& varname, const size_t& lon_idx,
-                                                  const size_t& lat_idx, ArrayD1& arr) {
+                                                  const size_t& lat_idx, h_ArrayD1& arr) {
   Array<double, 3> file_data(12, 1, 1); // one year of monthly data
   std::array<size_t, 3> start{0, lat_idx, lon_idx};
   std::array<size_t, 3> count{12, 1, 1};
@@ -39,22 +42,14 @@ void ELM::AerosolDataManager::read_variable_slice(const Comm_type& comm, const s
   }
 }
 
-void ELM::AerosolDataManager::read_data(const Comm_type& comm, const std::string& filename, const double& lon_d,
-                                        const double& lat_d) {
+void ELM::AerosolDataManager::read_data(std::map<std::string, ArrayD1::HostMirror>& aerosol_views, 
+  const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d) {
 
   auto [lon_idx, lat_idx] = get_nearest_indices(comm, filename, lon_d, lat_d);
 
-  read_variable_slice(comm, filename, "BCDEPWET", lon_idx, lat_idx, bcdep_);
-  read_variable_slice(comm, filename, "BCPHODRY", lon_idx, lat_idx, bcpho_);
-  read_variable_slice(comm, filename, "BCPHIDRY", lon_idx, lat_idx, bcphi_);
-  read_variable_slice(comm, filename, "DSTX01DD", lon_idx, lat_idx, dst1_1_);
-  read_variable_slice(comm, filename, "DSTX02DD", lon_idx, lat_idx, dst1_2_);
-  read_variable_slice(comm, filename, "DSTX03DD", lon_idx, lat_idx, dst2_1_);
-  read_variable_slice(comm, filename, "DSTX04DD", lon_idx, lat_idx, dst2_2_);
-  read_variable_slice(comm, filename, "DSTX01WD", lon_idx, lat_idx, dst3_1_);
-  read_variable_slice(comm, filename, "DSTX02WD", lon_idx, lat_idx, dst3_2_);
-  read_variable_slice(comm, filename, "DSTX03WD", lon_idx, lat_idx, dst4_1_);
-  read_variable_slice(comm, filename, "DSTX04WD", lon_idx, lat_idx, dst4_2_);
+  for (auto& [varname, arr] : aerosol_views) {
+    read_variable_slice(comm, filename, varname, lon_idx, lat_idx, arr);
+  }
 }
 
 std::pair<size_t, size_t> ELM::AerosolDataManager::get_nearest_indices(const Comm_type& comm,
@@ -112,7 +107,8 @@ void ELM::AerosolDataManager::invoke_aerosol_source(const Utils::Date& model_tim
                                                     const ArrayI1& snl, AerosolMasses& aerosol_masses) {
   auto aerosol_forc_flux = get_aerosol_source(model_time, dtime);
   aerosols::ComputeAerosolDeposition aerosol_source_object(aerosol_forc_flux, snl, aerosol_masses);
-  for (int i = 0; i < snl.extent(0); ++i) {
-    std::invoke(aerosol_source_object, i);
-  }
+  
+  const std::string name("ComputeAerosolDeposition");
+  invoke_kernel(aerosol_source_object, std::make_tuple(snl.extent(0)), name);
+
 }

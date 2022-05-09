@@ -232,7 +232,7 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::read_atm_forcing(const U
   // resize if ntimes has changed - assume ncells_ doesn't change
   if (ntimes != static_cast<size_t>(data_.extent(0))) {
     ntimes_ = ntimes;
-    data_.resize(ntimes, ncells_);
+    NS::resize(data_, ntimes, ncells_);
   }
 
   { // get forc_dt_ by differencing the first and second timestep

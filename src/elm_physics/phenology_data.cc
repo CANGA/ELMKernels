@@ -51,7 +51,7 @@ void ELM::PhenologyDataManager::get_data(const Utils::Date& model_time, const Ar
                                            start_idx, elai, esai, htop, hbot, tlai, tsai, frac_veg_nosno_alb);
 
   const std::string name("ComputePhenology");
-  invoke_kernel(compute_phen, std::make_tuple(elai.extent(0)));
+  invoke_kernel(compute_phen, std::make_tuple(elai.extent(0)), name);
 }
 
 // read 1 month of data from file (1, npfts, nlat, nlon) for input param month
