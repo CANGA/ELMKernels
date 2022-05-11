@@ -11,9 +11,9 @@
 // this is derived from SatellitePhenologyMod.F90
 
 ELM::PhenologyDataManager::PhenologyDataManager(const Utils::DomainDecomposition<2>& dd, const size_t ncells, const size_t npfts)
-    : mlai_("mlai", 3, ncells), msai_("msai", 3, ncells), mhtop_("mhtop", 3, ncells), mhbot_("mhbot", 3, ncells),
-      dd_(dd), ncells_(ncells), npfts_(npfts), initialized_(false),
-      need_new_data_(false) {}
+    : mlai("mlai", 3, ncells), msai("msai", 3, ncells), mhtop("mhtop", 3, ncells), mhbot("mhbot", 3, ncells),
+      dd_{dd}, ncells_{ncells}, npfts_{npfts}, initialized_{false},
+      need_new_data_{false} {}
 
 // read data from file
 // either all three months of data, or new single month
@@ -47,7 +47,7 @@ void ELM::PhenologyDataManager::get_data(const Utils::Date& model_time, const Ar
     need_new_data_ = true;
   }
 
-  phenology::ComputePhenology compute_phen(mlai_, msai_, mhtop_, mhbot_, snow_depth, frac_sno, vtype, wt1, wt2,
+  phenology::ComputePhenology compute_phen(mlai, msai, mhtop, mhbot, snow_depth, frac_sno, vtype, wt1, wt2,
                                            start_idx, elai, esai, htop, hbot, tlai, tsai, frac_veg_nosno_alb);
 
   const std::string name("ComputePhenology");

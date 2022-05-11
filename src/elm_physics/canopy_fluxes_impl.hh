@@ -190,7 +190,7 @@ void stability_iteration(
     const double& ur, const double& zldis, const double& displa, const double& elai, const double& esai,
     const double& t_grnd, const double& forc_pbot, const double& forc_q, const double& forc_th, const double& z0mg,
     const double& z0mv, const double& z0hv, const double& z0qv, const double& thm, const double& thv, const double& qg,
-    const PSNVegData& psnveg, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
+    const PFTDataPSN& psn_pft, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
     const double& vcmaxcintsun, const ArrayD1 parsha_z, const ArrayD1 parsun_z, const ArrayD1 laisha_z,
     const ArrayD1 laisun_z, const double& forc_pco2, const double& forc_po2, const double& dayl_factor, double& btran,
     double& qflx_tran_veg, double& qflx_evap_veg, double& eflx_sh_veg, double& wtg, double& wtl0, double& wta0,
@@ -243,7 +243,7 @@ void stability_iteration(
       // Bulk boundary layer resistance of leaves
       uaf = um * std::sqrt(1.0 / (ram * um)); // velocity of air within foliage [m/s]
       // Use pft parameter for leaf characteristic width dleaf
-      cf = 0.01 / (std::sqrt(uaf) * std::sqrt(psnveg.dleaf)); // heat transfer coefficient from leaves [-]
+      cf = 0.01 / (std::sqrt(uaf) * std::sqrt(psn_pft.dleaf)); // heat transfer coefficient from leaves [-]
       rb = 1.0 / (cf * uaf);                                  // leaf boundary layer resistance [s/m]
 
       // Parameterization for variation of csoilc with canopy density from X. Zeng, University of Arizona
@@ -278,7 +278,7 @@ void stability_iteration(
       }
 
       // call photosynthesis (phase=sun)
-      photosynthesis::photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+      photosynthesis::photosynthesis(psn_pft, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
                                      dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
 
       if (Land.vtype == nsoybean || Land.vtype == nsoybeanirrig) {
@@ -286,7 +286,7 @@ void stability_iteration(
       }
 
       // call photosynthesis (phase=shade)
-      photosynthesis::photosynthesis(psnveg, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
+      photosynthesis::photosynthesis(psn_pft, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
                                      dayl_factor, thm, tlai_z, vcmaxcintsha, parsha_z, laisha_z, ci_z, rssha);
 
       // Sensible heat conductance for air, leaf and ground

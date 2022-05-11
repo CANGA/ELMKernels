@@ -272,7 +272,7 @@ template <class ArrayD1>
 ACCELERATED
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
-                       const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const AlbedoVegData& albveg,
+                       const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const PFTDataAlb& alb_pft,
                        double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
                        ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
                        ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,

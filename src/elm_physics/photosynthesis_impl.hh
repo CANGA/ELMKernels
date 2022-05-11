@@ -6,7 +6,7 @@ namespace ELM::photosynthesis {
 
 template <class ArrayD1>
 ACCELERATED
-void photosynthesis(const PSNVegData& psnveg, const int& nrad, const double& forc_pbot, const double& t_veg,
+void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& forc_pbot, const double& t_veg,
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,
                     const double& cair, const double& rb, const double& btran, const double& dayl_factor,
                     const double& thm, const ArrayD1 tlai_z, const double& vcmaxcint, const ArrayD1 par_z,

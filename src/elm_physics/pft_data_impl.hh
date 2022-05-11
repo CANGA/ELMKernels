@@ -6,7 +6,7 @@ namespace ELM {
 // default constructor - construct array objects in initializer list
 // in case ArrayType can't be default constructed
 template <typename ArrayD1, typename ArrayD2>
-VegData<ArrayD1, ArrayD2>::VegData()
+PFTData<ArrayD1, ArrayD2>::PFTData()
     : fnr("fnr", ELM::numpft), act25("act25", ELM::numpft), kcha("kcha", ELM::numpft), koha("koha", ELM::numpft),
       cpha("cpha", ELM::numpft), vcmaxha("vcmaxha", ELM::numpft), jmaxha("jmaxha", ELM::numpft),
       tpuha("tpuha", ELM::numpft), lmrha("lmrha", ELM::numpft), vcmaxhd("vcmaxhd", ELM::numpft),
@@ -22,7 +22,7 @@ VegData<ArrayD1, ArrayD2>::VegData()
       taulnir("taulnir", ELM::numpft), tausvis("tausvis", ELM::numpft), tausnir("tausnir", ELM::numpft) {}
 
 template <typename ArrayD1, typename ArrayD2>
-void VegData<ArrayD1, ArrayD2>::read_veg_data(std::map<std::string, h_ArrayD1>& pft_views,
+void PFTData<ArrayD1, ArrayD2>::read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
                                               const Comm_type& comm, const std::string& fname_pft)
 {
 
@@ -63,98 +63,60 @@ void VegData<ArrayD1, ArrayD2>::read_veg_data(std::map<std::string, h_ArrayD1>& 
   for (int i = 0; i != pftnames.extent(0); i++)
     assert(pftnames[i] == expected_pftnames[i] && "pftname does not match expected pftname");
 
+  // read pft constants
   for (auto& [varname, arr] : pft_views) {
     ELM::IO::read_pft_var(comm, fname_pft, varname, arr);
   }
-
-  // read pft constants
-  //ELM::IO::read_pft_var(comm, fname_pft, "fnr", fnr);
-  //ELM::IO::read_pft_var(comm, fname_pft, "act25", act25);
-  //ELM::IO::read_pft_var(comm, fname_pft, "kcha", kcha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "koha", koha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "cpha", cpha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "vcmaxha", vcmaxha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "jmaxha", jmaxha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "tpuha", tpuha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "lmrha", lmrha);
-  //ELM::IO::read_pft_var(comm, fname_pft, "vcmaxhd", vcmaxhd);
-  //ELM::IO::read_pft_var(comm, fname_pft, "jmaxhd", jmaxhd);
-  //ELM::IO::read_pft_var(comm, fname_pft, "tpuhd", tpuhd);
-  //ELM::IO::read_pft_var(comm, fname_pft, "lmrhd", lmrhd);
-  //ELM::IO::read_pft_var(comm, fname_pft, "lmrse", lmrse);
-  //ELM::IO::read_pft_var(comm, fname_pft, "qe", qe);
-  //ELM::IO::read_pft_var(comm, fname_pft, "theta_cj", theta_cj);
-  //ELM::IO::read_pft_var(comm, fname_pft, "bbbopt", bbbopt);
-  //ELM::IO::read_pft_var(comm, fname_pft, "mbbopt", mbbopt);
-  //ELM::IO::read_pft_var(comm, fname_pft, "c3psn", c3psn);
-  //ELM::IO::read_pft_var(comm, fname_pft, "slatop", slatop);
-  //ELM::IO::read_pft_var(comm, fname_pft, "leafcn", leafcn);
-  //ELM::IO::read_pft_var(comm, fname_pft, "flnr", flnr);
-  //ELM::IO::read_pft_var(comm, fname_pft, "fnitr", fnitr);
-  //ELM::IO::read_pft_var(comm, fname_pft, "dleaf", dleaf);
-  //ELM::IO::read_pft_var(comm, fname_pft, "smpso", smpso);
-  //ELM::IO::read_pft_var(comm, fname_pft, "smpsc", smpsc);
-  //ELM::IO::read_pft_var(comm, fname_pft, "tc_stress", tc_stress);
-  //ELM::IO::read_pft_var(comm, fname_pft, "z0mr", z0mr);
-  //ELM::IO::read_pft_var(comm, fname_pft, "displar", displar);
-  //ELM::IO::read_pft_var(comm, fname_pft, "xl", xl);
-  //ELM::IO::read_pft_var(comm, fname_pft, "roota_par", roota_par);
-  //ELM::IO::read_pft_var(comm, fname_pft, "rootb_par", rootb_par);
-  //ELM::IO::read_pft_var(comm, fname_pft, "rholvis", rholvis);
-  //ELM::IO::read_pft_var(comm, fname_pft, "rholnir", rholnir);
-  //ELM::IO::read_pft_var(comm, fname_pft, "rhosvis", rhosvis);
-  //ELM::IO::read_pft_var(comm, fname_pft, "rhosnir", rhosnir);
-  //ELM::IO::read_pft_var(comm, fname_pft, "taulvis", taulvis);
-  //ELM::IO::read_pft_var(comm, fname_pft, "taulnir", taulnir);
-  //ELM::IO::read_pft_var(comm, fname_pft, "tausvis", tausvis);
-  //ELM::IO::read_pft_var(comm, fname_pft, "tausnir", tausnir);
-}
-
-template <typename ArrayD1, typename ArrayD2> PSNVegData VegData<ArrayD1, ArrayD2>::get_pft_psnveg(int vegtype) const {
-  PSNVegData psnvegdata;
-  psnvegdata.fnr = fnr(vegtype);
-  psnvegdata.act25 = act25(vegtype);
-  psnvegdata.kcha = kcha(vegtype);
-  psnvegdata.koha = koha(vegtype);
-  psnvegdata.cpha = cpha(vegtype);
-  psnvegdata.vcmaxha = vcmaxha(vegtype);
-  psnvegdata.jmaxha = jmaxha(vegtype);
-  psnvegdata.tpuha = tpuha(vegtype);
-  psnvegdata.lmrha = lmrha(vegtype);
-  psnvegdata.vcmaxhd = vcmaxhd(vegtype);
-  psnvegdata.jmaxhd = jmaxhd(vegtype);
-  psnvegdata.tpuhd = tpuhd(vegtype);
-  psnvegdata.lmrhd = lmrhd(vegtype);
-  psnvegdata.lmrse = lmrse(vegtype);
-  psnvegdata.qe = qe(vegtype);
-  psnvegdata.theta_cj = theta_cj(vegtype);
-  psnvegdata.bbbopt = bbbopt(vegtype);
-  psnvegdata.mbbopt = mbbopt(vegtype);
-  psnvegdata.c3psn = c3psn(vegtype);
-  psnvegdata.slatop = slatop(vegtype);
-  psnvegdata.leafcn = leafcn(vegtype);
-  psnvegdata.flnr = flnr(vegtype);
-  psnvegdata.fnitr = fnitr(vegtype);
-  psnvegdata.dleaf = dleaf(vegtype);
-  psnvegdata.smpso = smpso(vegtype);
-  psnvegdata.smpsc = smpsc(vegtype);
-  psnvegdata.tc_stress = tc_stress(0);
-  return psnvegdata;
 }
 
 template <typename ArrayD1, typename ArrayD2>
-AlbedoVegData VegData<ArrayD1, ArrayD2>::get_pft_albveg(int vegtype) const {
-  AlbedoVegData albedovegdata;
-  albedovegdata.rhol[0] = rholvis(vegtype);
-  albedovegdata.rhol[1] = rholnir(vegtype);
-  albedovegdata.rhos[0] = rhosvis(vegtype);
-  albedovegdata.rhos[1] = rhosnir(vegtype);
-  albedovegdata.taul[0] = taulvis(vegtype);
-  albedovegdata.taul[1] = taulnir(vegtype);
-  albedovegdata.taus[0] = tausvis(vegtype);
-  albedovegdata.taus[1] = tausnir(vegtype);
-  albedovegdata.xl = xl(vegtype);
-  return albedovegdata;
+ACCELERATED
+PFTDataPSN PFTData<ArrayD1, ArrayD2>::get_pft_psn(const int pft) const {
+  PFTDataPSN psn_pft_data;
+  psn_pft_data.fnr = fnr(pft);
+  psn_pft_data.act25 = act25(pft);
+  psn_pft_data.kcha = kcha(pft);
+  psn_pft_data.koha = koha(pft);
+  psn_pft_data.cpha = cpha(pft);
+  psn_pft_data.vcmaxha = vcmaxha(pft);
+  psn_pft_data.jmaxha = jmaxha(pft);
+  psn_pft_data.tpuha = tpuha(pft);
+  psn_pft_data.lmrha = lmrha(pft);
+  psn_pft_data.vcmaxhd = vcmaxhd(pft);
+  psn_pft_data.jmaxhd = jmaxhd(pft);
+  psn_pft_data.tpuhd = tpuhd(pft);
+  psn_pft_data.lmrhd = lmrhd(pft);
+  psn_pft_data.lmrse = lmrse(pft);
+  psn_pft_data.qe = qe(pft);
+  psn_pft_data.theta_cj = theta_cj(pft);
+  psn_pft_data.bbbopt = bbbopt(pft);
+  psn_pft_data.mbbopt = mbbopt(pft);
+  psn_pft_data.c3psn = c3psn(pft);
+  psn_pft_data.slatop = slatop(pft);
+  psn_pft_data.leafcn = leafcn(pft);
+  psn_pft_data.flnr = flnr(pft);
+  psn_pft_data.fnitr = fnitr(pft);
+  psn_pft_data.dleaf = dleaf(pft);
+  psn_pft_data.smpso = smpso(pft);
+  psn_pft_data.smpsc = smpsc(pft);
+  psn_pft_data.tc_stress = tc_stress(0);
+  return psn_pft_data;
+}
+
+template <typename ArrayD1, typename ArrayD2>
+ACCELERATED
+PFTDataAlb PFTData<ArrayD1, ArrayD2>::get_pft_alb(const int pft) const {
+  PFTDataAlb alb_pft_data;
+  alb_pft_data.rhol[0] = rholvis(pft);
+  alb_pft_data.rhol[1] = rholnir(pft);
+  alb_pft_data.rhos[0] = rhosvis(pft);
+  alb_pft_data.rhos[1] = rhosnir(pft);
+  alb_pft_data.taul[0] = taulvis(pft);
+  alb_pft_data.taul[1] = taulnir(pft);
+  alb_pft_data.taus[0] = tausvis(pft);
+  alb_pft_data.taus[1] = tausnir(pft);
+  alb_pft_data.xl = xl(pft);
+  return alb_pft_data;
 }
 
 } // namespace ELM

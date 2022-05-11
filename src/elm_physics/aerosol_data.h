@@ -76,8 +76,8 @@ class AerosolDataManager {
 public:
 
   // public to allow access from driver
-  ArrayD1 bcdep_, bcpho_, bcphi_, dst1_1_, dst1_2_, dst2_1_;
-  ArrayD1 dst2_2_, dst3_1_, dst3_2_, dst4_1_, dst4_2_;
+  ArrayD1 bcdep, bcpho, bcphi, dst1_1, dst1_2, dst2_1;
+  ArrayD1 dst2_2, dst3_1, dst3_2, dst4_1, dst4_2;
 
   AerosolDataManager();
 
@@ -93,13 +93,13 @@ public:
   auto get_aerosol_source(const Utils::Date& model_time, const double& dtime);
 
   // convenience function to invoke aerosol deposition source functor
-  void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1& snl,
+  void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1 snl,
                              AerosolMasses& aerosol_masses);
 
 private:
   // read a slice from file and reshape into 1D array
   void read_variable_slice(const Comm_type& comm, const std::string& filename, const std::string& varname,
-                           const size_t& lon_idx, const size_t& lat_idx, h_ArrayD1& arr);
+                           const size_t& lon_idx, const size_t& lat_idx, h_ArrayD1 arr);
 };
 
 } // namespace ELM

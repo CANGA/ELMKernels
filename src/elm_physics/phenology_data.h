@@ -21,7 +21,7 @@ public:
 
   // these are public to provide access from driver
   // for eg hostview creation
-  ArrayD2 mlai_, msai_, mhtop_, mhbot_;
+  ArrayD2 mlai, msai, mhtop, mhbot;
 
   PhenologyDataManager(const Utils::DomainDecomposition<2>& dd, const size_t ncells, const size_t npfts);
 

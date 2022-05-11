@@ -17,21 +17,22 @@
 namespace ELM {
 
 // struct for single pft vegetation parameters used in photosynthesis/canopy_flux
-struct PSNVegData {
+struct PFTDataPSN {
   double fnr, act25, kcha, koha, cpha, vcmaxha, jmaxha, tpuha, lmrha;
   double vcmaxhd, jmaxhd, tpuhd, lmrhd, lmrse, qe, theta_cj, bbbopt, mbbopt;
   double c3psn, slatop, leafcn, flnr, fnitr, dleaf, smpso, smpsc, tc_stress;
 };
 
 // struct for single pft vegetation parameters used in surface_albedo
-struct AlbedoVegData {
+struct PFTDataAlb {
   double rhol[ELM::numrad], rhos[ELM::numrad];
   double taul[ELM::numrad], taus[ELM::numrad];
   double xl;
 };
 
 // struct that stores array objects containing time-invariant vegetation data
-template <typename ArrayD1, typename ArrayD2> struct VegData {
+template <typename ArrayD1, typename ArrayD2>
+struct PFTData {
 
   ArrayD1 fnr;       //  fraction of nitrogen in RuBisCO
   ArrayD1 act25;     //  Rubisco activity at 25 C (umol/mgRubisco/min)
@@ -75,19 +76,21 @@ template <typename ArrayD1, typename ArrayD2> struct VegData {
   ArrayD1 tausnir;   //  nir stem transmittance
 
   // default constructor
-  VegData();
+  PFTData();
   // default destructor
-  ~VegData(){};
+  ~PFTData(){};
 
   // Read pft time-invariant file data into member variables
-  void read_veg_data(std::map<std::string, h_ArrayD1>& pft_views,
+  void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
                      const Comm_type& comm, const std::string& fname_pft);
 
-  // get struct of photosynthesis variables for vegetation == vegtype
-  PSNVegData get_pft_psnveg(int vegtype) const;
+  // get struct of photosynthesis variables for pft
+  ACCELERATED
+  PFTDataPSN get_pft_psn(const int pft) const;
 
-  // get struct of albedo variables for vegetation == vegtype
-  AlbedoVegData get_pft_albveg(int vegtype) const;
+  // get struct of albedo variables for pft
+  ACCELERATED
+  PFTDataAlb get_pft_alb(const int pft) const;
 };
 
 } // namespace ELM

@@ -556,9 +556,23 @@ std::string fname_aerosol(
     auto test_PREC = create_forc_util<AtmForcType::PREC>(fname_forc, fstart, nsteps, ncells);
     auto test_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, fstart, nsteps, ncells);
     auto test_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, fstart, nsteps, ncells);
-    
+
+    // these should be initialized to 0.0
     ELM::AerosolMasses aerosol_masses(ncells);
     ELM::AerosolConcentrations aerosol_concentrations(ncells);
+      assign(aerosol_masses.mss_bcphi, 0.0);
+      assign(aerosol_masses.mss_bcpho, 0.0);
+      assign(aerosol_masses.mss_dst1, 0.0);
+      assign(aerosol_masses.mss_dst2, 0.0);
+      assign(aerosol_masses.mss_dst3, 0.0);
+      assign(aerosol_masses.mss_dst4, 0.0);
+      assign(aerosol_concentrations.mss_cnc_bcphi, 0.0);
+      assign(aerosol_concentrations.mss_cnc_bcpho, 0.0);
+      assign(aerosol_concentrations.mss_cnc_dst1, 0.0);
+      assign(aerosol_concentrations.mss_cnc_dst2, 0.0);
+      assign(aerosol_concentrations.mss_cnc_dst3, 0.0);
+      assign(aerosol_concentrations.mss_cnc_dst4, 0.0);
+
     ELM::PhenologyDataManager phen_data(ncells, 17);
     
     auto isoicol = create<ArrayI1>("isoicol", ncells);

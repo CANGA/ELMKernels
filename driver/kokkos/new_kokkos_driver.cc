@@ -49,13 +49,10 @@
 #include "surface_fluxes.h"
 #include "soil_texture_hydraulic_model.h"
 
-#include "Kokkos_Core.hpp"
+#include "invoke_kernel.hh"
+#include "kokkos_includes.hh"
 
-using ArrayB1 = Kokkos::View<bool *>;
-using ArrayI1 = Kokkos::View<int *>;
-using ArrayD1 = Kokkos::View<double *>;
-using ArrayD2 = Kokkos::View<double **>;
-using ArrayP1 = Kokkos::View<ELM::PSNVegData *>;
+#include "Kokkos_Core.hpp"
 
 template <class Array_t> Array_t create(const std::string &name, int D0)
 { return Array_t(name, D0); }
@@ -82,43 +79,43 @@ atm_forc_util<ftype> create_forc_util(const std::string& filename,
 std::map<std::string, ArrayD2::HostMirror> get_phen_host_views(const ELM::PhenologyDataManager& phen_data)
 {
   std::map<std::string, ArrayD2::HostMirror> phen_host_views;
-  phen_host_views["MONTHLY_LAI"] = Kokkos::create_mirror_view(phen_data.mlai_);
-  phen_host_views["MONTHLY_SAI"] = Kokkos::create_mirror_view(phen_data.msai_);
-  phen_host_views["MONTHLY_HEIGHT_TOP"] = Kokkos::create_mirror_view(phen_data.mhtop_);
-  phen_host_views["MONTHLY_HEIGHT_BOT"] = Kokkos::create_mirror_view(phen_data.mhbot_);
+  phen_host_views["MONTHLY_LAI"] = Kokkos::create_mirror_view(phen_data.mlai);
+  phen_host_views["MONTHLY_SAI"] = Kokkos::create_mirror_view(phen_data.msai);
+  phen_host_views["MONTHLY_HEIGHT_TOP"] = Kokkos::create_mirror_view(phen_data.mhtop);
+  phen_host_views["MONTHLY_HEIGHT_BOT"] = Kokkos::create_mirror_view(phen_data.mhbot);
   return phen_host_views;
 }
 
 std::map<std::string, ArrayD1::HostMirror> get_aero_host_views(const ELM::AerosolDataManager& aero_data)
 {
   std::map<std::string, ArrayD1::HostMirror> aero_host_views;
-  aero_host_views["BCDEPWET"] = Kokkos::create_mirror_view(aero_data.bcdep_);
-  aero_host_views["BCPHODRY"] = Kokkos::create_mirror_view(aero_data.bcpho_);
-  aero_host_views["BCPHIDRY"] = Kokkos::create_mirror_view(aero_data.bcphi_);
-  aero_host_views["DSTX01DD"] = Kokkos::create_mirror_view(aero_data.dst1_1_);
-  aero_host_views["DSTX02DD"] = Kokkos::create_mirror_view(aero_data.dst1_2_);
-  aero_host_views["DSTX03DD"] = Kokkos::create_mirror_view(aero_data.dst2_1_);
-  aero_host_views["DSTX04DD"] = Kokkos::create_mirror_view(aero_data.dst2_2_);
-  aero_host_views["DSTX01WD"] = Kokkos::create_mirror_view(aero_data.dst3_1_);
-  aero_host_views["DSTX02WD"] = Kokkos::create_mirror_view(aero_data.dst3_2_);
-  aero_host_views["DSTX03WD"] = Kokkos::create_mirror_view(aero_data.dst4_1_);
-  aero_host_views["DSTX04WD"] = Kokkos::create_mirror_view(aero_data.dst4_2_);
+  aero_host_views["BCDEPWET"] = Kokkos::create_mirror_view(aero_data.bcdep);
+  aero_host_views["BCPHODRY"] = Kokkos::create_mirror_view(aero_data.bcpho);
+  aero_host_views["BCPHIDRY"] = Kokkos::create_mirror_view(aero_data.bcphi);
+  aero_host_views["DSTX01DD"] = Kokkos::create_mirror_view(aero_data.dst1_1);
+  aero_host_views["DSTX02DD"] = Kokkos::create_mirror_view(aero_data.dst1_2);
+  aero_host_views["DSTX03DD"] = Kokkos::create_mirror_view(aero_data.dst2_1);
+  aero_host_views["DSTX04DD"] = Kokkos::create_mirror_view(aero_data.dst2_2);
+  aero_host_views["DSTX01WD"] = Kokkos::create_mirror_view(aero_data.dst3_1);
+  aero_host_views["DSTX02WD"] = Kokkos::create_mirror_view(aero_data.dst3_2);
+  aero_host_views["DSTX03WD"] = Kokkos::create_mirror_view(aero_data.dst4_1);
+  aero_host_views["DSTX04WD"] = Kokkos::create_mirror_view(aero_data.dst4_2);
   return aero_host_views;
 }
 
 void copy_aero_host_views(std::map<std::string, ArrayD1::HostMirror>& aero_host_views, ELM::AerosolDataManager& aero_data)
 {
-  Kokkos::deep_copy(aero_data.bcdep_, aero_host_views["BCDEPWET"]);
-  Kokkos::deep_copy(aero_data.bcpho_, aero_host_views["BCPHODRY"]);
-  Kokkos::deep_copy(aero_data.bcphi_, aero_host_views["BCPHIDRY"]);
-  Kokkos::deep_copy(aero_data.dst1_1_, aero_host_views["DSTX01DD"]);
-  Kokkos::deep_copy(aero_data.dst1_2_, aero_host_views["DSTX02DD"]);
-  Kokkos::deep_copy(aero_data.dst2_1_, aero_host_views["DSTX03DD"]);
-  Kokkos::deep_copy(aero_data.dst2_2_, aero_host_views["DSTX04DD"]);
-  Kokkos::deep_copy(aero_data.dst3_1_, aero_host_views["DSTX01WD"]);
-  Kokkos::deep_copy(aero_data.dst3_2_, aero_host_views["DSTX02WD"]);
-  Kokkos::deep_copy(aero_data.dst4_1_, aero_host_views["DSTX03WD"]);
-  Kokkos::deep_copy(aero_data.dst4_2_, aero_host_views["DSTX04WD"]);
+  Kokkos::deep_copy(aero_data.bcdep, aero_host_views["BCDEPWET"]);
+  Kokkos::deep_copy(aero_data.bcpho, aero_host_views["BCPHODRY"]);
+  Kokkos::deep_copy(aero_data.bcphi, aero_host_views["BCPHIDRY"]);
+  Kokkos::deep_copy(aero_data.dst1_1, aero_host_views["DSTX01DD"]);
+  Kokkos::deep_copy(aero_data.dst1_2, aero_host_views["DSTX02DD"]);
+  Kokkos::deep_copy(aero_data.dst2_1, aero_host_views["DSTX03DD"]);
+  Kokkos::deep_copy(aero_data.dst2_2, aero_host_views["DSTX04DD"]);
+  Kokkos::deep_copy(aero_data.dst3_1, aero_host_views["DSTX01WD"]);
+  Kokkos::deep_copy(aero_data.dst3_2, aero_host_views["DSTX02WD"]);
+  Kokkos::deep_copy(aero_data.dst4_1, aero_host_views["DSTX03WD"]);
+  Kokkos::deep_copy(aero_data.dst4_2, aero_host_views["DSTX04WD"]);
 }
 
 std::map<std::string, ArrayD1::HostMirror> get_snicar_host_views_d1(const ELM::SnicarData& snicar_data)
@@ -224,99 +221,112 @@ void copy_snicar_host_views_d3(std::map<std::string, ArrayD3::HostMirror>& snica
 
 
 
-std::map<std::string, ArrayD1::HostMirror> get_veg_host_views(const ELM::VegData<ArrayD1, ArrayD2>& veg_data)
+std::map<std::string, ArrayD1::HostMirror> get_pft_host_views(const ELM::PFTData<ArrayD1, ArrayD2>& pft_data)
 {
-  std::map<std::string, ArrayD1::HostMirror> veg_host_views;
-  veg_host_views["fnr"] = Kokkos::create_mirror_view(veg_data.fnr);
-  veg_host_views["act25"] = Kokkos::create_mirror_view(veg_data.act25);
-  veg_host_views["kcha"] = Kokkos::create_mirror_view(veg_data.kcha);
-  veg_host_views["koha"] = Kokkos::create_mirror_view(veg_data.koha);
-  veg_host_views["cpha"] = Kokkos::create_mirror_view(veg_data.cpha);
-  veg_host_views["vcmaxha"] = Kokkos::create_mirror_view(veg_data.vcmaxha);
-  veg_host_views["jmaxha"] = Kokkos::create_mirror_view(veg_data.jmaxha);
-  veg_host_views["tpuha"] = Kokkos::create_mirror_view(veg_data.tpuha);
-  veg_host_views["lmrha"] = Kokkos::create_mirror_view(veg_data.lmrha);
-  veg_host_views["vcmaxhd"] = Kokkos::create_mirror_view(veg_data.vcmaxhd);
-  veg_host_views["jmaxhd"] = Kokkos::create_mirror_view(veg_data.jmaxhd);
-  veg_host_views["tpuhd"] = Kokkos::create_mirror_view(veg_data.tpuhd);
-  veg_host_views["lmrhd"] = Kokkos::create_mirror_view(veg_data.lmrhd);
-  veg_host_views["lmrse"] = Kokkos::create_mirror_view(veg_data.lmrse);
-  veg_host_views["qe"] = Kokkos::create_mirror_view(veg_data.qe);
-  veg_host_views["theta_cj"] = Kokkos::create_mirror_view(veg_data.theta_cj);
-  veg_host_views["bbbopt"] = Kokkos::create_mirror_view(veg_data.bbbopt);
-  veg_host_views["mbbopt"] = Kokkos::create_mirror_view(veg_data.mbbopt);
-  veg_host_views["c3psn"] = Kokkos::create_mirror_view(veg_data.c3psn);
-  veg_host_views["slatop"] = Kokkos::create_mirror_view(veg_data.slatop);
-  veg_host_views["leafcn"] = Kokkos::create_mirror_view(veg_data.leafcn);
-  veg_host_views["flnr"] = Kokkos::create_mirror_view(veg_data.flnr);
-  veg_host_views["fnitr"] = Kokkos::create_mirror_view(veg_data.fnitr);
-  veg_host_views["dleaf"] = Kokkos::create_mirror_view(veg_data.dleaf);
-  veg_host_views["smpso"] = Kokkos::create_mirror_view(veg_data.smpso);
-  veg_host_views["smpsc"] = Kokkos::create_mirror_view(veg_data.smpsc);
-  veg_host_views["tc_stress"] = Kokkos::create_mirror_view(veg_data.tc_stress);
-  veg_host_views["z0mr"] = Kokkos::create_mirror_view(veg_data.z0mr);
-  veg_host_views["displar"] = Kokkos::create_mirror_view(veg_data.displar);
-  veg_host_views["xl"] = Kokkos::create_mirror_view(veg_data.xl);
-  veg_host_views["roota_par"] = Kokkos::create_mirror_view(veg_data.roota_par);
-  veg_host_views["rootb_par"] = Kokkos::create_mirror_view(veg_data.rootb_par);
-  veg_host_views["rholvis"] = Kokkos::create_mirror_view(veg_data.rholvis);
-  veg_host_views["rholnir"] = Kokkos::create_mirror_view(veg_data.rholnir);
-  veg_host_views["rhosvis"] = Kokkos::create_mirror_view(veg_data.rhosvis);
-  veg_host_views["rhosnir"] = Kokkos::create_mirror_view(veg_data.rhosnir);
-  veg_host_views["taulvis"] = Kokkos::create_mirror_view(veg_data.taulvis);
-  veg_host_views["taulnir"] = Kokkos::create_mirror_view(veg_data.taulnir);
-  veg_host_views["tausvis"] = Kokkos::create_mirror_view(veg_data.tausvis);
-  veg_host_views["tausnir"] = Kokkos::create_mirror_view(veg_data.tausnir);
-  return veg_host_views;
+  std::map<std::string, ArrayD1::HostMirror> pft_host_views;
+  pft_host_views["fnr"] = Kokkos::create_mirror_view(pft_data.fnr);
+  pft_host_views["act25"] = Kokkos::create_mirror_view(pft_data.act25);
+  pft_host_views["kcha"] = Kokkos::create_mirror_view(pft_data.kcha);
+  pft_host_views["koha"] = Kokkos::create_mirror_view(pft_data.koha);
+  pft_host_views["cpha"] = Kokkos::create_mirror_view(pft_data.cpha);
+  pft_host_views["vcmaxha"] = Kokkos::create_mirror_view(pft_data.vcmaxha);
+  pft_host_views["jmaxha"] = Kokkos::create_mirror_view(pft_data.jmaxha);
+  pft_host_views["tpuha"] = Kokkos::create_mirror_view(pft_data.tpuha);
+  pft_host_views["lmrha"] = Kokkos::create_mirror_view(pft_data.lmrha);
+  pft_host_views["vcmaxhd"] = Kokkos::create_mirror_view(pft_data.vcmaxhd);
+  pft_host_views["jmaxhd"] = Kokkos::create_mirror_view(pft_data.jmaxhd);
+  pft_host_views["tpuhd"] = Kokkos::create_mirror_view(pft_data.tpuhd);
+  pft_host_views["lmrhd"] = Kokkos::create_mirror_view(pft_data.lmrhd);
+  pft_host_views["lmrse"] = Kokkos::create_mirror_view(pft_data.lmrse);
+  pft_host_views["qe"] = Kokkos::create_mirror_view(pft_data.qe);
+  pft_host_views["theta_cj"] = Kokkos::create_mirror_view(pft_data.theta_cj);
+  pft_host_views["bbbopt"] = Kokkos::create_mirror_view(pft_data.bbbopt);
+  pft_host_views["mbbopt"] = Kokkos::create_mirror_view(pft_data.mbbopt);
+  pft_host_views["c3psn"] = Kokkos::create_mirror_view(pft_data.c3psn);
+  pft_host_views["slatop"] = Kokkos::create_mirror_view(pft_data.slatop);
+  pft_host_views["leafcn"] = Kokkos::create_mirror_view(pft_data.leafcn);
+  pft_host_views["flnr"] = Kokkos::create_mirror_view(pft_data.flnr);
+  pft_host_views["fnitr"] = Kokkos::create_mirror_view(pft_data.fnitr);
+  pft_host_views["dleaf"] = Kokkos::create_mirror_view(pft_data.dleaf);
+  pft_host_views["smpso"] = Kokkos::create_mirror_view(pft_data.smpso);
+  pft_host_views["smpsc"] = Kokkos::create_mirror_view(pft_data.smpsc);
+  pft_host_views["tc_stress"] = Kokkos::create_mirror_view(pft_data.tc_stress);
+  pft_host_views["z0mr"] = Kokkos::create_mirror_view(pft_data.z0mr);
+  pft_host_views["displar"] = Kokkos::create_mirror_view(pft_data.displar);
+  pft_host_views["xl"] = Kokkos::create_mirror_view(pft_data.xl);
+  pft_host_views["roota_par"] = Kokkos::create_mirror_view(pft_data.roota_par);
+  pft_host_views["rootb_par"] = Kokkos::create_mirror_view(pft_data.rootb_par);
+  pft_host_views["rholvis"] = Kokkos::create_mirror_view(pft_data.rholvis);
+  pft_host_views["rholnir"] = Kokkos::create_mirror_view(pft_data.rholnir);
+  pft_host_views["rhosvis"] = Kokkos::create_mirror_view(pft_data.rhosvis);
+  pft_host_views["rhosnir"] = Kokkos::create_mirror_view(pft_data.rhosnir);
+  pft_host_views["taulvis"] = Kokkos::create_mirror_view(pft_data.taulvis);
+  pft_host_views["taulnir"] = Kokkos::create_mirror_view(pft_data.taulnir);
+  pft_host_views["tausvis"] = Kokkos::create_mirror_view(pft_data.tausvis);
+  pft_host_views["tausnir"] = Kokkos::create_mirror_view(pft_data.tausnir);
+  return pft_host_views;
 }
 
 
-void copy_veg_host_views(std::map<std::string, ArrayD1::HostMirror>& veg_host_views, ELM::VegData<ArrayD1, ArrayD2>& veg_data)
+void copy_pft_host_views(std::map<std::string, ArrayD1::HostMirror>& pft_host_views, ELM::PFTData<ArrayD1, ArrayD2>& pft_data)
 {
-  Kokkos::deep_copy(veg_data.fnr, veg_host_views["fnr"]);
-  Kokkos::deep_copy(veg_data.act25, veg_host_views["act25"]);
-  Kokkos::deep_copy(veg_data.kcha, veg_host_views["kcha"]);
-  Kokkos::deep_copy(veg_data.koha, veg_host_views["koha"]);
-  Kokkos::deep_copy(veg_data.cpha, veg_host_views["cpha"]);
-  Kokkos::deep_copy(veg_data.vcmaxha, veg_host_views["vcmaxha"]);
-  Kokkos::deep_copy(veg_data.jmaxha, veg_host_views["jmaxha"]);
-  Kokkos::deep_copy(veg_data.tpuha, veg_host_views["tpuha"]);
-  Kokkos::deep_copy(veg_data.lmrha, veg_host_views["lmrha"]);
-  Kokkos::deep_copy(veg_data.vcmaxhd, veg_host_views["vcmaxhd"]);
-  Kokkos::deep_copy(veg_data.jmaxhd, veg_host_views["jmaxhd"]);
-  Kokkos::deep_copy(veg_data.tpuhd, veg_host_views["tpuhd"]);
-  Kokkos::deep_copy(veg_data.lmrhd, veg_host_views["lmrhd"]);
-  Kokkos::deep_copy(veg_data.lmrse, veg_host_views["lmrse"]);
-  Kokkos::deep_copy(veg_data.qe, veg_host_views["qe"]);
-  Kokkos::deep_copy(veg_data.theta_cj, veg_host_views["theta_cj"]);
-  Kokkos::deep_copy(veg_data.bbbopt, veg_host_views["bbbopt"]);
-  Kokkos::deep_copy(veg_data.mbbopt, veg_host_views["mbbopt"]);
-  Kokkos::deep_copy(veg_data.c3psn, veg_host_views["c3psn"]);
-  Kokkos::deep_copy(veg_data.slatop, veg_host_views["slatop"]);
-  Kokkos::deep_copy(veg_data.leafcn, veg_host_views["leafcn"]);
-  Kokkos::deep_copy(veg_data.flnr, veg_host_views["flnr"]);
-  Kokkos::deep_copy(veg_data.fnitr, veg_host_views["fnitr"]);
-  Kokkos::deep_copy(veg_data.dleaf, veg_host_views["dleaf"]);
-  Kokkos::deep_copy(veg_data.smpso, veg_host_views["smpso"]);
-  Kokkos::deep_copy(veg_data.smpsc, veg_host_views["smpsc"]);
-  Kokkos::deep_copy(veg_data.tc_stress, veg_host_views["tc_stress"]);
-  Kokkos::deep_copy(veg_data.z0mr, veg_host_views["z0mr"]);
-  Kokkos::deep_copy(veg_data.displar, veg_host_views["displar"]);
-  Kokkos::deep_copy(veg_data.xl, veg_host_views["xl"]);
-  Kokkos::deep_copy(veg_data.roota_par, veg_host_views["roota_par"]);
-  Kokkos::deep_copy(veg_data.rootb_par, veg_host_views["rootb_par"]);
-  Kokkos::deep_copy(veg_data.rholvis, veg_host_views["rholvis"]);
-  Kokkos::deep_copy(veg_data.rholnir, veg_host_views["rholnir"]);
-  Kokkos::deep_copy(veg_data.rhosvis, veg_host_views["rhosvis"]);
-  Kokkos::deep_copy(veg_data.rhosnir, veg_host_views["rhosnir"]);
-  Kokkos::deep_copy(veg_data.taulvis, veg_host_views["taulvis"]);
-  Kokkos::deep_copy(veg_data.taulnir, veg_host_views["taulnir"]);
-  Kokkos::deep_copy(veg_data.tausvis, veg_host_views["tausvis"]);
-  Kokkos::deep_copy(veg_data.tausnir, veg_host_views["tausnir"]);
+  Kokkos::deep_copy(pft_data.fnr, pft_host_views["fnr"]);
+  Kokkos::deep_copy(pft_data.act25, pft_host_views["act25"]);
+  Kokkos::deep_copy(pft_data.kcha, pft_host_views["kcha"]);
+  Kokkos::deep_copy(pft_data.koha, pft_host_views["koha"]);
+  Kokkos::deep_copy(pft_data.cpha, pft_host_views["cpha"]);
+  Kokkos::deep_copy(pft_data.vcmaxha, pft_host_views["vcmaxha"]);
+  Kokkos::deep_copy(pft_data.jmaxha, pft_host_views["jmaxha"]);
+  Kokkos::deep_copy(pft_data.tpuha, pft_host_views["tpuha"]);
+  Kokkos::deep_copy(pft_data.lmrha, pft_host_views["lmrha"]);
+  Kokkos::deep_copy(pft_data.vcmaxhd, pft_host_views["vcmaxhd"]);
+  Kokkos::deep_copy(pft_data.jmaxhd, pft_host_views["jmaxhd"]);
+  Kokkos::deep_copy(pft_data.tpuhd, pft_host_views["tpuhd"]);
+  Kokkos::deep_copy(pft_data.lmrhd, pft_host_views["lmrhd"]);
+  Kokkos::deep_copy(pft_data.lmrse, pft_host_views["lmrse"]);
+  Kokkos::deep_copy(pft_data.qe, pft_host_views["qe"]);
+  Kokkos::deep_copy(pft_data.theta_cj, pft_host_views["theta_cj"]);
+  Kokkos::deep_copy(pft_data.bbbopt, pft_host_views["bbbopt"]);
+  Kokkos::deep_copy(pft_data.mbbopt, pft_host_views["mbbopt"]);
+  Kokkos::deep_copy(pft_data.c3psn, pft_host_views["c3psn"]);
+  Kokkos::deep_copy(pft_data.slatop, pft_host_views["slatop"]);
+  Kokkos::deep_copy(pft_data.leafcn, pft_host_views["leafcn"]);
+  Kokkos::deep_copy(pft_data.flnr, pft_host_views["flnr"]);
+  Kokkos::deep_copy(pft_data.fnitr, pft_host_views["fnitr"]);
+  Kokkos::deep_copy(pft_data.dleaf, pft_host_views["dleaf"]);
+  Kokkos::deep_copy(pft_data.smpso, pft_host_views["smpso"]);
+  Kokkos::deep_copy(pft_data.smpsc, pft_host_views["smpsc"]);
+  Kokkos::deep_copy(pft_data.tc_stress, pft_host_views["tc_stress"]);
+  Kokkos::deep_copy(pft_data.z0mr, pft_host_views["z0mr"]);
+  Kokkos::deep_copy(pft_data.displar, pft_host_views["displar"]);
+  Kokkos::deep_copy(pft_data.xl, pft_host_views["xl"]);
+  Kokkos::deep_copy(pft_data.roota_par, pft_host_views["roota_par"]);
+  Kokkos::deep_copy(pft_data.rootb_par, pft_host_views["rootb_par"]);
+  Kokkos::deep_copy(pft_data.rholvis, pft_host_views["rholvis"]);
+  Kokkos::deep_copy(pft_data.rholnir, pft_host_views["rholnir"]);
+  Kokkos::deep_copy(pft_data.rhosvis, pft_host_views["rhosvis"]);
+  Kokkos::deep_copy(pft_data.rhosnir, pft_host_views["rhosnir"]);
+  Kokkos::deep_copy(pft_data.taulvis, pft_host_views["taulvis"]);
+  Kokkos::deep_copy(pft_data.taulnir, pft_host_views["taulnir"]);
+  Kokkos::deep_copy(pft_data.tausvis, pft_host_views["tausvis"]);
+  Kokkos::deep_copy(pft_data.tausnir, pft_host_views["tausnir"]);
 }
 
 
+template <AtmForcType ftype>
+void read_atm_data(ELM::AtmDataManager<ArrayD1, ArrayD2, ftype>& atm_data,
+                   const ELM::Utils::DomainDecomposition<2>& dd,
+                   const ELM::Utils::Date& model_time,
+                   const size_t ntimes)
+{
+  auto h_data = Kokkos::create_mirror_view(atm_data.data);
+  atm_data.read_atm_forcing(h_data, dd, model_time, ntimes);
 
+  if (atm_data.data.extent(0) != h_data.extent(0) || atm_data.data.extent(1) != h_data.extent(1))
+    NS::resize(atm_data.data, h_data.extent(0), h_data.extent(1));
+
+  Kokkos::deep_copy(atm_data.data, h_data);
+}
 
 
 int main(int argc, char **argv) {
@@ -341,6 +351,7 @@ int main(int argc, char **argv) {
     int MPI_COMM_WORLD;
     const int n_procs = 1;
     const int ncells = 1;
+    int idx = 0; // hardwire for ncells = 1
     const int ntimes = 1008;
     const int myrank = 0;
     const double dtime = 1800.0;
@@ -718,14 +729,15 @@ int main(int argc, char **argv) {
 
     // need to modify !!
     int atm_nsteps = 1000;
-    auto test_TBOT = create_forc_util<AtmForcType::TBOT>(fname_forc, start, atm_nsteps, ncells);
-    auto test_PBOT = create_forc_util<AtmForcType::PBOT>(fname_forc, start, atm_nsteps, ncells);
-    auto test_QBOT = create_forc_util<AtmForcType::RH>(fname_forc, start, atm_nsteps, ncells);
-    auto test_FLDS = create_forc_util<AtmForcType::FLDS>(fname_forc, start, atm_nsteps, ncells);
-    auto test_FSDS = create_forc_util<AtmForcType::FSDS>(fname_forc, start, atm_nsteps, ncells);
-    auto test_PREC = create_forc_util<AtmForcType::PREC>(fname_forc, start, atm_nsteps, ncells);
-    auto test_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, start, atm_nsteps, ncells);
-    auto test_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, start, atm_nsteps, ncells);
+    const auto fstart = ELM::Utils::Date(1985, 1, 1);
+    auto test_TBOT = create_forc_util<AtmForcType::TBOT>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_PBOT = create_forc_util<AtmForcType::PBOT>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_QBOT = create_forc_util<AtmForcType::RH>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_FLDS = create_forc_util<AtmForcType::FLDS>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_FSDS = create_forc_util<AtmForcType::FSDS>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_PREC = create_forc_util<AtmForcType::PREC>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, fstart, atm_nsteps, ncells);
+    auto test_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, fstart, atm_nsteps, ncells);
     
     {
       // soil color constants
@@ -770,13 +782,23 @@ int main(int argc, char **argv) {
       copy_snicar_host_views_d3(host_snicar_d3, snicar_data);
     }
 
+
+
     // pft data constants
-    ELM::VegData<ArrayD1, ArrayD2> vegdata;
+    ELM::PFTData<ArrayD1, ArrayD2> pft_data;
     {
-      auto host_veg_views = get_veg_host_views(vegdata);
-      vegdata.read_veg_data(host_veg_views, dd.comm, fname_pft);
-      copy_veg_host_views(host_veg_views, vegdata);
+      auto host_pft_views = get_pft_host_views(pft_data);
+      pft_data.read_pft_data(host_pft_views, dd.comm, fname_pft);
+      copy_pft_host_views(host_pft_views, pft_data);
     }
+    // Kokkos view of struct PSNVegData
+    auto psn_pft = create<Kokkos::View<ELM::PFTDataPSN *>>("psn_pft", ncells);
+    Kokkos::parallel_for("pft_psn_init", ncells, KOKKOS_LAMBDA (const int i) {
+      psn_pft(i) = pft_data.get_pft_psn(vtype(i));
+    });
+
+
+
 
     // aerosol deposition data manager
     ELM::AerosolDataManager aerosol_data;
@@ -791,12 +813,9 @@ int main(int argc, char **argv) {
     ELM::PhenologyDataManager phen_data(dd, ncells, 17);
     auto host_phen_views = get_phen_host_views(phen_data);
 
-    // need to modify !!
-    //ELM::AerosolMasses aerosol_masses(ncells);
-    //ELM::AerosolConcentrations aerosol_concentrations(ncells);
-
-
-
+    // containers for aerosol deposition and concentration within snowpack layers
+    ELM::AerosolMasses aerosol_masses(ncells);
+    ELM::AerosolConcentrations aerosol_concentrations(ncells);
 
 
 
@@ -807,50 +826,57 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     
-    ELM::init_topo::init_topo_slope(topo_slope[0]);
+    ELM::init_topo::init_topo_slope(topo_slope(idx));
 
-    ELM::init_topo::init_micro_topo(Land.ltype, topo_slope[0], topo_std[0],
-                                    n_melt[0], micro_sigma[0]);
+    ELM::init_topo::init_micro_topo(
+                                    Land.ltype, topo_slope(idx),
+                                    topo_std(idx), n_melt(idx),
+                                    micro_sigma(idx));
 
-    ELM::init_snow_state::init_snow_layers(snow_depth[0], lakpoi, snl[0],
-                                           Kokkos::subview(dz, 0, Kokkos::ALL),
-                                           Kokkos::subview(zsoi, 0, Kokkos::ALL),
-                                           Kokkos::subview(zisoi, 0, Kokkos::ALL));
+    ELM::init_snow_state::init_snow_layers(
+                                          snow_depth(idx), lakpoi, snl(idx),
+                                          Kokkos::subview(dz, idx, Kokkos::ALL),
+                                          Kokkos::subview(zsoi, idx, Kokkos::ALL),
+                                          Kokkos::subview(zisoi, idx, Kokkos::ALL));
 
     ELM::soil_hydraulics::init_soil_hydraulics(
-                                           Kokkos::subview(pct_sand, 0, Kokkos::ALL),
-                                           Kokkos::subview(pct_clay, 0, Kokkos::ALL),
-                                           Kokkos::subview(organic, 0, Kokkos::ALL),
-                                           Kokkos::subview(zsoi, 0, Kokkos::ALL),
-                                           Kokkos::subview(watsat, 0, Kokkos::ALL),
-                                           Kokkos::subview(bsw, 0, Kokkos::ALL),
-                                           Kokkos::subview(sucsat, 0, Kokkos::ALL),
-                                           Kokkos::subview(watdry, 0, Kokkos::ALL),
-                                           Kokkos::subview(watopt, 0, Kokkos::ALL),
-                                           Kokkos::subview(watfc, 0, Kokkos::ALL));
+                                          Kokkos::subview(pct_sand, idx, Kokkos::ALL),
+                                          Kokkos::subview(pct_clay, idx, Kokkos::ALL),
+                                          Kokkos::subview(organic, idx, Kokkos::ALL),
+                                          Kokkos::subview(zsoi, idx, Kokkos::ALL),
+                                          Kokkos::subview(watsat, idx, Kokkos::ALL),
+                                          Kokkos::subview(bsw, idx, Kokkos::ALL),
+                                          Kokkos::subview(sucsat, idx, Kokkos::ALL),
+                                          Kokkos::subview(watdry, idx, Kokkos::ALL),
+                                          Kokkos::subview(watopt, idx, Kokkos::ALL),
+                                          Kokkos::subview(watfc, idx, Kokkos::ALL));
 
 
-    ELM::init_soil_state::init_vegrootfr(vtype[0], vegdata.roota_par[vtype[0]],
-                                         vegdata.rootb_par[vtype[0]],
-                                         Kokkos::subview(zisoi, 0, Kokkos::ALL),
-                                         Kokkos::subview(rootfr, 0, Kokkos::ALL));
+    ELM::init_soil_state::init_vegrootfr(
+                                        vtype(idx), pft_data.roota_par(vtype(idx)),
+                                        pft_data.rootb_par(vtype(idx)),
+                                        Kokkos::subview(zisoi, idx, Kokkos::ALL),
+                                        Kokkos::subview(rootfr, idx, Kokkos::ALL));
 
-    ELM::init_soil_state::init_soil_temp(Land, snl[0], 
-                                         Kokkos::subview(t_soisno, 0, Kokkos::ALL),
-                                         t_grnd[0]);
+    ELM::init_soil_state::init_soil_temp(
+                                        Land, snl(idx), 
+                                        Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+                                        t_grnd(idx));
 
-    ELM::init_snow_state::init_snow_state(Land.urbpoi, snl[0], h2osno[0], int_snow[0],
-                                          snow_depth[0], h2osfc[0], h2ocan[0], frac_h2osfc[0],
-                                          fwet[0], fdry[0], frac_sno[0],
-                                          Kokkos::subview(snw_rds, 0, Kokkos::ALL));
+    ELM::init_snow_state::init_snow_state(
+                                          Land.urbpoi, snl(idx), h2osno(idx), int_snow(idx),
+                                          snow_depth(idx), h2osfc(idx), h2ocan(idx), frac_h2osfc(idx),
+                                          fwet(idx), fdry(idx), frac_sno(idx),
+                                          Kokkos::subview(snw_rds, idx, Kokkos::ALL));
 
-    ELM::init_soil_state::init_soilh2o_state(Land, snl[0], 
-                                             Kokkos::subview(watsat, 0, Kokkos::ALL),
-                                             Kokkos::subview(t_soisno, 0, Kokkos::ALL),
-                                             Kokkos::subview(dz, 0, Kokkos::ALL),
-                                             Kokkos::subview(h2osoi_vol, 0, Kokkos::ALL),
-                                             Kokkos::subview(h2osoi_liq, 0, Kokkos::ALL),
-                                             Kokkos::subview(h2osoi_ice, 0, Kokkos::ALL));
+    ELM::init_soil_state::init_soilh2o_state(
+                                            Land, snl(idx), 
+                                            Kokkos::subview(watsat, idx, Kokkos::ALL),
+                                            Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+                                            Kokkos::subview(dz, idx, Kokkos::ALL),
+                                            Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
+                                            Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+                                            Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL));
 
 
 
@@ -861,21 +887,20 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     // these calls should be inside time loop
-    test_TBOT.read_atm_forcing(dd, start, atm_nsteps);
-    test_PBOT.read_atm_forcing(dd, start, atm_nsteps);
-    test_QBOT.read_atm_forcing(dd, start, atm_nsteps);
-    test_FLDS.read_atm_forcing(dd, start, atm_nsteps);
-    test_FSDS.read_atm_forcing(dd, start, atm_nsteps);
-    test_PREC.read_atm_forcing(dd, start, atm_nsteps);
-    test_WIND.read_atm_forcing(dd, start, atm_nsteps);
-    test_ZBOT.read_atm_forcing(dd, start, atm_nsteps);
+    read_atm_data(test_TBOT, dd, start, atm_nsteps);
+    read_atm_data(test_PBOT, dd, start, atm_nsteps);
+    read_atm_data(test_QBOT, dd, start, atm_nsteps);
+    read_atm_data(test_FLDS, dd, start, atm_nsteps);
+    read_atm_data(test_FSDS, dd, start, atm_nsteps);
+    read_atm_data(test_PREC, dd, start, atm_nsteps);
+    read_atm_data(test_WIND, dd, start, atm_nsteps);
+    read_atm_data(test_ZBOT, dd, start, atm_nsteps);
 
     auto coszen = create<ArrayD1>("coszen", ncells);
     auto cosz_factor = create<ArrayD1>("cosz_factor", ncells);
 
     ELM::Utils::Date current(start);
     ELM::Utils::Date big(start);
-    int idx = 0; // hardwire for ncells = 1
     
     for (int t = 0; t < ntimes; ++t) {
       
@@ -892,15 +917,14 @@ int main(int argc, char **argv) {
       {
         ELM::Utils::Date forc_dt_start{test_FSDS.get_data_start_time()};
         forc_dt_start.increment_seconds(round(test_FSDS.forc_t_idx(time_plus_half_dt, test_FSDS.get_data_start_time()) * test_FSDS.get_forc_dt_secs()));
-    
         int cosz_doy = current.doy + 1;
         double declin = ELM::incident_shortwave::declination_angle2(cosz_doy); // should be the same for model and forcing - don't cross day barrier in forcing timeseries
-        double cosz_decday = ELM::Utils::decimal_doy(current) + 1.0;
         double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
         double cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, declin, test_FSDS.get_forc_dt_secs(), cosz_forc_decday);
+        double cosz_decday = ELM::Utils::decimal_doy(current) + 1.0;
         double thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, cosz_decday + dtime_d/2.0);
-
-        cosz_factor(0) = (thiscosz > 0.001) ? 1.0 : 0.0;
+        cosz_factor(0) = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
+        //cosz_factor(0) = (thiscosz > 0.001) ? 1.0 : 0.0;
         coszen(0) = thiscosz;
         max_dayl = ELM::max_daylength(lat_r);
         dayl = ELM::daylength(lat_r, declin);
@@ -930,10 +954,10 @@ int main(int argc, char **argv) {
       // instead of the two we currently have
       // will fix later - too infrequently run to cause concern  
       if (phen_data.need_data()) {
-        Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai_);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai_);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop_);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot_);
+        Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai);
+        Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai);
+        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop);
+        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot);
       }
       // reads three months of data on first call
       // after first call, read new data if phen_data.need_new_data_ == true
@@ -941,10 +965,10 @@ int main(int argc, char **argv) {
       // copy host views to device
       // could be made more efficient, see above
       if (phen_updated) {
-        Kokkos::deep_copy(phen_data.mlai_, host_phen_views["MONTHLY_LAI"]);
-        Kokkos::deep_copy(phen_data.msai_, host_phen_views["MONTHLY_SAI"]);
-        Kokkos::deep_copy(phen_data.mhtop_, host_phen_views["MONTHLY_HEIGHT_TOP"]);
-        Kokkos::deep_copy(phen_data.mhbot_, host_phen_views["MONTHLY_HEIGHT_BOT"]);
+        Kokkos::deep_copy(phen_data.mlai, host_phen_views["MONTHLY_LAI"]);
+        Kokkos::deep_copy(phen_data.msai, host_phen_views["MONTHLY_SAI"]);
+        Kokkos::deep_copy(phen_data.mhtop, host_phen_views["MONTHLY_HEIGHT_TOP"]);
+        Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
       }
       // run parallel kernel to process phenology data
       phen_data.get_data(current, snow_depth,
@@ -953,38 +977,198 @@ int main(int argc, char **argv) {
                          frac_veg_nosno_alb);
 
 
-      //test_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
-      //test_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
-      //test_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
-      //test_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
-      //test_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, cosz_factor, forc_solai, forc_solad);
-      //test_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
-      //test_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
-      //test_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
+      test_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
+      test_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
+      test_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
+      test_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
+      test_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, cosz_factor, forc_solai, forc_solad);
+      test_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
+      test_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
+      test_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
 
       //// calc constitutive air props - call properly later
-      //ELM::atm_forcing_physics::ConstitutiveAirProperties air_constitutive(forc_qbot, forc_pbot, 
-      //                         forc_tbot, forc_vp,
-      //                         forc_rho, forc_po2, forc_pco2);
-      //air_constitutive(0); // - call properly
+      ELM::atm_forcing_physics::ConstitutiveAirProperties
+        compute_air(forc_qbot, forc_pbot,
+                    forc_tbot, forc_vp,
+                    forc_rho, forc_po2,
+                    forc_pco2);
+
+      invoke_kernel(compute_air, std::make_tuple(forc_pbot.extent(0)), "ConstitutiveAirProperties");
 
       // get aerosol mss and cnc
-      //aerosol_data.invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_masses);
-      //ELM::aerosols::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
-      //h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
-
-// only here for testing
-auto h2osno_old = create<ArrayD1>("h2osno_old", ncells);   // get rid of this - not needed
-auto eflx_bot = create<ArrayD1>("eflx_bot", ncells);       // don't need this, either
-auto qflx_glcice = create<ArrayD1>("qflx_glcice", ncells); // don't need this, either
+      aerosol_data.invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_masses);
+      ELM::aerosols::invoke_aerosol_concen_and_mass(do_capsnow, dtime, snl, h2osoi_liq,
+      h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
       
-      ELM::init_timestep(lakpoi, h2osno[0], veg_active[0], snl[0],
-                         Kokkos::subview(h2osoi_ice, 0, Kokkos::ALL),
-                         Kokkos::subview(h2osoi_liq, 0, Kokkos::ALL),
-                         frac_veg_nosno_alb[0], h2osno_old[0],
-                         do_capsnow, eflx_bot[0], qflx_glcice[0],
-                         frac_veg_nosno[0],
-                         Kokkos::subview(frac_iceold, 0, Kokkos::ALL));
+      ELM::init_timestep(lakpoi, veg_active(idx),
+                         frac_veg_nosno_alb(idx),
+                         snl(idx), h2osno(idx),
+                         Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+                         Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+                         do_capsnow,
+                         frac_veg_nosno(idx),
+                         Kokkos::subview(frac_iceold, idx, Kokkos::ALL));
+
+
+
+
+
+
+
+
+
+
+
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      // call surface albedo and SNICAR kernels
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      {
+        // parse pft data for Land.vtype
+        ELM::PFTDataAlb alb_pft = pft_data.get_pft_alb(vtype(idx));
+      
+        ELM::surface_albedo::init_timestep(
+            Land.urbpoi,
+            elai(idx),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_bcphi, idx, Kokkos::ALL),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_bcpho, idx, Kokkos::ALL),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_dst1, idx, Kokkos::ALL),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_dst2, idx, Kokkos::ALL),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_dst3, idx, Kokkos::ALL),
+            Kokkos::subview(aerosol_concentrations.mss_cnc_dst4, idx, Kokkos::ALL),
+            vcmaxcintsun(idx),
+            vcmaxcintsha(idx),
+            Kokkos::subview(albsod, idx, Kokkos::ALL),
+            Kokkos::subview(albsoi, idx, Kokkos::ALL),
+            Kokkos::subview(albgrd, idx, Kokkos::ALL),
+            Kokkos::subview(albgri, idx, Kokkos::ALL),
+            Kokkos::subview(albd, idx, Kokkos::ALL),
+            Kokkos::subview(albi, idx, Kokkos::ALL),
+            Kokkos::subview(fabd, idx, Kokkos::ALL),
+            Kokkos::subview(fabd_sun, idx, Kokkos::ALL),
+            Kokkos::subview(fabd_sha, idx, Kokkos::ALL),
+            Kokkos::subview(fabi, idx, Kokkos::ALL),
+            Kokkos::subview(fabi_sun, idx, Kokkos::ALL),
+            Kokkos::subview(fabi_sha, idx, Kokkos::ALL),
+            Kokkos::subview(ftdd, idx, Kokkos::ALL),
+            Kokkos::subview(ftid, idx, Kokkos::ALL),
+            Kokkos::subview(ftii, idx, Kokkos::ALL),
+            Kokkos::subview(flx_absdv, idx, Kokkos::ALL),
+            Kokkos::subview(flx_absdn, idx, Kokkos::ALL),
+            Kokkos::subview(flx_absiv, idx, Kokkos::ALL),
+            Kokkos::subview(flx_absin, idx, Kokkos::ALL),
+            Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL));
+
+     
+        ELM::surface_albedo::soil_albedo(
+            Land,
+            snl(idx),
+            t_grnd(idx),
+            coszen(idx),
+            Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
+            Kokkos::subview(albsat, idx, Kokkos::ALL),
+            Kokkos::subview(albdry, idx, Kokkos::ALL),
+            Kokkos::subview(albsod, idx, Kokkos::ALL),
+            Kokkos::subview(albsoi, idx, Kokkos::ALL));
+     
+        {
+          int flg_slr_in = 1; // direct-beam
+      
+          ELM::snow_snicar::init_timestep (
+              Land.urbpoi,
+              flg_slr_in,
+              coszen(idx),
+              h2osno(idx),
+              snl(idx),
+              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(snw_rds, idx, Kokkos::ALL),
+              snl_top(idx),
+              snl_btm(idx),
+              Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
+              Kokkos::subview(flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL),
+              flg_nosnl(idx),
+              Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
+              Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
+              Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
+              mu_not(idx),
+              Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
+              Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL));
+     
+//         ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+//           h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snicar_data->ss_alb_oc1, snicar_data->asm_prm_oc1, 
+//           snicar_data->ext_cff_mss_oc1, snicar_data->ss_alb_oc2, snicar_data->asm_prm_oc2, snicar_data->ext_cff_mss_oc2, snicar_data->ss_alb_dst1, snicar_data->asm_prm_dst1, 
+//           snicar_data->ext_cff_mss_dst1, snicar_data->ss_alb_dst2, snicar_data->asm_prm_dst2, snicar_data->ext_cff_mss_dst2, snicar_data->ss_alb_dst3, snicar_data->asm_prm_dst3, 
+//           snicar_data->ext_cff_mss_dst3, snicar_data->ss_alb_dst4, snicar_data->asm_prm_dst4, snicar_data->ext_cff_mss_dst4, snicar_data->ss_alb_snw_drc, 
+//           snicar_data->asm_prm_snw_drc, snicar_data->ext_cff_mss_snw_drc, snicar_data->ss_alb_snw_dfs, snicar_data->asm_prm_snw_dfs, snicar_data->ext_cff_mss_snw_dfs, 
+//           snicar_data->ss_alb_bc1, snicar_data->asm_prm_bc1, snicar_data->ext_cff_mss_bc1, snicar_data->ss_alb_bc2, snicar_data->asm_prm_bc2, snicar_data->ext_cff_mss_bc2, 
+//           snicar_data->bcenh, mss_cnc_aer_in_fdb[idx], g_star[idx], omega_star[idx], tau_star[idx]);
+//     
+//     
+//         ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], 
+//           snl_btm[idx], coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], 
+//           albsoi[idx], g_star[idx], omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
+//     
+//     
+//         ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+//           h2osno[idx], snw_rds_lcl[idx], albsoi[idx],albout_lcl[idx], flx_abs_lcl[idx], albsnd[idx], 
+//           flx_absd_snw[idx]);
+        }
+//     
+//     
+//       {
+//         int flg_slr_in = 2; // diffuse
+//     
+//         ELM::snow_snicar::init_timestep (Land.urbpoi,
+//           flg_slr_in, coszen[idx], h2osno[idx], snl[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+//           snw_rds[idx], snl_top[idx], snl_btm[idx], flx_abs_lcl[idx], flx_absi_snw[idx],
+//           flg_nosnl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snw_rds_lcl[idx], mu_not[idx], 
+//           flx_slrd_lcl[idx], flx_slri_lcl[idx]);
+//     
+//     
+//         ELM::snow_snicar::snow_aerosol_mie_params(Land.urbpoi, flg_slr_in, snl_top[idx], snl_btm[idx], coszen[idx], 
+//           h2osno[idx], snw_rds_lcl[idx], h2osoi_ice_lcl[idx], h2osoi_liq_lcl[idx], snicar_data->ss_alb_oc1, snicar_data->asm_prm_oc1, 
+//           snicar_data->ext_cff_mss_oc1, snicar_data->ss_alb_oc2, snicar_data->asm_prm_oc2, snicar_data->ext_cff_mss_oc2, snicar_data->ss_alb_dst1, snicar_data->asm_prm_dst1, 
+//           snicar_data->ext_cff_mss_dst1, snicar_data->ss_alb_dst2, snicar_data->asm_prm_dst2, snicar_data->ext_cff_mss_dst2, snicar_data->ss_alb_dst3, snicar_data->asm_prm_dst3, 
+//           snicar_data->ext_cff_mss_dst3, snicar_data->ss_alb_dst4, snicar_data->asm_prm_dst4, snicar_data->ext_cff_mss_dst4, snicar_data->ss_alb_snw_drc, 
+//           snicar_data->asm_prm_snw_drc, snicar_data->ext_cff_mss_snw_drc, snicar_data->ss_alb_snw_dfs, snicar_data->asm_prm_snw_dfs, snicar_data->ext_cff_mss_snw_dfs, 
+//           snicar_data->ss_alb_bc1, snicar_data->asm_prm_bc1, snicar_data->ext_cff_mss_bc1, snicar_data->ss_alb_bc2, snicar_data->asm_prm_bc2, snicar_data->ext_cff_mss_bc2, 
+//           snicar_data->bcenh, mss_cnc_aer_in_fdb[idx], 
+//           g_star[idx], omega_star[idx], tau_star[idx]);
+//     
+//     
+//         ELM::snow_snicar::snow_radiative_transfer_solver(Land.urbpoi, flg_slr_in,flg_nosnl[idx], snl_top[idx], snl_btm[idx], 
+//           coszen[idx], h2osno[idx], mu_not[idx], flx_slrd_lcl[idx], flx_slri_lcl[idx], albsoi[idx], g_star[idx], 
+//           omega_star[idx], tau_star[idx], albout_lcl[idx], flx_abs_lcl[idx]);
+//     
+//     
+//         ELM::snow_snicar::snow_albedo_radiation_factor(Land.urbpoi, flg_slr_in, snl_top[idx], coszen[idx], mu_not[idx], 
+//           h2osno[idx], snw_rds_lcl[idx], albsoi[idx], albout_lcl[idx], flx_abs_lcl[idx], albsni[idx], 
+//           flx_absi_snw[idx]);
+//       }
+//     
+//     
+//       ELM::surface_albedo::ground_albedo(Land.urbpoi, coszen[idx], frac_sno[idx], albsod[idx], 
+//         albsoi[idx], albsnd[idx], albsni[idx], albgrd[idx], albgri[idx]);
+//     
+//     
+//       ELM::surface_albedo::flux_absorption_factor(Land, coszen[idx], frac_sno[idx], albsod[idx], albsoi[idx], 
+//         albsnd[idx], albsni[idx], flx_absd_snw[idx], flx_absi_snw[idx], flx_absdv[idx], flx_absdn[idx], 
+//         flx_absiv[idx], flx_absin[idx]);
+//     
+//     
+//       ELM::surface_albedo::canopy_layer_lai(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
+//         nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
+//         fabi_sun_z[idx], fabi_sha_z[idx]);
+//     
+//     
+//       ELM::surface_albedo::two_stream_solver(Land, nrad[idx], coszen[idx], t_veg[idx], fwet[idx], elai[idx], 
+//         esai[idx], tlai_z[idx], tsai_z[idx], albgrd[idx], albgri[idx], albveg, vcmaxcintsun[idx], 
+//         vcmaxcintsha[idx], albd[idx], ftid[idx], ftdd[idx], fabd[idx], fabd_sun[idx], fabd_sha[idx], 
+//         albi[idx], ftii[idx], fabi[idx], fabi_sun[idx], fabi_sha[idx], fsun_z[idx], fabd_sun_z[idx], 
+//         fabd_sha_z[idx], fabi_sun_z[idx], fabi_sha_z[idx]);
+      }
 
       
 

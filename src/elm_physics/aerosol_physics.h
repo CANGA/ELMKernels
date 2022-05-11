@@ -5,9 +5,12 @@
 #include "array.hh"
 #include "elm_constants.h"
 
-#include "kokkos_includes.hh"
-
 #include <functional>
+
+#include "kokkos_includes.hh"
+#include "invoke_kernel.hh"
+
+
 
 namespace ELM::aerosols {
 

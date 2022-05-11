@@ -7,7 +7,7 @@ template <typename T, typename ArrayI1>
 ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl,
                                                                AerosolMasses& aerosol_masses)
     : snl_(snl), aerosol_masses_(aerosol_masses) {
-  auto [forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4] = aerosol_forc;
+  const auto& [forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4] = aerosol_forc;
   forc_bcphi_ = forc_bcphi;
   forc_bcpho_ = forc_bcpho;
   forc_dst1_ = forc_dst1;
@@ -35,9 +35,9 @@ ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::ComputeAerosolConcenAndM
     const bool& do_capsnow, const double& dtime, const ArrayI1& snl, const ArrayD2& h2osoi_liq,
     const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds, const ArrayD1& qflx_snwcp_ice, AerosolMasses& aerosol_masses,
     AerosolConcentrations& aerosol_concentrations)
-    : do_capsnow_(do_capsnow), dtime_(dtime), snl_(snl), h2osoi_liq_(h2osoi_liq), h2osoi_ice_(h2osoi_ice),
-      snw_rds_(snw_rds), qflx_snwcp_ice_(qflx_snwcp_ice), aerosol_masses_(aerosol_masses),
-      aerosol_concentrations_(aerosol_concentrations) {}
+    : do_capsnow_{do_capsnow}, dtime_{dtime}, snl_{snl}, h2osoi_liq_{h2osoi_liq}, h2osoi_ice_{h2osoi_ice},
+      snw_rds_{snw_rds}, qflx_snwcp_ice_{qflx_snwcp_ice}, aerosol_masses_{aerosol_masses},
+      aerosol_concentrations_{aerosol_concentrations} {}
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATED
@@ -82,9 +82,8 @@ void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime,
 
   ComputeAerosolConcenAndMass aerosol_c_mass_object(do_capsnow, dtime, snl, h2osoi_liq, h2osoi_ice, snw_rds,
                                                     qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
-  for (int i = 0; i < snl.extent(0); ++i) {
-    std::invoke(aerosol_c_mass_object, i);
-  }
+
+  invoke_kernel(aerosol_c_mass_object, std::make_tuple(snl.extent(0)), "ComputeAerosolConcenAndMass");
 }
 
 } // namespace ELM::aerosols

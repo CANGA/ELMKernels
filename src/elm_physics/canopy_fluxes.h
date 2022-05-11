@@ -145,7 +145,7 @@ photosynthesis for both sun & shade.
 \param[in]  thm                        [double]  intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 \param[in]  thv                        [double] virtual potential temperature (kelvin)
 \param[in]  qg                         [double] ground specific humidity [kg/kg]
-\param[in]  psnveg                     [PSNVegData] constant vegetation data for current pft
+\param[in]  psn_pft                    [PFTDataPSN] constant vegetation data for current pft
 \param[in]  nrad                       [int]  number of canopy layers above snow for radiative transfer
 \param[in]  t10                        [double] 10-day running mean of the 2 m temperature (K)
 \param[in]  tlai_z[nlevcan]            [double] pft total leaf area index for canopy layer
@@ -199,7 +199,7 @@ void stability_iteration(
     const double& ur, const double& zldis, const double& displa, const double& elai, const double& esai,
     const double& t_grnd, const double& forc_pbot, const double& forc_q, const double& forc_th, const double& z0mg,
     const double& z0mv, const double& z0hv, const double& z0qv, const double& thm, const double& thv, const double& qg,
-    const PSNVegData& psnveg, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
+    const PFTDataPSN& psn_pft, const int& nrad, const double& t10, const ArrayD1 tlai_z, const double& vcmaxcintsha,
     const double& vcmaxcintsun, const ArrayD1 parsha_z, const ArrayD1 parsun_z, const ArrayD1 laisha_z,
     const ArrayD1 laisun_z, const double& forc_pco2, const double& forc_po2, const double& dayl_factor, double& btran,
     double& qflx_tran_veg, double& qflx_evap_veg, double& eflx_sh_veg, double& wtg, double& wtl0, double& wta0,

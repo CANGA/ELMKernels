@@ -15,7 +15,10 @@
 #include <utility>
 
 #include <map>
+
 #include "kokkos_includes.hh"
+#include "invoke_kernel.hh"
+
 
 /*
 Class to read, parse, and operate on atmospheric forcing input
@@ -89,9 +92,14 @@ template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t
 
 
 namespace ELM {
-template <typename ArrayD1, typename ArrayD2, AtmForcType ftype> class AtmDataManager {
+template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+class AtmDataManager {
 
 public:
+
+  // public to provide access from driver
+  ArrayD2 data; // 2D (ntimes, ncells) array-like object of forcing data -- device array
+
   constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time, const size_t ntimes,
                            const size_t ncells);
 
@@ -133,11 +141,11 @@ public:
   constexpr std::pair<double, double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
 
   // read forcing data from a file
-  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
+  constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
                                   const size_t ntimes);
 
   // read forcing data from a file - update file info and call main read_atm method
-  constexpr void read_atm_forcing(const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
+  constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
                                   const size_t ntimes, const Utils::Date& new_file_start_time,
                                   const std::string& new_filename);
 
@@ -160,12 +168,11 @@ private:
   // requires data(ntimes, ncells) and file_data(ntimes, ncells)or(ncells, ntimes)
   template <typename T> constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
 
-  ArrayD2 data_;                // 2D (ntimes, ncells) array-like object of forcing data -- host array
   std::string varname_, fname_; // variable name and full file name including path - "src/xyz/file.nc"
   Utils::Date file_start_time_; // date object containing file dataset start time
   size_t ntimes_, ncells_;      // dimensions for data_
   Utils::Date data_start_time_; // start time of forcing read from file into data_
-  double forc_dt_;              // forcing data timestep (days) - recalc at every read; assume constant between reads
+  double forc_dt_;        // forcing data timestep (days) - recalc at every read; assume constant between reads
   // the next two variables allow compatibility with ELM forcing data that is stored in a short int
   // format and then scaled and potentially added to
   double scale_factor_{1.0}; // factor for scaling input data - maybe needed when using some ELM input data

@@ -46,36 +46,36 @@ namespace ELM::snow_snicar {
 //     snl_btm = nlevsno - 1;
 //     snl_top = nlevsno - snl;
 //
-//     for (int i = snl_top; i <= snl_btm; ++i) { cdz[i] = frac_sno * dz[i]; }
+//     for (int i = snl_top; i <= snl_btm; ++i) { cdz(i) = frac_sno * dz(i); }
 //
 //     // loop over snow layers
 //     for (int i = snl_top; i <= snl_btm; ++i) {
 //       //
 //       //**********  1. DRY SNOW AGING  ***********
 //       //
-//       h2osno_lyr = h2osoi_liq[i] + h2osoi_ice[i];
+//       h2osno_lyr = h2osoi_liq(i) + h2osoi_ice(i);
 //
 //       // temperature gradient
 //       if (i == snl_top) {
 //         // top layer
-//         t_snotop = t_soisno[snl_top];
-//         t_snobtm = (t_soisno[i+1]*dz[i] + t_soisno[i]*dz[i+1]) / (dz[i]+dz[i+1]);
+//         t_snotop = t_soisno(snl_top);
+//         t_snobtm = (t_soisno(i+1)*dz(i) + t_soisno(i)*dz(i+1)) / (dz(i)+dz(i+1));
 //       } else {
-//         t_snotop = (t_soisno[i-1]*dz[i] + t_soisno[i]*dz[i-1]) / (dz[i]+dz[i-1]);
-//         t_snobtm = (t_soisno[i+1]*dz[i] + t_soisno[i]*dz[i+1]) / (dz[i]+dz[i+1]);
+//         t_snotop = (t_soisno(i-1)*dz(i) + t_soisno(i)*dz(i-1)) / (dz(i)+dz(i-1));
+//         t_snobtm = (t_soisno(i+1)*dz(i) + t_soisno(i)*dz(i+1)) / (dz(i)+dz(i+1));
 //       }
 //
-//       dTdz[i] = abs((t_snotop - t_snobtm) / cdz[i]);
+//       dTdz(i) = abs((t_snotop - t_snobtm) / cdz(i));
 //
 //       // snow density
-//       rhos = (h2osoi_liq[i] + h2osoi_ice[i]) / cdz[i];
+//       rhos = (h2osoi_liq(i) + h2osoi_ice(i)) / cdz(i);
 //
 //       // make sure rhos doesn't drop below 50 (see rhos_idx below)
 //       rhos = std::max(50.0, rhos);
 //
 //       // best-fit table indecies
-//       T_idx    = round((t_soisno[i] - 223) / 5);
-//       Tgrd_idx = round(dTdz[i] / 10);
+//       T_idx    = round((t_soisno(i) - 223) / 5);
+//       Tgrd_idx = round(dTdz(i) / 10);
 //       rhos_idx = round((rhos-50) / 50);
 //
 //       // boundary check:
@@ -87,14 +87,14 @@ namespace ELM::snow_snicar {
 //       if (rhos_idx > idx_rhos_max) { rhos_idx = idx_rhos_max; }
 //
 //       // best-fit parameters
-//       bst_tau   = snowage_tau[rhos_idx][Tgrd_idx][T_idx];
-//       bst_kappa = snowage_kappa[rhos_idx][Tgrd_idx][T_idx];
-//       bst_drdt0 = snowage_drdt0[rhos_idx][Tgrd_idx][T_idx];
+//       bst_tau   = snowage_tau(rhos_idx, Tgrd_idx, T_idx);
+//       bst_kappa = snowage_kappa(rhos_idx, Tgrd_idx, T_idx);
+//       bst_drdt0 = snowage_drdt0(rhos_idx, Tgrd_idx, T_idx);
 //
 //
 //       // change in snow effective radius, using best-fit parameters
 //       // added checks suggested by mgf. --HW 10/15/2015
-//       dr_fresh = snw_rds[i] - snw_rds_min;
+//       dr_fresh = snw_rds(i) - snw_rds_min;
 //       if (abs(dr_fresh) < 1.0e-8) {
 //          dr_fresh = 0.0;
 //       } else if (dr_fresh < 0.0) {
@@ -111,7 +111,7 @@ namespace ELM::snow_snicar {
 //       // This is justified by setting the linear offset constant C1_liq_Brun89 to zero [Brun, 1989]
 //
 //       // liquid water faction
-//       frc_liq = std::min(0.1, (h2osoi_liq[i] / (h2osoi_liq[i] + h2osoi_ice[i])));
+//       frc_liq = std::min(0.1, (h2osoi_liq(i) / (h2osoi_liq(i) + h2osoi_ice(i))));
 //
 //       // dr_wet = 1E6_r8*(dtime*(C1_liq_Brun89 + C2_liq_Brun89*(frc_liq**(3))) /
 //       (4*SHR_CONST_PI*(snw_rds(c_idx,i)/1E6)**(2)))
@@ -140,7 +140,7 @@ namespace ELM::snow_snicar {
 //       }
 //
 //       // snow that has re-frozen [kg/m2]
-//       refrzsnow = std::max(0.0, (qflx_snofrz_lyr[i] * dtime));
+//       refrzsnow = std::max(0.0, (qflx_snofrz_lyr(i) * dtime));
 //
 //       // fraction of layer mass that is re-frozen
 //       frc_refrz = refrzsnow / h2osno_lyr;
@@ -166,20 +166,20 @@ namespace ELM::snow_snicar {
 //       //**********  5. CHECK BOUNDARIES   ***********
 //       //
 //       // boundary check
-//       if (snw_rds[i] < snw_rds_min) {
-//          snw_rds[i] = snw_rds_min;
+//       if (snw_rds(i) < snw_rds_min) {
+//          snw_rds(i) = snw_rds_min;
 //       }
 //
-//       if (snw_rds[i] > snw_rds_max) {
-//          snw_rds[i] = snw_rds_max;
+//       if (snw_rds(i) > snw_rds_max) {
+//          snw_rds(i) = snw_rds_max;
 //       }
 //
 //       // set top layer variables for history files
 //       if (i == snl_top) {
-//         snot_top = t_soisno[i];
-//         dTdz_top = dTdz[i];
-//         snw_rds_top = snw_rds[i];
-//         sno_liq_top = h2osoi_liq[i] / (h2osoi_liq[i]+h2osoi_ice[i]);
+//         snot_top = t_soisno(i);
+//         dTdz_top = dTdz(i);
+//         snw_rds_top = snw_rds(i);
+//         sno_liq_top = h2osoi_liq(i) / (h2osoi_liq(i)+h2osoi_ice(i));
 //       }
 //     } // for i = snl_top .. snl_btm
 //   } // if snl > 0
@@ -187,7 +187,7 @@ namespace ELM::snow_snicar {
 //   // Special case: snow on ground, but not enough to have defined a snow layer:
 //   //   set snw_rds to fresh snow grain size:
 //   if (snl == 0) {
-//     if (h2osno > 0.0) { snw_rds[nlevsno-1] = snw_rds_min; }
+//     if (h2osno > 0.0) { snw_rds(nlevsno-1) = snw_rds_min; }
 //   }
 // } // SnowAge_grain
 
@@ -204,12 +204,12 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
     // Zero absorbed radiative fluxes:
     for (int i = 0; i <= nlevsno; ++i) {
       for (int ib = 0; i < numrad; ++i) {
-        flx_abs[i][ib] = 0.0;
+        flx_abs(i, ib) = 0.0;
       }
     }
     for (int i = 0; i <= nlevsno; ++i) {
       for (int ib = 0; i < numrad_snw; ++i) {
-        flx_abs_lcl[i][ib] = 0.0;
+        flx_abs_lcl(i, ib) = 0.0;
       }
     }
 
@@ -225,16 +225,16 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
       if (snl == 0) {
         flg_nosnl = 1;
         snl_lcl = 1;
-        h2osoi_ice_lcl[nlevsno - 1] = h2osno;
-        h2osoi_liq_lcl[nlevsno - 1] = 0.0;
-        snw_rds_lcl[nlevsno - 1] = round(snw_rds_min);
+        h2osoi_ice_lcl(nlevsno - 1) = h2osno;
+        h2osoi_liq_lcl(nlevsno - 1) = 0.0;
+        snw_rds_lcl(nlevsno - 1) = round(snw_rds_min);
       } else {
         flg_nosnl = 0;
         snl_lcl = snl;
         for (int i = 0; i < nlevsno; ++i) {
-          h2osoi_liq_lcl[i] = h2osoi_liq[i];
-          h2osoi_ice_lcl[i] = h2osoi_ice[i];
-          snw_rds_lcl[i] = round(snw_rds[i]);
+          h2osoi_liq_lcl(i) = h2osoi_liq(i);
+          h2osoi_ice_lcl(i) = h2osoi_ice(i);
+          snw_rds_lcl(i) = round(snw_rds(i));
         }
       }
 
@@ -255,7 +255,7 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
 
       // Error check for snow grain size:
       for (int i = snl_top; i <= snl_btm; ++i) {
-        if ((snw_rds_lcl[i] < snw_rds_min_tbl) || (snw_rds_lcl[i] > snw_rds_max_tbl)) {
+        if ((snw_rds_lcl(i) < snw_rds_min_tbl) || (snw_rds_lcl(i) > snw_rds_max_tbl)) {
           throw std::runtime_error("ELM ERROR: SNICAR snow grain radius out of bounds.");
         }
       }
@@ -270,13 +270,13 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
       // (This has to be within the bnd loop because mu_not is adjusted in rare cases)
       if (flg_slr_in == 1) {
         for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
-          flx_slrd_lcl[bnd_idx] = 1.0 / (mu_not * pi); // this corresponds to incident irradiance of 1.0
-          flx_slri_lcl[bnd_idx] = 0.0;
+          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * pi); // this corresponds to incident irradiance of 1.0
+          flx_slri_lcl(bnd_idx) = 0.0;
         }
       } else if (flg_slr_in == 2) {
         for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
-          flx_slrd_lcl[bnd_idx] = 0.0;
-          flx_slri_lcl[bnd_idx] = 1.0;
+          flx_slrd_lcl(bnd_idx) = 0.0;
+          flx_slri_lcl(bnd_idx) = 1.0;
         }
       } else {
         throw std::runtime_error("ELM ERROR: SNICAR solar waveband flag out of bounds - only 2 bands supported.");
@@ -313,7 +313,7 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
       double mss_cnc_aer_lcl[nlevsno][sno_nbr_aer];
       for (int i = 0; i < nlevsno; ++i) {
         for (int j = 0; j < sno_nbr_aer; ++j) {
-          mss_cnc_aer_lcl[i][j] = mss_cnc_aer_in[i][j];
+          mss_cnc_aer_lcl[i][j] = mss_cnc_aer_in(i, j);
         }
       }
 
@@ -332,19 +332,19 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
         double ext_cff_mss_snw_lcl[nlevsno];
         if (flg_slr_in == 1) {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            const int rds_idx = snw_rds_lcl[i] - snw_rds_min_tbl;
+            const int rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl;
             // snow optical properties (direct radiation)
-            ss_alb_snw_lcl[i] = ss_alb_snw_drc[bnd_idx][rds_idx];
-            asm_prm_snw_lcl[i] = asm_prm_snw_drc[bnd_idx][rds_idx];
-            ext_cff_mss_snw_lcl[i] = ext_cff_mss_snw_drc[bnd_idx][rds_idx];
+            ss_alb_snw_lcl[i] = ss_alb_snw_drc(bnd_idx, rds_idx);
+            asm_prm_snw_lcl[i] = asm_prm_snw_drc(bnd_idx, rds_idx);
+            ext_cff_mss_snw_lcl[i] = ext_cff_mss_snw_drc(bnd_idx, rds_idx);
           }
         } else if (flg_slr_in == 2) {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            const int rds_idx = snw_rds_lcl[i] - snw_rds_min_tbl;
+            const int rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl;
             // snow optical properties (diffuse radiation)
-            ss_alb_snw_lcl[i] = ss_alb_snw_dfs[bnd_idx][rds_idx];
-            asm_prm_snw_lcl[i] = asm_prm_snw_dfs[bnd_idx][rds_idx];
-            ext_cff_mss_snw_lcl[i] = ext_cff_mss_snw_dfs[bnd_idx][rds_idx];
+            ss_alb_snw_lcl[i] = ss_alb_snw_dfs(bnd_idx, rds_idx);
+            asm_prm_snw_lcl[i] = asm_prm_snw_dfs(bnd_idx, rds_idx);
+            ext_cff_mss_snw_lcl[i] = ext_cff_mss_snw_dfs(bnd_idx, rds_idx);
           }
         }
 
@@ -353,34 +353,34 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
         double ss_alb_aer_lcl[sno_nbr_aer];
         double asm_prm_aer_lcl[sno_nbr_aer];
         double ext_cff_mss_aer_lcl[sno_nbr_aer];
-        ss_alb_aer_lcl[2] = ss_alb_oc1[bnd_idx];
-        asm_prm_aer_lcl[2] = asm_prm_oc1[bnd_idx];
-        ext_cff_mss_aer_lcl[2] = ext_cff_mss_oc1[bnd_idx];
+        ss_alb_aer_lcl[2] = ss_alb_oc1(bnd_idx);
+        asm_prm_aer_lcl[2] = asm_prm_oc1(bnd_idx);
+        ext_cff_mss_aer_lcl[2] = ext_cff_mss_oc1(bnd_idx);
 
         //  aerosol species 4 optical properties
-        ss_alb_aer_lcl[3] = ss_alb_oc2[bnd_idx];
-        asm_prm_aer_lcl[3] = asm_prm_oc2[bnd_idx];
-        ext_cff_mss_aer_lcl[3] = ext_cff_mss_oc2[bnd_idx];
+        ss_alb_aer_lcl[3] = ss_alb_oc2(bnd_idx);
+        asm_prm_aer_lcl[3] = asm_prm_oc2(bnd_idx);
+        ext_cff_mss_aer_lcl[3] = ext_cff_mss_oc2(bnd_idx);
 
         // aerosol species 5 optical properties
-        ss_alb_aer_lcl[4] = ss_alb_dst1[bnd_idx];
-        asm_prm_aer_lcl[4] = asm_prm_dst1[bnd_idx];
-        ext_cff_mss_aer_lcl[4] = ext_cff_mss_dst1[bnd_idx];
+        ss_alb_aer_lcl[4] = ss_alb_dst1(bnd_idx);
+        asm_prm_aer_lcl[4] = asm_prm_dst1(bnd_idx);
+        ext_cff_mss_aer_lcl[4] = ext_cff_mss_dst1(bnd_idx);
 
         // aerosol species 6 optical properties
-        ss_alb_aer_lcl[5] = ss_alb_dst2[bnd_idx];
-        asm_prm_aer_lcl[5] = asm_prm_dst2[bnd_idx];
-        ext_cff_mss_aer_lcl[5] = ext_cff_mss_dst2[bnd_idx];
+        ss_alb_aer_lcl[5] = ss_alb_dst2(bnd_idx);
+        asm_prm_aer_lcl[5] = asm_prm_dst2(bnd_idx);
+        ext_cff_mss_aer_lcl[5] = ext_cff_mss_dst2(bnd_idx);
 
         // aerosol species 7 optical properties
-        ss_alb_aer_lcl[6] = ss_alb_dst3[bnd_idx];
-        asm_prm_aer_lcl[6] = asm_prm_dst3[bnd_idx];
-        ext_cff_mss_aer_lcl[6] = ext_cff_mss_dst3[bnd_idx];
+        ss_alb_aer_lcl[6] = ss_alb_dst3(bnd_idx);
+        asm_prm_aer_lcl[6] = asm_prm_dst3(bnd_idx);
+        ext_cff_mss_aer_lcl[6] = ext_cff_mss_dst3(bnd_idx);
 
         // aerosol species 8 optical properties
-        ss_alb_aer_lcl[7] = ss_alb_dst4[bnd_idx];
-        asm_prm_aer_lcl[7] = asm_prm_dst4[bnd_idx];
-        ext_cff_mss_aer_lcl[7] = ext_cff_mss_dst4[bnd_idx];
+        ss_alb_aer_lcl[7] = ss_alb_dst4(bnd_idx);
+        asm_prm_aer_lcl[7] = asm_prm_dst4(bnd_idx);
+        ext_cff_mss_aer_lcl[7] = ext_cff_mss_dst4(bnd_idx);
 
         // 1. snow and aerosol layer column mass (L_snw, L_aer [kg/m^2])
         // 2. optical Depths (tau_snw, tau_aer)
@@ -398,13 +398,13 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
 
           // valid for 25 < snw_rds < 1625 um:
           int idx_bcint_icerds;
-          if (snw_rds_lcl[i] < 125) {
-            double tmp1 = snw_rds_lcl[i] / 50;
+          if (snw_rds_lcl(i) < 125) {
+            double tmp1 = snw_rds_lcl(i) / 50;
             idx_bcint_icerds = round(tmp1) - 1;
-          } else if (snw_rds_lcl[i] < 175) {
+          } else if (snw_rds_lcl(i) < 175) {
             idx_bcint_icerds = 1;
           } else {
-            double tmp1 = (snw_rds_lcl[i] / 250) + 2;
+            double tmp1 = (snw_rds_lcl(i) / 250) + 2;
             idx_bcint_icerds = round(tmp1) - 1;
           }
 
@@ -427,20 +427,20 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
             idx_bcext_nclrds = idx_bc_nclrds_max;
 
           // retrieve absorption enhancement factor for within-ice BC
-          double enh_fct = bcenh[idx_bcint_icerds][idx_bcint_nclrds][bnd_idx];
+          double enh_fct = bcenh(idx_bcint_icerds, idx_bcint_nclrds, bnd_idx);
 
           // get BC optical properties (moved from above)
           // aerosol species 1 optical properties (within-ice BC)
-          ss_alb_aer_lcl[0] = ss_alb_bc1[idx_bcint_nclrds][bnd_idx];
-          asm_prm_aer_lcl[0] = asm_prm_bc1[idx_bcint_nclrds][bnd_idx];
-          ext_cff_mss_aer_lcl[0] = ext_cff_mss_bc1[idx_bcint_nclrds][bnd_idx] * enh_fct;
+          ss_alb_aer_lcl[0] = ss_alb_bc1(idx_bcint_nclrds, bnd_idx);
+          asm_prm_aer_lcl[0] = asm_prm_bc1(idx_bcint_nclrds, bnd_idx);
+          ext_cff_mss_aer_lcl[0] = ext_cff_mss_bc1(idx_bcint_nclrds, bnd_idx) * enh_fct;
 
           // aerosol species 2 optical properties (external BC)
-          ss_alb_aer_lcl[1] = ss_alb_bc2[idx_bcext_nclrds][bnd_idx];
-          asm_prm_aer_lcl[1] = asm_prm_bc2[idx_bcext_nclrds][bnd_idx];
-          ext_cff_mss_aer_lcl[1] = ext_cff_mss_bc2[idx_bcext_nclrds][bnd_idx];
+          ss_alb_aer_lcl[1] = ss_alb_bc2(idx_bcext_nclrds, bnd_idx);
+          asm_prm_aer_lcl[1] = asm_prm_bc2(idx_bcext_nclrds, bnd_idx);
+          ext_cff_mss_aer_lcl[1] = ext_cff_mss_bc2(idx_bcext_nclrds, bnd_idx);
 
-          double L_snw = h2osoi_ice_lcl[i] + h2osoi_liq_lcl[i];
+          double L_snw = h2osoi_ice_lcl(i) + h2osoi_liq_lcl(i);
           double tau_snw = L_snw * ext_cff_mss_snw_lcl[i];
 
           double tau_aer[sno_nbr_aer];
@@ -468,15 +468,15 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
         // DELTA transformations, if requested
         if (DELTA == 1) {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            g_star[bnd_idx][i] = g[i] / (1.0 + g[i]);
-            omega_star[bnd_idx][i] = ((1.0 - pow(g[i], 2.0)) * omega[i]) / (1.0 - (omega[i] * pow(g[i], 2.0)));
-            tau_star[bnd_idx][i] = (1.0 - (omega[i] * pow(g[i], 2.0))) * tau[i];
+            g_star(bnd_idx, i) = g[i] / (1.0 + g[i]);
+            omega_star(bnd_idx, i) = ((1.0 - pow(g[i], 2.0)) * omega[i]) / (1.0 - (omega[i] * pow(g[i], 2.0)));
+            tau_star(bnd_idx, i) = (1.0 - (omega[i] * pow(g[i], 2.0))) * tau[i];
           }
         } else {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            g_star[bnd_idx][i] = g[i];
-            omega_star[bnd_idx][i] = omega[i];
-            tau_star[bnd_idx][i] = tau[i];
+            g_star(bnd_idx, i) = g[i];
+            omega_star(bnd_idx, i) = omega[i];
+            tau_star(bnd_idx, i) = tau[i];
           }
         }
       } // end bnd_idx waveband loop
@@ -581,9 +581,9 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
 
             // delta-transformed single-scattering properties
             // of this layer
-            const double ts = tau_star[bnd_idx][i];
-            const double ws = omega_star[bnd_idx][i];
-            const double gs = g_star[bnd_idx][i];
+            const double ts = tau_star(bnd_idx, i);
+            const double ws = omega_star(bnd_idx, i);
+            const double gs = g_star(bnd_idx, i);
 
             // Delta-Eddington solution expressions
             // n(uu,et)         = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
@@ -685,11 +685,11 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
 
         // set the underlying ground albedo == albedo of near-IR
         // unless bnd_idx == 1, for visible
-        rupdir[snl_btm_itf] = albsoi[1];
-        rupdif[snl_btm_itf] = albsoi[1];
+        rupdir[snl_btm_itf] = albsoi(1);
+        rupdif[snl_btm_itf] = albsoi(1);
         if (bnd_idx == 0) {
-          rupdir[snl_btm_itf] = albsoi[0];
-          rupdif[snl_btm_itf] = albsoi[0];
+          rupdir[snl_btm_itf] = albsoi(0);
+          rupdif[snl_btm_itf] = albsoi(0);
         }
 
         for (int i = snl_btm; i >= snl_top; --i) {
@@ -773,10 +773,10 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
         // Absorbed flux in each layer
         for (int i = snl_top; i <= snl_btm; ++i) {
           F_abs[i] = dftmp[i] - dftmp[i + 1];
-          flx_abs_lcl[i][bnd_idx] = F_abs[i];
+          flx_abs_lcl(i, bnd_idx) = F_abs[i];
 
           // ERROR check: negative absorption
-          if (flx_abs_lcl[i][bnd_idx] < -0.00001) {
+          if (flx_abs_lcl(i, bnd_idx) < -0.00001) {
             throw std::runtime_error("ELM ERROR: SNICAR negative absoption.");
           }
         }
@@ -785,7 +785,7 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
         const double F_btm_net = dftmp[snl_btm_itf];
 
         // note here, snl_btm_itf = 1 by snow column set up in ELM
-        flx_abs_lcl[nlevsno][bnd_idx] = F_btm_net;
+        flx_abs_lcl(nlevsno, bnd_idx) = F_btm_net;
 
         if (flg_nosnl == 1) {
           // If there are no snow layers (but still snow), all absorbed energy must be in top soil layer
@@ -796,14 +796,14 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
           // OK to put absorbed energy in the fictitous snow layer because routine SurfaceRadiation
           // handles the case of no snow layers. Then, if a snow layer is addded between now and
           // SurfaceRadiation (called in CanopyHydrology), absorbed energy will be properly distributed.
-          flx_abs_lcl[nlevsno - 1][bnd_idx] = F_abs[nlevsno - 1];
-          flx_abs_lcl[nlevsno][bnd_idx] = F_btm_net;
+          flx_abs_lcl(nlevsno - 1, bnd_idx) = F_abs[nlevsno - 1];
+          flx_abs_lcl(nlevsno, bnd_idx) = F_btm_net;
         }
 
         // Underflow check (we've already tripped the error condition above)
         for (int i = snl_top; i <= nlevsno; ++i) {
-          if (flx_abs_lcl[i][bnd_idx] < 0.0) {
-            flx_abs_lcl[i][bnd_idx] = 0.0;
+          if (flx_abs_lcl(i, bnd_idx) < 0.0) {
+            flx_abs_lcl(i, bnd_idx) = 0.0;
           }
         }
 
@@ -815,14 +815,14 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
         // Energy conservation check:
         // Incident direct+diffuse radiation equals (absorbed+bulk_transmitted+bulk_reflected)
         const double energy_sum =
-            (mu_not * pi * flx_slrd_lcl[bnd_idx]) + flx_slri_lcl[bnd_idx] - (F_abs_sum + F_btm_net + F_sfc_pls);
+            (mu_not * pi * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
         if (std::abs(energy_sum) > 0.00001) {
           throw std::runtime_error("ELM ERROR: SNICAR Energy conservation error.");
         }
 
-        albout_lcl[bnd_idx] = albedo;
+        albout_lcl(bnd_idx) = albedo;
         // Check that albedo is less than 1
-        if (albout_lcl[bnd_idx] > 1.0) {
+        if (albout_lcl(bnd_idx) > 1.0) {
           throw std::runtime_error("ELM ERROR: SNICAR Albedo > 1.0.");
         }
       } // end bnd_idx waveband loop
@@ -870,26 +870,26 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
       }
 
       // Weight output NIR albedo appropriately
-      albout[0] = albout_lcl[0];
+      albout(0) = albout_lcl(0);
       double flx_sum = 0.0;
       double flx_wgt_sum = 0.0;
       for (int bnd_idx = nir_bnd_bgn; bnd_idx <= nir_bnd_end; ++bnd_idx) {
-        flx_sum += flx_wgt[bnd_idx] * albout_lcl[bnd_idx];
+        flx_sum += flx_wgt[bnd_idx] * albout_lcl(bnd_idx);
         flx_wgt_sum += flx_wgt[bnd_idx];
       }
-      albout[1] = flx_sum / flx_wgt_sum;
+      albout(1) = flx_sum / flx_wgt_sum;
 
       // Weight output NIR absorbed layer fluxes (flx_abs) appropriately
       for (int i = 0; i <= nlevsno; ++i) {
-        flx_abs[i][0] = flx_abs_lcl[i][0];
+        flx_abs(i, 0) = flx_abs_lcl(i, 0);
       }
 
       for (int i = snl_top; i <= nlevsno; ++i) {
         flx_sum = 0.0;
         for (int bnd_idx = nir_bnd_bgn; bnd_idx <= nir_bnd_end; ++bnd_idx) {
-          flx_sum += flx_wgt[bnd_idx] * flx_abs_lcl[i][bnd_idx];
+          flx_sum += flx_wgt[bnd_idx] * flx_abs_lcl(i, bnd_idx);
         }
-        flx_abs[i][1] = flx_sum / flx_wgt_sum;
+        flx_abs(i, 1) = flx_sum / flx_wgt_sum;
       }
 
       // near-IR direct albedo/absorption adjustment for high solar zenith angles
@@ -900,20 +900,20 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
         const double sza_c1 = sza_a0 + sza_a1 * mu_not + sza_a2 * pow(mu_not, 2.0); // coefficient, SZA parameteirzation
         const double sza_c0 = sza_b0 + sza_b1 * mu_not + sza_b2 * pow(mu_not, 2.0); // coefficient, SZA parameterization
         const double sza_factor =
-            sza_c1 * (log10(snw_rds_lcl[snl_top] * c1) - c6) + sza_c0; // factor used to adjust NIR direct albedo
+            sza_c1 * (log10(snw_rds_lcl(snl_top) * c1) - c6) + sza_c0; // factor used to adjust NIR direct albedo
         const double flx_sza_adjust =
-            albout[1] * (sza_factor - c1) * flx_wgt_sum; // direct NIR flux adjustment from sza_factor
-        albout[1] *= sza_factor;
-        flx_abs[snl_top][1] -= flx_sza_adjust;
+            albout(1) * (sza_factor - c1) * flx_wgt_sum; // direct NIR flux adjustment from sza_factor
+        albout(1) *= sza_factor;
+        flx_abs(snl_top, 1) -= flx_sza_adjust;
       }
       // If snow < minimum_snow, but > 0, and there is sun, set albedo to underlying surface albedo
     } else if ((coszen > 0.0) && (h2osno < min_snw) && (h2osno > 0.0)) {
-      albout[0] = albsoi[0];
-      albout[1] = albsoi[1];
+      albout(0) = albsoi(0);
+      albout(1) = albsoi(1);
       // There is either zero snow, or no sun
     } else {
-      albout[0] = 0.0;
-      albout[1] = 0.0;
+      albout(0) = 0.0;
+      albout(1) = 0.0;
     } // if ((coszen > 0.0) && (h2osno > min_snw))
   }   // if !urbpoi
 } // snow_albedo_radiation_factor()

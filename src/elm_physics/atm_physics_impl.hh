@@ -4,9 +4,9 @@
 namespace ELM::atm_forcing_physics {
 
 template <typename ArrayD1>
-ConstitutiveAirProperties<ArrayD1>::ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot,
-                                                              const ArrayD1& forc_tbot, ArrayD1& forc_vp,
-                                                              ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2)
+ConstitutiveAirProperties<ArrayD1>::ConstitutiveAirProperties(const ArrayD1 forc_qbot, const ArrayD1 forc_pbot,
+                                                              const ArrayD1 forc_tbot, ArrayD1 forc_vp,
+                                                              ArrayD1 forc_rho, ArrayD1 forc_po2, ArrayD1 forc_pco2)
     : forc_qbot_(forc_qbot), forc_pbot_(forc_pbot), forc_tbot_(forc_tbot), forc_vp_(forc_vp), forc_rho_(forc_rho),
       forc_po2_(forc_po2), forc_pco2_(forc_pco2) {}
 
@@ -21,8 +21,8 @@ constexpr void ConstitutiveAirProperties<ArrayD1>::operator()(const int i) const
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ProcessTBOT<ArrayD1, ArrayD2>::ProcessTBOT(const int& t_idx, const double& wt1, const double& wt2,
-                                           const ArrayD2& atm_tbot, ArrayD1& forc_tbot, ArrayD1& forc_thbot)
+ProcessTBOT<ArrayD1, ArrayD2>::ProcessTBOT(const int t_idx, const double wt1, const double wt2,
+                                           const ArrayD2 atm_tbot, ArrayD1 forc_tbot, ArrayD1 forc_thbot)
     : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_tbot_(atm_tbot), forc_tbot_(forc_tbot), forc_thbot_(forc_thbot) {}
 
 // functor to calculate atmospheric temperature and potential temperature
@@ -34,8 +34,8 @@ constexpr void ProcessTBOT<ArrayD1, ArrayD2>::operator()(const int i) const {
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ProcessPBOT<ArrayD1, ArrayD2>::ProcessPBOT(const int& t_idx, const double& wt1, const double& wt2,
-                                           const ArrayD2& atm_pbot, ArrayD1& forc_pbot)
+ProcessPBOT<ArrayD1, ArrayD2>::ProcessPBOT(const int t_idx, const double wt1, const double wt2,
+                                           const ArrayD2 atm_pbot, ArrayD1 forc_pbot)
     : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_pbot_(atm_pbot), forc_pbot_(forc_pbot) {}
 
 // functor to calculate atmospheric pressure
@@ -46,9 +46,9 @@ constexpr void ProcessPBOT<ArrayD1, ArrayD2>::operator()(const int i) const {
 }
 
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
-ProcessQBOT<ArrayD1, ArrayD2, ftype>::ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2,
-                                                  const ArrayD2& atm_qbot, const ArrayD1& forc_tbot,
-                                                  const ArrayD1& forc_pbot, ArrayD1& forc_qbot, ArrayD1& forc_rh)
+ProcessQBOT<ArrayD1, ArrayD2, ftype>::ProcessQBOT(const int t_idx, const double wt1, const double wt2,
+                                                  const ArrayD2 atm_qbot, const ArrayD1 forc_tbot,
+                                                  const ArrayD1 forc_pbot, ArrayD1 forc_qbot, ArrayD1 forc_rh)
     : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_qbot_(atm_qbot), forc_tbot_(forc_tbot), forc_pbot_(forc_pbot),
       forc_qbot_(forc_qbot), forc_rh_(forc_rh) {}
 
@@ -68,9 +68,9 @@ constexpr void ProcessQBOT<ArrayD1, ArrayD2, ftype>::operator()(const int i) con
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ProcessFLDS<ArrayD1, ArrayD2>::ProcessFLDS(const int& t_idx, const double& wt1, const double& wt2,
-                                           const ArrayD2& atm_flds, const ArrayD1& forc_pbot, const ArrayD1& forc_qbot,
-                                           const ArrayD1& forc_tbot, ArrayD1& forc_lwrad)
+ProcessFLDS<ArrayD1, ArrayD2>::ProcessFLDS(const int t_idx, const double wt1, const double wt2,
+                                           const ArrayD2 atm_flds, const ArrayD1 forc_pbot, const ArrayD1 forc_qbot,
+                                           const ArrayD1 forc_tbot, ArrayD1 forc_lwrad)
     : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_flds_(atm_flds), forc_pbot_(forc_pbot), forc_qbot_(forc_qbot),
       forc_tbot_(forc_tbot), forc_lwrad_(forc_lwrad) {}
 
@@ -89,9 +89,9 @@ constexpr void ProcessFLDS<ArrayD1, ArrayD2>::operator()(const int i) const {
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ProcessFSDS<ArrayD1, ArrayD2>::ProcessFSDS(const ArrayD1& atm_fsds, const ArrayD1& coszen, ArrayD2& forc_solai,
-                                           ArrayD2& forc_solad)
-    : atm_fsds_(atm_fsds), coszen_(coszen), forc_solai_(forc_solai), forc_solad_(forc_solad) {}
+ProcessFSDS<ArrayD1, ArrayD2>::ProcessFSDS(const int t_idx, const ArrayD2 atm_fsds, const ArrayD1 coszen, ArrayD2 forc_solai,
+                                           ArrayD2 forc_solad)
+    : t_idx_(t_idx), atm_fsds_(atm_fsds), coszen_(coszen), forc_solai_(forc_solai), forc_solad_(forc_solad) {}
 
 // functor to calculate solar incident and diffuse radiation in the visible and NIR spectrums
 template <typename ArrayD1, typename ArrayD2>
@@ -102,7 +102,7 @@ constexpr void ProcessFSDS<ArrayD1, ArrayD2>::operator()(const int i) const {
   // ATS uses a slope based factor
   // ELM's method could probably be calculated outside the parallel region
   // ATS's method should probably be calculated inside parallel region
-  const double swndr = std::max(atm_fsds_(i) * coszen_(i) * 0.5, 0.0);
+  const double swndr = std::max(atm_fsds_(t_idx_, i) * coszen_(i) * 0.5, 0.0);
   const double& swndf = swndr;
   const double& swvdr = swndr; // these vars are only used with a specific forcing data stream
   const double& swvdf = swndr; // maybe implement later? placeholders for now
@@ -116,24 +116,24 @@ constexpr void ProcessFSDS<ArrayD1, ArrayD2>::operator()(const int i) const {
   forc_solai_(i, 1) = (1.0 - ratio_rvrf_nir) * swndf;
 }
 
-template <typename ArrayD1>
-ProcessPREC<ArrayD1>::ProcessPREC(const ArrayD1& atm_prec, const ArrayD1& forc_tbot, ArrayD1& forc_rain,
-                                  ArrayD1& forc_snow)
-    : atm_prec_(atm_prec), forc_tbot_(forc_tbot), forc_rain_(forc_rain), forc_snow_(forc_snow) {}
+template <typename ArrayD1, typename ArrayD2>
+ProcessPREC<ArrayD1, ArrayD2>::ProcessPREC(const int t_idx, const ArrayD2 atm_prec, const ArrayD1 forc_tbot, ArrayD1 forc_rain,
+                                  ArrayD1 forc_snow)
+    : t_idx_(t_idx), atm_prec_(atm_prec), forc_tbot_(forc_tbot), forc_rain_(forc_rain), forc_snow_(forc_snow) {}
 
 // functor to calculate liquid and solid precipitation
-template <typename ArrayD1>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATED
-constexpr void ProcessPREC<ArrayD1>::operator()(const int i) const {
+constexpr void ProcessPREC<ArrayD1, ArrayD2>::operator()(const int i) const {
   const double frac1 = (forc_tbot_(i) - ELMconstants::TFRZ) * 0.5; // ramp near freezing
   const double frac2 = std::min(1.0, std::max(0.0, frac1));        // bound in [0,1]
-  forc_rain_(i) = frac2 * std::max(atm_prec_(i), 0.0);
-  forc_snow_(i) = (1.0 - frac2) * std::max(atm_prec_(i), 0.0);
+  forc_rain_(i) = frac2 * std::max(atm_prec_(t_idx_, i), 0.0);
+  forc_snow_(i) = (1.0 - frac2) * std::max(atm_prec_(t_idx_, i), 0.0);
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ProcessWIND<ArrayD1, ArrayD2>::ProcessWIND(const int& t_idx, const double& wt1, const double& wt2,
-                                           const ArrayD2& atm_wind, ArrayD1& forc_u, ArrayD1& forc_v)
+ProcessWIND<ArrayD1, ArrayD2>::ProcessWIND(const int t_idx, const double wt1, const double wt2,
+                                           const ArrayD2 atm_wind, ArrayD1 forc_u, ArrayD1 forc_v)
     : t_idx_(t_idx), wt1_(wt1), wt2_(wt2), atm_wind_(atm_wind), forc_u_(forc_u), forc_v_(forc_v) {}
 
 // functor to calculate wind speed
@@ -147,7 +147,7 @@ constexpr void ProcessWIND<ArrayD1, ArrayD2>::operator()(const int i) const {
 // functor to calculate forcing height
 // hardwired at 30m for now
 template <typename ArrayD1>
-ProcessZBOT<ArrayD1>::ProcessZBOT(ArrayD1& forc_hgt, ArrayD1& forc_hgt_u, ArrayD1& forc_hgt_t, ArrayD1& forc_hgt_q)
+ProcessZBOT<ArrayD1>::ProcessZBOT(ArrayD1 forc_hgt, ArrayD1 forc_hgt_u, ArrayD1 forc_hgt_t, ArrayD1 forc_hgt_q)
     : forc_hgt_(forc_hgt), forc_hgt_u_(forc_hgt_u), forc_hgt_t_(forc_hgt_t), forc_hgt_q_(forc_hgt_q) {}
 
 // hardwired at 30m for now

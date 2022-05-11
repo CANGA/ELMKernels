@@ -48,9 +48,15 @@ ACCELERATED
 double derive_forc_pco2(const double& forc_pbot);
 
 // functor to calculate all derived forcing quantities
-template <typename ArrayD1> struct ConstitutiveAirProperties {
-  ConstitutiveAirProperties(const ArrayD1& forc_qbot, const ArrayD1& forc_pbot, const ArrayD1& forc_tbot,
-                            ArrayD1& forc_vp, ArrayD1& forc_rho, ArrayD1& forc_po2, ArrayD1& forc_pco2);
+template <typename ArrayD1>
+struct ConstitutiveAirProperties {
+  ConstitutiveAirProperties(const ArrayD1 forc_qbot,
+                            const ArrayD1 forc_pbot,
+                            const ArrayD1 forc_tbot,
+                            ArrayD1 forc_vp,
+                            ArrayD1 forc_rho,
+                            ArrayD1 forc_po2,
+                            ArrayD1 forc_pco2);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -61,9 +67,14 @@ private:
 };
 
 // functor to calculate atmospheric temperature and potential temperature
-template <typename ArrayD1, typename ArrayD2> struct ProcessTBOT {
-  ProcessTBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_tbot, ArrayD1& forc_tbot,
-              ArrayD1& forc_thbot);
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessTBOT {
+  ProcessTBOT(const int t_idx,
+              const double wt1,
+              const double wt2,
+              const ArrayD2 atm_tbot,
+              ArrayD1 forc_tbot,
+              ArrayD1 forc_thbot);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -76,8 +87,13 @@ private:
 };
 
 // functor to calculate atmospheric pressure
-template <typename ArrayD1, typename ArrayD2> struct ProcessPBOT {
-  ProcessPBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_pbot, ArrayD1& forc_pbot);
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessPBOT {
+  ProcessPBOT(const int t_idx,
+              const double wt1,
+              const double wt2,
+              const ArrayD2 atm_pbot,
+              ArrayD1 forc_pbot);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -90,9 +106,16 @@ private:
 };
 
 // functor to calculate specific humidity and relative humidty
-template <typename ArrayD1, typename ArrayD2, AtmForcType type> struct ProcessQBOT {
-  ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_qbot, const ArrayD1& forc_tbot,
-              const ArrayD1& forc_pbot, ArrayD1& forc_qbot, ArrayD1& forc_rh);
+template <typename ArrayD1, typename ArrayD2, AtmForcType type>
+struct ProcessQBOT {
+  ProcessQBOT(const int t_idx,
+              const double wt1,
+              const double wt2,
+              const ArrayD2 atm_qbot,
+              const ArrayD1 forc_tbot,
+              const ArrayD1 forc_pbot,
+              ArrayD1 forc_qbot,
+              ArrayD1 forc_rh);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -105,9 +128,16 @@ private:
 };
 
 // functor to calculate downward longwave radiation
-template <typename ArrayD1, typename ArrayD2> struct ProcessFLDS {
-  ProcessFLDS(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_flds, const ArrayD1& forc_pbot,
-              const ArrayD1& forc_qbot, const ArrayD1& forc_tbot, ArrayD1& forc_lwrad);
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessFLDS {
+  ProcessFLDS(const int t_idx,
+              const double wt1,
+              const double wt2,
+              const ArrayD2 atm_flds,
+              const ArrayD1 forc_pbot,
+              const ArrayD1 forc_qbot,
+              const ArrayD1 forc_tbot,
+              ArrayD1 forc_lwrad);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -119,34 +149,52 @@ private:
   ArrayD1 forc_pbot_, forc_qbot_, forc_tbot_, forc_lwrad_;
 };
 
-// functor to calculate solar incident and diffuse radiation in the visible and NIR spectrums
-template <typename ArrayD1, typename ArrayD2> struct ProcessFSDS {
-  ProcessFSDS(const ArrayD1& atm_fsds, const ArrayD1& coszen, ArrayD2& forc_solai, ArrayD2& forc_solad);
+// functor to calculate solar incident and diffuse
+// radiation in the visible and NIR spectrums
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessFSDS {
+  ProcessFSDS(const int t_idx,
+              const ArrayD2 atm_fsds,
+              const ArrayD1 coszen,
+              ArrayD2 forc_solai,
+              ArrayD2 forc_solad);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
-  ArrayD1 atm_fsds_, coszen_;
-  ArrayD2 forc_solai_, forc_solad_;
+  int t_idx_;
+  ArrayD1 coszen_;
+  ArrayD2 atm_fsds_, forc_solai_, forc_solad_;
 };
 
 // functor to calculate liquid and solid precipitation
-template <typename ArrayD1> struct ProcessPREC {
-  ProcessPREC(const ArrayD1& atm_prec, const ArrayD1& forc_tbot, ArrayD1& forc_rain, ArrayD1& forc_snow);
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessPREC {
+  ProcessPREC(const int t_idx,
+              const ArrayD2 atm_prec,
+              const ArrayD1 forc_tbot,
+              ArrayD1 forc_rain,
+              ArrayD1 forc_snow);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
 
 private:
-  ArrayD1 atm_prec_, forc_tbot_;
-  ArrayD1 forc_rain_, forc_snow_;
+  int t_idx_;
+  ArrayD1 forc_tbot_, forc_rain_, forc_snow_;
+  ArrayD2 atm_prec_;
 };
 
 // functor to calculate wind speed
-template <typename ArrayD1, typename ArrayD2> struct ProcessWIND {
-  ProcessWIND(const int& t_idx, const double& wt1, const double& wt2, const ArrayD2& atm_wind, ArrayD1& forc_u,
-              ArrayD1& forc_v);
+template <typename ArrayD1, typename ArrayD2>
+struct ProcessWIND {
+  ProcessWIND(const int t_idx,
+              const double wt1,
+              const double wt2,
+              const ArrayD2 atm_wind,
+              ArrayD1 forc_u,
+              ArrayD1 forc_v);
 
   ACCELERATED
   constexpr void operator()(const int i) const;
@@ -160,8 +208,12 @@ private:
 
 // functor to calculate forcing height
 // hardwired at 30m for now
-template <typename ArrayD1> struct ProcessZBOT {
-  ProcessZBOT(ArrayD1& forc_hgt, ArrayD1& forc_hgt_u, ArrayD1& forc_hgt_t, ArrayD1& forc_hgt_q);
+template <typename ArrayD1>
+struct ProcessZBOT {
+  ProcessZBOT(ArrayD1 forc_hgt,
+              ArrayD1 forc_hgt_u,
+              ArrayD1 forc_hgt_t,
+              ArrayD1 forc_hgt_q);
 
   ACCELERATED
   constexpr void operator()(const int i) const;

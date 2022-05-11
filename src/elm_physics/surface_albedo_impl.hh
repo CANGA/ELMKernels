@@ -96,27 +96,27 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
   // Initialize output because solar radiation only done if coszen > 0
   if (!urbpoi) {
     for (int ib = 0; ib < numrad; ++ib) {
-      albsod[ib] = 0.0;
-      albsoi[ib] = 0.0;
-      albgrd[ib] = 0.0;
-      albgri[ib] = 0.0;
-      albd[ib] = 1.0;
-      albi[ib] = 1.0;
-      fabd[ib] = 0.0;
-      fabd_sun[ib] = 0.0;
-      fabd_sha[ib] = 0.0;
-      fabi[ib] = 0.0;
-      fabi_sun[ib] = 0.0;
-      fabi_sha[ib] = 0.0;
-      ftdd[ib] = 0.0;
-      ftid[ib] = 0.0;
-      ftii[ib] = 0.0;
+      albsod(ib) = 0.0;
+      albsoi(ib) = 0.0;
+      albgrd(ib) = 0.0;
+      albgri(ib) = 0.0;
+      albd(ib) = 1.0;
+      albi(ib) = 1.0;
+      fabd(ib) = 0.0;
+      fabd_sun(ib) = 0.0;
+      fabd_sha(ib) = 0.0;
+      fabi(ib) = 0.0;
+      fabi_sun(ib) = 0.0;
+      fabi_sha(ib) = 0.0;
+      ftdd(ib) = 0.0;
+      ftid(ib) = 0.0;
+      ftii(ib) = 0.0;
     }
     for (int i = 0; i <= nlevsno; ++i) {
-      flx_absdv[i] = 0.0;
-      flx_absdn[i] = 0.0;
-      flx_absiv[i] = 0.0;
-      flx_absin[i] = 0.0;
+      flx_absdv(i) = 0.0;
+      flx_absdn(i) = 0.0;
+      flx_absiv(i) = 0.0;
+      flx_absin(i) = 0.0;
     }
     if (nlevcan == 1) {
       vcmaxcintsun = 0.0;
@@ -133,14 +133,14 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
   }
   // set soot and dust aerosol concentrations:
   for (int i = 0; i < nlevsno; ++i) {
-    mss_cnc_aer_in_fdb[i][0] = mss_cnc_bcphi[i];
-    mss_cnc_aer_in_fdb[i][1] = mss_cnc_bcpho[i];
-    mss_cnc_aer_in_fdb[i][2] = 0.0; // ignore OC concentrations due to poor constraint and negligible effect on snow
-    mss_cnc_aer_in_fdb[i][3] = 0.0; // ignore OC concentrations due to poor constraint and negligible effect on snow
-    mss_cnc_aer_in_fdb[i][4] = mss_cnc_dst1[i];
-    mss_cnc_aer_in_fdb[i][5] = mss_cnc_dst2[i];
-    mss_cnc_aer_in_fdb[i][6] = mss_cnc_dst3[i];
-    mss_cnc_aer_in_fdb[i][7] = mss_cnc_dst4[i];
+    mss_cnc_aer_in_fdb(i, 0) = mss_cnc_bcphi(i);
+    mss_cnc_aer_in_fdb(i, 1) = mss_cnc_bcpho(i);
+    mss_cnc_aer_in_fdb(i, 2) = 0.0; // ignore OC concentrations due to poor constraint and negligible effect on snow
+    mss_cnc_aer_in_fdb(i, 3) = 0.0; // ignore OC concentrations due to poor constraint and negligible effect on snow
+    mss_cnc_aer_in_fdb(i, 4) = mss_cnc_dst1(i);
+    mss_cnc_aer_in_fdb(i, 5) = mss_cnc_dst2(i);
+    mss_cnc_aer_in_fdb(i, 6) = mss_cnc_dst3(i);
+    mss_cnc_aer_in_fdb(i, 7) = mss_cnc_dst4(i);
   }
 } // init_timestep
 
@@ -150,8 +150,8 @@ void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri) {
   if (!urbpoi && coszen > 0.0) {
     for (int ib = 0; ib < numrad; ++ib) {
-      albgrd[ib] = albsod[ib] * (1.0 - frac_sno) + albsnd[ib] * frac_sno;
-      albgri[ib] = albsoi[ib] * (1.0 - frac_sno) + albsni[ib] * frac_sno;
+      albgrd(ib) = albsod(ib) * (1.0 - frac_sno) + albsnd(ib) * frac_sno;
+      albgri(ib) = albsoi(ib) * (1.0 - frac_sno) + albsni(ib) * frac_sno;
     }
   }
 } // ground_albedo
@@ -171,23 +171,23 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
         // (NEEDED FOR ENERGY CONSERVATION)
         if (subgridflag == 0 || Land.ltype == istdlak) {
           if (ib == 0) {
-            flx_absdv[i] = flx_absd_snw[i][ib] * frac_sno +
-                           ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
-            flx_absiv[i] = flx_absi_snw[i][ib] * frac_sno +
-                           ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
+            flx_absdv(i) = flx_absd_snw(i, ib) * frac_sno +
+                           ((1.0 - frac_sno) * (1.0 - albsod(ib)) * (flx_absd_snw(i, ib) / (1.0 - albsnd(ib))));
+            flx_absiv(i) = flx_absi_snw(i, ib) * frac_sno +
+                           ((1.0 - frac_sno) * (1.0 - albsoi(ib)) * (flx_absi_snw(i, ib) / (1.0 - albsni(ib))));
           } else if (ib == 1) {
-            flx_absdn[i] = flx_absd_snw[i][ib] * frac_sno +
-                           ((1.0 - frac_sno) * (1.0 - albsod[ib]) * (flx_absd_snw[i][ib] / (1.0 - albsnd[ib])));
-            flx_absin[i] = flx_absi_snw[i][ib] * frac_sno +
-                           ((1.0 - frac_sno) * (1.0 - albsoi[ib]) * (flx_absi_snw[i][ib] / (1.0 - albsni[ib])));
+            flx_absdn(i) = flx_absd_snw(i, ib) * frac_sno +
+                           ((1.0 - frac_sno) * (1.0 - albsod(ib)) * (flx_absd_snw(i, ib) / (1.0 - albsnd(ib))));
+            flx_absin(i) = flx_absi_snw(i, ib) * frac_sno +
+                           ((1.0 - frac_sno) * (1.0 - albsoi(ib)) * (flx_absi_snw(i, ib) / (1.0 - albsni(ib))));
           }
         } else {
           if (ib == 0) {
-            flx_absdv[i] = flx_absd_snw[i][ib] * (1.0 - albsnd[ib]);
-            flx_absiv[i] = flx_absi_snw[i][ib] * (1.0 - albsni[ib]);
+            flx_absdv(i) = flx_absd_snw(i, ib) * (1.0 - albsnd(ib));
+            flx_absiv(i) = flx_absi_snw(i, ib) * (1.0 - albsni(ib));
           } else if (ib == 1) {
-            flx_absdn[i] = flx_absd_snw[i][ib] * (1.0 - albsnd[ib]);
-            flx_absin[i] = flx_absi_snw[i][ib] * (1.0 - albsni[ib]);
+            flx_absdn(i) = flx_absd_snw(i, ib) * (1.0 - albsnd(ib));
+            flx_absin(i) = flx_absi_snw(i, ib) * (1.0 - albsni(ib));
           }
         } // if subgridflag
       }   // for numrad
@@ -205,8 +205,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
     if (nlevcan == 1) {
       nrad = 1;
       ncan = 1;
-      tlai_z[0] = elai;
-      tsai_z[0] = esai;
+      tlai_z(0) = elai;
+      tsai_z(0) = esai;
     } else if (nlevcan > 1) {
       if (elai + esai == 0.0) {
         nrad = 0;
@@ -217,13 +217,13 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
           if (((elai + esai) - dincmax_sum) > mpe) {
             nrad = iv + 1;
             double dinc = dincmax;
-            tlai_z[iv] = dinc * elai / std::max(elai + esai, mpe);
-            tsai_z[iv] = dinc * esai / std::max(elai + esai, mpe);
+            tlai_z(iv) = dinc * elai / std::max(elai + esai, mpe);
+            tsai_z(iv) = dinc * esai / std::max(elai + esai, mpe);
           } else {
             nrad = iv + 1;
             double dinc = dincmax - (dincmax_sum - (elai + esai));
-            tlai_z[iv] = dinc * elai / std::max(elai + esai, mpe);
-            tsai_z[iv] = dinc * esai / std::max(elai + esai, mpe);
+            tlai_z(iv) = dinc * elai / std::max(elai + esai, mpe);
+            tsai_z(iv) = dinc * esai / std::max(elai + esai, mpe);
             break;
           }
         }
@@ -231,8 +231,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
         if (nrad < 4) {
           nrad = 4;
           for (int iv = 0; iv < nrad; ++iv) {
-            tlai_z[iv] = elai / nrad;
-            tsai_z[iv] = esai / nrad;
+            tlai_z(iv) = elai / nrad;
+            tsai_z(iv) = esai / nrad;
           }
         }
       }
@@ -242,8 +242,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
     double laisum = 0.0;
     double saisum = 0.0;
     for (int iv = 0; iv < nrad; ++iv) {
-      laisum += tlai_z[iv];
-      saisum += tsai_z[iv];
+      laisum += tlai_z(iv);
+      saisum += tsai_z(iv);
     }
 
     if (std::abs(laisum - elai) > mpe || std::abs(saisum - esai) > mpe) {
@@ -263,13 +263,13 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
           if (((blai + bsai) - dincmax_sum) > mpe) {
             ncan = iv + 1;
             double dinc = dincmax;
-            tlai_z[iv] = dinc * blai / std::max(blai + bsai, mpe);
-            tsai_z[iv] = dinc * bsai / std::max(blai + bsai, mpe);
+            tlai_z(iv) = dinc * blai / std::max(blai + bsai, mpe);
+            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, mpe);
           } else {
             ncan = iv + 1;
             double dinc = dincmax - (dincmax_sum - (blai + bsai));
-            tlai_z[iv] = dinc * blai / std::max(blai + bsai, mpe);
-            tsai_z[iv] = dinc * bsai / std::max(blai + bsai, mpe);
+            tlai_z(iv) = dinc * blai / std::max(blai + bsai, mpe);
+            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, mpe);
             break;
           }
         }
@@ -279,8 +279,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
       laisum = 0.0;
       saisum = 0.0;
       for (int iv = 0; iv < ncan; ++iv) {
-        laisum += tlai_z[iv];
-        saisum += tsai_z[iv];
+        laisum += tlai_z(iv);
+        saisum += tsai_z(iv);
       }
       if (std::abs(laisum - tlai) > mpe || std::abs(saisum - tsai) > mpe) {
         throw std::runtime_error("ELM ERROR: multi-layer canopy error 1 in SurfaceAlbedo");
@@ -289,11 +289,11 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
 
     // Zero fluxes for active canopy layers
     for (int iv = 0; iv < nrad; ++iv) {
-      fabd_sun_z[iv] = 0.0;
-      fabd_sha_z[iv] = 0.0;
-      fabi_sun_z[iv] = 0.0;
-      fabi_sha_z[iv] = 0.0;
-      fsun_z[iv] = 0.0;
+      fabd_sun_z(iv) = 0.0;
+      fabd_sha_z(iv) = 0.0;
+      fabi_sun_z(iv) = 0.0;
+      fabi_sha_z(iv) = 0.0;
+      fsun_z(iv) = 0.0;
     }
   } // if !urbpoi
 } // canopy_layer_lai
@@ -302,7 +302,7 @@ template <class ArrayD1>
 ACCELERATED
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
-                       const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const AlbedoVegData& albveg,
+                       const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const PFTDataAlb& alb_pft,
                        double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albd, ArrayD1 ftid, ArrayD1 ftdd,
                        ArrayD1 fabd, ArrayD1 fabd_sun, ArrayD1 fabd_sha, ArrayD1 albi, ArrayD1 ftii, ArrayD1 fabi,
                        ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
@@ -320,7 +320,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
     // Calculate two-stream parameters that are independent of waveband:
     // chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
     const double cosz = std::max(0.001, coszen);
-    double chil = std::min(std::max(albveg.xl, -0.4), 0.6);
+    double chil = std::min(std::max(alb_pft.xl, -0.4), 0.6);
     if (std::abs(chil) <= 0.01) {
       chil = 0.01;
     }
@@ -363,8 +363,8 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
     for (int ib = 0; ib < numrad; ib++) {
 
-      rho[ib] = std::max(albveg.rhol[ib] * wl + albveg.rhos[ib] * ws, mpe);
-      tau[ib] = std::max(albveg.taul[ib] * wl + albveg.taus[ib] * ws, mpe);
+      rho[ib] = std::max(alb_pft.rhol[ib] * wl + alb_pft.rhos[ib] * ws, mpe);
+      tau[ib] = std::max(alb_pft.taul[ib] * wl + alb_pft.taus[ib] * ws, mpe);
 
       // Calculate two-stream parameters omega, betad, and betai.
       // Omega, betad, betai are adjusted for snow. Values for omega*betad
@@ -413,9 +413,9 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
       double s2 = exp(-t1);
 
       // Direct beam
-      double u1 = b - c1 / albgrd[ib];
-      double u2 = b - c1 * albgrd[ib];
-      double u3 = f + c1 * albgrd[ib];
+      double u1 = b - c1 / albgrd(ib);
+      double u2 = b - c1 * albgrd(ib);
+      double u3 = f + c1 * albgrd(ib);
       tmp2 = u1 - avmu * h;
       double tmp3 = u1 + avmu * h;
       double d1 = p1 * tmp2 / s1 - p2 * tmp3 * s1;
@@ -433,22 +433,22 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
       double h5 = -(tmp8 * tmp4 / s1 + tmp9) / d2;
       double h6 = (tmp8 * tmp5 * s1 + tmp9) / d2;
 
-      albd[ib] = h1 / sigma + h2 + h3;
-      ftid[ib] = h4 * s2 / sigma + h5 * s1 + h6 / s1;
-      ftdd[ib] = s2;
-      fabd[ib] = 1.0 - albd[ib] - (1.0 - albgrd[ib]) * ftdd[ib] - (1.0 - albgri[ib]) * ftid[ib];
+      albd(ib) = h1 / sigma + h2 + h3;
+      ftid(ib) = h4 * s2 / sigma + h5 * s1 + h6 / s1;
+      ftdd(ib) = s2;
+      fabd(ib) = 1.0 - albd(ib) - (1.0 - albgrd(ib)) * ftdd(ib) - (1.0 - albgri(ib)) * ftid(ib);
 
       double a1 = h1 / sigma * (1.0 - s2 * s2) / (2.0 * twostext) + h2 * (1.0 - s2 * s1) / (twostext + h) +
                   h3 * (1.0 - s2 / s1) / (twostext - h);
       double a2 = h4 / sigma * (1.0 - s2 * s2) / (2.0 * twostext) + h5 * (1.0 - s2 * s1) / (twostext + h) +
                   h6 * (1.0 - s2 / s1) / (twostext - h);
 
-      fabd_sun[ib] = (1.0 - omega[ib]) * (1.0 - s2 + 1.0 / avmu * (a1 + a2));
-      fabd_sha[ib] = fabd[ib] - fabd_sun[ib];
+      fabd_sun(ib) = (1.0 - omega[ib]) * (1.0 - s2 + 1.0 / avmu * (a1 + a2));
+      fabd_sha(ib) = fabd(ib) - fabd_sun(ib);
 
       // Diffuse
-      u1 = b - c1 / albgri[ib];
-      u2 = b - c1 * albgri[ib];
+      u1 = b - c1 / albgri(ib);
+      u2 = b - c1 * albgri(ib);
       tmp2 = u1 - avmu * h;
       tmp3 = u1 + avmu * h;
       d1 = p1 * tmp2 / s1 - p2 * tmp3 * s1;
@@ -460,15 +460,15 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
       double h9 = tmp4 / (d2 * s1);
       double h10 = (-tmp5 * s1) / d2;
 
-      albi[ib] = h7 + h8;
-      ftii[ib] = h9 * s1 + h10 / s1;
-      fabi[ib] = 1.0 - albi[ib] - (1.0 - albgri[ib]) * ftii[ib];
+      albi(ib) = h7 + h8;
+      ftii(ib) = h9 * s1 + h10 / s1;
+      fabi(ib) = 1.0 - albi(ib) - (1.0 - albgri(ib)) * ftii(ib);
 
       a1 = h7 * (1.0 - s2 * s1) / (twostext + h) + h8 * (1.0 - s2 / s1) / (twostext - h);
       a2 = h9 * (1.0 - s2 * s1) / (twostext + h) + h10 * (1.0 - s2 / s1) / (twostext - h);
 
-      fabi_sun[ib] = (1.0 - omega[ib]) / avmu * (a1 + a2);
-      fabi_sha[ib] = fabi[ib] - fabi_sun[ib];
+      fabi_sun(ib) = (1.0 - omega[ib]) / avmu * (a1 + a2);
+      fabi_sha(ib) = fabi(ib) - fabi_sun(ib);
 
       // Repeat two-stream calculations for each canopy layer to calculate derivatives.
       // tlai_z and tsai_z are the leaf+stem area increment for a layer. Derivatives are
@@ -483,22 +483,22 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
         double laisum;
         if (nlevcan == 1) {
           // sunlit fraction of canopy
-          fsun_z[0] = (1.0 - s2) / t1;
+          fsun_z(0) = (1.0 - s2) / t1;
 
           // absorbed PAR (per unit sun/shade lai+sai)
           laisum = elai + esai;
-          fabd_sun_z[0] = fabd_sun[ib] / (fsun_z[0] * laisum);
-          fabi_sun_z[0] = fabi_sun[ib] / (fsun_z[0] * laisum);
-          fabd_sha_z[0] = fabd_sha[ib] / ((1.0 - fsun_z[0]) * laisum);
-          fabi_sha_z[0] = fabi_sha[ib] / ((1.0 - fsun_z[0]) * laisum);
+          fabd_sun_z(0) = fabd_sun(ib) / (fsun_z(0) * laisum);
+          fabi_sun_z(0) = fabi_sun(ib) / (fsun_z(0) * laisum);
+          fabd_sha_z(0) = fabd_sha(ib) / ((1.0 - fsun_z(0)) * laisum);
+          fabi_sha_z(0) = fabi_sha(ib) / ((1.0 - fsun_z(0)) * laisum);
 
           // leaf to canopy scaling coefficients
           double extkb = twostext;
           vcmaxcintsun = (1.0 - exp(-(extkn + extkb) * elai)) / (extkn + extkb);
           vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn - vcmaxcintsun;
           if (elai > 0.0) {
-            vcmaxcintsun = vcmaxcintsun / (fsun_z[0] * elai);
-            vcmaxcintsha = vcmaxcintsha / ((1.0 - fsun_z[0]) * elai);
+            vcmaxcintsun = vcmaxcintsun / (fsun_z(0) * elai);
+            vcmaxcintsha = vcmaxcintsha / ((1.0 - fsun_z(0)) * elai);
           } else {
             vcmaxcintsun = 0.0;
             vcmaxcintsha = 0.0;
@@ -508,9 +508,9 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
           for (int iv = 0; iv < nrad; iv++) {
             // Cumulative lai+sai at center of layer
             if (iv == 0) {
-              laisum = 0.5 * (tlai_z[iv] + tsai_z[iv]);
+              laisum = 0.5 * (tlai_z(iv) + tsai_z(iv));
             } else {
-              laisum += 0.5 * ((tlai_z[iv - 1] + tsai_z[iv - 1]) + (tlai_z[iv] + tsai_z[iv]));
+              laisum += 0.5 * ((tlai_z(iv - 1) + tsai_z(iv - 1)) + (tlai_z(iv) + tsai_z(iv)));
             }
 
             // Coefficients s1 and s2 depend on cumulative lai+sai. s2 is the sunlit fraction
@@ -518,13 +518,13 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
             s1 = exp(-t1);
             t1 = std::min(twostext * laisum, 40.0);
             s2 = exp(-t1);
-            fsun_z[iv] = s2;
+            fsun_z(iv) = s2;
 
             // Direct beam
             // Coefficients h1-h6 and a1,a2 depend of cumulative lai+sai
-            u1 = b - c1 / albgrd[ib];
-            u2 = b - c1 * albgrd[ib];
-            u3 = f + c1 * albgrd[ib];
+            u1 = b - c1 / albgrd(ib);
+            u2 = b - c1 * albgrd(ib);
+            u3 = f + c1 * albgrd(ib);
             tmp2 = u1 - avmu * h;
             tmp3 = u1 + avmu * h;
             d1 = p1 * tmp2 / s1 - p2 * tmp3 * s1;
@@ -572,22 +572,22 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
             // Flux derivatives
             double d_ftid = -twostext * h4 / sigma * s2 - h * h5 * s1 + h * h6 / s1 + dh5 * s1 + dh6 / s1;
-            double d_fabd = -(dh2 + dh3) + (1.0 - albgrd[ib]) * twostext * s2 - (1.0 - albgri[ib]) * d_ftid;
+            double d_fabd = -(dh2 + dh3) + (1.0 - albgrd(ib)) * twostext * s2 - (1.0 - albgri(ib)) * d_ftid;
             double d_fabd_sun = (1.0 - omega[ib]) * (twostext * s2 + 1.0 / avmu * (da1 + da2));
             double d_fabd_sha = d_fabd - d_fabd_sun;
-            fabd_sun_z[iv] = std::max(d_fabd_sun, 0.0);
-            fabd_sha_z[iv] = std::max(d_fabd_sha, 0.0);
+            fabd_sun_z(iv) = std::max(d_fabd_sun, 0.0);
+            fabd_sha_z(iv) = std::max(d_fabd_sha, 0.0);
 
             // Flux derivatives are APARsun and APARsha per unit (LAI+SAI). Need
             // to normalize derivatives by sunlit or shaded fraction to get
             // APARsun per unit (LAI+SAI)sun and APARsha per unit (LAI+SAI)sha
-            fabd_sun_z[iv] = fabd_sun_z[iv] / fsun_z[iv];
-            fabd_sha_z[iv] = fabd_sha_z[iv] / (1.0 - fsun_z[iv]);
+            fabd_sun_z(iv) = fabd_sun_z(iv) / fsun_z(iv);
+            fabd_sha_z(iv) = fabd_sha_z(iv) / (1.0 - fsun_z(iv));
 
             // Diffuse
             // Coefficients h7-h10 and a1,a2 depend of cumulative lai+sai
-            u1 = b - c1 / albgri[ib];
-            u2 = b - c1 * albgri[ib];
+            u1 = b - c1 / albgri(ib);
+            u2 = b - c1 * albgri(ib);
             tmp2 = u1 - avmu * h;
             tmp3 = u1 + avmu * h;
             d1 = p1 * tmp2 / s1 - p2 * tmp3 * s1;
@@ -627,34 +627,34 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
             // Flux derivatives
             double d_ftii = -h * h9 * s1 + h * h10 / s1 + dh9 * s1 + dh10 / s1;
-            double d_fabi = -(dh7 + dh8) - (1.0 - albgri[ib]) * d_ftii;
+            double d_fabi = -(dh7 + dh8) - (1.0 - albgri(ib)) * d_ftii;
             double d_fabi_sun = (1.0 - omega[ib]) / avmu * (da1 + da2);
             double d_fabi_sha = d_fabi - d_fabi_sun;
-            fabi_sun_z[iv] = std::max(d_fabi_sun, 0.0);
-            fabi_sha_z[iv] = std::max(d_fabi_sha, 0.0);
+            fabi_sun_z(iv) = std::max(d_fabi_sun, 0.0);
+            fabi_sha_z(iv) = std::max(d_fabi_sha, 0.0);
 
             // Flux derivatives are APARsun and APARsha per unit (LAI+SAI). Need
             // to normalize derivatives by sunlit or shaded fraction to get
             // APARsun per unit (LAI+SAI)sun and APARsha per unit (LAI+SAI)sha
-            fabi_sun_z[iv] = fabi_sun_z[iv] / fsun_z[iv];
-            fabi_sha_z[iv] = fabi_sha_z[iv] / (1.0 - fsun_z[iv]);
+            fabi_sun_z(iv) = fabi_sun_z(iv) / fsun_z(iv);
+            fabi_sha_z(iv) = fabi_sha_z(iv) / (1.0 - fsun_z(iv));
           } // for nrad
         }   // if nlevcan > 1
       }     // if ib == 0
     }       // for numrad
   } else if (novegsol(Land, coszen, elai, esai)) {
     for (int ib = 0; ib < numrad; ++ib) {
-      fabd[ib] = 0.0;
-      fabd_sun[ib] = 0.0;
-      fabd_sha[ib] = 0.0;
-      fabi[ib] = 0.0;
-      fabi_sun[ib] = 0.0;
-      fabi_sha[ib] = 0.0;
-      ftdd[ib] = 1.0;
-      ftid[ib] = 0.0;
-      ftii[ib] = 1.0;
-      albd[ib] = albgrd[ib];
-      albi[ib] = albgri[ib];
+      fabd(ib) = 0.0;
+      fabd_sun(ib) = 0.0;
+      fabd_sha(ib) = 0.0;
+      fabi(ib) = 0.0;
+      fabi_sun(ib) = 0.0;
+      fabi_sha(ib) = 0.0;
+      ftdd(ib) = 1.0;
+      ftid(ib) = 0.0;
+      ftii(ib) = 1.0;
+      albd(ib) = albgrd(ib);
+      albi(ib) = albgri(ib);
     }
   }
 } // two_stream_solver
@@ -667,18 +667,18 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
     if (coszen > 0.0) {
       for (int ib = 0; ib < numrad; ib++) {
         if (Land.ltype == istsoil || Land.ltype == istcrop) {
-          double inc = std::max(0.11 - 0.40 * h2osoi_vol[0], 0.0); // soil water correction factor for soil albedo
+          double inc = std::max(0.11 - 0.40 * h2osoi_vol(0), 0.0); // soil water correction factor for soil albedo
           // double soilcol = isoicol;
-          albsod[ib] = std::min(albsat[ib] + inc, albdry[ib]);
-          albsoi[ib] = albsod[ib];
+          albsod(ib) = std::min(albsat(ib) + inc, albdry(ib));
+          albsoi(ib) = albsod(ib);
         } else if (Land.ltype == istice || Land.ltype == istice_mec) {
-          albsod[ib] = albice[ib];
-          albsoi[ib] = albsod[ib];
+          albsod(ib) = albice[ib];
+          albsoi(ib) = albsod[ib];
           // comment out lake logic for now
-          // } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac[0]
+          // } else if (t_grnd > tfrz || (lakepuddling && Land.ltype == istdlak && t_grnd == tfrz && lake_icefrac(0)
           // < 1.0 &&
-          //                              lake_icefrac[1] > 0.0)) { // maybe get rid of lake logic?
-          //   albsod[ib] = 0.05 / (std::max(0.001, coszen) + 0.15);
+          //                              lake_icefrac(1) > 0.0)) { // maybe get rid of lake logic?
+          //   albsod(ib) = 0.05 / (std::max(0.001, coszen) + 0.15);
           //   // This expression is apparently from BATS according to Yongjiu Dai.
           //   // The diffuse albedo should be an average over the whole sky of an angular-dependent direct expression.
           //   // The expression above may have been derived to encompass both (e.g. Henderson-Sellers 1986),
@@ -686,9 +686,9 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           //   // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
           //   // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
           //   if (Land.ltype == istdlak) {
-          //     albsoi[ib] = 0.10;
+          //     albsoi(ib) = 0.10;
           //   } else {
-          //     albsoi[ib] = albsod[ib];
+          //     albsoi(ib) = albsod(ib);
           //   }
 
         } else {
@@ -701,15 +701,15 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
             // Need to reference snow layers here because t_grnd could be over snow or ice
             // but we really want the ice surface temperature with no snow
             double sicefr = 1.0 - exp(-calb * (tfrz - t_grnd) / tfrz);
-            albsod[ib] =
+            albsod(ib) =
                 sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.05 / (std::max(0.001, coszen) + 0.15));
-            albsoi[ib] = sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.10);
+            albsoi(ib) = sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.10);
             // Make sure this is no less than the open water albedo above.
             // Setting alblakwi(:) = alblak(:) reverts the melting albedo to the cold
             // snow-free value.
           } else {
-            albsod[ib] = alblak[ib];
-            albsoi[ib] = albsod[ib];
+            albsod(ib) = alblak[ib];
+            albsoi(ib) = albsod(ib);
           }
         }
       }
