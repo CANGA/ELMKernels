@@ -124,8 +124,8 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
     eflx_sh_tot = eflx_sh_grnd;
 
     // compute sensible heat fluxes individually
-    eflx_sh_snow = -raih * (thm - t_soisno[nlevsno - snl]);
-    eflx_sh_soil = -raih * (thm - t_soisno[nlevsno]);
+    eflx_sh_snow = -raih * (thm - t_soisno(nlevsno - snl));
+    eflx_sh_soil = -raih * (thm - t_soisno(nlevsno));
     eflx_sh_h2osfc = -raih * (thm - t_h2osfc);
 
     // water fluxes from soil

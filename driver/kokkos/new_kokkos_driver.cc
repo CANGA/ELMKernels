@@ -667,6 +667,8 @@ int main(int argc, char **argv) {
     auto qflx_sub_snow = create<ViewD1>("qflx_sub_snow", ncells);
     auto qflx_dew_snow = create<ViewD1>("qflx_dew_snow", ncells);
     auto qflx_dew_grnd = create<ViewD1>("qflx_dew_grnd", ncells);
+    auto eflx_lwrad_out = create<ViewD1>("eflx_lwrad_out", ncells); // these are just placeholders currently
+    auto eflx_lwrad_net = create<ViewD1>("eflx_lwrad_net", ncells); // these are just placeholders currently
 
     // grid data 
     auto dz = create<ViewD2>("dz", ncells, ELM::nlevsno + ELM::nlevgrnd);
@@ -1712,6 +1714,468 @@ int main(int argc, char **argv) {
             qflx_tran_veg(idx));
       }
 
+
+
+
+
+
+
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      // call bareground_fluxes kernels
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      {
+        int fake_frac_veg_nosno = frac_veg_nosno(0);
+      
+        // temporary data to pass between functions
+        double zldis;   // reference height "minus" zero displacement height [m]
+        double displa;  // displacement height [m]
+        double dth;     // diff of virtual temp. between ref. height and surface
+        double dqh;     // diff of humidity between ref. height and surface
+        double obu;     // Monin-Obukhov length (m)
+        double ur;      // wind speed at reference height [m/s]
+        double um;      // wind speed including the stablity effect [m/s]
+        double temp1;   // relation for potential temperature profile
+        double temp2;   // relation for specific humidity profile
+        double temp12m; // relation for potential temperature profile applied at 2-m
+        double temp22m; // relation for specific humidity profile applied at 2-m
+        double ustar;   // friction velocity [m/s]
+      
+        ELM::bareground_fluxes::initialize_flux(
+            Land,
+            frac_veg_nosno(idx),
+            forc_u(idx),
+            forc_v(idx),
+            forc_qbot(idx),
+            forc_thbot(idx),
+            forc_hgt_u_patch(idx),
+            thm(idx),
+            thv(idx),
+            t_grnd(idx),
+            qg(idx),
+            z0mg(idx),
+            dlrad(idx),
+            ulrad(idx),
+            zldis,
+            displa,
+            dth,
+            dqh,
+            obu,
+            ur,
+            um);
+          
+        ELM::bareground_fluxes::stability_iteration(
+            Land,
+            frac_veg_nosno(idx),
+            forc_hgt_t_patch(idx),
+            forc_hgt_u_patch(idx),
+            forc_hgt_q_patch(idx),
+            z0mg(idx),
+            zldis,
+            displa,
+            dth,
+            dqh,
+            ur,
+            forc_qbot(idx),
+            forc_thbot(idx),
+            thv(idx),
+            z0hg(idx),
+            z0qg(idx),
+            obu,
+            um,
+            temp1,
+            temp2,
+            temp12m,
+            temp22m,
+            ustar);
+          
+        ELM::bareground_fluxes::compute_flux(
+            Land,
+            frac_veg_nosno(idx),
+            snl(idx),
+            forc_rho(idx),
+            soilbeta(idx),
+            dqgdT(idx),
+            htvp(idx),
+            t_h2osfc(idx),
+            qg_snow(idx),
+            qg_soil(idx),
+            qg_h2osfc(idx),
+            Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+            forc_pbot(idx),
+            dth,
+            dqh,
+            temp1,
+            temp2,
+            temp12m,
+            temp22m,
+            ustar,
+            forc_qbot(idx),
+            thm(idx),
+            cgrnds(idx),
+            cgrndl(idx),
+            cgrnd(idx),
+            eflx_sh_grnd(idx),
+            eflx_sh_tot(idx),
+            eflx_sh_snow(idx),
+            eflx_sh_soil(idx),
+            eflx_sh_h2osfc(idx),
+            qflx_evap_soi(idx),
+            qflx_evap_tot(idx),
+            qflx_ev_snow(idx),
+            qflx_ev_soil(idx),
+            qflx_ev_h2osfc(idx),
+            t_ref2m(idx),
+            t_ref2m_r(idx),
+            q_ref2m(idx),
+            rh_ref2m(idx),
+            rh_ref2m_r(idx));
+      }
+
+
+
+
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      // call canopy_fluxes kernels
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      {
+      
+        // temporary data to pass between functions
+        double wtg = 0.0;         // heat conductance for ground [m/s]
+        double wtgq = 0.0;        // latent heat conductance for ground [m/s]
+        double wtalq = 0.0;       // normalized latent heat cond. for air and leaf [-]
+        double wtlq0 = 0.0;       // normalized latent heat conductance for leaf [-]
+        double wtaq0 = 0.0;       // normalized latent heat conductance for air [-]
+        double wtl0 = 0.0;        // normalized heat conductance for leaf [-]
+        double wta0 = 0.0;        // normalized heat conductance for air [-]
+        double wtal = 0.0;        // normalized heat conductance for air and leaf [-]
+        double dayl_factor = 0.0; // scalar (0-1) for daylength effect on Vcmax
+        double air = 0.0;         // atmos. radiation temporay set
+        double bir = 0.0;         // atmos. radiation temporay set
+        double cir = 0.0;         // atmos. radiation temporay set
+        double el = 0.0;          // vapor pressure on leaf surface [pa]
+        double qsatl = 0.0;       // leaf specific humidity [kg/kg]
+        double qsatldT = 0.0;     // derivative of "qsatl" on "t_veg"
+        double taf = 0.0;         // air temperature within canopy space [K]
+        double qaf = 0.0;         // humidity of canopy air [kg/kg]
+        double um = 0.0;          // wind speed including the stablity effect [m/s]
+        double ur = 0.0;          // wind speed at reference height [m/s]
+        double dth = 0.0;         // diff of virtual temp. between ref. height and surface
+        double dqh = 0.0;         // diff of humidity between ref. height and surface
+        double obu = 0.0;         // Monin-Obukhov length (m)
+        double zldis = 0.0;       // reference height "minus" zero displacement height [m]
+        double temp1 = 0.0;       // relation for potential temperature profile
+        double temp2 = 0.0;       // relation for specific humidity profile
+        double temp12m = 0.0;     // relation for potential temperature profile applied at 2-m
+        double temp22m = 0.0;     // relation for specific humidity profile applied at 2-m
+        double tlbef = 0.0;       // leaf temperature from previous iteration [K]
+        double delq = 0.0;        // temporary
+        double dt_veg = 0.0;      // change in t_veg, last iteration (Kelvin)
+      
+        ELM::canopy_fluxes::initialize_flux(
+            Land,
+            snl(idx),
+            frac_veg_nosno(idx),
+            frac_sno(idx),
+            forc_hgt_u_patch(idx),
+            thm(idx),
+            thv(idx),
+            max_dayl,
+            dayl,
+            altmax_indx(idx),
+            altmax_lastyear_indx(idx),
+            Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+            Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+            Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+            Kokkos::subview(dz, idx, Kokkos::ALL),
+            Kokkos::subview(rootfr, idx, Kokkos::ALL),
+            psn_pft(idx).tc_stress,
+            Kokkos::subview(sucsat, idx, Kokkos::ALL),
+            Kokkos::subview(watsat, idx, Kokkos::ALL),
+            Kokkos::subview(bsw, idx, Kokkos::ALL),
+            psn_pft(idx).smpso,
+            psn_pft(idx).smpsc,
+            elai(idx),
+            esai(idx),
+            emv(idx),
+            emg(idx),
+            qg(idx),
+            t_grnd(idx),
+            forc_tbot(idx),
+            forc_pbot(idx),
+            forc_lwrad(idx),
+            forc_u(idx),
+            forc_v(idx),
+            forc_qbot(idx),
+            forc_thbot(idx),
+            z0mg(idx),
+            btran(idx),
+            displa(idx),
+            z0mv(idx),
+            z0hv(idx),
+            z0qv(idx),
+            Kokkos::subview(rootr, idx, Kokkos::ALL),
+            Kokkos::subview(eff_porosity, idx, Kokkos::ALL),
+            dayl_factor,
+            air,
+            bir,
+            cir,
+            el,
+            qsatl,
+            qsatldT,
+            taf,
+            qaf,
+            um,
+            ur,
+            obu,
+            zldis,
+            delq,
+            t_veg(idx));
+
+        ELM::canopy_fluxes::stability_iteration(
+            Land,
+            dtime,
+            snl(idx),
+            frac_veg_nosno(idx),
+            frac_sno(idx),
+            forc_hgt_u_patch(idx),
+            forc_hgt_t_patch(idx),
+            forc_hgt_q_patch(idx),
+            fwet(idx),
+            fdry(idx),
+            laisun(idx),
+            laisha(idx),
+            forc_rho(idx),
+            snow_depth(idx),
+            soilbeta(idx),
+            frac_h2osfc(idx),
+            t_h2osfc(idx),
+            sabv(idx),
+            h2ocan(idx),
+            htop(idx),
+            Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+            air,
+            bir,
+            cir,
+            ur,
+            zldis,
+            displa(idx),
+            elai(idx),
+            esai(idx),
+            t_grnd(idx),
+            forc_pbot(idx),
+            forc_qbot(idx),
+            forc_thbot(idx),
+            z0mg(idx),
+            z0mv(idx),
+            z0hv(idx),
+            z0qv(idx),
+            thm(idx),
+            thv(idx),
+            qg(idx),
+            psn_pft(idx),
+            nrad(idx),
+            t10(idx),
+            Kokkos::subview(tlai_z, idx, Kokkos::ALL),
+            vcmaxcintsha(idx),
+            vcmaxcintsun(idx),
+            Kokkos::subview(parsha_z, idx, Kokkos::ALL),
+            Kokkos::subview(parsun_z, idx, Kokkos::ALL),
+            Kokkos::subview(laisha_z, idx, Kokkos::ALL),
+            Kokkos::subview(laisun_z, idx, Kokkos::ALL),
+            forc_pco2(idx),
+            forc_po2(idx),
+            dayl_factor,
+            btran(idx),
+            qflx_tran_veg(idx),
+            qflx_evap_veg(idx),
+            eflx_sh_veg(idx),
+            wtg,
+            wtl0,
+            wta0,
+            wtal,
+            el,
+            qsatl,
+            qsatldT,
+            taf,
+            qaf,
+            um,
+            dth,
+            dqh,
+            obu,
+            temp1,
+            temp2,
+            temp12m,
+            temp22m,
+            tlbef,
+            delq,
+            dt_veg,
+            t_veg(idx),
+            wtgq,
+            wtalq,
+            wtlq0,
+            wtaq0);
+      
+        ELM::canopy_fluxes::compute_flux(
+            Land,
+            dtime,
+            snl(idx),
+            frac_veg_nosno(idx),
+            frac_sno(idx),
+            Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+            frac_h2osfc(idx),
+            t_h2osfc(idx),
+            sabv(idx),
+            qg_snow(idx),
+            qg_soil(idx),
+            qg_h2osfc(idx),
+            dqgdT(idx),
+            htvp(idx),
+            wtg,
+            wtl0,
+            wta0,
+            wtal,
+            air,
+            bir,
+            cir,
+            qsatl,
+            qsatldT,
+            dth,
+            dqh,
+            temp1,
+            temp2,
+            temp12m,
+            temp22m,
+            tlbef,
+            delq,
+            dt_veg,
+            t_veg(idx),
+            t_grnd(idx),
+            forc_pbot(idx),
+            qflx_tran_veg(idx),
+            qflx_evap_veg(idx),
+            eflx_sh_veg(idx),
+            forc_qbot(idx),
+            forc_rho(idx),
+            thm(idx),
+            emv(idx),
+            emg(idx),
+            forc_lwrad(idx),
+            wtgq,
+            wtalq,
+            wtlq0,
+            wtaq0,
+            h2ocan(idx),
+            eflx_sh_grnd(idx),
+            eflx_sh_snow(idx),
+            eflx_sh_soil(idx),
+            eflx_sh_h2osfc(idx),
+            qflx_evap_soi(idx),
+            qflx_ev_snow(idx),
+            qflx_ev_soil(idx),
+            qflx_ev_h2osfc(idx),
+            dlrad(idx),
+            ulrad(idx),
+            cgrnds(idx),
+            cgrndl(idx),
+            cgrnd(idx),
+            t_ref2m(idx),
+            t_ref2m_r(idx),
+            q_ref2m(idx),
+            rh_ref2m(idx),
+            rh_ref2m_r(idx));
+
+      }
+
+
+
+
+
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      // call surface_fluxes kernels
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+      {
+
+        const auto& snotop = ELM::nlevsno-snl(idx);
+        const auto& soitop = ELM::nlevsno;
+        ELM::surface_fluxes::initial_flux_calc(
+            Land.urbpoi,
+            snl(idx),
+            frac_sno_eff(idx),
+            frac_h2osfc(idx),
+            t_h2osfc_bef(idx),
+            tssbef(idx, snotop),
+            tssbef(idx, soitop),
+            t_grnd(idx),
+            cgrnds(idx),
+            cgrndl(idx),
+            eflx_sh_grnd(idx),
+            qflx_evap_soi(idx),
+            qflx_ev_snow(idx),
+            qflx_ev_soil(idx),
+            qflx_ev_h2osfc(idx));
+      
+      
+        ELM::surface_fluxes::update_surface_fluxes(
+            Land.urbpoi,
+            do_capsnow,
+            snl(idx),
+            dtime,
+            t_grnd(idx),
+            htvp(idx),
+            frac_sno_eff(idx),
+            frac_h2osfc(idx),
+            t_h2osfc_bef(idx),
+            sabg_soil(idx),
+            sabg_snow(idx),
+            dlrad(idx),
+            frac_veg_nosno(idx),
+            emg(idx),
+            forc_lwrad(idx),
+            tssbef(idx, snotop),
+            tssbef(idx, soitop),
+            h2osoi_ice(idx, snotop),
+            h2osoi_liq(idx, soitop),
+            eflx_sh_veg(idx),
+            qflx_evap_veg(idx),
+            qflx_evap_soi(idx),
+            eflx_sh_grnd(idx),
+            qflx_ev_snow(idx),
+            qflx_ev_soil(idx),
+            qflx_ev_h2osfc(idx),
+            eflx_soil_grnd(idx),
+            eflx_sh_tot(idx),
+            qflx_evap_tot(idx),
+            eflx_lh_tot(idx),
+            qflx_evap_grnd(idx),
+            qflx_sub_snow(idx),
+            qflx_dew_snow(idx),
+            qflx_dew_grnd(idx),
+            qflx_snwcp_liq(idx),
+            qflx_snwcp_ice(idx));
+
+        ELM::surface_fluxes::lwrad_outgoing(
+            Land.urbpoi,
+            snl(idx),
+            frac_veg_nosno(idx),
+            forc_lwrad(idx),
+            frac_sno_eff(idx),
+            tssbef(idx, snotop),
+            tssbef(idx, soitop),
+            frac_h2osfc(idx),
+            t_h2osfc_bef(idx),
+            t_grnd(idx),
+            ulrad(idx),
+            emg(idx),
+            eflx_lwrad_out(idx),
+            eflx_lwrad_net(idx));
+
+      }
       
 
       for (int i = 0; i < ncells; ++i) {
