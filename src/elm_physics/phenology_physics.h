@@ -11,10 +11,10 @@ namespace ELM::phenology {
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 struct ComputePhenology {
 
-  ComputePhenology(const ArrayD2& mlai, const ArrayD2& msai, const ArrayD2& mhtop, const ArrayD2& mhbot,
-                   const ArrayD1& snow_depth, const ArrayD1& frac_sno, const ArrayI1& vtype, const double& wt1,
-                   const double wt2, const int start_idx, ArrayD1& elai, ArrayD1& esai, ArrayD1& htop, ArrayD1& hbot,
-                   ArrayD1& tlai, ArrayD1& tsai, ArrayI1& frac_veg_nosno_alb);
+  ComputePhenology(const ArrayD2 mlai, const ArrayD2 msai, const ArrayD2 mhtop, const ArrayD2 mhbot,
+                   const ArrayD1 snow_depth, const ArrayD1 frac_sno, const ArrayI1 vtype, const double wt1,
+                   const double wt2, const int start_idx, ArrayD1 elai, ArrayD1 esai, ArrayD1 htop, ArrayD1 hbot,
+                   ArrayD1 tlai, ArrayD1 tsai, ArrayI1 frac_veg_nosno_alb);
 
   ACCELERATED
   void operator()(const int i) const;

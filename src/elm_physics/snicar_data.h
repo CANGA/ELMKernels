@@ -8,7 +8,9 @@
 #include <array>
 #include <string>
 #include <map>
+#include <vector>
 
+#include "snow_snicar.h"
 #include "kokkos_includes.hh"
 
 namespace ELM::snicar_utils {
@@ -22,6 +24,7 @@ void read_and_fill_array(const Comm_type& comm, const std::string& filename, con
 
 namespace ELM {
 
+template <typename ArrayD1, typename ArrayD2, typename ArrayD3>
 struct SnicarData {
 
   // arrays to store snicar parameters
@@ -61,6 +64,7 @@ struct SnicarData {
 };
 
 // read all fields in SnicarData
+template <typename h_ArrayD1, typename h_ArrayD2, typename h_ArrayD3>
 void read_snicar_data(
   std::map<std::string, h_ArrayD1>& snicar_views_d1,
   std::map<std::string, h_ArrayD2>& snicar_views_d2,

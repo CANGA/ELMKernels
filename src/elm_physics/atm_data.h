@@ -141,10 +141,12 @@ public:
   constexpr std::pair<double, double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
 
   // read forcing data from a file
+  template <typename h_ArrayD2>
   constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
                                   const size_t ntimes);
 
   // read forcing data from a file - update file info and call main read_atm method
+  template <typename h_ArrayD2>
   constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
                                   const size_t ntimes, const Utils::Date& new_file_start_time,
                                   const std::string& new_filename);
@@ -163,10 +165,12 @@ private:
 
   // return a tuple of references to the passed in parameters based on the ordering of the file array
   // requires data(ntimes, nlon * nlat) and file_data(*,*,*) in {ntimes,nlon,nlat}
-  template <typename T> constexpr auto order_inputs(const Comm_type& comm, T& t, T& x, T& y) const;
+  template <typename T>
+  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x, T& y) const;
 
   // requires data(ntimes, ncells) and file_data(ntimes, ncells)or(ncells, ntimes)
-  template <typename T> constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
+  template <typename T>
+  constexpr auto order_inputs(const Comm_type& comm, T& t, T& x) const;
 
   std::string varname_, fname_; // variable name and full file name including path - "src/xyz/file.nc"
   Utils::Date file_start_time_; // date object containing file dataset start time

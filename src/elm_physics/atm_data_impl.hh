@@ -256,6 +256,7 @@ order_inputs(const Comm_type& comm, T& t, T& x) const
 
 // read forcing data from a file
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+template <typename h_ArrayD2>
 constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::
 read_atm_forcing(h_ArrayD2 h_data, 
                  const Utils::DomainDecomposition<2>& dd,
@@ -328,6 +329,7 @@ read_atm_forcing(h_ArrayD2 h_data,
 
 // read forcing data from a file - update file info and call main read_atm method
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
+template <typename h_ArrayD2>
 constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::
 read_atm_forcing(h_ArrayD2 h_data, 
                  const Utils::DomainDecomposition<2>& dd,

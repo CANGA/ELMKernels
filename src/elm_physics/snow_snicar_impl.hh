@@ -191,9 +191,9 @@ namespace ELM::snow_snicar {
 //   }
 // } // SnowAge_grain
 
-template <class ArrayI1, class ArrayD1, class ArrayD2>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATED
-void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
+void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
                    ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, double& mu_not, ArrayD1 flx_slrd_lcl,
@@ -285,24 +285,24 @@ void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& cosze
   }
 }
 
-template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename SubviewD1, typename SubviewD2>
 ACCELERATED
-void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
+void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
                              const double& coszen, const double& h2osno, const ArrayI1 snw_rds_lcl,
-                             const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1,
-                             const ArrayD1& asm_prm_oc1, const ArrayD1& ext_cff_mss_oc1, const ArrayD1& ss_alb_oc2,
-                             const ArrayD1& asm_prm_oc2, const ArrayD1& ext_cff_mss_oc2, const ArrayD1& ss_alb_dst1,
-                             const ArrayD1& asm_prm_dst1, const ArrayD1& ext_cff_mss_dst1, const ArrayD1& ss_alb_dst2,
-                             const ArrayD1& asm_prm_dst2, const ArrayD1& ext_cff_mss_dst2, const ArrayD1& ss_alb_dst3,
-                             const ArrayD1& asm_prm_dst3, const ArrayD1& ext_cff_mss_dst3, const ArrayD1& ss_alb_dst4,
-                             const ArrayD1& asm_prm_dst4, const ArrayD1& ext_cff_mss_dst4,
-                             const ArrayD2& ss_alb_snw_drc, const ArrayD2& asm_prm_snw_drc,
-                             const ArrayD2& ext_cff_mss_snw_drc, const ArrayD2& ss_alb_snw_dfs,
-                             const ArrayD2& asm_prm_snw_dfs, const ArrayD2& ext_cff_mss_snw_dfs,
-                             const ArrayD2& ss_alb_bc1, const ArrayD2& asm_prm_bc1, const ArrayD2& ext_cff_mss_bc1,
-                             const ArrayD2& ss_alb_bc2, const ArrayD2& asm_prm_bc2, const ArrayD2& ext_cff_mss_bc2,
-                             const ArrayD3& bcenh, const ArrayD2 mss_cnc_aer_in, ArrayD2 g_star, ArrayD2 omega_star,
-                             ArrayD2 tau_star) {
+                             const SubviewD1 h2osoi_ice_lcl, const SubviewD1 h2osoi_liq_lcl, const ArrayD1 ss_alb_oc1,
+                             const ArrayD1 asm_prm_oc1, const ArrayD1 ext_cff_mss_oc1, const ArrayD1 ss_alb_oc2,
+                             const ArrayD1 asm_prm_oc2, const ArrayD1 ext_cff_mss_oc2, const ArrayD1 ss_alb_dst1,
+                             const ArrayD1 asm_prm_dst1, const ArrayD1 ext_cff_mss_dst1, const ArrayD1 ss_alb_dst2,
+                             const ArrayD1 asm_prm_dst2, const ArrayD1 ext_cff_mss_dst2, const ArrayD1 ss_alb_dst3,
+                             const ArrayD1 asm_prm_dst3, const ArrayD1 ext_cff_mss_dst3, const ArrayD1 ss_alb_dst4,
+                             const ArrayD1 asm_prm_dst4, const ArrayD1 ext_cff_mss_dst4,
+                             const ArrayD2 ss_alb_snw_drc, const ArrayD2 asm_prm_snw_drc,
+                             const ArrayD2 ext_cff_mss_snw_drc, const ArrayD2 ss_alb_snw_dfs,
+                             const ArrayD2 asm_prm_snw_dfs, const ArrayD2 ext_cff_mss_snw_dfs,
+                             const ArrayD2 ss_alb_bc1, const ArrayD2 asm_prm_bc1, const ArrayD2 ext_cff_mss_bc1,
+                             const ArrayD2 ss_alb_bc2, const ArrayD2 asm_prm_bc2, const ArrayD2 ext_cff_mss_bc2,
+                             const ArrayD3 bcenh, const SubviewD2 mss_cnc_aer_in, SubviewD2 g_star, SubviewD2 omega_star,
+                             SubviewD2 tau_star) {
 
   // Define local Mie parameters based on snow grain size and aerosol species,
   //  retrieved from a lookup table.
@@ -484,9 +484,9 @@ void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int
   }     // end !urbpoi
 }
 
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATED
-void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
+void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
                                     const ArrayD1 albsoi, const ArrayD2 g_star, const ArrayD2 omega_star,
@@ -830,7 +830,7 @@ void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, co
   }     // end !urbpoi
 }
 
-template <class ArrayI1, class ArrayD1, class ArrayD2>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATED
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,

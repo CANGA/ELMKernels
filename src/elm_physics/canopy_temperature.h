@@ -55,7 +55,6 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[in]  Land                         [LandType] struct containing information about landtype
 \param[in]  frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 \param[in]  frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
-\param[in]  smpmin                       [double] restriction for min of soil potential (mm)
 \param[in]  h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
 \param[in]  h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
 \param[in]  dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
@@ -74,7 +73,7 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 */
 template <class ArrayD1>
 ACCELERATED
-void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const double& smpmin,
+void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
                     const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
                     const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
@@ -154,11 +153,11 @@ potential temp and wind speed.
 \param[out] z0m                          [double] momentum roughness length (m)
 \param[out] displa                       [double] displacement height (m)
 */
-template <class ArrayD1>
+template <typename ArrayD1, typename SubviewD1>
 ACCELERATED
 void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
                        const double& forc_q, const double& elai, const double& esai, const double& htop,
-                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
+                       const SubviewD1 displar, const SubviewD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
                        double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
                        double& z0hv, double& z0qv, double& thv, double& z0m, double& displa);
 

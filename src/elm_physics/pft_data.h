@@ -80,10 +80,6 @@ struct PFTData {
   // default destructor
   ~PFTData(){};
 
-  // Read pft time-invariant file data into member variables
-  void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
-                     const Comm_type& comm, const std::string& fname_pft);
-
   // get struct of photosynthesis variables for pft
   ACCELERATED
   PFTDataPSN get_pft_psn(const int pft) const;
@@ -92,6 +88,11 @@ struct PFTData {
   ACCELERATED
   PFTDataAlb get_pft_alb(const int pft) const;
 };
+
+// Read pft time-invariant file data into member variables
+template <typename h_ArrayD1>
+void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
+                   const Comm_type& comm, const std::string& fname_pft);
 
 } // namespace ELM
 

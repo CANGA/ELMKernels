@@ -104,9 +104,9 @@ water (mm H2O) \param[in]snl                                 [int] number of sno
 \param[out]flx_slrd_lcl[numrad_snw]           [double] direct beam incident irradiance [W/m2]
 \param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
 */
-template <class ArrayI1, class ArrayD1, class ArrayD2>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATED
-void init_timestep(const int& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
+void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
                    ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, double& mu_not, ArrayD1 flx_slrd_lcl,
@@ -161,24 +161,24 @@ asymmetry paramater of snow+aerosol layer \param[out]omega_star[numrad_snw][nlev
 Delta-Eddington) SSA of snow+aerosol layer [frc] \param[out]tau_star[numrad_snw][nlevsno] [double] transformed (i.e.
 Delta-Eddington) optical depth of snow+aerosol layer [-]
 */
-template <class ArrayI1, class ArrayD1, class ArrayD2, class ArrayD3>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename SubviewD1, typename SubviewD2>
 ACCELERATED
-void snow_aerosol_mie_params(const int& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
+void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
                              const double& coszen, const double& h2osno, const ArrayI1 snw_rds_lcl,
-                             const ArrayD1 h2osoi_ice_lcl, const ArrayD1 h2osoi_liq_lcl, const ArrayD1& ss_alb_oc1,
-                             const ArrayD1& asm_prm_oc1, const ArrayD1& ext_cff_mss_oc1, const ArrayD1& ss_alb_oc2,
-                             const ArrayD1& asm_prm_oc2, const ArrayD1& ext_cff_mss_oc2, const ArrayD1& ss_alb_dst1,
-                             const ArrayD1& asm_prm_dst1, const ArrayD1& ext_cff_mss_dst1, const ArrayD1& ss_alb_dst2,
-                             const ArrayD1& asm_prm_dst2, const ArrayD1& ext_cff_mss_dst2, const ArrayD1& ss_alb_dst3,
-                             const ArrayD1& asm_prm_dst3, const ArrayD1& ext_cff_mss_dst3, const ArrayD1& ss_alb_dst4,
-                             const ArrayD1& asm_prm_dst4, const ArrayD1& ext_cff_mss_dst4,
-                             const ArrayD2& ss_alb_snw_drc, const ArrayD2& asm_prm_snw_drc,
-                             const ArrayD2& ext_cff_mss_snw_drc, const ArrayD2& ss_alb_snw_dfs,
-                             const ArrayD2& asm_prm_snw_dfs, const ArrayD2& ext_cff_mss_snw_dfs,
-                             const ArrayD2& ss_alb_bc1, const ArrayD2& asm_prm_bc1, const ArrayD2& ext_cff_mss_bc1,
-                             const ArrayD2& ss_alb_bc2, const ArrayD2& asm_prm_bc2, const ArrayD2& ext_cff_mss_bc2,
-                             const ArrayD3& bcenh, const ArrayD2 mss_cnc_aer_in, ArrayD2 g_star, ArrayD2 omega_star,
-                             ArrayD2 tau_star);
+                             const SubviewD1 h2osoi_ice_lcl, const SubviewD1 h2osoi_liq_lcl, const ArrayD1 ss_alb_oc1,
+                             const ArrayD1 asm_prm_oc1, const ArrayD1 ext_cff_mss_oc1, const ArrayD1 ss_alb_oc2,
+                             const ArrayD1 asm_prm_oc2, const ArrayD1 ext_cff_mss_oc2, const ArrayD1 ss_alb_dst1,
+                             const ArrayD1 asm_prm_dst1, const ArrayD1 ext_cff_mss_dst1, const ArrayD1 ss_alb_dst2,
+                             const ArrayD1 asm_prm_dst2, const ArrayD1 ext_cff_mss_dst2, const ArrayD1 ss_alb_dst3,
+                             const ArrayD1 asm_prm_dst3, const ArrayD1 ext_cff_mss_dst3, const ArrayD1 ss_alb_dst4,
+                             const ArrayD1 asm_prm_dst4, const ArrayD1 ext_cff_mss_dst4,
+                             const ArrayD2 ss_alb_snw_drc, const ArrayD2 asm_prm_snw_drc,
+                             const ArrayD2 ext_cff_mss_snw_drc, const ArrayD2 ss_alb_snw_dfs,
+                             const ArrayD2 asm_prm_snw_dfs, const ArrayD2 ext_cff_mss_snw_dfs,
+                             const ArrayD2 ss_alb_bc1, const ArrayD2 asm_prm_bc1, const ArrayD2 ext_cff_mss_bc1,
+                             const ArrayD2 ss_alb_bc2, const ArrayD2 asm_prm_bc2, const ArrayD2 ext_cff_mss_bc2,
+                             const ArrayD3 bcenh, const SubviewD2 mss_cnc_aer_in, SubviewD2 g_star, SubviewD2 omega_star,
+                             SubviewD2 tau_star);
 
 /*! Snow radiative transfer solver
 
@@ -199,9 +199,9 @@ snow+aerosol layer [frc] \param[in]tau_star[numrad_snw][nlevsno]       [double] 
 optical depth of snow+aerosol layer [-] \param[out]albout_lcl[numrad_snw]             [double] snow albedo by band [frc]
 \param[out]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack [frc]
 */
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATED
-void snow_radiative_transfer_solver(const int& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
+void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
                                     const ArrayD1 albsoi, const ArrayD2 g_star, const ArrayD2 omega_star,
@@ -220,7 +220,7 @@ snow effective radius [m^-6] \param[in]albsoi[numrad]                     [doubl
 \param[out]flx_abs[nlevsno+1][numrad]        [double] absorbed flux in each layer per unit flux incident, averaged into
 2 bands  [frc]
 */
-template <class ArrayI1, class ArrayD1, class ArrayD2>
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATED
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,

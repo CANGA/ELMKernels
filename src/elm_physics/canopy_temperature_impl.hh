@@ -39,7 +39,7 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
 
 template <class ArrayD1>
 ACCELERATED
-void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const double& smpmin,
+void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
                     const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
                     const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
@@ -65,7 +65,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
         fac = std::min(1.0, wx / watsat[0]);
         fac = std::max(fac, 0.01);
         psit = -sucsat[0] * pow(fac, (-bsw[0]));
-        psit = std::max(smpmin, psit);
+        psit = std::max(ELM::smpmin, psit);
         // modify qred to account for h2osfc
         hr = exp(psit / roverg / t_soisno[nlevsno]);
         qred = (1.0 - frac_sno - frac_h2osfc) * hr + frac_sno + frac_h2osfc;
@@ -176,11 +176,11 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
   }
 } // humidities
 
-template <class ArrayD1>
+template <typename ArrayD1, typename SubviewD1>
 ACCELERATED
 void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
                        const double& forc_q, const double& elai, const double& esai, const double& htop,
-                       const ArrayD1 displar, const ArrayD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
+                       const SubviewD1 displar, const SubviewD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
                        double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
                        double& z0hv, double& z0qv, double& thv, double& z0m, double& displa) {
   if (!Land.lakpoi) {

@@ -1,11 +1,26 @@
 
 #pragma once
 
+template <typename ArrayD2>
+ELM::AerosolMasses<ArrayD2>::AerosolMasses(const int ncells)
+    : mss_bcphi("mss_bcphi", ncells, ELM::nlevsno), mss_bcpho("mss_bcpho", ncells, ELM::nlevsno),
+      mss_dst1("mss_dst1", ncells, ELM::nlevsno), mss_dst2("mss_dst2", ncells, ELM::nlevsno),
+      mss_dst3("mss_dst3", ncells, ELM::nlevsno), mss_dst4("mss_dst4", ncells, ELM::nlevsno)
+    {}
+
+template <typename ArrayD2>
+ELM::AerosolConcentrations<ArrayD2>::AerosolConcentrations(const int ncells)
+    : mss_cnc_bcphi("mss_cnc_bcphi", ncells, ELM::nlevsno),
+      mss_cnc_bcpho("mss_cnc_bcpho", ncells, ELM::nlevsno),
+      mss_cnc_dst1("mss_cnc_dst1", ncells, ELM::nlevsno), mss_cnc_dst2("mss_cnc_dst2", ncells, ELM::nlevsno),
+      mss_cnc_dst3("mss_cnc_dst3", ncells, ELM::nlevsno), mss_cnc_dst4("mss_cnc_dst4", ncells, ELM::nlevsno)
+    {}
+
 namespace ELM::aerosols {
 
-template <typename T, typename ArrayI1>
-ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl,
-                                                               AerosolMasses& aerosol_masses)
+template <typename T, typename ArrayI1, typename ArrayD2>
+ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl,
+                                                               AerosolMasses<ArrayD2>& aerosol_masses)
     : snl_(snl), aerosol_masses_(aerosol_masses) {
   const auto& [forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4] = aerosol_forc;
   forc_bcphi_ = forc_bcphi;
@@ -16,9 +31,9 @@ ComputeAerosolDeposition<T, ArrayI1>::ComputeAerosolDeposition(const T& aerosol_
   forc_dst4_ = forc_dst4;
 }
 
-template <typename T, typename ArrayI1>
+template <typename T, typename ArrayI1, typename ArrayD2>
 ACCELERATED
-void ComputeAerosolDeposition<T, ArrayI1>::operator()(const int i) const {
+void ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::operator()(const int i) const {
   if (snl_(i) > 0) {
     const int j = ELM::nlevsno - snl_(i);
     aerosol_masses_.mss_bcphi(i, j) += forc_bcphi_;
@@ -33,8 +48,8 @@ void ComputeAerosolDeposition<T, ArrayI1>::operator()(const int i) const {
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::ComputeAerosolConcenAndMass(
     const bool& do_capsnow, const double& dtime, const ArrayI1& snl, const ArrayD2& h2osoi_liq,
-    const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds, const ArrayD1& qflx_snwcp_ice, AerosolMasses& aerosol_masses,
-    AerosolConcentrations& aerosol_concentrations)
+    const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds, const ArrayD1& qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
+    AerosolConcentrations<ArrayD2>& aerosol_concentrations)
     : do_capsnow_{do_capsnow}, dtime_{dtime}, snl_{snl}, h2osoi_liq_{h2osoi_liq}, h2osoi_ice_{h2osoi_ice},
       snw_rds_{snw_rds}, qflx_snwcp_ice_{qflx_snwcp_ice}, aerosol_masses_{aerosol_masses},
       aerosol_concentrations_{aerosol_concentrations} {}
@@ -75,11 +90,23 @@ void ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::operator()(const in
 }
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1 snl,
+                           const AerosolDataManager<ArrayD1>& aerosol_data,
+                           AerosolMasses<ArrayD2>& aerosol_masses)
+{
+  auto aerosol_forc_flux = aerosol_data.get_aerosol_source(model_time, dtime);
+  ComputeAerosolDeposition aerosol_source_object(aerosol_forc_flux, snl, aerosol_masses);
+  
+  invoke_kernel(aerosol_source_object, std::make_tuple(snl.extent(0)), "ComputeAerosolDeposition");
+
+}
+
+template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime, const ArrayI1& snl,
                                     const ArrayD2& h2osoi_liq, const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds,
-                                    const ArrayD1& qflx_snwcp_ice, AerosolMasses& aerosol_masses,
-                                    AerosolConcentrations& aerosol_concentrations) {
-
+                                    const ArrayD1& qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
+                                    AerosolConcentrations<ArrayD2>& aerosol_concentrations)
+{
   ComputeAerosolConcenAndMass aerosol_c_mass_object(do_capsnow, dtime, snl, h2osoi_liq, h2osoi_ice, snw_rds,
                                                     qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
 

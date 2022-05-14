@@ -13,10 +13,10 @@ add_library (elm_physics
 day_length.cc
 incident_shortwave.cc
 #atm_physics.cc
-snicar_data.cc
+#snicar_data.cc
 monthly_data.cc
 aerosol_data.cc
-phenology_data.cc
+#phenology_data.cc
 #surface_fluxes.cc
 #soil_texture_hydraulic_model.cc
 )

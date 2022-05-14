@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include "monthly_data.h"
+#include "read_input.hh"
+
 #include "array.hh"
 #include "date_time.hh"
 #include "utils.hh"
@@ -8,9 +11,30 @@
 #include <string>
 #include <utility>
 
+#include <array>
+#include <cmath>
+#include <functional>
+#include <tuple>
+
 #include "kokkos_includes.hh"
+#include "invoke_kernel.hh"
+
+
+
+
+//#include "array.hh"
+//#include "date_time.hh"
+//#include "utils.hh"
+//
+//#include <string>
+//#include <utility>
+//
+//#include "kokkos_includes.hh"
 
 /*
+setup to read 12 months of aerosol forcing
+it is currently the drivers responsibility 
+to keep track of time 
 ELM MAPPING:
 IDX   VARNAME
 1    "BCDEPWET"
@@ -60,17 +84,9 @@ mss_cnc_dst4 - dst4_1 & dst4_2
 */
 namespace ELM {
 
-struct AerosolMasses {
-  ArrayD2 mss_bcphi, mss_bcpho, mss_dst1, mss_dst2, mss_dst3, mss_dst4;
-  AerosolMasses(const int ncells);
-};
-
-struct AerosolConcentrations {
-  ArrayD2 mss_cnc_bcphi, mss_cnc_bcpho, mss_cnc_dst1, mss_cnc_dst2, mss_cnc_dst3, mss_cnc_dst4;
-  AerosolConcentrations(const int ncells);
-};
 
 // class to manage aerosol data
+template <typename ArrayD1>
 class AerosolDataManager {
 
 public:
@@ -81,25 +97,30 @@ public:
 
   AerosolDataManager();
 
-  // read 12 months of values at closest point to lon_d and lat_d
-  void read_data(std::map<std::string, ArrayD1::HostMirror>& aerosol_views, const Comm_type& comm,
-    const std::string& filename,const double& lon_d, const double& lat_d);
+  // interpolate and accumulate aerosol forcing data to get aerosol sources for this timestep
+  auto get_aerosol_source(const Utils::Date& model_time, const double& dtime) const;
+  
+};
+
+
+// read 12 months of values at closest point to lon_d and lat_d
+template <typename h_ArrayD1>
+void read_aerosol_data(std::map<std::string, h_ArrayD1>& aerosol_views, const Comm_type& comm,
+  const std::string& filename, const double& lon_d, const double& lat_d);
+
+
+namespace aerosol_utils {
 
   // get closest indices to [lon, lat]
   std::pair<size_t, size_t> get_nearest_indices(const Comm_type& comm, const std::string& filename, const double& lon_d,
                                                 const double& lat_d);
 
-  // interpolate and accumulate aerosol forcing data to get aerosol sources for this timestep
-  auto get_aerosol_source(const Utils::Date& model_time, const double& dtime);
-
-  // convenience function to invoke aerosol deposition source functor
-  void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1 snl,
-                             AerosolMasses& aerosol_masses);
-
-private:
   // read a slice from file and reshape into 1D array
+  template <typename h_ArrayD1>
   void read_variable_slice(const Comm_type& comm, const std::string& filename, const std::string& varname,
                            const size_t& lon_idx, const size_t& lat_idx, h_ArrayD1 arr);
-};
+}
 
 } // namespace ELM
+
+#include "aerosol_data_impl.hh"

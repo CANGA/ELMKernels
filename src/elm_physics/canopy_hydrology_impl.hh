@@ -163,10 +163,10 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
     temp_snow_depth = snow_depth;
     // save initial snow content
     for (int j = 0; j < nlevsno - snl; j++) {
-      swe_old[j] = 0.0;
+      swe_old(j) = 0.0;
     }
     for (int j = nlevsno - snl; j < nlevsno; j++) {
-      swe_old[j] = h2osoi_liq[j] + h2osoi_ice[j];
+      swe_old(j) = h2osoi_liq(j) + h2osoi_ice(j);
     }
     if (do_capsnow) {
       dz_snowf = 0.0;
@@ -286,20 +286,20 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
     if (snl == 0 && qflx_snow_grnd > 0.0 && (frac_sno * snow_depth) >= 0.01) {
       newnode = 1;
       snl = 1;
-      dz[nlevsno - 1] = snow_depth; // meter
-      z[nlevsno - 1] = -0.5 * dz[nlevsno - 1];
-      zi[nlevsno - 1] = -dz[nlevsno - 1];
-      t_soisno[nlevsno - 1] = std::min(tfrz, forc_t); // K
-      h2osoi_ice[nlevsno - 1] = h2osno;               // kg/m2
-      h2osoi_liq[nlevsno - 1] = 0.0;                  // kg/m2
-      frac_iceold[nlevsno - 1] = 1.0;
-      snw_rds[nlevsno - 1] = snw_rds_min;
+      dz(nlevsno - 1) = snow_depth; // meter
+      z(nlevsno - 1) = -0.5 * dz(nlevsno - 1);
+      zi(nlevsno - 1) = -dz(nlevsno - 1);
+      t_soisno(nlevsno - 1) = std::min(tfrz, forc_t); // K
+      h2osoi_ice(nlevsno - 1) = h2osno;               // kg/m2
+      h2osoi_liq(nlevsno - 1) = 0.0;                  // kg/m2
+      frac_iceold(nlevsno - 1) = 1.0;
+      snw_rds(nlevsno - 1) = snw_rds_min;
     }
     // The change of ice partial density of surface node due to precipitation.
     // Only ice part of snowfall is added here, the liquid part will be added later.
     if (snl > 0 && newnode == 0) {
-      h2osoi_ice[nlevsno - snl] = h2osoi_ice[nlevsno - snl] + newsnow;
-      dz[nlevsno - snl] = dz[nlevsno - snl] + dz_snowf;
+      h2osoi_ice(nlevsno - snl) = h2osoi_ice(nlevsno - snl) + newsnow;
+      dz(nlevsno - snl) = dz(nlevsno - snl) + dz_snowf;
     }
   }
 } // snow_init
@@ -332,7 +332,7 @@ void fraction_h2osfc(const LandType& Land, const double& micro_sigma, const doub
         frac_h2osfc = 0.5 * (1.0 + erf(d / (sigma * sqrt(2.0))));
       } else {
         frac_h2osfc = 0.0;
-        h2osoi_liq[nlevsno] = h2osoi_liq[nlevsno] + h2osfc;
+        h2osoi_liq(nlevsno) = h2osoi_liq(nlevsno) + h2osfc;
         h2osfc = 0.0;
       }
       // adjust fh2o, fsno when sum is greater than zero

@@ -6,13 +6,13 @@ namespace ELM::phenology {
 
 // functor to calculate phenology parameters for time = model_time
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::ComputePhenology(const ArrayD2& mlai, const ArrayD2& msai,
-                                                              const ArrayD2& mhtop, const ArrayD2& mhbot,
-                                                              const ArrayD1& snow_depth, const ArrayD1& frac_sno,
-                                                              const ArrayI1& vtype, const double& wt1, const double wt2,
-                                                              const int start_idx, ArrayD1& elai, ArrayD1& esai,
-                                                              ArrayD1& htop, ArrayD1& hbot, ArrayD1& tlai,
-                                                              ArrayD1& tsai, ArrayI1& frac_veg_nosno_alb)
+ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::ComputePhenology(const ArrayD2 mlai, const ArrayD2 msai,
+                                                              const ArrayD2 mhtop, const ArrayD2 mhbot,
+                                                              const ArrayD1 snow_depth, const ArrayD1 frac_sno,
+                                                              const ArrayI1 vtype, const double wt1, const double wt2,
+                                                              const int start_idx, ArrayD1 elai, ArrayD1 esai,
+                                                              ArrayD1 htop, ArrayD1 hbot, ArrayD1 tlai,
+                                                              ArrayD1 tsai, ArrayI1 frac_veg_nosno_alb)
     : mlai_(mlai), msai_(msai), mhtop_(mhtop), mhbot_(mhbot), snow_depth_(snow_depth), frac_sno_(frac_sno),
       vtype_(vtype), wt1_(wt1), wt2_(wt2), start_idx_(start_idx), elai_(elai), esai_(esai), htop_(htop), hbot_(hbot),
       tlai_(tlai), tsai_(tsai), frac_veg_nosno_alb_(frac_veg_nosno_alb) {}
