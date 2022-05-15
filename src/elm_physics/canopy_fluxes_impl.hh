@@ -45,7 +45,7 @@ namespace ELM::canopy_fluxes {
 //    // in this case, we'll irrigate by 0 for the given number of time steps
 //
 //    // get_prev_date(yr, mon, day, time)  ! get time as of beginning of time step --- figure out!! -- need variable
-//    'time' if (irrigated[Land.vtype] == 1.0 && elai > irrig_min_lai && btran < irrig_btran_thresh) {
+//    'time' if (irrigated(Land.vtype) == 1.0 && elai > irrig_min_lai && btran < irrig_btran_thresh) {
 //      //see if it's the right time of day to start irrigating:
 //      int local_time = (((time + round(londeg/degpsec)) % isecspday) + isecspday) % isecspday;
 //      int seconds_since_irrig_start_time = (((local_time - irrig_start_time) % isecspday) + isecspday) % isecspday;
@@ -70,18 +70,18 @@ namespace ELM::canopy_fluxes {
 //    if (check_for_irrig && !frozen_soil) {
 //      for (int i = 0; i < nlevgrnd; i++) {
 //        // if level i was frozen, then we don't look at any levels below L
-//        if (t_soisno[nlevsno+i] <= tfrz) {
+//        if (t_soisno(nlevsno+i) <= ELM::constants::TFRZ) {
 //          frozen_soil = true;
 //        } else if (rootfr > 0.0) {
 //          // determine soil water deficit in this layer:
 //          // Calculate vol_liq_so - i.e., vol_liq at which smp_node = smpso - by inverting the above equations
 //          // for the root resistance factors
-//          vol_liq_so = eff_porosity[i] * pow((-smpso/sucsat[i]), (-1.0/bsw[i]));
+//          vol_liq_so = eff_porosity(i) * pow((-smpso/sucsat(i)), (-1.0/bsw(i)));
 //          // Translate vol_liq_so and eff_porosity into h2osoi_liq_so and h2osoi_liq_sat and calculate deficit
-//          h2osoi_liq_so = vol_liq_so * denh2o * dz[i];
-//          h2osoi_liq_sat = eff_porosity[i] * denh2o * dz[i];
+//          h2osoi_liq_so = vol_liq_so * denh2o * dz(i);
+//          h2osoi_liq_sat = eff_porosity(i) * denh2o * dz(i);
 //          deficit = std::max((h2osoi_liq_so + irrig_factor * (h2osoi_liq_sat - h2osoi_liq_so)) -
-//          h2osoi_liq[nlevsno+i], 0.0);
+//          h2osoi_liq(nlevsno+i), 0.0);
 //          // Add deficit to irrig_rate, converting units from mm to mm/sec
 //          irrig_rate += deficit / (dtime*irrig_nsteps_per_day);
 //        }
@@ -91,7 +91,7 @@ namespace ELM::canopy_fluxes {
 //} // Irrigation
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
                      const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
                      const double& dayl, const int& altmax_indx, const int& altmax_lastyear_indx,
@@ -118,13 +118,13 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
     if (frac_veg_nosno == 0) {
       btran = 0.0;
       t_veg = forc_t;
-      double cf_bare = forc_pbot / (ELM_RGAS * 0.001 * thm) * 1.e06; // heat transfer coefficient from bare ground [-]
+      double cf_bare = forc_pbot / (ELM::constants::RGAS * 0.001 * thm) * 1.e06; // heat transfer coefficient from bare ground [-]
       double rssun = 1.0 / 1.e15 * cf_bare;
       double rssha = 1.0 / 1.e15 * cf_bare;
       // lbl_rsc_h2o = 0.0;
       for (int i = 0; i < nlevgrnd; i++) {
-        rootr[i] = 0.0;
-        // rresis[i] = 0.0;
+        rootr(i) = 0.0;
+        // rresis(i) = 0.0;
       }
     } else {
 
@@ -154,8 +154,8 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
 
       // Net absorbed longwave radiation by canopy and ground
       air = emv * (1.0 + (1.0 - emv) * (1.0 - emg)) * forc_lwrad;
-      bir = -(2.0 - emv * (1.0 - emg)) * emv * sb;
-      cir = emv * emg * sb;
+      bir = -(2.0 - emv * (1.0 - emg)) * emv * ELM::constants::STEBOL;
+      cir = emv * emg * ELM::constants::STEBOL;
 
       // Saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       double deldT; // derivative of "el" on "t_veg" [pa/K]
@@ -180,7 +180,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
 } // initialize_flux()
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void stability_iteration(
     const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
     const double& forc_hgt_u_patch, const double& forc_hgt_t_patch, const double& forc_hgt_q_patch, const double& fwet,
@@ -364,8 +364,8 @@ void stability_iteration(
       }
 
       // fractionate ground emitted longwave
-      lw_grnd = (frac_sno * pow(t_soisno[nlevsno - snl], 4.0) +
-                 (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno[nlevsno], 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
+      lw_grnd = (frac_sno * pow(t_soisno(nlevsno - snl), 4.0) +
+                 (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
       dt_veg = (sabv + air + bir * pow(t_veg, 4.0) + cir * lw_grnd - efsh - efe) /
                (-4.0 * bir * pow(t_veg, 3.0) + dc1 * wtga + dc2 * wtgaq * qsatldT);
       t_veg = tlbef + dt_veg;
@@ -446,7 +446,7 @@ void stability_iteration(
 } // stability_iteration()
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
                   const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,
                   const double& sabv, const double& qg_snow, const double& qg_soil, const double& qg_h2osfc,
@@ -475,8 +475,8 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     double e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT;
 
     // Energy balance check in canopy
-    double lw_grnd = (frac_sno * pow(t_soisno[nlevsno - snl], 4.0) +
-                      (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno[nlevsno], 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
+    double lw_grnd = (frac_sno * pow(t_soisno(nlevsno - snl), 4.0) +
+                      (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
     double err = sabv + air + bir * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) + cir * lw_grnd - eflx_sh_veg -
                  hvap * qflx_evap_veg;
 
@@ -484,9 +484,9 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     double delt = wtal * t_grnd - wtl0 * t_veg - wta0 * thm;
     eflx_sh_grnd = cpair * forc_rho * wtg * delt;
     // compute individual sensible heat fluxes
-    double delt_snow = wtal * t_soisno[nlevsno - snl] - wtl0 * t_veg - wta0 * thm;
+    double delt_snow = wtal * t_soisno(nlevsno - snl) - wtl0 * t_veg - wta0 * thm;
     eflx_sh_snow = cpair * forc_rho * wtg * delt_snow;
-    double delt_soil = wtal * t_soisno[nlevsno] - wtl0 * t_veg - wta0 * thm;
+    double delt_soil = wtal * t_soisno(nlevsno) - wtl0 * t_veg - wta0 * thm;
     eflx_sh_soil = cpair * forc_rho * wtg * delt_soil;
     double delt_h2osfc = wtal * t_h2osfc - wtl0 * t_veg - wta0 * thm;
     eflx_sh_h2osfc = cpair * forc_rho * wtg * delt_h2osfc;
@@ -511,11 +511,11 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     rh_ref2m_r = rh_ref2m;
 
     // Downward longwave radiation below the canopy
-    dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * sb * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);
+    dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * ELM::constants::STEBOL * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);
     // Upward longwave radiation above the canopy
     ulrad = ((1.0 - emg) * (1.0 - emv) * (1.0 - emv) * forc_lwrad +
-             emv * (1.0 + (1.0 - emg) * (1.0 - emv)) * sb * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) +
-             emg * (1.0 - emv) * sb * lw_grnd);
+             emv * (1.0 + (1.0 - emg) * (1.0 - emv)) * ELM::constants::STEBOL * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) +
+             emg * (1.0 - emv) * ELM::constants::STEBOL * lw_grnd);
     // Derivative of soil energy flux with respect to soil temperature
     cgrnds += cpair * forc_rho * wtg * wtal;
     cgrndl += forc_rho * wtgq * wtalq * dqgdT;

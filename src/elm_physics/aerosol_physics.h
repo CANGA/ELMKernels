@@ -16,13 +16,13 @@ namespace ELM {
 template <typename ArrayD2>
 struct AerosolMasses {
   ArrayD2 mss_bcphi, mss_bcpho, mss_dst1, mss_dst2, mss_dst3, mss_dst4;
-  AerosolMasses(const int ncells);
+  AerosolMasses(const size_t& ncells);
 };
 
 template <typename ArrayD2>
 struct AerosolConcentrations {
   ArrayD2 mss_cnc_bcphi, mss_cnc_bcpho, mss_cnc_dst1, mss_cnc_dst2, mss_cnc_dst3, mss_cnc_dst4;
-  AerosolConcentrations(const int ncells);
+  AerosolConcentrations(const size_t& ncells);
 };
 
 }
@@ -34,9 +34,9 @@ namespace ELM::aerosols {
 // should be run after inter-layer aerosol fluxes are accounted for in
 // SnowHydrologyMod.F90::SnowWater()
 template <typename T, typename ArrayI1, typename ArrayD2> struct ComputeAerosolDeposition {
-  ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1& snl, AerosolMasses<ArrayD2>& aerosol_masses);
+  ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1 snl, AerosolMasses<ArrayD2>& aerosol_masses);
 
-  ACCELERATED
+  ACCELERATE
   void operator()(const int i) const;
 
 private:
@@ -49,12 +49,12 @@ private:
 // this is from AerosolMod.F90
 // gets run in ELM directly after hydrology is called
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputeAerosolConcenAndMass {
-  ComputeAerosolConcenAndMass(const bool& do_capsnow, const double& dtime, const ArrayI1& snl,
-                              const ArrayD2& h2osoi_liq, const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds,
-                              const ArrayD1& qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
+  ComputeAerosolConcenAndMass(const bool& do_capsnow, const double& dtime, const ArrayI1 snl,
+                              const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
+                              const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                               AerosolConcentrations<ArrayD2>& aerosol_concentrations);
 
-  ACCELERATED
+  ACCELERATE
   void operator()(const int i) const;
 
 private:
@@ -77,9 +77,9 @@ void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, c
 
 // convenience function to invoke aerosol mass and concen functor
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime, const ArrayI1& snl,
-                                    const ArrayD2& h2osoi_liq, const ArrayD2& h2osoi_ice, const ArrayD2& snw_rds,
-                                    const ArrayD1& qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
+void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime, const ArrayI1 snl,
+                                    const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
+                                    const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                                     AerosolConcentrations<ArrayD2>& aerosol_concentrations);
 
 } // namespace ELM::aerosols

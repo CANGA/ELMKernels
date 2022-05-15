@@ -32,7 +32,7 @@ OUTPUTS:
 soilbeta [double] factor that reduces ground evaporation
 */
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
                           const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
                           double& soilbeta);
@@ -47,7 +47,7 @@ void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const do
      !   Sci = v/Di, Di is diffusivity of gas i
      !   v : kinetic viscosity
 */
-ACCELERATED
+ACCELERATE
 double getlblcef(const double& rho, const double& temp);
 
 } // namespace ELM::surface_resistance

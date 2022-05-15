@@ -8,9 +8,9 @@ namespace ELM::init_soil_state {
 // set cold-start initial values for select members of col_es
 //-----------------------------------------------------------------------
 template <typename ArrayD1>
-ACCELERATED
-void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, double& t_grnd) {
-
+ACCELERATE
+void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, double& t_grnd)
+{
   // Snow level temperatures - all land points
   if (snl > 0) {
     for (int i = ELM::nlevsno - snl; i < ELM::nlevsno; ++i) {
@@ -57,9 +57,9 @@ void init_soil_temp(const LandType& Land, const int& snl, ArrayD1 t_soisno, doub
 // NOTE: h2osoi_vol, h2osoi_liq and h2osoi_ice only have valid values over soil
 // and urban pervious road (other urban columns have zero soil water)
 template <typename ArrayD1>
-ACCELERATED
-void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& watsat, const ArrayD1& t_soisno,
-                        const ArrayD1& dz, ArrayD1 h2osoi_vol, ArrayD1 h2osoi_liq, ArrayD1 h2osoi_ice)
+ACCELERATE
+void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 watsat, const ArrayD1 t_soisno,
+                        const ArrayD1 dz, ArrayD1 h2osoi_vol, ArrayD1 h2osoi_liq, ArrayD1 h2osoi_ice)
 
 {
   for (int i = 0; i < ELM::nlevgrnd; ++i) {
@@ -121,7 +121,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& wat
     for (int i = 0; i < nlevs; ++i) {
       const int snw_offset = i + ELM::nlevsno;
       h2osoi_vol(i) = std::min(h2osoi_vol(i), watsat(i));
-      if (t_soisno(snw_offset) <= ELM::tfrz) {
+      if (t_soisno(snw_offset) <= ELM::constants::TFRZ) {
         h2osoi_ice(snw_offset) = dz(snw_offset) * ELM::denice * h2osoi_vol(i);
         h2osoi_liq(snw_offset) = 0.0;
       } else {
@@ -163,7 +163,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& wat
   //--------------------------------------------
   for (int i = 0; i < ELM::nlevgrnd; ++i) {
     const int snw_offset = i + ELM::nlevsno;
-    if (t_soisno(snw_offset) <= ELM::tfrz) {
+    if (t_soisno(snw_offset) <= ELM::constants::TFRZ) {
       h2osoi_ice(snw_offset) = dz(snw_offset) * denice * h2osoi_vol(i);
       h2osoi_liq(snw_offset) = 0.0;
     } else {
@@ -176,10 +176,11 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1& wat
 }
 
 template <typename ArrayD1>
-ACCELERATED
-void init_vegrootfr(const int& vtype, const double& roota_par, const double& rootb_par, const ArrayD1& zi,
-                    ArrayD1 rootfr) {
-  // (computing from surface, d is depth in meter): Y = 1 -1/2 (exp(-ad)+exp(-bd) under the constraint that
+ACCELERATE
+void init_vegrootfr(const int& vtype, const double& roota_par, const double& rootb_par,
+                    const ArrayD1 zi,ArrayD1 rootfr)
+{
+  // (computing from surface, d is depth in meters: Y = 1 -1/2 (exp(-ad)+exp(-bd) under the constraint that
   // Y(d =0.1m) = 1-beta^(10 cm) and Y(d=d_obs)=0.99 with beta & d_obs given in Zeng et al. (1998).
 
   for (int i = ELM::nlevsoi; i < ELM::nlevgrnd; ++i) {

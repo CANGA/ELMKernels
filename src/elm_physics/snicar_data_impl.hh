@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 template <typename ArrayD1, typename ArrayD2, typename ArrayD3>
 ELM::SnicarData<ArrayD1, ArrayD2, ArrayD3>::
 SnicarData()
@@ -43,10 +42,9 @@ void ELM::read_snicar_data(
   std::map<std::string, h_ArrayD1>& snicar_views_d1,
   std::map<std::string, h_ArrayD2>& snicar_views_d2,
   std::map<std::string, h_ArrayD3>& snicar_views_d3,
-  const Comm_type& comm, const std::string& filename) {
-
+  const Comm_type& comm, const std::string& filename)
+{
   using namespace ELM::snicar_utils;
-
   // read 1D arrays of size snow_snicar::numrad_snw
   {
     std::array<size_t, 1> start = {0};
@@ -118,9 +116,11 @@ void ELM::read_snicar_data(
 
 
 template <typename ArrayT, typename T, size_t D>
-inline void ELM::snicar_utils::read_and_fill_array(const Comm_type& comm, const std::string& filename,
-                                                   const std::string& varname, Array<T, D>& arr_for_read,
-                                                   ArrayT& arrout) {
+inline void ELM::snicar_utils::
+read_and_fill_array(const Comm_type& comm, const std::string& filename,
+                    const std::string& varname, Array<T, D>& arr_for_read,
+                    ArrayT& arrout)
+{
   std::array<size_t, D> start{0};
   std::array<size_t, D> count;
   for (int i = 0; i != D; ++i)

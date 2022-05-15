@@ -5,9 +5,10 @@
 namespace ELM::canopy_temperature {
 
 template <class ArrayD1>
-ACCELERATED
-void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno, double& t_h2osfc_bef,
-                     ArrayD1 tssbef) {
+ACCELERATE
+void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno,
+                     double& t_h2osfc_bef, ArrayD1 tssbef)
+{
 
   if (!Land.lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
@@ -23,9 +24,11 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
 } // old_ground_temp
 
 template <class ArrayD1>
-ACCELERATED
-void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
-                 const double& t_h2osfc, const ArrayD1 t_soisno, double& t_grnd) {
+ACCELERATE
+void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff,
+                 const double& frac_h2osfc, const double& t_h2osfc,
+                 const ArrayD1 t_soisno, double& t_grnd)
+{
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
   if (!Land.lakpoi) {
     if (snl > 0) {
@@ -38,12 +41,13 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
 } // ground_temp
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
                     const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
                     const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
-                    double& hr, double& soilalpha, double& soilalpha_u) {
+                    double& hr, double& soilalpha, double& soilalpha_u)
+{
   qred = 1.0; // soil surface relative humidity
 
   if (!Land.lakpoi) {
@@ -74,7 +78,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 
         // Pervious road depends on water in total soil column
         for (int j = 0; j < nlevbed; j++) {
-          if (t_soisno(j + nlevsno) >= tfrz) {
+          if (t_soisno(j + nlevsno) >= ELM::constants::TFRZ) {
             vol_ice = std::min(watsat(j), h2osoi_ice(j + nlevsno) / (dz(j + nlevsno) * denice));
             eff_porosity = watsat(j) - vol_ice;
             vol_liq = std::min(eff_porosity, h2osoi_liq(j + nlevsno) / (dz(j + nlevsno) * denh2o));
@@ -108,21 +112,22 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 } // calc_soilalpha
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
                    const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
-                   double& soilbeta) {
-
+                   double& soilbeta)
+{
   surface_resistance::calc_soilevap_stress(Land, frac_sno, frac_h2osfc, watsat, watfc, h2osoi_liq, h2osoi_ice, dz,
                                            soilbeta);
 } // calc_soilbeta()
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
                 const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,
                 const double& frac_h2osfc, const double& qred, const double& hr, const ArrayD1 t_soisno,
-                double& qg_snow, double& qg_soil, double& qg, double& qg_h2osfc, double& dqgdT) {
+                double& qg_snow, double& qg_soil, double& qg, double& qg_h2osfc, double& dqgdT)
+{
   if (!Land.lakpoi) {
 
     double eg;      // water vapor pressure at temperature T [pa]
@@ -177,12 +182,13 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
 } // humidities
 
 template <typename ArrayD1, typename SubviewD1>
-ACCELERATED
+ACCELERATE
 void ground_properties(const LandType& Land, const int& snl, const double& frac_sno, const double& forc_th,
                        const double& forc_q, const double& elai, const double& esai, const double& htop,
                        const SubviewD1 displar, const SubviewD1 z0mr, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice,
                        double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
-                       double& z0hv, double& z0qv, double& thv, double& z0m, double& displa) {
+                       double& z0hv, double& z0qv, double& thv, double& z0m, double& displa)
+{
   if (!Land.lakpoi) {
     double avmuir; // ir inverse optical depth per unit leaf area
 
@@ -229,12 +235,13 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
   }
 } // ground_properties
 
-ACCELERATED
+ACCELERATE
 void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno,
-                        const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q, const double& z0m,
-                        const double& z0mg, const double& z_0_town, const double& z_d_town, const double& forc_t,
-                        const double& displa, double& forc_hgt_u_patch, double& forc_hgt_t_patch,
-                        double& forc_hgt_q_patch, double& thm) {
+                    const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q, const double& z0m,
+                    const double& z0mg, const double& z_0_town, const double& z_d_town, const double& forc_t,
+                    const double& displa, double& forc_hgt_u_patch, double& forc_hgt_t_patch,
+                    double& forc_hgt_q_patch, double& thm)
+{
   // Make forcing height a pft-level quantity that is the atmospheric forcing
   // height plus each pft's z0m+displa
   if (veg_active) {
@@ -266,10 +273,11 @@ void forcing_height(const LandType& Land, const bool& veg_active, const int& fra
   thm = forc_t + 0.0098 * forc_hgt_t_patch;
 } // forcing_height
 
-ACCELERATED
+ACCELERATE
 void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_sh_tot_u, double& eflx_sh_tot_r,
-                            double& eflx_lh_tot, double& eflx_lh_tot_u, double& eflx_lh_tot_r, double& eflx_sh_veg,
-                            double& qflx_evap_tot, double& qflx_evap_veg, double& qflx_tran_veg) {
+                        double& eflx_lh_tot, double& eflx_lh_tot_u, double& eflx_lh_tot_r, double& eflx_sh_veg,
+                        double& qflx_evap_tot, double& qflx_evap_veg, double& qflx_tran_veg)
+{
   // Initial set (needed for history tape fields)
   eflx_sh_tot = 0.0;
   if (Land.urbpoi) {

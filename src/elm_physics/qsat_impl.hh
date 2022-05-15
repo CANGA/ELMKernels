@@ -3,7 +3,7 @@
 
 namespace ELM::qsat {
 
-ACCELERATED
+ACCELERATE
 void qsat(const double& T, const double& p,
            double& es, double& esdT, double& qs, double& qsdT)
 {
@@ -49,7 +49,7 @@ void qsat(const double& T, const double& p,
   static constexpr double d8 = 0.498070196e-16;
   double td, vp, vp1, vp2, T_limit;
   
-  T_limit = T - tfrz;
+  T_limit = T - ELM::constants::TFRZ;
 
   if (T_limit > 100.0) {
     T_limit = 100.0;

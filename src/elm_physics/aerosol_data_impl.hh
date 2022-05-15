@@ -1,7 +1,6 @@
 
 #pragma once
 
-
 namespace ELM::aerosol_utils {
 
 template <typename h_ArrayD1>
@@ -23,13 +22,15 @@ void read_variable_slice(const Comm_type& comm, const std::string& filename,
 
 template <typename ArrayD1>
 ELM::AerosolDataManager<ArrayD1>::AerosolDataManager()
-    : bcdep("bcdep", 12), bcpho("bcpho", 12), bcphi("bcphi", 12), dst1_1("dst1_1", 12), dst1_2("dst1_2", 12),
-      dst2_1("dst2_1", 12), dst2_2("dst2_2", 12), dst3_1("dst3_1", 12), dst3_2("dst3_2", 12),
+    : bcdep("bcdep", 12), bcpho("bcpho", 12), bcphi("bcphi", 12),
+      dst1_1("dst1_1", 12), dst1_2("dst1_2", 12), dst2_1("dst2_1", 12),
+      dst2_2("dst2_2", 12), dst3_1("dst3_1", 12), dst3_2("dst3_2", 12),
       dst4_1("dst4_1", 12), dst4_2("dst4_2", 12)
     {}
 
 template <typename ArrayD1>
-auto ELM::AerosolDataManager<ArrayD1>::get_aerosol_source(const Utils::Date& model_time, const double& dtime) const
+auto ELM::AerosolDataManager<ArrayD1>::
+get_aerosol_source(const Utils::Date& model_time, const double& dtime) const
 {
   auto [wt1, wt2] = monthly_data::monthly_data_weights(model_time);
   auto [m1, m2] = monthly_data::month_indices(model_time);
@@ -44,8 +45,8 @@ auto ELM::AerosolDataManager<ArrayD1>::get_aerosol_source(const Utils::Date& mod
 
 template <typename h_ArrayD1>
 void ELM::read_aerosol_data(std::map<std::string, h_ArrayD1>& aerosol_views, 
-  const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d) {
-
+  const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d)
+{
   const auto [lon_idx, lat_idx] = aerosol_utils::get_nearest_indices(comm, filename, lon_d, lat_d);
 
   for (auto& [varname, arr] : aerosol_views) {

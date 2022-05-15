@@ -116,7 +116,7 @@ namespace ELM::snow_snicar {
 //       // dr_wet = 1E6_r8*(dtime*(C1_liq_Brun89 + C2_liq_Brun89*(frc_liq**(3))) /
 //       (4*SHR_CONST_PI*(snw_rds(c_idx,i)/1E6)**(2)))
 //       // simplified, units of microns:
-//       dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * pow(frc_liq, 3.0)) / (4.0 * ELM_PI * pow(snw_rds, 2.0)));
+//       dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * pow(frc_liq, 3.0)) / (4.0 * ELM::constants::ELM_PI * pow(snw_rds, 2.0)));
 //       dr += dr_wet;
 //
 //       //
@@ -192,7 +192,7 @@ namespace ELM::snow_snicar {
 // } // SnowAge_grain
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
@@ -270,7 +270,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       // (This has to be within the bnd loop because mu_not is adjusted in rare cases)
       if (flg_slr_in == 1) {
         for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
-          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * pi); // this corresponds to incident irradiance of 1.0
+          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * ELM::constants::ELM_PI); // this corresponds to incident irradiance of 1.0
           flx_slri_lcl(bnd_idx) = 0.0;
         }
       } else if (flg_slr_in == 2) {
@@ -286,7 +286,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
 }
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename SubviewD1, typename SubviewD2>
-ACCELERATED
+ACCELERATE
 void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
                              const double& coszen, const double& h2osno, const ArrayI1 snw_rds_lcl,
                              const SubviewD1 h2osoi_ice_lcl, const SubviewD1 h2osoi_liq_lcl, const ArrayD1 ss_alb_oc1,
@@ -485,7 +485,7 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
@@ -815,7 +815,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
         // Energy conservation check:
         // Incident direct+diffuse radiation equals (absorbed+bulk_transmitted+bulk_reflected)
         const double energy_sum =
-            (mu_not * pi * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
+            (mu_not * ELM::constants::ELM_PI * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
         if (std::abs(energy_sum) > 0.00001) {
           throw std::runtime_error("ELM ERROR: SNICAR Energy conservation error.");
         }
@@ -831,7 +831,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 }
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,
                                   const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,

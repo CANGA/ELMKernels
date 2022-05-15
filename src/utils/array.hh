@@ -125,10 +125,10 @@ public:
   // shape
   int extent(int d) const {
     assert(d < 1 && "Array::extent requested for dimension greater than is stored.");
-    return shape()[d];
+    return dimension()[d];
   }
 
-  std::array<int, 1> shape() const { return {len_}; }
+  std::array<int, 1> dimension() const { return {len_}; }
 
   // get variable name
   std::string label() const { return {name_}; }
@@ -202,10 +202,10 @@ public:
   // shape
   int extent(size_t d) const {
     assert(d < 2 && "Array::extent requested for dimension greater than is stored.");
-    return shape()[d];
+    return dimension()[d];
   }
 
-  std::array<int, 2> shape() const { return {M_, N_}; }
+  std::array<int, 2> dimension() const { return {M_, N_}; }
 
   // get variable name
   std::string label() const { return {name_}; }
@@ -287,10 +287,10 @@ public:
   // shape
   int extent(int d) const {
     assert(d < 3 && "Array::extent requested for dimension greater than is stored.");
-    return shape()[d];
+    return dimension()[d];
   }
 
-  std::array<int, 3> shape() const { return {M_, N_, P_}; }
+  std::array<int, 3> dimension() const { return {M_, N_, P_}; }
 
   // get variable name
   std::string label() const { return {name_}; }
@@ -360,10 +360,10 @@ public:
   // shape
   int extent(int d) const {
     assert(d < 4 && "Array::extent requested for dimension greater than is stored.");
-    return shape()[d];
+    return dimension()[d];
   }
 
-  std::array<int, 4> shape() const { return {M_, N_, P_, Q_}; }
+  std::array<int, 4> dimension() const { return {M_, N_, P_, Q_}; }
 
 protected:
   int M_, N_, P_, Q_;

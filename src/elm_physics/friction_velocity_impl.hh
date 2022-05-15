@@ -8,40 +8,39 @@ Intercomparison of bulk aerodynamic algorithms for the computation
 of sea surface fluxes using TOGA CORE and TAO data. J. Climate,
 Vol. 11, 2628-2644.
 */
-
-#include "friction_velocity.h"
-#include "elm_constants.h"
-#include <algorithm>
-#include <cmath>
+#pragma once
 
 namespace ELM::friction_velocity {
 
 /* StabilityFunc1() - used in friction_velocity_wind() */
-ACCELERATED
-double StabilityFunc1(double zeta) {
+ACCELERATE
+double StabilityFunc1(const double& zeta)
+{
   double chik, chik2, retval;
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   chik = std::sqrt(chik2);
-  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELM::ELM_PI * 0.5;
+  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELM::constants::ELM_PI * 0.5;
   return retval;
 }
 
 /* StabilityFunc2() - used in friction_velocity_temp() and friction_velocity_humidity() */
-ACCELERATED
-double StabilityFunc2(double zeta) {
+ACCELERATE
+double StabilityFunc2(const double& zeta)
+{
   double chik2, retval;
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   retval = 2.0 * std::log((1.0 + chik2) * 0.5);
   return retval;
 }
 
-ACCELERATED
+ACCELERATE
 void monin_obukhov_length(const double& ur, const double& thv, const double& dthv, const double& zldis,
-                              const double& z0m, double& um, double& obu) {
+                          const double& z0m, double& um, double& obu)
+{
   double rib;  // bulk Richardson number
   double zeta; // dimensionless height used in Monin-Obukhov theory
   // double ustar = 0.06; // friction velocity [m/s] -- in CLM, but not used
-  const double wc = 0.5; // convective velocity [m/s]
+  static constexpr double wc = 0.5; // convective velocity [m/s]
 
   // wind speed
   if (dthv >= 0.0) {
@@ -64,10 +63,11 @@ void monin_obukhov_length(const double& ur, const double& thv, const double& dth
   obu = zldis / zeta;
 }
 
-ACCELERATED
+ACCELERATE
 void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa, const double& um,
-                                const double& obu, const double& z0m, double& ustar) {
-  const double zetam = 1.574;                     // transition point of flux-gradient relation (wind profile)
+                                const double& obu, const double& z0m, double& ustar)
+{
+  static constexpr double zetam = 1.574;          // transition point of flux-gradient relation (wind profile)
   const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
 
@@ -84,10 +84,11 @@ void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa
   }
 }
 
-ACCELERATED
+ACCELERATE
 void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa, const double& obu,
-                                const double& z0h, double& temp1) {
-  const double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
+                                const double& z0h, double& temp1)
+{
+  static constexpr double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
   const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
 
@@ -103,11 +104,12 @@ void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa
   }
 }
 
-ACCELERATED
+ACCELERATE
 void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& forc_hgt_t_patch,
                                     const double& displa, const double& obu, const double& z0h, const double& z0q,
-                                    const double& temp1, double& temp2) {
-  const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+                                    const double& temp1, double& temp2)
+{
+  static constexpr double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
 
   if (forc_hgt_q_patch == forc_hgt_t_patch && z0q == z0h) {
     temp2 = temp1;
@@ -127,8 +129,9 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
   }
 }
 
-ACCELERATED
-void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m) {
+ACCELERATE
+void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m)
+{
   const double zldis = 2.0 + z0h;
   const double zeta = zldis / obu;
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
@@ -145,9 +148,10 @@ void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp
   }
 }
 
-ACCELERATED
+ACCELERATE
 void friction_velocity_humidity2m(const double& obu, const double& z0h, const double& z0q, const double& temp12m,
-                                      double& temp22m) {
+                                      double& temp22m)
+{
   if (z0q == z0h) {
     temp22m = temp12m;
   } else {

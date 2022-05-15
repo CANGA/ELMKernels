@@ -16,7 +16,7 @@ struct ComputePhenology {
                    const double wt2, const int start_idx, ArrayD1 elai, ArrayD1 esai, ArrayD1 htop, ArrayD1 hbot,
                    ArrayD1 tlai, ArrayD1 tsai, ArrayI1 frac_veg_nosno_alb);
 
-  ACCELERATED
+  ACCELERATE
   void operator()(const int i) const;
 
 private:

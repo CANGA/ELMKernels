@@ -98,8 +98,7 @@ public:
   AerosolDataManager();
 
   // interpolate and accumulate aerosol forcing data to get aerosol sources for this timestep
-  auto get_aerosol_source(const Utils::Date& model_time, const double& dtime) const;
-  
+  auto get_aerosol_source(const Utils::Date& model_time, const double& dtime) const; 
 };
 
 

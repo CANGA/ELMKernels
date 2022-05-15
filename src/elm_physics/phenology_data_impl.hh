@@ -6,17 +6,23 @@ namespace ELM {
 
 // this is derived from SatellitePhenologyMod.F90
 template <typename ArrayD2>
-PhenologyDataManager<ArrayD2>::PhenologyDataManager(const Utils::DomainDecomposition<2>& dd, const size_t ncells, const size_t npfts)
-    : mlai("mlai", 3, ncells), msai("msai", 3, ncells), mhtop("mhtop", 3, ncells), mhbot("mhbot", 3, ncells),
+PhenologyDataManager<ArrayD2>::
+PhenologyDataManager(const Utils::DomainDecomposition<2>& dd,
+                     const size_t& ncells, const size_t& npfts)
+    : mlai("mlai", 3, ncells), msai("msai", 3, ncells),
+      mhtop("mhtop", 3, ncells), mhbot("mhbot", 3, ncells),
       dd_{dd}, ncells_{ncells}, npfts_{npfts}, initialized_{false},
-      need_new_data_{false} {}
+      need_new_data_{false}
+    {}
 
 // read data from file
 // either all three months of data, or new single month
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
-bool PhenologyDataManager<ArrayD2>::read_data(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
-                                          const Utils::Date& model_time, const ArrayI1& vtype) {
+bool PhenologyDataManager<ArrayD2>::
+read_data(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
+          const Utils::Date& model_time, const ArrayI1 vtype)
+{
   if (!initialized_) {
     read_initial(phenology_views, filename, model_time, vtype);
     initialized_ = true;
@@ -35,10 +41,12 @@ bool PhenologyDataManager<ArrayD2>::read_data(std::map<std::string, h_ArrayD2>& 
 
 template <typename ArrayD2>
 template <typename ArrayI1, typename ArrayD1>
-void PhenologyDataManager<ArrayD2>::get_data(const Utils::Date& model_time, const ArrayD1& snow_depth,
-                                         const ArrayD1& frac_sno, const ArrayI1& vtype, ArrayD1& elai, ArrayD1& esai,
-                                         ArrayD1& htop, ArrayD1& hbot, ArrayD1& tlai, ArrayD1& tsai,
-                                         ArrayI1& frac_veg_nosno_alb) {
+void PhenologyDataManager<ArrayD2>::
+get_data(const Utils::Date& model_time, const ArrayD1 snow_depth,
+         const ArrayD1 frac_sno, const ArrayI1 vtype, ArrayD1 elai, ArrayD1 esai,
+         ArrayD1 htop, ArrayD1 hbot, ArrayD1 tlai, ArrayD1 tsai,
+         ArrayI1 frac_veg_nosno_alb)
+{
   auto [wt1, wt2] = monthly_data::monthly_data_weights(model_time);
   auto m1 = monthly_data::first_month_idx(model_time);
   int start_idx = 0;
@@ -58,9 +66,11 @@ void PhenologyDataManager<ArrayD2>::get_data(const Utils::Date& model_time, cons
 // by combining nlat & nlon and filtering by pft type (vtype) - only one pft per grid cell currently
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
-void PhenologyDataManager<ArrayD2>::read_month(const std::string& filename,
-                                           const std::string& varname, const size_t month, const ArrayI1& vtype,
-                                           const int arr_idx, h_ArrayD2& arr) {
+void PhenologyDataManager<ArrayD2>::
+read_month(const std::string& filename, const std::string& varname,
+           const size_t& month, const ArrayI1 vtype,
+           const int& arr_idx, h_ArrayD2 arr)
+{
   // allocate one month of data
   Array<double, 4> arr_for_read(1, npfts_, dd_.n_local[0], dd_.n_local[1]);
   std::array<size_t, 4> start = {month, 0, dd_.start[0], dd_.start[1]};
@@ -77,8 +87,11 @@ void PhenologyDataManager<ArrayD2>::read_month(const std::string& filename,
 
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
-void PhenologyDataManager<ArrayD2>::read_initial(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
-                                             const Utils::Date& model_time, const ArrayI1& vtype) {
+void PhenologyDataManager<ArrayD2>::
+read_initial(std::map<std::string, h_ArrayD2>& phenology_views,
+             const std::string& filename, const Utils::Date& model_time,
+             const ArrayI1 vtype)
+{
   const auto [m1, m2, m3] = monthly_data::triple_month_indices(model_time);
   std::map<int, int> months = {{0, m1}, {1, m2}, {2, m3}};
   for (auto [idx, mon] : months) {
@@ -91,7 +104,7 @@ void PhenologyDataManager<ArrayD2>::read_initial(std::map<std::string, h_ArrayD2
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
 void PhenologyDataManager<ArrayD2>::read_new_month(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
-                                               const Utils::Date& model_time, const ArrayI1& vtype) {
+                                               const Utils::Date& model_time, const ArrayI1 vtype) {
 
   auto advance_month_idx = [] (h_ArrayD2& arr) {
     for (int mon = 0; mon < arr.extent(0) - 1; ++mon) {

@@ -3,13 +3,14 @@
 
 namespace ELM::bareground_fluxes {
 
-ACCELERATED
-void initialize_flux(const LandType& Land, const int& frac_veg_nosno, const double& forc_u, const double& forc_v,
-                         const double& forc_q, const double& forc_th, const double& forc_hgt_u_patch, const double& thm,
-                         const double& thv, const double& t_grnd, const double& qg, const double& z0mg, double& dlrad,
-                         double& ulrad, double& zldis, double& displa, double& dth, double& dqh, double& obu,
-                         double& ur, double& um) {
-
+ACCELERATE
+void initialize_flux(const LandType& Land, const int& frac_veg_nosno, const double& forc_u,
+                     const double& forc_v, const double& forc_q, const double& forc_th,
+                     const double& forc_hgt_u_patch, const double& thm, const double& thv,
+                     const double& t_grnd, const double& qg, const double& z0mg, double& dlrad,
+                     double& ulrad, double& zldis, double& displa, double& dth, double& dqh, double& obu,
+                     double& ur, double& um)
+{
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno == 0) {
     ur = std::max(1.0, std::sqrt(forc_u * forc_u + forc_v * forc_v));
     dth = thm - t_grnd;
@@ -25,22 +26,23 @@ void initialize_flux(const LandType& Land, const int& frac_veg_nosno, const doub
   }
 } // initialize_flux()
 
-ACCELERATED
+ACCELERATE
 void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const double& forc_hgt_t_patch,
-                             const double& forc_hgt_u_patch, const double& forc_hgt_q_patch, const double& z0mg,
-                             const double& zldis, const double& displa, const double& dth, const double& dqh,
-                             const double& ur, const double& forc_q, const double& forc_th, const double& thv,
-                             double& z0hg, double& z0qg, double& obu, double& um, double& temp1, double& temp2,
-                             double& temp12m, double& temp22m, double& ustar) {
+                         const double& forc_hgt_u_patch, const double& forc_hgt_q_patch, const double& z0mg,
+                         const double& zldis, const double& displa, const double& dth, const double& dqh,
+                         const double& ur, const double& forc_q, const double& forc_th, const double& thv,
+                         double& z0hg, double& z0qg, double& obu, double& um, double& temp1, double& temp2,
+                         double& temp12m, double& temp22m, double& ustar)
+{
+  static constexpr int niters = 3;      // number of iterations
+  static constexpr double beta = 1.0;   // coefficient of convective velocity [-]
+  static constexpr double zii = 1000.0; // convective boundary height [m]
 
   double tstar;                     // temperature scaling parameter
   double qstar;                     // moisture scaling parameter
   double thvstar;                   // virtual potential temperature scaling parameter
   double wc;                        // convective velocity [m/s]
   double zeta;                      // dimensionless height used in Monin-Obukhov theory
-  static const int niters = 3;      // number of iterations
-  static const double beta = 1.0;   // coefficient of convective velocity [-]
-  static const double zii = 1000.0; // convective boundary height [m]
 
   for (int i = 0; i < niters; i++) {
 
@@ -76,7 +78,7 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
 } // stability_iteration()
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
                   const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,
                   const double& qg_snow, const double& qg_soil, const double& qg_h2osfc, const ArrayD1 t_soisno,
@@ -86,8 +88,8 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
                   double& eflx_sh_grnd, double& eflx_sh_tot, double& eflx_sh_snow, double& eflx_sh_soil,
                   double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_evap_tot, double& qflx_ev_snow,
                   double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& t_ref2m_r, double& q_ref2m,
-                  double& rh_ref2m, double& rh_ref2m_r) {
-
+                  double& rh_ref2m, double& rh_ref2m_r)
+{
   if (!Land.lakpoi) {
     // Initial set for calculation
     cgrnd = 0.0;

@@ -8,9 +8,9 @@ ELM::aerosol_utils::get_nearest_indices(const Comm_type& comm,
 {
   Array<double, 1> file_lon(144);
   Array<double, 1> file_lat(96);
-  std::array<size_t, 1> start{0};
-  std::array<size_t, 1> count_lon{144};
-  std::array<size_t, 1> count_lat{96};
+  const std::array<size_t, 1> start{0};
+  const std::array<size_t, 1> count_lon{144};
+  const std::array<size_t, 1> count_lat{96};
   IO::read_netcdf(comm, filename, "lon", start, count_lon, file_lon.data());
   IO::read_netcdf(comm, filename, "lat", start, count_lat, file_lat.data());
   double mindist = 99999.0;

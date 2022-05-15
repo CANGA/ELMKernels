@@ -4,12 +4,12 @@
 
 namespace ELM::canopy_hydrology {
 
-ACCELERATED
+ACCELERATE
 void interception(const LandType& Land, const int& frac_veg_nosno, const double& forc_rain, const double& forc_snow,
-                      const double& dewmx, const double& elai, const double& esai, const double& dtime, double& h2ocan,
-                      double& qflx_candrip, double& qflx_through_snow, double& qflx_through_rain, double& fracsnow,
-                      double& fracrain) {
-
+                  const double& dewmx, const double& elai, const double& esai, const double& dtime, double& h2ocan,
+                  double& qflx_candrip, double& qflx_through_snow, double& qflx_through_rain, double& fracsnow,
+                  double& fracrain)
+{
   if (!Land.lakpoi) {
     // Canopy interception/storage and throughfall
     // Add precipitation to leaf water
@@ -66,8 +66,9 @@ void interception(const LandType& Land, const int& frac_veg_nosno, const double&
   }
 } // interception
 
-ACCELERATED
-void Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_steps_left, double& qflx_irrig) {
+ACCELERATE
+void Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_steps_left, double& qflx_irrig)
+{
   if (!Land.lakpoi) {
     if (n_irrig_steps_left > 0) {
       qflx_irrig = irrig_rate;
@@ -78,13 +79,13 @@ void Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_ste
   }
 } // Irrigation
 
-ACCELERATED
+ACCELERATE
 void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
                      const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
                      const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
                      const double& fracrain, double& qflx_prec_grnd, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
-                     double& qflx_snow_grnd, double& qflx_rain_grnd) {
-
+                     double& qflx_snow_grnd, double& qflx_rain_grnd)
+{
   if (!Land.lakpoi) {
     double qflx_prec_grnd_snow, qflx_prec_grnd_rain;
     // Precipitation onto ground (kg/(m2 s))
@@ -120,10 +121,10 @@ void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_v
   }
 } // ground_flux
 
-ACCELERATED
+ACCELERATE
 void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double& dewmx, const double& elai,
-                      const double& esai, const double& h2ocan, double& fwet, double& fdry) {
-
+                  const double& esai, const double& h2ocan, double& fwet, double& fdry)
+{
   if (!Land.lakpoi) {
     if (frac_veg_nosno == 1) {
       if (h2ocan > 0.0) {
@@ -143,16 +144,18 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 } // fraction_wet
 
 template <class ArrayD1>
-ACCELERATED
-void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow, const int& oldfflag,
-               const double& forc_t, const double& t_grnd, const double& qflx_snow_grnd, const double& qflx_snow_melt,
-               const double& n_melt,
-
-               double& snow_depth, double& h2osno, double& int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
-               ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi,
-               ArrayD1 snw_rds, double& frac_sno_eff, double& frac_sno) {
-
+ACCELERATE
+void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow,
+               const int& oldfflag, const double& forc_t, const double& t_grnd,
+               const double& qflx_snow_grnd, const double& qflx_snow_melt,
+               const double& n_melt, double& snow_depth, double& h2osno,
+               double& int_snow, ArrayD1 swe_old, ArrayD1 h2osoi_liq,
+               ArrayD1 h2osoi_ice, ArrayD1 t_soisno, ArrayD1 frac_iceold,
+               int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds,
+               double& frac_sno_eff, double& frac_sno)
+{
   if (!Land.lakpoi) {
+    using ELM::constants::ELM_PI;
     double temp_snow_depth, dz_snowf, newsnow, bifall, snowmelt, accum_factor, temp_intsnow, z_avg;
     // Determine snow height and snow water
     // Use Alta relationship, Anderson(1976); LaChapelle(1961),
@@ -174,10 +177,10 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       frac_sno = 1.0;
       int_snow = 5.e2;
     } else {
-      if (forc_t > tfrz + 2.0) {
+      if (forc_t > ELM::constants::TFRZ + 2.0) {
         bifall = 50.0 + 1.7 * pow(17.0, 1.5);
-      } else if (forc_t > tfrz - 15.0) {
-        bifall = 50.0 + 1.7 * pow((forc_t - tfrz + 15.0), 1.5);
+      } else if (forc_t > ELM::constants::TFRZ - 15.0) {
+        bifall = 50.0 + 1.7 * pow((forc_t - ELM::constants::TFRZ + 15.0), 1.5);
       } else {
         bifall = 50.0;
       }
@@ -250,8 +253,8 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
             // snow cover fraction in Niu et al. 2007
             if (snow_depth > 0.0) {
               frac_sno = tanh(snow_depth / (2.5 * zlnd *
-                                            pow((std::min(800.0, ((h2osno + newsnow) / snow_depth / 100.0))),
-                                                1.0))); // why to the power of 1.0??
+                pow((std::min(800.0, 
+                  ((h2osno + newsnow) / snow_depth / 100.0))),1.0))); // why to the power of 1.0??
             }
           }
         } else {
@@ -275,7 +278,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
     } else {
       frac_sno_eff = 1.0;
     }
-    if (Land.ltype == istwet && t_grnd > tfrz) {
+    if (Land.ltype == istwet && t_grnd > ELM::constants::TFRZ) {
       h2osno = 0.0;
       snow_depth = 0.0;
     }
@@ -289,7 +292,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       dz(nlevsno - 1) = snow_depth; // meter
       z(nlevsno - 1) = -0.5 * dz(nlevsno - 1);
       zi(nlevsno - 1) = -dz(nlevsno - 1);
-      t_soisno(nlevsno - 1) = std::min(tfrz, forc_t); // K
+      t_soisno(nlevsno - 1) = std::min(ELM::constants::TFRZ, forc_t); // K
       h2osoi_ice(nlevsno - 1) = h2osno;               // kg/m2
       h2osoi_liq(nlevsno - 1) = 0.0;                  // kg/m2
       frac_iceold(nlevsno - 1) = 1.0;
@@ -305,14 +308,14 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
 } // snow_init
 
 template <class ArrayD1>
-ACCELERATED
-void fraction_h2osfc(const LandType& Land, const double& micro_sigma, const double& h2osno,
-
-                     double& h2osfc, ArrayD1 h2osoi_liq, double& frac_sno, double& frac_sno_eff, double& frac_h2osfc) {
-
+ACCELERATE
+void fraction_h2osfc(const LandType& Land, const double& micro_sigma,
+                     const double& h2osno, double& h2osfc, ArrayD1 h2osoi_liq,
+                     double& frac_sno, double& frac_sno_eff, double& frac_h2osfc)
+{
   if (!Land.lakpoi) {
     double d, fd, dfdd, sigma;
-    double min_h2osfc = 1.e-8; // arbitrary lower limit on h2osfc for safer numerics...
+    static constexpr double min_h2osfc = 1.e-8; // arbitrary lower limit on h2osfc for safer numerics...
     // h2osfc only calculated for soil vegetated land units
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
       // Use newton-raphson method to iteratively determine frac_h2osfc
@@ -324,7 +327,7 @@ void fraction_h2osfc(const LandType& Land, const double& micro_sigma, const doub
         sigma = 1.0e3 * micro_sigma; // convert to mm
         for (int l = 0; l < 10; l++) {
           fd = 0.5 * d * (1.0 + erf(d / (sigma * sqrt(2.0)))) +
-               sigma / sqrt(2.0 * ELM_PI) * exp(-pow(d, 2) / (2.0 * pow(sigma, 2))) - h2osfc;
+               sigma / sqrt(2.0 * ELM::constants::ELM_PI) * exp(-pow(d, 2) / (2.0 * pow(sigma, 2))) - h2osfc;
           dfdd = 0.5 * (1.0 + erf(d / (sigma * sqrt(2.0))));
           d = d - fd / dfdd;
         }

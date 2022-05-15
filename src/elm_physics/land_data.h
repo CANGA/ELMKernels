@@ -1,5 +1,7 @@
 #pragma once
 
+// simple struct to hold landtype data
+// currently used as a placeholder
 namespace ELM {
 
 struct LandType {

@@ -3,11 +3,11 @@
 
 namespace ELM::soil_hydraulics {
 
-ACCELERATED
-void pedotransfer(const double& pct_sand, const double& pct_clay, double& watsat, double& bsw, double& sucsat,
-                      double& xksat) {
+ACCELERATE
+void pedotransfer(const double& pct_sand, const double& pct_clay, double& watsat,
+                  double& bsw, double& sucsat, double& xksat)
+{
   // compute hydraulic properties based on functions derived from Table 5 in cosby et al, 1984
-
   // Cosby et al. Table 5
   watsat = 0.489 - 0.00126 * pct_sand;
   bsw = 2.91 + 0.159 * pct_clay;
@@ -15,14 +15,15 @@ void pedotransfer(const double& pct_sand, const double& pct_clay, double& watsat
   xksat = 0.0070556 * pow(10.0, (-0.884 + 0.0153 * pct_sand)); // mm/s, from table 5
 }
 
-ACCELERATED
-void soil_hydraulic_params(const double& pct_sand, const double& pct_clay, const double& zsoi,
-                               const double& om_frac, double& watsat, double& bsw, double& sucsat, double& watdry,
-                               double& watopt, double& watfc) {
-
-  static const double zsapric = 0.5;  // depth (m) that organic matter takes on characteristics of sapric peat
-  static const double pcalpha = 0.5;  // percolation threshold
-  static const double pcbeta = 0.139; // percolation exponent
+ACCELERATE
+void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
+                           const double& zsoi, const double& om_frac,
+                           double& watsat, double& bsw, double& sucsat,
+                           double& watdry, double& watopt, double& watfc)
+{
+  static constexpr double zsapric = 0.5;  // depth (m) that organic matter takes on characteristics of sapric peat
+  static constexpr double pcalpha = 0.5;  // percolation threshold
+  static constexpr double pcbeta = 0.139; // percolation exponent
 
   double xksat;
   pedotransfer(pct_sand, pct_clay, watsat, bsw, sucsat, xksat);
@@ -89,10 +90,12 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay, const
 }
 
 template <typename ArrayD1>
-ACCELERATED
-void init_soil_hydraulics(const ArrayD1& pct_sand, const ArrayD1& pct_clay, const ArrayD1& organic, const ArrayD1& zsoi,
-                          ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat, ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc) {
-
+ACCELERATE
+void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay,
+                          const ArrayD1 organic, const ArrayD1 zsoi,
+                          ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat,
+                          ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc)
+{
   double om_frac;
   for (int i = 0; i < ELM::nlevsoi; ++i) {
     om_frac = pow((organic(i) / ELM::organic_max), 2.0);

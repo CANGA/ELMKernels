@@ -41,7 +41,7 @@ constexpr auto get_varname() {
 
 // return reference to variable that maps to dim_idx for a file_array with 3 dimensions
 template <typename T, typename U>
-constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y) {
+constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x, T& y) {
   if (dim_idx == 2) {
     return y;
   }
@@ -56,7 +56,7 @@ constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y) {
 
 // return reference to variable that maps to dim_idx for a file_array with 2 dimensions
 template <typename T, typename U>
-constexpr T& get_dim_ref(const U dim_idx, T& t, T& x) {
+constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x) {
   if (dim_idx == 1) {
     return x;
   }
@@ -73,7 +73,7 @@ template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr AtmDataManager<ArrayD1, ArrayD2, ftype>::
 AtmDataManager(const std::string& filename,
                const Utils::Date& file_start_time,
-               const size_t ntimes, const size_t ncells)
+               const size_t& ntimes, const size_t& ncells)
     : data(atm_utils::get_varname<ftype>(), ntimes, ncells),
       varname_{atm_utils::get_varname<ftype>()}, fname_{filename},
       file_start_time_{file_start_time}, ntimes_{ntimes},
@@ -93,7 +93,7 @@ update_file_info(const Utils::Date& new_file_start_time,
 // interface to update working data start time
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::
-update_data_start_time(const size_t t_idx)
+update_data_start_time(const size_t& t_idx)
 {
   data_start_time_ = file_start_time_;
   data_start_time_.increment_seconds(static_cast<int>(round(86400.0 * forc_dt_ * t_idx)));
@@ -198,7 +198,7 @@ forc_t_idx(const Utils::Date& model_time,
 template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 constexpr std::pair<double, double>
 AtmDataManager<ArrayD1, ArrayD2, ftype>::
-forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const
+forcing_time_weights(const size_t& t_idx, const Utils::Date& model_time) const
 {
   Utils::Date forc_start(data_start_time_);
   forc_start.increment_seconds(static_cast<int>(round(86400 * forc_dt_) * t_idx));
@@ -261,7 +261,7 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::
 read_atm_forcing(h_ArrayD2 h_data, 
                  const Utils::DomainDecomposition<2>& dd,
                  const Utils::Date& model_time,
-                 const size_t ntimes)
+                 const size_t& ntimes)
 {
   // resize if ntimes has changed - assume ncells_ doesn't change
   if (ntimes != static_cast<size_t>(h_data.extent(0))) {
@@ -334,12 +334,12 @@ constexpr void AtmDataManager<ArrayD1, ArrayD2, ftype>::
 read_atm_forcing(h_ArrayD2 h_data, 
                  const Utils::DomainDecomposition<2>& dd,
                  const Utils::Date& model_time,
-                 const size_t ntimes,
+                 const size_t& ntimes,
                  const Utils::Date& new_file_start_time,
                  const std::string& new_filename)
 {
   update_file_info(new_file_start_time, new_filename);
-  read_atm_forcing(dd, model_time, ntimes);
+  read_atm_forcing(h_data, dd, model_time, ntimes);
 }
 
 // get forcing data for the current timestep

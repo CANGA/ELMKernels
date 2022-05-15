@@ -81,11 +81,11 @@ struct PFTData {
   ~PFTData(){};
 
   // get struct of photosynthesis variables for pft
-  ACCELERATED
+  ACCELERATE
   PFTDataPSN get_pft_psn(const int pft) const;
 
   // get struct of albedo variables for pft
-  ACCELERATED
+  ACCELERATE
   PFTDataAlb get_pft_alb(const int pft) const;
 };
 

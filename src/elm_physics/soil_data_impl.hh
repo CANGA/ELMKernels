@@ -3,7 +3,9 @@
 
 namespace ELM::read_soil {
 
-template <typename ArrayD2> constexpr void get_albsat(int mxsoil_color, ArrayD2& albsat) {
+template <typename ArrayD2>
+constexpr void get_albsat(int& mxsoil_color, ArrayD2 albsat)
+{
   if (mxsoil_color == 8) {
     albsat(0, 0) = 12.0;
     albsat(0, 1) = 0.24;
@@ -67,7 +69,9 @@ template <typename ArrayD2> constexpr void get_albsat(int mxsoil_color, ArrayD2&
   }
 }
 
-template <typename ArrayD2> constexpr void get_albdry(int mxsoil_color, ArrayD2& albdry) {
+template <typename ArrayD2>
+constexpr void get_albdry(int& mxsoil_color, ArrayD2 albdry)
+{
   if (mxsoil_color == 8) {
     albdry(0, 0) = 0.24;
     albdry(0, 1) = 0.48;
@@ -133,8 +137,10 @@ template <typename ArrayD2> constexpr void get_albdry(int mxsoil_color, ArrayD2&
 
 // serial I/O function
 template <typename ArrayI1, typename ArrayD2>
-void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayI1& isoicol,
-                      ArrayD2& albsat, ArrayD2& albdry) {
+void read_soil_colors(const Utils::DomainDecomposition<2>& dd,
+                      const std::string& filename, ArrayI1 isoicol,
+                      ArrayD2 albsat, ArrayD2 albdry)
+{
   // get soil color
   {
     // get file start idx and size to read
@@ -164,10 +170,10 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string
 
   // resize albsat and albdry if needed
   if (albsat.extent(0) != mxsoil_color) {
-    NS::resize(albsat, mxsoil_color, ELMconstants::numrad);
+    NS::resize(albsat, mxsoil_color, numrad);
   }
   if (albdry.extent(0) != mxsoil_color) {
-    NS::resize(albdry, mxsoil_color, ELMconstants::numrad);
+    NS::resize(albdry, mxsoil_color, numrad);
   }
 
   // get correct albsat and albdry arrays based on mxsoil_color
@@ -176,8 +182,8 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string
 }
 
 template <typename ArrayD2>
-void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayD2& pct_sand,
-                       ArrayD2& pct_clay, ArrayD2& organic) {
+void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayD2 pct_sand,
+                       ArrayD2 pct_clay, ArrayD2 organic) {
   // get pct_sand and pct_clay
   // get file start idx and size to read
   std::array<size_t, 3> start = {0, dd.start[0], dd.start[1]};

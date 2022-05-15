@@ -18,7 +18,7 @@ ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::ComputePhenology(const ArrayD2 mlai
       tlai_(tlai), tsai_(tsai), frac_veg_nosno_alb_(frac_veg_nosno_alb) {}
 
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::operator()(const int i) const {
   // leaf phenology
   // Set leaf and stem areas based on day of year

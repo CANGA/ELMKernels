@@ -1,17 +1,19 @@
 
 #pragma once
 
-namespace ELM::init_topo {
+namespace ELM {
 
-ACCELERATED
-void init_topo_slope(double& topo_slope) {
+ACCELERATE
+void init_topo_slope(double& topo_slope)
+{
   // check for near zero slopes, set minimum value
   topo_slope = std::max(topo_slope, 0.2);
 }
 
-ACCELERATED
+ACCELERATE
 void init_micro_topo(const int& ltype, const double& topo_slope, const double& topo_std, double& n_melt,
-                         double& micro_sigma) {
+                    double& micro_sigma)
+{
   if (ltype == istice_mec) {
     /* ice_mec columns already account for subgrid topographic variability through
     their use of multiple elevation classes; thus, to avoid double-accounting for

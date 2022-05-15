@@ -5,7 +5,7 @@
 namespace ELM {
 
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void init_timestep(const bool& lakpoi, const bool& veg_active,
                    const int& frac_veg_nosno_alb, const int& snl,
                    const double& h2osno, const ArrayD1 h2osoi_ice,

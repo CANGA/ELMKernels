@@ -50,22 +50,21 @@ flux_absorption_factor() flx_absd_snw flx_absi_snw mss_cnc_aer_in_fdb - from Ini
 
 #include "kokkos_includes.hh"
 
-namespace ELM {
-namespace surface_albedo {
+namespace ELM::surface_albedo {
 
-static constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
-static constexpr double mpe = 1.e-06;   // prevents overflow for division by zero
-static constexpr double extkn = 0.30;
-static constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
-static constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
-static constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
+inline constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
+inline constexpr double mpe = 1.e-06;   // prevents overflow for division by zero
+inline constexpr double extkn = 0.30;
+inline constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
+inline constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
+inline constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
                                                   // From D. Mironov (2010) Boreal Env. Research
-static constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov
+inline constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov
                               // (2010) Boreal Env. Research
-static constexpr bool lakepuddling = false;          // puddling (not extensively tested and currently hardwired off)
-static constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
-static constexpr double betads = 0.5;                // two-stream parameter betad for snow
-static constexpr double betais = 0.5;                // two-stream parameter betai for snow
+inline constexpr bool lakepuddling = false;          // puddling (not extensively tested and currently hardwired off)
+inline constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
+inline constexpr double betads = 0.5;                // two-stream parameter betad for snow
+inline constexpr double betais = 0.5;                // two-stream parameter betai for snow
 
 /*
 inputs:
@@ -104,7 +103,7 @@ mss_cnc_aer_in_fdb[nlevsno][sno_nbr_aer] [double] mass concentration of all aero
 kg-1]
 */
 template <class ArrayD1, class ArrayD2>
-ACCELERATED
+ACCELERATE
 void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho,
                    const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3,
                    const ArrayD1 mss_cnc_dst4, double& vcmaxcintsun, double& vcmaxcintsha, ArrayD1 albsod,
@@ -130,7 +129,7 @@ albgrd[numrad]  [double] direct-beam ground albedo [frc]
 albgri[numrad]  [double] diffuse ground albedo [frc]
 */
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri);
 
@@ -155,7 +154,7 @@ flx_absiv[nlevsno]                       [double] diffuse flux absorption factor
 flx_absin[nlevsno]                       [double] diffuse flux absorption factor : NIR [frc]
 */
 template <class ArrayD1, class ArrayD2>
-ACCELERATED
+ACCELERATE
 void flux_absorption_factor(const LandType& Land, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                             const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
                             const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv,
@@ -196,7 +195,7 @@ fabi_sun_z[nlevcan]  [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai
 fabi_sha_z[nlevcan]  [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
                       ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z);
@@ -209,7 +208,7 @@ coszen  [double] solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */
-ACCELERATED
+ACCELERATE
 bool vegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai);
 
 /*
@@ -220,7 +219,7 @@ coszen  [double] solar zenith angle factor
 elai    [double] one-sided leaf area index with burying by snow
 esai    [double] one-sided stem area index with burying by snow
 */
-ACCELERATED
+ACCELERATE
 bool novegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai);
 
 /*
@@ -269,7 +268,7 @@ fabi_sun_z[nlevcan]      [double] absorbed sunlit leaf diffuse PAR (per unit lai
 fabi_sha_z[nlevcan]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
                        const ArrayD1 tsai_z, const ArrayD1 albgrd, const ArrayD1 albgri, const PFTDataAlb& alb_pft,
@@ -298,11 +297,10 @@ albsod[numrad]             [double]   direct-beam soil albedo [frc]
 albsoi[numrad]             [double]   diffuse soil albedo [frc]
 */
 template <class ArrayD1>
-ACCELERATED
+ACCELERATE
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi);
 
-} // namespace surface_albedo
-} // namespace ELM
+} // namespace ELM::surface_albedo
 
 #include "surface_albedo_impl.hh"

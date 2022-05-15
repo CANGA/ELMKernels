@@ -17,71 +17,67 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 
 namespace ELM::snow_snicar {
 
-static constexpr int numrad_snw = 5;       // number of spectral bands used in snow model [nbr]
-static constexpr int nir_bnd_bgn = 1;      // first band index in near-IR spectrum [idx]
-static constexpr int nir_bnd_end = 4;      // ending near-IR band index [idx]
-static constexpr int sno_nbr_aer = 8;      // number of aerosol species in snowpack
-static constexpr double min_snw = 1.0e-30; // minimum snow mass required for SNICAR RT calculation [kg m-2]
-static constexpr int ngmax = 8;            // gaussian integration index
+  inline constexpr int numrad_snw{5};       // number of spectral bands used in snow model [nbr]
+  inline constexpr int nir_bnd_bgn{1};      // first band index in near-IR spectrum [idx]
+  inline constexpr int nir_bnd_end{4};      // ending near-IR band index [idx]
+  inline constexpr int sno_nbr_aer{8};      // number of aerosol species in snowpack
+  inline constexpr double min_snw{1.0e-30}; // minimum snow mass required for SNICAR RT calculation [kg m-2]
+  inline constexpr int ngmax{8};            // gaussian integration index
+  
+  // idx_*_min and idx_*_max vars have been reduced by one to account for 0/1 indexing - idx_bc*, idx_T*, idx_rhos*
+  // some variables are statically allocated based on the idx_*_max values
+  // need to remember to add one back when using idx_*_max for array sizing
+  inline constexpr int idx_bc_nclrds_min{0};     // minimum index for BC particle size in optics lookup table
+  inline constexpr int idx_bc_nclrds_max{9};     // maximum index for BC particle size in optics lookup table
+  inline constexpr int idx_bcint_icerds_min{0};  // minimum index for snow grain size in optics lookup table for within-ice BC
+  inline constexpr int idx_bcint_icerds_max{7};  // maximum index for snow grain size in optics lookup table for within-ice BC
+  inline constexpr int snw_rds_max_tbl{1500};    // maximum effective radius defined in Mie lookup table [microns]
+  inline constexpr int snw_rds_min_tbl{30};      // minimium effective radius defined in Mie lookup table [microns]
+  inline constexpr double snw_rds_max{1500.0};   // maximum allowed snow effective radius [microns]
+  inline constexpr double snw_rds_refrz{1000.0}; // effective radius of re-frozen snow [microns]
+  inline constexpr double rds_bcint_lcl{100.0}; // effective radius of within-ice BC [nm]
+  inline constexpr double rds_bcext_lcl{100.0}; // effective radius of external BC [nm]
+  inline constexpr int idx_Mie_snw_mx{1471}; // number of effective radius indices used in Mie lookup table [idx]
+  inline constexpr int idx_T_max{10};        // maxiumum temperature index used in aging lookup table [idx]
+  inline constexpr int idx_T_min{0};         // minimum temperature index used in aging lookup table [idx]
+  inline constexpr int idx_Tgrd_max{30};     // maxiumum temperature gradient index used in aging lookup table [idx]
+  inline constexpr int idx_Tgrd_min{0};      // minimum temperature gradient index used in aging lookup table [idx]
+  inline constexpr int idx_rhos_max{7};      // maxiumum snow density index used in aging lookup table [idx]
+  inline constexpr int idx_rhos_min{0};      // minimum snow density index used in aging lookup table [idx]
+  
+  // Gaussian integration angle and coefficients for diffuse radiation
+  inline constexpr double difgauspt[8] // gaussian angles (radians)
+      = {0.9894009, 0.9445750, 0.8656312, 0.7554044, 0.6178762, 0.4580168, 0.2816036, 0.0950125};
+  inline constexpr double difgauswt[8] // gaussian weights
+      = {0.0271525, 0.0622535, 0.0951585, 0.1246290, 0.1495960, 0.1691565, 0.1826034, 0.1894506};
 
-// idx_*_min and idx_*_max vars have been reduced by one to account for 0/1 indexing - idx_bc*, idx_T*, idx_rhos*
-// some variables are statically allocated based on the idx_*_max values
-// need to remember to add one back when using idx_*_max for array sizing
-static constexpr int idx_bc_nclrds_min = 0;     // minimum index for BC particle size in optics lookup table
-static constexpr int idx_bc_nclrds_max = 9;     // maximum index for BC particle size in optics lookup table
-static constexpr int idx_bcint_icerds_min = 0;  // minimum index for snow grain size in optics lookup table for within-ice BC
-static constexpr int idx_bcint_icerds_max = 7;  // maximum index for snow grain size in optics lookup table for within-ice BC
-static constexpr int snw_rds_max_tbl = 1500;    // maximum effective radius defined in Mie lookup table [microns]
-static constexpr int snw_rds_min_tbl = 30;      // minimium effective radius defined in Mie lookup table [microns]
-static constexpr double snw_rds_max = 1500.0;   // maximum allowed snow effective radius [microns]
-static constexpr double snw_rds_refrz = 1000.0; // effective radius of re-frozen snow [microns]
+  // constants used in algorithm
+  inline constexpr double c0{0.0};
+  inline constexpr double c1{1.0};
+  inline constexpr double c3{3.0};
+  inline constexpr double c4{4.0};
+  inline constexpr double c6{6.0};
+  inline constexpr double cp01{0.01};
+  inline constexpr double cp5{0.5};
+  inline constexpr double cp75{0.75};
+  inline constexpr double c1p5{1.5};
+  inline constexpr double trmin{0.001};
+  inline constexpr double argmax{10.0}; // maximum argument of exponential
+  
+  // cconstant coefficients used for SZA parameterization
+  inline constexpr double sza_a0{0.085730};
+  inline constexpr double sza_a1{-0.630883};
+  inline constexpr double sza_a2{1.303723};
+  inline constexpr double sza_b0{1.467291};
+  inline constexpr double sza_b1{-3.338043};
+  inline constexpr double sza_b2{6.807489};
+  inline constexpr double puny{1.0e-11};
+  inline constexpr double mu_75{0.2588}; // cosine of 75 degree
+  inline constexpr double exp_min{exp(-argmax)};
+  
+  // always use Delta approximation for snow
+  inline constexpr int DELTA{1};
 
-static constexpr double rds_bcint_lcl = 100.0; // effective radius of within-ice BC [nm]
-static constexpr double rds_bcext_lcl = 100.0; // effective radius of external BC [nm]
-
-static constexpr int idx_Mie_snw_mx = 1471; // number of effective radius indices used in Mie lookup table [idx]
-static constexpr int idx_T_max = 10;        // maxiumum temperature index used in aging lookup table [idx]
-static constexpr int idx_T_min = 0;         // minimum temperature index used in aging lookup table [idx]
-static constexpr int idx_Tgrd_max = 30;     // maxiumum temperature gradient index used in aging lookup table [idx]
-static constexpr int idx_Tgrd_min = 0;      // minimum temperature gradient index used in aging lookup table [idx]
-static constexpr int idx_rhos_max = 7;      // maxiumum snow density index used in aging lookup table [idx]
-static constexpr int idx_rhos_min = 0;      // minimum snow density index used in aging lookup table [idx]
-
-// Gaussian integration angle and coefficients for diffuse radiation
-static constexpr double difgauspt[8] // gaussian angles (radians)
-    = {0.9894009, 0.9445750, 0.8656312, 0.7554044, 0.6178762, 0.4580168, 0.2816036, 0.0950125};
-static constexpr double difgauswt[8] // gaussian weights
-    = {0.0271525, 0.0622535, 0.0951585, 0.1246290, 0.1495960, 0.1691565, 0.1826034, 0.1894506};
-
-// constants used in algorithm
-static constexpr double c0 = 0.0;
-static constexpr double c1 = 1.0;
-static constexpr double c3 = 3.0;
-static constexpr double c4 = 4.0;
-static constexpr double c6 = 6.0;
-static constexpr double cp01 = 0.01;
-static constexpr double cp5 = 0.5;
-static constexpr double cp75 = 0.75;
-static constexpr double c1p5 = 1.5;
-static constexpr double trmin = 0.001;
-static constexpr double argmax = 10.0; // maximum argument of exponential
-
-// cconstant coefficients used for SZA parameterization
-static constexpr double sza_a0 = 0.085730;
-static constexpr double sza_a1 = -0.630883;
-static constexpr double sza_a2 = 1.303723;
-static constexpr double sza_b0 = 1.467291;
-static constexpr double sza_b1 = -3.338043;
-static constexpr double sza_b2 = 6.807489;
-static constexpr double puny = 1.0e-11;
-static constexpr double mu_75 = 0.2588; // cosine of 75 degree
-
-static constexpr double exp_min = exp(-argmax);
-
-// shorter name for pi
-static const double pi = ELM_PI;
-// always use Delta approximation for snow
-static constexpr int DELTA = 1;
 
 /*! Initialize variables for SNICAR kernels
 \param[in]urbpoi                              [bool] true if urban point, false otherwise
@@ -105,7 +101,7 @@ water (mm H2O) \param[in]snl                                 [int] number of sno
 \param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
@@ -162,7 +158,7 @@ Delta-Eddington) SSA of snow+aerosol layer [frc] \param[out]tau_star[numrad_snw]
 Delta-Eddington) optical depth of snow+aerosol layer [-]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename SubviewD1, typename SubviewD2>
-ACCELERATED
+ACCELERATE
 void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const int& snl_btm,
                              const double& coszen, const double& h2osno, const ArrayI1 snw_rds_lcl,
                              const SubviewD1 h2osoi_ice_lcl, const SubviewD1 h2osoi_liq_lcl, const ArrayD1 ss_alb_oc1,
@@ -200,7 +196,7 @@ optical depth of snow+aerosol layer [-] \param[out]albout_lcl[numrad_snw]       
 \param[out]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack [frc]
 */
 template <typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, const int& flg_nosnl, const int& snl_top,
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
@@ -221,7 +217,7 @@ snow effective radius [m^-6] \param[in]albsoi[numrad]                     [doubl
 2 bands  [frc]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ACCELERATED
+ACCELERATE
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,
                                   const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,

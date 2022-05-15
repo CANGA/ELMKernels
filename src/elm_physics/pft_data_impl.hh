@@ -6,25 +6,35 @@ namespace ELM {
 // default constructor - construct array objects in initializer list
 // in case ArrayType can't be default constructed
 template <typename ArrayD1, typename ArrayD2>
-PFTData<ArrayD1, ArrayD2>::PFTData()
-    : fnr("fnr", ELM::numpft), act25("act25", ELM::numpft), kcha("kcha", ELM::numpft), koha("koha", ELM::numpft),
-      cpha("cpha", ELM::numpft), vcmaxha("vcmaxha", ELM::numpft), jmaxha("jmaxha", ELM::numpft),
-      tpuha("tpuha", ELM::numpft), lmrha("lmrha", ELM::numpft), vcmaxhd("vcmaxhd", ELM::numpft),
-      jmaxhd("jmaxhd", ELM::numpft), tpuhd("tpuhd", ELM::numpft), lmrhd("lmrhd", ELM::numpft),
-      lmrse("lmrse", ELM::numpft), qe("qe", ELM::numpft), theta_cj("theta_cj", ELM::numpft),
-      bbbopt("bbbopt", ELM::numpft), mbbopt("mbbopt", ELM::numpft), c3psn("c3psn", ELM::numpft),
-      slatop("slatop", ELM::numpft), leafcn("leafcn", ELM::numpft), flnr("flnr", ELM::numpft),
-      fnitr("fnitr", ELM::numpft), dleaf("dleaf", ELM::numpft), smpso("smpso", ELM::numpft),
-      smpsc("smpsc", ELM::numpft), tc_stress("tc_stress", 1), z0mr("z0mr", ELM::numpft),
-      displar("displar", ELM::numpft), xl("xl", ELM::numpft), roota_par("roota_par", ELM::numpft),
-      rootb_par("rootb_par", ELM::numpft), rholvis("rholvis", ELM::numpft), rholnir("rholnir", ELM::numpft),
-      rhosvis("rhosvis", ELM::numpft), rhosnir("rhosnir", ELM::numpft), taulvis("taulvis", ELM::numpft),
-      taulnir("taulnir", ELM::numpft), tausvis("tausvis", ELM::numpft), tausnir("tausnir", ELM::numpft)
+PFTData<ArrayD1, ArrayD2>::
+PFTData()
+    : fnr("fnr", ELM::numpft), act25("act25", ELM::numpft),
+      kcha("kcha", ELM::numpft), koha("koha", ELM::numpft),
+      cpha("cpha", ELM::numpft), vcmaxha("vcmaxha", ELM::numpft),
+      jmaxha("jmaxha", ELM::numpft), tpuha("tpuha", ELM::numpft),
+      lmrha("lmrha", ELM::numpft), vcmaxhd("vcmaxhd", ELM::numpft),
+      jmaxhd("jmaxhd", ELM::numpft), tpuhd("tpuhd", ELM::numpft),
+      lmrhd("lmrhd", ELM::numpft), lmrse("lmrse", ELM::numpft),
+      qe("qe", ELM::numpft), theta_cj("theta_cj", ELM::numpft),
+      bbbopt("bbbopt", ELM::numpft), mbbopt("mbbopt", ELM::numpft),
+      c3psn("c3psn", ELM::numpft), slatop("slatop", ELM::numpft),
+      leafcn("leafcn", ELM::numpft), flnr("flnr", ELM::numpft),
+      fnitr("fnitr", ELM::numpft), dleaf("dleaf", ELM::numpft),
+      smpso("smpso", ELM::numpft), smpsc("smpsc", ELM::numpft),
+      tc_stress("tc_stress", 1), z0mr("z0mr", ELM::numpft),
+      displar("displar", ELM::numpft), xl("xl", ELM::numpft),
+      roota_par("roota_par", ELM::numpft), rootb_par("rootb_par", ELM::numpft),
+      rholvis("rholvis", ELM::numpft), rholnir("rholnir", ELM::numpft),
+      rhosvis("rhosvis", ELM::numpft), rhosnir("rhosnir", ELM::numpft),
+      taulvis("taulvis", ELM::numpft), taulnir("taulnir", ELM::numpft),
+      tausvis("tausvis", ELM::numpft), tausnir("tausnir", ELM::numpft)
     {}
 
 template <typename ArrayD1, typename ArrayD2>
-ACCELERATED
-PFTDataPSN PFTData<ArrayD1, ArrayD2>::get_pft_psn(const int pft) const {
+ACCELERATE
+PFTDataPSN PFTData<ArrayD1, ArrayD2>::
+get_pft_psn(const int pft) const
+{
   PFTDataPSN psn_pft_data;
   psn_pft_data.fnr = fnr(pft);
   psn_pft_data.act25 = act25(pft);
@@ -57,8 +67,10 @@ PFTDataPSN PFTData<ArrayD1, ArrayD2>::get_pft_psn(const int pft) const {
 }
 
 template <typename ArrayD1, typename ArrayD2>
-ACCELERATED
-PFTDataAlb PFTData<ArrayD1, ArrayD2>::get_pft_alb(const int pft) const {
+ACCELERATE
+PFTDataAlb PFTData<ArrayD1, ArrayD2>::
+get_pft_alb(const int pft) const
+{
   PFTDataAlb alb_pft_data;
   alb_pft_data.rhol[0] = rholvis(pft);
   alb_pft_data.rhol[1] = rholnir(pft);
@@ -75,9 +87,8 @@ PFTDataAlb PFTData<ArrayD1, ArrayD2>::get_pft_alb(const int pft) const {
 
 template <typename h_ArrayD1>
 void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
-                                              const Comm_type& comm, const std::string& fname_pft)
+                   const Comm_type& comm, const std::string& fname_pft)
 {
-
   ELM::Array<std::string, 1> pftnames("pftnames", ELM::mxpft);
   const std::array<std::string, ELM::mxpft> expected_pftnames = 
     { "not_vegetated",

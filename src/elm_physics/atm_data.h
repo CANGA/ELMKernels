@@ -83,10 +83,10 @@ namespace ELM::atm_utils {
 template <AtmForcType ftype> constexpr auto get_varname();
 
 // return reference to variable that maps to dim_idx for a file_array with 3 dimensions
-template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t, T& x, T& y);
+template <typename T, typename U> constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x, T& y);
 
 // return reference to variable that maps to dim_idx for a file_array with 2 dimensions
-template <typename T, typename U> constexpr T& get_dim_ref(const U dim_idx, T& t, T& x);
+template <typename T, typename U> constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x);
 
 } // namespace ELM::atm_utils
 
@@ -100,14 +100,14 @@ public:
   // public to provide access from driver
   ArrayD2 data; // 2D (ntimes, ncells) array-like object of forcing data -- device array
 
-  constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time, const size_t ntimes,
-                           const size_t ncells);
+  constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time, const size_t& ntimes,
+                           const size_t& ncells);
 
   // interface to update forcing file info
   constexpr void update_file_info(const Utils::Date& new_file_start_time, const std::string& new_filename);
 
   // interface to update working data start time
-  constexpr void update_data_start_time(const size_t t_idx);
+  constexpr void update_data_start_time(const size_t& t_idx);
 
   // interface to return date of working data start time
   constexpr Utils::Date get_data_start_time();
@@ -138,17 +138,17 @@ public:
   // lb_time = data_start_time_ + forc_dt * t_idx and ub_time = data_start_time_ + forc_dt * (t_idx + 1)
   // forc_data_times_of_measurement =  {0, forc_dt, ..., Nforc_dt}
   // the other option is to define the values staggered by +- forc_dt/2
-  constexpr std::pair<double, double> forcing_time_weights(const size_t t_idx, const Utils::Date& model_time) const;
+  constexpr std::pair<double, double> forcing_time_weights(const size_t& t_idx, const Utils::Date& model_time) const;
 
   // read forcing data from a file
   template <typename h_ArrayD2>
   constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
-                                  const size_t ntimes);
+                                  const size_t& ntimes);
 
   // read forcing data from a file - update file info and call main read_atm method
   template <typename h_ArrayD2>
   constexpr void read_atm_forcing(h_ArrayD2 h_data, const Utils::DomainDecomposition<2>& dd, const Utils::Date& model_time,
-                                  const size_t ntimes, const Utils::Date& new_file_start_time,
+                                  const size_t& ntimes, const Utils::Date& new_file_start_time,
                                   const std::string& new_filename);
 
   // get forcing data for the current timestep
@@ -176,7 +176,7 @@ private:
   Utils::Date file_start_time_; // date object containing file dataset start time
   size_t ntimes_, ncells_;      // dimensions for data_
   Utils::Date data_start_time_; // start time of forcing read from file into data_
-  double forc_dt_;        // forcing data timestep (days) - recalc at every read; assume constant between reads
+  double forc_dt_{0.0};        // forcing data timestep (days) - recalc at every read; assume constant between reads
   // the next two variables allow compatibility with ELM forcing data that is stored in a short int
   // format and then scaled and potentially added to
   double scale_factor_{1.0}; // factor for scaling input data - maybe needed when using some ELM input data

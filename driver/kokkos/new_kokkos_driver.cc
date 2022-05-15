@@ -371,8 +371,8 @@ int main(int argc, char **argv) {
     // hardwired params
     const double lat = 71.323;
     const double lon = 203.3886;
-    const double lat_r = lat * ELM::ELM_PI / 180.0;
-    const double lon_r = lon * ELM::ELM_PI / 180.0;
+    const double lat_r = lat * ELM::constants::ELM_PI / 180.0;
+    const double lon_r = lon * ELM::constants::ELM_PI / 180.0;
     ELM::LandType Land;
     Land.ltype = 1;
     Land.ctype = 1;
@@ -838,12 +838,12 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     
-    ELM::init_topo::init_topo_slope(topo_slope(idx));
+    ELM::init_topo_slope(topo_slope(idx));
 
-    ELM::init_topo::init_micro_topo(
-                                    Land.ltype, topo_slope(idx),
-                                    topo_std(idx), n_melt(idx),
-                                    micro_sigma(idx));
+    ELM::init_micro_topo(
+                        Land.ltype, topo_slope(idx),
+                        topo_std(idx), n_melt(idx),
+                        micro_sigma(idx));
 
     ELM::init_snow_state::init_snow_layers(
                                           snow_depth(idx), lakpoi, snl(idx),
