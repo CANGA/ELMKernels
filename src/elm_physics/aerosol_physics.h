@@ -33,7 +33,8 @@ namespace ELM::aerosols {
 // this is from AerosolMod.F90
 // should be run after inter-layer aerosol fluxes are accounted for in
 // SnowHydrologyMod.F90::SnowWater()
-template <typename T, typename ArrayI1, typename ArrayD2> struct ComputeAerosolDeposition {
+template <typename T, typename ArrayI1, typename ArrayD2>
+struct ComputeAerosolDeposition {
   ComputeAerosolDeposition(const T& aerosol_forc, const ArrayI1 snl, AerosolMasses<ArrayD2>& aerosol_masses);
 
   ACCELERATE
@@ -48,8 +49,9 @@ private:
 // functor to calculate aerosol mass and concentration in snow layers
 // this is from AerosolMod.F90
 // gets run in ELM directly after hydrology is called
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputeAerosolConcenAndMass {
-  ComputeAerosolConcenAndMass(const bool& do_capsnow, const double& dtime, const ArrayI1 snl,
+template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+struct ComputeAerosolConcenAndMass {
+  ComputeAerosolConcenAndMass(const double& dtime, const ArrayB1 do_capsnow, const ArrayI1 snl,
                               const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
                               const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                               AerosolConcentrations<ArrayD2>& aerosol_concentrations);
@@ -58,8 +60,8 @@ template <typename ArrayI1, typename ArrayD1, typename ArrayD2> struct ComputeAe
   void operator()(const int i) const;
 
 private:
-  bool do_capsnow_;
   double dtime_;
+  ArrayB1 do_capsnow_;
   ArrayI1 snl_;
   ArrayD2 h2osoi_liq_;
   ArrayD2 h2osoi_ice_;
@@ -76,8 +78,8 @@ void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, c
                            AerosolMasses<ArrayD2>& aerosol_masses);
 
 // convenience function to invoke aerosol mass and concen functor
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime, const ArrayI1 snl,
+template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+void invoke_aerosol_concen_and_mass(const double& dtime, const ArrayB1 do_capsnow, const ArrayI1 snl,
                                     const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
                                     const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                                     AerosolConcentrations<ArrayD2>& aerosol_concentrations);

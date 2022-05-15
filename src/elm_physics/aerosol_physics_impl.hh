@@ -54,24 +54,24 @@ operator()(const int i) const {
   }
 }
 
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::
-ComputeAerosolConcenAndMass(const bool& do_capsnow, const double& dtime,
+template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
+ComputeAerosolConcenAndMass(const double& dtime, const ArrayB1 do_capsnow,
                             const ArrayI1 snl, const ArrayD2 h2osoi_liq,
                             const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
                             const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                             AerosolConcentrations<ArrayD2>& aerosol_concentrations)
-    : do_capsnow_{do_capsnow}, dtime_{dtime}, snl_{snl}, h2osoi_liq_{h2osoi_liq}, h2osoi_ice_{h2osoi_ice},
+    : dtime_{dtime}, do_capsnow_{do_capsnow}, snl_{snl}, h2osoi_liq_{h2osoi_liq}, h2osoi_ice_{h2osoi_ice},
       snw_rds_{snw_rds}, qflx_snwcp_ice_{qflx_snwcp_ice}, aerosol_masses_{aerosol_masses},
       aerosol_concentrations_{aerosol_concentrations} {}
 
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATE
-void ComputeAerosolConcenAndMass<ArrayI1, ArrayD1, ArrayD2>::
+void ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
 operator()(const int i) const {
   for (int sl = 0; sl < ELM::nlevsno; ++sl) {
     double snowmass = h2osoi_ice_(i, sl) + h2osoi_liq_(i, sl);
-    if (sl == ELM::nlevsno - snl_(i) && do_capsnow_) {
+    if (sl == ELM::nlevsno - snl_(i) && do_capsnow_(i)) {
       const double snowcap_scl_fct = snowmass / (snowmass + qflx_snwcp_ice_(i) * dtime_);
       aerosol_masses_.mss_bcpho(i, sl) *= snowcap_scl_fct;
       aerosol_masses_.mss_bcphi(i, sl) *= snowcap_scl_fct;
@@ -113,13 +113,13 @@ void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, c
 
 }
 
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_concen_and_mass(const bool& do_capsnow, const double& dtime, const ArrayI1 snl,
+template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+void invoke_aerosol_concen_and_mass(const double& dtime, const ArrayB1 do_capsnow, const ArrayI1 snl,
                                     const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
                                     const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
                                     AerosolConcentrations<ArrayD2>& aerosol_concentrations)
 {
-  ComputeAerosolConcenAndMass aerosol_c_mass_object(do_capsnow, dtime, snl, h2osoi_liq, h2osoi_ice, snw_rds,
+  ComputeAerosolConcenAndMass aerosol_c_mass_object(dtime, do_capsnow, snl, h2osoi_liq, h2osoi_ice, snw_rds,
                                                     qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
 
   invoke_kernel(aerosol_c_mass_object, std::make_tuple(snl.extent(0)), "ComputeAerosolConcenAndMass");

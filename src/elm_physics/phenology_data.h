@@ -45,7 +45,7 @@ public:
                 ArrayI1 frac_veg_nosno_alb);
 
   // will data be read if read_data is called?
-  inline bool need_data() { return need_new_data_; }
+  inline bool need_data() const { return need_new_data_; }
 
 private:
   // read 1 month of data from file (1, npfts, nlat, nlon) for input param month
