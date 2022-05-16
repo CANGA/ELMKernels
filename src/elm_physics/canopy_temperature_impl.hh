@@ -48,6 +48,8 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
                     const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
                     double& hr, double& soilalpha, double& soilalpha_u)
 {
+  static constexpr double smpmin{-1.e8}; // restriction for min of soil potential (mm)
+  
   qred = 1.0; // soil surface relative humidity
 
   if (!Land.lakpoi) {
@@ -65,23 +67,23 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
     }
     if (Land.ltype != LND::istwet && Land.ltype != LND::istice && Land.ltype != LND::istice_mec) {
       if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
-        wx = (h2osoi_liq(nlevsno) / denh2o + h2osoi_ice(nlevsno) / denice) / dz(nlevsno);
+        wx = (h2osoi_liq(nlevsno) / ELMconst::DENH2O + h2osoi_ice(nlevsno) / ELMconst::DENICE) / dz(nlevsno);
         fac = std::min(1.0, wx / watsat(0));
         fac = std::max(fac, 0.01);
         psit = -sucsat(0) * pow(fac, (-bsw(0)));
-        psit = std::max(ELM::smpmin, psit);
+        psit = std::max(smpmin, psit);
         // modify qred to account for h2osfc
-        hr = exp(psit / roverg / t_soisno(nlevsno));
+        hr = exp(psit / ELMconst::ROVERG / t_soisno(nlevsno));
         qred = (1.0 - frac_sno - frac_h2osfc) * hr + frac_sno + frac_h2osfc;
         soilalpha = qred;
       } else if (Land.ctype == LND::icol_road_perv) {
 
         // Pervious road depends on water in total soil column
         for (int j = 0; j < nlevbed; j++) {
-          if (t_soisno(j + nlevsno) >= ELM::constants::TFRZ) {
-            vol_ice = std::min(watsat(j), h2osoi_ice(j + nlevsno) / (dz(j + nlevsno) * denice));
+          if (t_soisno(j + nlevsno) >= ELMconst::TFRZ) {
+            vol_ice = std::min(watsat(j), h2osoi_ice(j + nlevsno) / (dz(j + nlevsno) * ELMconst::DENICE));
             eff_porosity = watsat(j) - vol_ice;
-            vol_liq = std::min(eff_porosity, h2osoi_liq(j + nlevsno) / (dz(j + nlevsno) * denh2o));
+            vol_liq = std::min(eff_porosity, h2osoi_liq(j + nlevsno) / (dz(j + nlevsno) * ELMconst::DENH2O));
             fac = std::min(std::max(vol_liq - watdry(j), 0.0) / (watopt(j) - watdry(j)), 1.0);
           } else {
             fac = 0.0;
@@ -208,17 +210,17 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 
     // Latent heat. We arbitrarily assume that the sublimation occurs
     // only as h2osoi_liq = 0
-    htvp = hvap;
+    htvp = ELMconst::HVAP;
     if (h2osoi_liq(nlevsno - snl) <= 00 && h2osoi_ice(nlevsno - snl) > 0.0) {
-      htvp = hsub;
+      htvp = ELMconst::HSUB;
     }
 
     // Ground roughness lengths over non-lake columns (includes bare ground, ground
     // underneath canopy, wetlands, etc.)
     if (frac_sno > 0.0) {
-      z0mg = zsno;
+      z0mg = ELMconst::ZSNO;
     } else {
-      z0mg = zlnd;
+      z0mg = ELMconst::ZLND;
     }
     z0hg = z0mg; // initial set only
     z0qg = z0mg; // initial set only

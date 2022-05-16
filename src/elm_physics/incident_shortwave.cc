@@ -4,7 +4,7 @@
 #include <cmath>
 
 namespace ns = ELM::incident_shortwave;
-using ELM::constants::ELM_PI;
+using ELM::ELMconst::ELM_PI;
 
 namespace ELM::incident_shortwave::detail {
 static constexpr double TWO_PI = ELM_PI * 2.0;

@@ -24,7 +24,7 @@ void ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::operator()(const int i) const 
   // Set leaf and stem areas based on day of year
   // Interpolate leaf area index, stem area index, and vegetation heights
   // between two monthly values using weights, (wt1, wt2)
-  if (vtype_(i) != ELM::noveg) {
+  if (vtype_(i) != PFT::noveg) {
     tlai_(i) = wt1_ * mlai_(start_idx_, i) + wt2_ * mlai_(start_idx_ + 1, i);
     tsai_(i) = wt1_ * msai_(start_idx_, i) + wt2_ * msai_(start_idx_ + 1, i);
     htop_(i) = wt1_ * mhtop_(start_idx_, i) + wt2_ * mhtop_(start_idx_ + 1, i);
@@ -42,7 +42,7 @@ void ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::operator()(const int i) const 
   // snow burial fraction for short vegetation (e.g. grasses) as in
   // Wang and Zeng, 2007.
   double fb;
-  if (vtype_(i) > ELM::noveg && vtype_(i) <= ELM::nbrdlf_dcd_brl_shrub) {
+  if (vtype_(i) > PFT::noveg && vtype_(i) <= PFT::nbrdlf_dcd_brl_shrub) {
     double ol = std::min(std::max(snow_depth_(i) - hbot_(i), 0.0), htop_(i) - hbot_(i));
     fb = 1.0 - ol / std::max(1.e-06, htop_(i) - hbot_(i));
   } else {

@@ -81,7 +81,7 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
   // added by K.Sakaguchi for beta from Lee and Pielke, 1992
   // water content at field capacity, defined as hk = 0.1 mm/day
   // used eqn (7.70) in CLM3 technote with k = 0.1 (mm/day) / secspday (day/sec)
-  watfc = watsat * pow((0.1 / (hksat * ELM::secspday)), (1.0 / (2.0 * bsw + 3.0)));
+  watfc = watsat * pow((0.1 / (hksat * ELMconst::SECSPDAY)), (1.0 / (2.0 * bsw + 3.0)));
 
   // this%sucmin_col(c,lev) = min_liquid_pressure
 

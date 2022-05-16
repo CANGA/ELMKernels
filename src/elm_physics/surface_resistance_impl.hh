@@ -19,16 +19,16 @@ void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const do
 
     if (Land.ltype != LND::istwet && Land.ltype != LND::istice && Land.ltype != LND::istice_mec) {
       if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
-        wx = (h2osoi_liq[nlevsno] / denh2o + h2osoi_ice[nlevsno] / denice) / dz[nlevsno];
-        fac = std::min(1.0, wx / watsat[0]);
+        wx = (h2osoi_liq(nlevsno) / ELMconst::DENH2O + h2osoi_ice(nlevsno) / ELMconst::DENICE) / dz(nlevsno);
+        fac = std::min(1.0, wx / watsat(0));
         fac = std::max(fac, 0.01);
         // Lee and Pielke 1992 beta, added by K.Sakaguchi
-        if (wx < watfc[0]) {                     //! when water content of ths top layer is less than that at F.C.
-          fac_fc = std::min(1.0, wx / watfc[0]); // eqn5.66 but divided by theta at field capacity
+        if (wx < watfc(0)) {                     //! when water content of ths top layer is less than that at F.C.
+          fac_fc = std::min(1.0, wx / watfc(0)); // eqn5.66 but divided by theta at field capacity
           fac_fc = std::max(fac_fc, 0.01);
           // modify soil beta by snow cover. soilbeta for snow surface is one
           soilbeta =
-              (1.0 - frac_sno - frac_h2osfc) * 0.25 * pow(1.0 - cos(ELM::constants::ELM_PI * fac_fc), 2.0) + frac_sno + frac_h2osfc;
+              (1.0 - frac_sno - frac_h2osfc) * 0.25 * pow(1.0 - cos(ELMconst::ELM_PI * fac_fc), 2.0) + frac_sno + frac_h2osfc;
         } else {
           soilbeta = 1.0;
         }
@@ -56,7 +56,7 @@ double getlblcef(const double& rho, const double& temp)
   double mu = mu0 * (T0 + C) / (temp + C) * pow(temp / T0, 1.5) / rho; // m^2 s^-1
   double diffh2o = 0.229e-4 * pow(temp / 273.15, 1.75);                // m^2 s^-1
   double sc = mu / diffh2o;                                            // schmidt number
-  double result = 2.0 / vkc * pow(sc / prandtl, 2.0 / 3.0);
+  double result = 2.0 / ELMconst::VKC * pow(sc / prandtl, 2.0 / 3.0);
   return result;
 }
 

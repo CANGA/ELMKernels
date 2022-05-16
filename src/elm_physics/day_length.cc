@@ -19,7 +19,7 @@ double daylength(const double& lat, const double& decl) {
   // epsilon for defining latitudes "near" the pole
   static constexpr double lat_epsilon = 10.0 * std::numeric_limits<double>::epsilon();
   // Define an offset pole as slightly less than pi/2 to avoid problems with cos(lat) being negative
-  static constexpr double pole = ELM::constants::ELM_PI / 2.0;
+  static constexpr double pole = ELMconst::ELM_PI / 2.0;
   static constexpr double offset_pole = pole - lat_epsilon;
 
   assert((std::abs(lat) <= (pole + lat_epsilon)) && "lat must be less than pi/2 within a small tolerance");

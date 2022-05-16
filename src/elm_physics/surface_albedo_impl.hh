@@ -61,7 +61,7 @@ namespace ELM::surface_albedo {
 ACCELERATE
 double calc_cosz(const double& jday, const double& lat, const double& lon, const double& declin)
 {
-  return sin(lat) * sin(declin) - cos(lat) * cos(declin) * cos((jday - floor(jday)) * 2.0 * ELM::constants::ELM_PI + lon);
+  return sin(lat) * sin(declin) - cos(lat) * cos(declin) * cos((jday - floor(jday)) * 2.0 * ELMconst::ELM_PI + lon);
 }
 
 ACCELERATE
@@ -389,7 +389,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
       // Adjust omega, betad, and betai for intercepted snow
       double tmp0, tmp1, tmp2;
-      if (t_veg > ELM::constants::TFRZ) { // no snow
+      if (t_veg > ELMconst::TFRZ) { // no snow
         tmp0 = omegal;
         tmp1 = betadl;
         tmp2 = betail;
@@ -691,7 +691,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           albsod(ib) = albice[ib];
           albsoi(ib) = albsod[ib];
           // comment out lake logic for now
-          // } else if (t_grnd > ELM::constants::TFRZ || (lakepuddling && Land.ltype == LND::istdlak && t_grnd == ELM::constants::TFRZ && lake_icefrac(0)
+          // } else if (t_grnd > ELMconst::TFRZ || (lakepuddling && Land.ltype == LND::istdlak && t_grnd == ELMconst::TFRZ && lake_icefrac(0)
           // < 1.0 &&
           //                              lake_icefrac(1) > 0.0)) { // maybe get rid of lake logic?
           //   albsod(ib) = 0.05 / (std::max(0.001, coszen) + 0.15);
@@ -716,7 +716,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           if (Land.ltype == LND::istdlak && !lakepuddling && snl == 0) {
             // Need to reference snow layers here because t_grnd could be over snow or ice
             // but we really want the ice surface temperature with no snow
-            double sicefr = 1.0 - exp(-calb * (ELM::constants::TFRZ - t_grnd) / ELM::constants::TFRZ);
+            double sicefr = 1.0 - exp(-calb * (ELMconst::TFRZ - t_grnd) / ELMconst::TFRZ);
             albsod(ib) =
                 sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.05 / (std::max(0.001, coszen) + 0.15));
             albsoi(ib) = sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.10);

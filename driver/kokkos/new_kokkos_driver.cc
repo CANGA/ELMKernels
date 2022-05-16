@@ -338,6 +338,8 @@ int main(int argc, char **argv) {
 
 { // enclosing scope
 
+  using namespace ELM::ELMdims;
+
   Kokkos::initialize(argc, argv);
 
   { // inner scope
@@ -371,8 +373,8 @@ int main(int argc, char **argv) {
     // hardwired params
     const double lat = 71.323;
     const double lon = 203.3886;
-    const double lat_r = lat * ELM::constants::ELM_PI / 180.0;
-    const double lon_r = lon * ELM::constants::ELM_PI / 180.0;
+    const double lat_r = lat * ELM::ELMconst::ELM_PI / 180.0;
+    const double lon_r = lon * ELM::ELMconst::ELM_PI / 180.0;
     ELM::LandType Land;
     Land.ltype = 1;
     Land.ctype = 1;
@@ -423,12 +425,12 @@ int main(int argc, char **argv) {
     auto frac_veg_nosno_alb = create<ViewI1>("frac_veg_nosno_alb", ncells);
 
     // soil hydraulics
-    auto watsat = create<ViewD2>("watsat", ncells, ELM::nlevgrnd);
-    auto sucsat = create<ViewD2>("sucsat", ncells, ELM::nlevgrnd);
-    auto bsw = create<ViewD2>("bsw", ncells, ELM::nlevgrnd);
-    auto watdry = create<ViewD2>("watdry", ncells, ELM::nlevgrnd);
-    auto watopt = create<ViewD2>("watopt", ncells, ELM::nlevgrnd);
-    auto watfc = create<ViewD2>("watfc", ncells, ELM::nlevgrnd);
+    auto watsat = create<ViewD2>("watsat", ncells, nlevgrnd);
+    auto sucsat = create<ViewD2>("sucsat", ncells, nlevgrnd);
+    auto bsw = create<ViewD2>("bsw", ncells, nlevgrnd);
+    auto watdry = create<ViewD2>("watdry", ncells, nlevgrnd);
+    auto watopt = create<ViewD2>("watopt", ncells, nlevgrnd);
+    auto watfc = create<ViewD2>("watfc", ncells, nlevgrnd);
     
     // topo, microtopography
     auto n_melt = create<ViewD1>("n_melt", ncells);
@@ -443,9 +445,9 @@ int main(int argc, char **argv) {
     auto isoicol = create<ViewI1>("isoicol", ncells);
     auto albsat = create<ViewD2>("albsat", ncells, 2);
     auto albdry = create<ViewD2>("albdry", ncells, 2);
-    auto pct_sand = create<ViewD2>("pct_sand", ncells, ELM::nlevgrnd);
-    auto pct_clay = create<ViewD2>("pct_clay", ncells, ELM::nlevgrnd);
-    auto organic = create<ViewD2>("organic", ncells, ELM::nlevgrnd);
+    auto pct_sand = create<ViewD2>("pct_sand", ncells, nlevgrnd);
+    auto pct_clay = create<ViewD2>("pct_clay", ncells, nlevgrnd);
+    auto organic = create<ViewD2>("organic", ncells, nlevgrnd);
 
     // snow variables
     auto snl = create<ViewI1>("snl", ncells);
@@ -462,13 +464,13 @@ int main(int argc, char **argv) {
     auto t_grnd = create<ViewD1>("t_grnd", ncells);
     auto h2ocan = create<ViewD1>("h2ocan", ncells);
     auto frac_veg_nosno = create<ViewI1>("frac_veg_nosno", ncells);
-    auto frac_iceold = create<ViewD2>("frac_iceold", ncells, ELM::nlevsno + ELM::nlevgrnd);
+    auto frac_iceold = create<ViewD2>("frac_iceold", ncells, nlevsno + nlevgrnd);
     auto h2osno = create<ViewD1>("h2osno", ncells);
-    auto h2osoi_liq = create<ViewD2>("h2osoi_liq", ncells, ELM::nlevsno + ELM::nlevgrnd);
+    auto h2osoi_liq = create<ViewD2>("h2osoi_liq", ncells, nlevsno + nlevgrnd);
     assign(h2osoi_liq, 0.0);
-    auto h2osoi_ice = create<ViewD2>("h2osoi_ice", ncells, ELM::nlevsno + ELM::nlevgrnd);
+    auto h2osoi_ice = create<ViewD2>("h2osoi_ice", ncells, nlevsno + nlevgrnd);
     assign(h2osoi_ice, 0.0);
-    auto snw_rds = create<ViewD2>("snw_rds", ncells, ELM::nlevsno);
+    auto snw_rds = create<ViewD2>("snw_rds", ncells, nlevsno);
 
 
     // for Canopy hydrology
@@ -484,9 +486,9 @@ int main(int argc, char **argv) {
     auto h2osfc = create<ViewD1>("h2osfc", ncells);
     auto frac_h2osfc = create<ViewD1>("frac_h2osfc", ncells);
     auto frac_sno_eff = create<ViewD1>("frac_sno_eff", ncells);
-    auto swe_old = create<ViewD2>("swe_old", ncells, ELM::nlevsno);
+    auto swe_old = create<ViewD2>("swe_old", ncells, nlevsno);
     
-    auto t_soisno = create<ViewD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
+    auto t_soisno = create<ViewD2>("t_soisno", ncells, nlevsno + nlevgrnd);
     double tsoi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 278.3081064745931, 276.1568781897738,
       275.55803480737063, 275.2677090940866, 274.7286996980052, 273.15, 272.4187794248787, 270.65049816473027,
       267.8224112387398, 265.7450135695632, 264.49481140089864, 264.14163363048056, 264.3351872934207, 264.1163763444719, 263.88852987294865};
@@ -496,16 +498,16 @@ int main(int argc, char **argv) {
     auto nrad = create<ViewI1>("nrad", ncells);
     auto laisun = create<ViewD1>("laisun", ncells);
     auto laisha = create<ViewD1>("laisha", ncells);
-    auto tlai_z = create<ViewD2>("tlai_z", ncells, ELM::nlevcan);
-    auto fsun_z = create<ViewD2>("fsun_z", ncells, ELM::nlevcan);
-    auto fabd_sun_z = create<ViewD2>("fabd_sun_z", ncells, ELM::nlevcan);
-    auto fabd_sha_z = create<ViewD2>("fabd_sha_z", ncells, ELM::nlevcan);
-    auto fabi_sun_z = create<ViewD2>("fabi_sun_z", ncells, ELM::nlevcan);
-    auto fabi_sha_z = create<ViewD2>("fabi_sha_z", ncells, ELM::nlevcan);
-    auto parsun_z = create<ViewD2>("parsun_z", ncells, ELM::nlevcan);
-    auto parsha_z = create<ViewD2>("parsha_z", ncells, ELM::nlevcan);
-    auto laisun_z = create<ViewD2>("laisun_z", ncells, ELM::nlevcan);
-    auto laisha_z = create<ViewD2>("laisha_z", ncells, ELM::nlevcan);
+    auto tlai_z = create<ViewD2>("tlai_z", ncells, nlevcan);
+    auto fsun_z = create<ViewD2>("fsun_z", ncells, nlevcan);
+    auto fabd_sun_z = create<ViewD2>("fabd_sun_z", ncells, nlevcan);
+    auto fabd_sha_z = create<ViewD2>("fabd_sha_z", ncells, nlevcan);
+    auto fabi_sun_z = create<ViewD2>("fabi_sun_z", ncells, nlevcan);
+    auto fabi_sha_z = create<ViewD2>("fabi_sha_z", ncells, nlevcan);
+    auto parsun_z = create<ViewD2>("parsun_z", ncells, nlevcan);
+    auto parsha_z = create<ViewD2>("parsha_z", ncells, nlevcan);
+    auto laisun_z = create<ViewD2>("laisun_z", ncells, nlevcan);
+    auto laisha_z = create<ViewD2>("laisha_z", ncells, nlevcan);
 
     // for surface rad
     auto sabg_soil = create<ViewD1>("sabg_soil", ncells);
@@ -514,24 +516,24 @@ int main(int argc, char **argv) {
     auto sabv = create<ViewD1>("sabv", ncells);
     auto fsa = create<ViewD1>("fsa", ncells);
     auto fsr = create<ViewD1>("fsr", ncells);
-    auto sabg_lyr = create<ViewD2>("sabg_lyr", ncells, ELM::nlevsno + 1);
-    auto ftdd = create<ViewD2>("ftdd", ncells, ELM::numrad);
-    auto ftid = create<ViewD2>("ftid", ncells, ELM::numrad);
-    auto ftii = create<ViewD2>("ftii", ncells, ELM::numrad);
-    auto fabd = create<ViewD2>("fabd", ncells, ELM::numrad);
-    auto fabi = create<ViewD2>("fabi", ncells, ELM::numrad);
-    auto albsod = create<ViewD2>("albsod", ncells, ELM::numrad);
-    auto albsoi = create<ViewD2>("albsoi", ncells, ELM::numrad);
-    auto albsnd_hst = create<ViewD2>("albsnd_hst", ncells, ELM::numrad);
-    auto albsni_hst = create<ViewD2>("albsni_hst", ncells, ELM::numrad);
-    auto albgrd = create<ViewD2>("albgrd", ncells, ELM::numrad);
-    auto albgri = create<ViewD2>("albgri", ncells, ELM::numrad);
-    auto flx_absdv = create<ViewD2>("flx_absdv", ncells, ELM::nlevsno + 1);
-    auto flx_absdn = create<ViewD2>("flx_absdn", ncells, ELM::nlevsno + 1);
-    auto flx_absiv = create<ViewD2>("flx_absiv", ncells, ELM::nlevsno + 1);
-    auto flx_absin = create<ViewD2>("flx_absin", ncells, ELM::nlevsno + 1);
-    auto albd = create<ViewD2>("albd", ncells, ELM::numrad);
-    auto albi = create<ViewD2>("albi", ncells, ELM::numrad);
+    auto sabg_lyr = create<ViewD2>("sabg_lyr", ncells, nlevsno + 1);
+    auto ftdd = create<ViewD2>("ftdd", ncells, numrad);
+    auto ftid = create<ViewD2>("ftid", ncells, numrad);
+    auto ftii = create<ViewD2>("ftii", ncells, numrad);
+    auto fabd = create<ViewD2>("fabd", ncells, numrad);
+    auto fabi = create<ViewD2>("fabi", ncells, numrad);
+    auto albsod = create<ViewD2>("albsod", ncells, numrad);
+    auto albsoi = create<ViewD2>("albsoi", ncells, numrad);
+    auto albsnd_hst = create<ViewD2>("albsnd_hst", ncells, numrad);
+    auto albsni_hst = create<ViewD2>("albsni_hst", ncells, numrad);
+    auto albgrd = create<ViewD2>("albgrd", ncells, numrad);
+    auto albgri = create<ViewD2>("albgri", ncells, numrad);
+    auto flx_absdv = create<ViewD2>("flx_absdv", ncells, nlevsno + 1);
+    auto flx_absdn = create<ViewD2>("flx_absdn", ncells, nlevsno + 1);
+    auto flx_absiv = create<ViewD2>("flx_absiv", ncells, nlevsno + 1);
+    auto flx_absin = create<ViewD2>("flx_absin", ncells, nlevsno + 1);
+    auto albd = create<ViewD2>("albd", ncells, numrad);
+    auto albi = create<ViewD2>("albi", ncells, numrad);
 
 
 
@@ -572,11 +574,11 @@ int main(int argc, char **argv) {
     auto qflx_evap_tot = create<ViewD1>("qflx_evap_tot", ncells);
     auto qflx_evap_veg = create<ViewD1>("qflx_evap_veg", ncells);
     auto qflx_tran_veg = create<ViewD1>("qflx_tran_veg", ncells);
-    auto tssbef = create<ViewD2>("tssbef", ncells, ELM::nlevgrnd + ELM::nlevsno);
+    auto tssbef = create<ViewD2>("tssbef", ncells, nlevgrnd + nlevsno);
     auto rootfr_road_perv =
-        create<ViewD2>("rootfr_road_perv", ncells, ELM::nlevgrnd); // comes from SoilStateType.F90
+        create<ViewD2>("rootfr_road_perv", ncells, nlevgrnd); // comes from SoilStateType.F90
     auto rootr_road_perv =
-        create<ViewD2>("rootr_road_perv", ncells, ELM::nlevgrnd); // comes from SoilStateType.F90
+        create<ViewD2>("rootr_road_perv", ncells, nlevgrnd); // comes from SoilStateType.F90
 
     auto forc_hgt_u_patch = create<ViewD1>("forc_hgt_u", ncells);
     auto forc_hgt_t_patch = create<ViewD1>("forc_hgt_t", ncells);
@@ -622,9 +624,9 @@ int main(int argc, char **argv) {
     auto btran = create<ViewD1>("btran", ncells);
     auto t_veg = create<ViewD1>("t_veg", ncells);
     assign(t_veg, 283.0);
-    auto rootfr = create<ViewD2>("rootfr", ncells, ELM::nlevgrnd);
-    auto rootr = create<ViewD2>("rootr", ncells, ELM::nlevgrnd);
-    auto eff_porosity = create<ViewD2>("eff_porosity", ncells, ELM::nlevgrnd);
+    auto rootfr = create<ViewD2>("rootfr", ncells, nlevgrnd);
+    auto rootr = create<ViewD2>("rootr", ncells, nlevgrnd);
+    auto eff_porosity = create<ViewD2>("eff_porosity", ncells, nlevgrnd);
 
     // surface albedo and snicar
     // required for SurfaceAlbedo kernels
@@ -634,33 +636,33 @@ int main(int argc, char **argv) {
     auto ncan = create<ViewI1>("ncan", ncells);
     auto flg_nosnl = create<ViewI1>("flg_nosnl", ncells);
     // I2
-    auto snw_rds_lcl = create<ViewI2>("snw_rds_lcl", ncells, ELM::nlevsno);
+    auto snw_rds_lcl = create<ViewI2>("snw_rds_lcl", ncells, nlevsno);
     // D1
     auto mu_not = create<ViewD1>("mu_not", ncells);
     // D2
-    auto fabd_sun = create<ViewD2>("fabd_sun", ncells, ELM::numrad);
-    auto fabd_sha = create<ViewD2>("fabd_sha", ncells, ELM::numrad);
-    auto fabi_sun = create<ViewD2>("fabi_sun", ncells, ELM::numrad);
-    auto fabi_sha = create<ViewD2>("fabi_sha", ncells, ELM::numrad);
-    auto albsnd = create<ViewD2>("albsnd", ncells, ELM::numrad);
-    auto albsni = create<ViewD2>("albsni", ncells, ELM::numrad);
-    auto tsai_z = create<ViewD2>("tsai_z", ncells, ELM::nlevcan);
-    auto h2osoi_vol = create<ViewD2>("h2osoi_vol", ncells, ELM::nlevgrnd);
+    auto fabd_sun = create<ViewD2>("fabd_sun", ncells, numrad);
+    auto fabd_sha = create<ViewD2>("fabd_sha", ncells, numrad);
+    auto fabi_sun = create<ViewD2>("fabi_sun", ncells, numrad);
+    auto fabi_sha = create<ViewD2>("fabi_sha", ncells, numrad);
+    auto albsnd = create<ViewD2>("albsnd", ncells, numrad);
+    auto albsni = create<ViewD2>("albsni", ncells, numrad);
+    auto tsai_z = create<ViewD2>("tsai_z", ncells, nlevcan);
+    auto h2osoi_vol = create<ViewD2>("h2osoi_vol", ncells, nlevgrnd);
     // D3
-    auto mss_cnc_aer_in_fdb = create<ViewD3>("mss_cnc_aer_in_fdb", ncells, ELM::nlevsno, ELM::sno_nbr_aer);
-    auto flx_absd_snw = create<ViewD3>("flx_absd_snw", ncells, ELM::nlevsno+1, ELM::numrad);
-    auto flx_absi_snw = create<ViewD3>("flx_absi_snw", ncells, ELM::nlevsno+1, ELM::numrad);
-    auto flx_abs_lcl = create<ViewD3>("flx_abs_lcl", ncells, ELM::nlevsno+1, ELM::numrad_snw);
+    auto mss_cnc_aer_in_fdb = create<ViewD3>("mss_cnc_aer_in_fdb", ncells, nlevsno, sno_nbr_aer);
+    auto flx_absd_snw = create<ViewD3>("flx_absd_snw", ncells, nlevsno+1, numrad);
+    auto flx_absi_snw = create<ViewD3>("flx_absi_snw", ncells, nlevsno+1, numrad);
+    auto flx_abs_lcl = create<ViewD3>("flx_abs_lcl", ncells, nlevsno+1, numrad_snw);
     // D2
-    auto albout_lcl = create<ViewD2>("albout_lcl", ncells, ELM::numrad_snw);
-    auto flx_slrd_lcl = create<ViewD2>("flx_slrd_lcl", ncells, ELM::numrad_snw);
-    auto flx_slri_lcl = create<ViewD2>("flx_slri_lcl", ncells, ELM::numrad_snw);
-    auto h2osoi_ice_lcl = create<ViewD2>("h2osoi_ice_lcl", ncells, ELM::nlevsno);
-    auto h2osoi_liq_lcl = create<ViewD2>("h2osoi_liq_lcl", ncells, ELM::nlevsno);
+    auto albout_lcl = create<ViewD2>("albout_lcl", ncells, numrad_snw);
+    auto flx_slrd_lcl = create<ViewD2>("flx_slrd_lcl", ncells, numrad_snw);
+    auto flx_slri_lcl = create<ViewD2>("flx_slri_lcl", ncells, numrad_snw);
+    auto h2osoi_ice_lcl = create<ViewD2>("h2osoi_ice_lcl", ncells, nlevsno);
+    auto h2osoi_liq_lcl = create<ViewD2>("h2osoi_liq_lcl", ncells, nlevsno);
     // D3
-    auto g_star = create<ViewD3>("g_star", ncells, ELM::numrad_snw, ELM::nlevsno);
-    auto omega_star = create<ViewD3>("omega_star", ncells, ELM::numrad_snw, ELM::nlevsno);
-    auto tau_star = create<ViewD3>("tau_star", ncells, ELM::numrad_snw, ELM::nlevsno);
+    auto g_star = create<ViewD3>("g_star", ncells, numrad_snw, nlevsno);
+    auto omega_star = create<ViewD3>("omega_star", ncells, numrad_snw, nlevsno);
+    auto tau_star = create<ViewD3>("tau_star", ncells, numrad_snw, nlevsno);
 
     // soil fluxes (outputs)
     auto eflx_soil_grnd = create<ViewD1>("eflx_soil_grnd", ncells);
@@ -672,9 +674,9 @@ int main(int argc, char **argv) {
     auto eflx_lwrad_net = create<ViewD1>("eflx_lwrad_net", ncells); // these are just placeholders currently
 
     // grid data 
-    auto dz = create<ViewD2>("dz", ncells, ELM::nlevsno + ELM::nlevgrnd);
-    auto zsoi = create<ViewD2>("zsoi", ncells, ELM::nlevsno + ELM::nlevgrnd);
-    auto zisoi = create<ViewD2>("zisoi", ncells, ELM::nlevsno + ELM::nlevgrnd + 1);
+    auto dz = create<ViewD2>("dz", ncells, nlevsno + nlevgrnd);
+    auto zsoi = create<ViewD2>("zsoi", ncells, nlevsno + nlevgrnd);
+    auto zisoi = create<ViewD2>("zisoi", ncells, nlevsno + nlevgrnd + 1);
 
     // hardwired grid info
     // this comes from ELM, but is wrong?
@@ -690,7 +692,7 @@ int main(int argc, char **argv) {
       11.12615029420442, 13.851152141963599 };
       auto h_dz = Kokkos::create_mirror_view(dz);
       for (int n = 0; n < ncells; ++n) {
-        for (int i = 0; i < ELM::nlevsno + ELM::nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_dz(n, i) = dz_hardwire[i];
         }
       }
@@ -706,7 +708,7 @@ int main(int argc, char **argv) {
       21.32646906315379, 35.17762120511739 };
       auto h_zsoi = Kokkos::create_mirror_view(zsoi);
       for (int n = 0; n < ncells; ++n) {
-        for (int i = 0; i < ELM::nlevsno + ELM::nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_zsoi(n, i) = zsoi_hardwire[i];
         }
       }
@@ -722,7 +724,7 @@ int main(int argc, char **argv) {
       17.12589483993117, 28.252045134135592, 42.10319727609919 };
       auto h_zisoi = Kokkos::create_mirror_view(zisoi);
       for (int n = 0; n < ncells; ++n) {
-        for (int i = 0; i < ELM::nlevsno + ELM::nlevgrnd + 1; ++i) {
+        for (int i = 0; i < nlevsno + nlevgrnd + 1; ++i) {
           h_zisoi(n, i) = zisoi_hardwire[i];
         }
       }
@@ -1484,8 +1486,8 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
           // local to these kernel calls
-            double trd[ELM::numrad] = {0.0,0.0};
-            double tri[ELM::numrad] = {0.0,0.0};
+            double trd[numrad] = {0.0,0.0};
+            double tri[numrad] = {0.0,0.0};
 
           // call canopy_sunshade_fractions kernel
           ELM::surface_radiation::canopy_sunshade_fractions(
@@ -2065,8 +2067,8 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
-          const auto& snotop = ELM::nlevsno-snl(idx);
-          const auto& soitop = ELM::nlevsno;
+          const auto& snotop = nlevsno-snl(idx);
+          const auto& soitop = nlevsno;
           ELM::surface_fluxes::initial_flux_calc(
               Land.urbpoi,
               snl(idx),

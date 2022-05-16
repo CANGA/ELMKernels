@@ -13,7 +13,7 @@ void init_timestep(const bool& lakpoi, const bool& veg_active,
                    int& frac_veg_nosno, ArrayD1 frac_iceold)
 {
   // Decide whether to cap snow
-  if (h2osno > h2osno_max) {
+  if (h2osno > ELMconst::H2OSNO_MAX) {
     do_capsnow = true;
   } else {
     do_capsnow = false;

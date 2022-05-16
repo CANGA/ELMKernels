@@ -39,7 +39,7 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
       const double fmelt = pow(snowbd / 100.0, 1.0);
       // 100 is the assumed fresh snow density; 1 is a melting factor that could be
       // reconsidered, optimal value of 1.5 in Niu et al., 2007
-      frac_sno = tanh(snow_depth / (2.5 * zlnd * fmelt));
+      frac_sno = tanh(snow_depth / (2.5 * ELMconst::ZLND * fmelt));
     }
   }
 
@@ -49,10 +49,10 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
       snw_rds(i) = 0.0;
     }
     for (int i = nlevsno - snl; i < nlevsno; ++i) {
-      snw_rds(i) = snw_rds_min;
+      snw_rds(i) = ELMconst::SNW_RDS_MIN;
     }
   } else if (h2osno > 0.0) {
-    snw_rds(nlevsno - 1) = snw_rds_min;
+    snw_rds(nlevsno - 1) = ELMconst::SNW_RDS_MIN;
     for (int i = 0; i < nlevsno - 1; ++i) {
       snw_rds(i) = 0.0;
     }

@@ -62,14 +62,14 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
       z0hg = z0mg / exp(0.13 * pow((ustar * z0mg / 1.5e-5), 0.45));
       z0qg = z0hg;
       zeta =
-          zldis * vkc * grav * thvstar / (pow(ustar, 2.0) * thv); // dimensionless height used in Monin-Obukhov theory
+          zldis * ELMconst::VKC * ELMconst::GRAV * thvstar / (pow(ustar, 2.0) * thv); // dimensionless height used in Monin-Obukhov theory
 
       if (zeta >= 0.0) { // stable
         zeta = std::min(2.0, std::max(zeta, 0.01));
         um = std::max(ur, 0.1);
       } else { // unstable
         zeta = std::max(-100.0, std::min(zeta, -0.01));
-        wc = beta * pow((-grav * ustar * thvstar * zii / thv), 0.333);
+        wc = beta * pow((-ELMconst::GRAV * ustar * thvstar * zii / thv), 0.333);
         um = std::sqrt(ur * ur + wc * wc);
       }
       obu = zldis / zeta;
@@ -104,7 +104,7 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
     // Determine aerodynamic resistances
     rah = 1.0 / (temp1 * ustar);
     raw = 1.0 / (temp2 * ustar);
-    raih = forc_rho * cpair / rah;
+    raih = forc_rho * ELMconst::CPAIR / rah;
 
     // Soil evaporation resistance - changed by K.Sakaguchi. Soilbeta is used for evaporation
     if (dqh > 0.0) { // dew  (beta is not applied, just like rsoil used to be)

@@ -19,7 +19,7 @@ double StabilityFunc1(const double& zeta)
   double chik, chik2, retval;
   chik2 = std::sqrt(1.0 - 16.0 * zeta);
   chik = std::sqrt(chik2);
-  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELM::constants::ELM_PI * 0.5;
+  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELMconst::ELM_PI * 0.5;
   return retval;
 }
 
@@ -49,7 +49,7 @@ void monin_obukhov_length(const double& ur, const double& thv, const double& dth
     um = std::sqrt(ur * ur + wc * wc);
   }
 
-  rib = grav * zldis * dthv / (thv * um * um);
+  rib = ELMconst::GRAV * zldis * dthv / (thv * um * um);
 
   if (rib >= 0.0) { // neutral or stable
     zeta = rib * std::log(zldis / z0m) / (1.0 - 5.0 * std::min(rib, 0.19));
@@ -67,20 +67,21 @@ ACCELERATE
 void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa, const double& um,
                                 const double& obu, const double& z0m, double& ustar)
 {
+  using ELMconst::VKC;
   static constexpr double zetam = 1.574;          // transition point of flux-gradient relation (wind profile)
   const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetam)) {
-    ustar = vkc * um /
+    ustar = VKC * um /
             (std::log(-zetam * obu / z0m) - StabilityFunc1(-zetam) + StabilityFunc1(z0m / obu) +
              1.14 * (pow((-zeta), 0.333) - pow(zetam, 0.333)));
   } else if (zeta < 0.0) {
-    ustar = vkc * um / (std::log(zldis / z0m) - StabilityFunc1(zeta) + StabilityFunc1(z0m / obu));
+    ustar = VKC * um / (std::log(zldis / z0m) - StabilityFunc1(zeta) + StabilityFunc1(z0m / obu));
   } else if (zeta <= 1.0) {
-    ustar = vkc * um / (std::log(zldis / z0m) + 5.0 * zeta - 5.0 * z0m / obu);
+    ustar = VKC * um / (std::log(zldis / z0m) + 5.0 * zeta - 5.0 * z0m / obu);
   } else {
-    ustar = vkc * um / (std::log(obu / z0m) + 5.0 - 5.0 * z0m / obu + (5.0 * std::log(zeta) + zeta - 1.0));
+    ustar = VKC * um / (std::log(obu / z0m) + 5.0 - 5.0 * z0m / obu + (5.0 * std::log(zeta) + zeta - 1.0));
   }
 }
 
@@ -88,19 +89,20 @@ ACCELERATE
 void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa, const double& obu,
                                 const double& z0h, double& temp1)
 {
+  using ELMconst::VKC;
   static constexpr double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
   const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
   const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetat)) {
-    temp1 = vkc / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
+    temp1 = VKC / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
                    0.8 * (pow(zetat, -0.333) - pow((-zeta), -0.333)));
   } else if (zeta < 0.0) {
-    temp1 = vkc / (std::log(zldis / z0h) - StabilityFunc2(zeta) + StabilityFunc2(z0h / obu));
+    temp1 = VKC / (std::log(zldis / z0h) - StabilityFunc2(zeta) + StabilityFunc2(z0h / obu));
   } else if (zeta <= 1.0) {
-    temp1 = vkc / (std::log(zldis / z0h) + 5.0 * zeta - 5.0 * z0h / obu);
+    temp1 = VKC / (std::log(zldis / z0h) + 5.0 * zeta - 5.0 * z0h / obu);
   } else {
-    temp1 = vkc / (std::log(obu / z0h) + 5.0 - 5.0 * z0h / obu + (5.0 * std::log(zeta) + zeta - 1.0));
+    temp1 = VKC / (std::log(obu / z0h) + 5.0 - 5.0 * z0h / obu + (5.0 * std::log(zeta) + zeta - 1.0));
   }
 }
 
@@ -109,6 +111,7 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
                                     const double& displa, const double& obu, const double& z0h, const double& z0q,
                                     const double& temp1, double& temp2)
 {
+  using ELMconst::VKC;
   static constexpr double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
 
   if (forc_hgt_q_patch == forc_hgt_t_patch && z0q == z0h) {
@@ -117,14 +120,14 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
     double zldis = forc_hgt_q_patch - displa; // reference height "minus" zero displacement heght [m]
     double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
     if (zeta < (-zetat)) {
-      temp2 = vkc / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) +
+      temp2 = VKC / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) +
                      0.8 * (pow(zetat, -0.333) - pow((-zeta), -0.333)));
     } else if (zeta < 0.0) {
-      temp2 = vkc / (std::log(zldis / z0q) - StabilityFunc2(zeta) + StabilityFunc2(z0q / obu));
+      temp2 = VKC / (std::log(zldis / z0q) - StabilityFunc2(zeta) + StabilityFunc2(z0q / obu));
     } else if (zeta <= 1.0) {
-      temp2 = vkc / (std::log(zldis / z0q) + 5.0 * zeta - 5. * z0q / obu);
+      temp2 = VKC / (std::log(zldis / z0q) + 5.0 * zeta - 5. * z0q / obu);
     } else {
-      temp2 = vkc / (std::log(obu / z0q) + 5.0 - 5.0 * z0q / obu + (5.0 * std::log(zeta) + zeta - 1.0));
+      temp2 = VKC / (std::log(obu / z0q) + 5.0 - 5.0 * z0q / obu + (5.0 * std::log(zeta) + zeta - 1.0));
     }
   }
 }
@@ -132,19 +135,20 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
 ACCELERATE
 void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m)
 {
+  using ELMconst::VKC;
   const double zldis = 2.0 + z0h;
   const double zeta = zldis / obu;
   const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
 
   if (zeta < -zetat) {
-    temp12m = vkc / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
+    temp12m = VKC / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
                      0.8 * (pow(zetat, -0.333) - pow(-zeta, -0.333)));
   } else if (zeta < 0.0) {
-    temp12m = vkc / (std::log(zldis / z0h) - StabilityFunc2(zeta) + StabilityFunc2(z0h / obu));
+    temp12m = VKC / (std::log(zldis / z0h) - StabilityFunc2(zeta) + StabilityFunc2(z0h / obu));
   } else if (zeta <= 1.0) {
-    temp12m = vkc / (std::log(zldis / z0h) + 5.0 * zeta - 5.0 * z0h / obu);
+    temp12m = VKC / (std::log(zldis / z0h) + 5.0 * zeta - 5.0 * z0h / obu);
   } else {
-    temp12m = vkc / (std::log(obu / z0h) + 5.0 - 5.0 * (z0h / obu) + (5.0 * std::log(zeta) + zeta - 1.0));
+    temp12m = VKC / (std::log(obu / z0h) + 5.0 - 5.0 * (z0h / obu) + (5.0 * std::log(zeta) + zeta - 1.0));
   }
 }
 
@@ -152,6 +156,8 @@ ACCELERATE
 void friction_velocity_humidity2m(const double& obu, const double& z0h, const double& z0q, const double& temp12m,
                                       double& temp22m)
 {
+  using ELMconst::VKC;
+  
   if (z0q == z0h) {
     temp22m = temp12m;
   } else {
@@ -159,14 +165,14 @@ void friction_velocity_humidity2m(const double& obu, const double& z0h, const do
     const double zeta = zldis / obu;
     const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
     if (zeta < -zetat) {
-      temp22m = vkc / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) +
+      temp22m = VKC / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) +
                        0.8 * (pow(zetat, -0.333) - pow(-zeta, -0.333)));
     } else if (zeta < 0.0) {
-      temp22m = vkc / (std::log(zldis / z0q) - StabilityFunc2(zeta) + StabilityFunc2(z0q / obu));
+      temp22m = VKC / (std::log(zldis / z0q) - StabilityFunc2(zeta) + StabilityFunc2(z0q / obu));
     } else if (zeta <= 1.0) {
-      temp22m = vkc / (std::log(zldis / z0q) + 5.0 * zeta - 5.0 * z0q / obu);
+      temp22m = VKC / (std::log(zldis / z0q) + 5.0 * zeta - 5.0 * z0q / obu);
     } else {
-      temp22m = vkc / (std::log(obu / z0q) + 5.0 - 5.0 * z0q / obu + (5.0 * std::log(zeta) + zeta - 1.0));
+      temp22m = VKC / (std::log(obu / z0q) + 5.0 - 5.0 * z0q / obu + (5.0 * std::log(zeta) + zeta - 1.0));
     }
   }
 }

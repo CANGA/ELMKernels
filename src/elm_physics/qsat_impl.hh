@@ -49,7 +49,7 @@ void qsat(const double& T, const double& p,
   static constexpr double d8 = 0.498070196e-16;
   double td, vp, vp1, vp2, T_limit;
   
-  T_limit = T - ELM::constants::TFRZ;
+  T_limit = T - ELMconst::TFRZ;
 
   if (T_limit > 100.0) {
     T_limit = 100.0;

@@ -125,7 +125,7 @@ namespace ELM::snow_snicar {
 //       // dr_wet = 1E6_r8*(dtime*(C1_liq_Brun89 + C2_liq_Brun89*(frc_liq**(3))) /
 //       (4*SHR_CONST_PI*(snw_rds(c_idx,i)/1E6)**(2)))
 //       // simplified, units of microns:
-//       dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * pow(frc_liq, 3.0)) / (4.0 * ELM::constants::ELM_PI * pow(snw_rds, 2.0)));
+//       dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * pow(frc_liq, 3.0)) / (4.0 * ELMconst::ELM_PI * pow(snw_rds, 2.0)));
 //       dr += dr_wet;
 //
 //       //
@@ -206,10 +206,13 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
                    const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 snw_rds, int& snl_top,
                    int& snl_btm, ArrayD2 flx_abs_lcl, ArrayD2 flx_abs, int& flg_nosnl, ArrayD1 h2osoi_ice_lcl,
                    ArrayD1 h2osoi_liq_lcl, ArrayI1 snw_rds_lcl, double& mu_not, ArrayD1 flx_slrd_lcl,
-                   ArrayD1 flx_slri_lcl) {
+                   ArrayD1 flx_slri_lcl)
+{
+  using ELMdims::nlevsno;
+  using ELMdims::numrad;
+  using ELMdims::numrad_snw;
 
   if (!urbpoi) {
-
     // Zero absorbed radiative fluxes:
     for (int i = 0; i <= nlevsno; ++i) {
       for (int ib = 0; i < numrad; ++i) {
@@ -236,7 +239,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
         snl_lcl = 1;
         h2osoi_ice_lcl(nlevsno - 1) = h2osno;
         h2osoi_liq_lcl(nlevsno - 1) = 0.0;
-        snw_rds_lcl(nlevsno - 1) = round(snw_rds_min);
+        snw_rds_lcl(nlevsno - 1) = round(ELMconst::SNW_RDS_MIN);
       } else {
         flg_nosnl = 0;
         snl_lcl = snl;
@@ -279,7 +282,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       // (This has to be within the bnd loop because mu_not is adjusted in rare cases)
       if (flg_slr_in == 1) {
         for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
-          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * ELM::constants::ELM_PI); // this corresponds to incident irradiance of 1.0
+          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * ELMconst::ELM_PI); // this corresponds to incident irradiance of 1.0
           flx_slri_lcl(bnd_idx) = 0.0;
         }
       } else if (flg_slr_in == 2) {
@@ -313,6 +316,9 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
                              const ArrayD3 bcenh, const SubviewD2 mss_cnc_aer_in, SubviewD2 g_star, SubviewD2 omega_star,
                              SubviewD2 tau_star)
 {
+  using ELMdims::sno_nbr_aer;
+  using ELMdims::nlevsno;
+  using ELMdims::numrad_snw;
   static constexpr double rds_bcint_lcl{100.0}; // effective radius of within-ice BC [nm]
   static constexpr double rds_bcext_lcl{100.0}; // effective radius of external BC [nm]
   static constexpr int DELTA{1};                // always use Delta approximation for snow
@@ -532,6 +538,8 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
   | 1|                         |5|
    --    2                  6  ---  [nlevsno + 1]  */
 
+  using ELMdims::nlevsno;
+
   // Gaussian integration angle and coefficients for diffuse radiation
   static constexpr double difgauspt[8]      // gaussian angles (radians)
       = {0.9894009, 0.9445750, 0.8656312, 0.7554044, 0.6178762, 0.4580168, 0.2816036, 0.0950125};
@@ -568,7 +576,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
       const int snl_btm_itf = nlevsno; // index of ground/snow interface (same as snl_btm + 1)
 
-      for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
+      for (int bnd_idx = 0; bnd_idx < ELMdims::numrad_snw; ++bnd_idx) {
 
         for (int i = snl_top; i <= snl_btm_itf; ++i) {
           trndir[i] = alg::c0;
@@ -840,7 +848,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
         // Energy conservation check:
         // Incident direct+diffuse radiation equals (absorbed+bulk_transmitted+bulk_reflected)
         const double energy_sum =
-            (mu_not * ELM::constants::ELM_PI * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
+            (mu_not * ELMconst::ELM_PI * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
         if (std::abs(energy_sum) > 0.00001) {
           throw std::runtime_error("ELM ERROR: SNICAR Energy conservation error.");
         }
@@ -862,7 +870,9 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
                                   const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,
                                   ArrayD1 albout, ArrayD2 flx_abs)
 {
-  // cconstant coefficients used for SZA parameterization
+  using ELMdims::nlevsno;
+  
+  // constant coefficients used for SZA parameterization
   static constexpr double sza_a0{0.085730};
   static constexpr double sza_a1{-0.630883};
   static constexpr double sza_a2{1.303723};
@@ -890,7 +900,7 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
 
       // 5-band weights
       // Direct:
-      double flx_wgt[numrad_snw];
+      double flx_wgt[ELMdims::numrad_snw];
       if (flg_slr_in == 1) {
         flx_wgt[0] = 1.0;
         flx_wgt[1] = 0.49352158521175;

@@ -3,22 +3,22 @@
 
 template <typename ArrayD2>
 ELM::AerosolMasses<ArrayD2>::AerosolMasses(const size_t& ncells)
-    : mss_bcphi("mss_bcphi", ncells, ELM::nlevsno),
-      mss_bcpho("mss_bcpho", ncells, ELM::nlevsno),
-      mss_dst1("mss_dst1", ncells, ELM::nlevsno),
-      mss_dst2("mss_dst2", ncells, ELM::nlevsno),
-      mss_dst3("mss_dst3", ncells, ELM::nlevsno),
-      mss_dst4("mss_dst4", ncells, ELM::nlevsno)
+    : mss_bcphi("mss_bcphi", ncells, nlevsno_),
+      mss_bcpho("mss_bcpho", ncells, nlevsno_),
+      mss_dst1("mss_dst1", ncells, nlevsno_),
+      mss_dst2("mss_dst2", ncells, nlevsno_),
+      mss_dst3("mss_dst3", ncells, nlevsno_),
+      mss_dst4("mss_dst4", ncells, nlevsno_)
     {}
 
 template <typename ArrayD2>
 ELM::AerosolConcentrations<ArrayD2>::AerosolConcentrations(const size_t& ncells)
-    : mss_cnc_bcphi("mss_cnc_bcphi", ncells, ELM::nlevsno),
-      mss_cnc_bcpho("mss_cnc_bcpho", ncells, ELM::nlevsno),
-      mss_cnc_dst1("mss_cnc_dst1", ncells, ELM::nlevsno),
-      mss_cnc_dst2("mss_cnc_dst2", ncells, ELM::nlevsno),
-      mss_cnc_dst3("mss_cnc_dst3", ncells, ELM::nlevsno),
-      mss_cnc_dst4("mss_cnc_dst4", ncells, ELM::nlevsno)
+    : mss_cnc_bcphi("mss_cnc_bcphi", ncells, nlevsno_),
+      mss_cnc_bcpho("mss_cnc_bcpho", ncells, nlevsno_),
+      mss_cnc_dst1("mss_cnc_dst1", ncells, nlevsno_),
+      mss_cnc_dst2("mss_cnc_dst2", ncells, nlevsno_),
+      mss_cnc_dst3("mss_cnc_dst3", ncells, nlevsno_),
+      mss_cnc_dst4("mss_cnc_dst4", ncells, nlevsno_)
     {}
 
 namespace ELM::aerosols {
@@ -44,7 +44,7 @@ ACCELERATE
 void ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::
 operator()(const int i) const {
   if (snl_(i) > 0) {
-    const int j = ELM::nlevsno - snl_(i);
+    const int j = ELMdims::nlevsno - snl_(i);
     aerosol_masses_.mss_bcphi(i, j) += forc_bcphi_;
     aerosol_masses_.mss_bcpho(i, j) += forc_bcpho_;
     aerosol_masses_.mss_dst1(i, j) += forc_dst1_;
@@ -69,9 +69,9 @@ template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2
 ACCELERATE
 void ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
 operator()(const int i) const {
-  for (int sl = 0; sl < ELM::nlevsno; ++sl) {
+  for (int sl = 0; sl < ELMdims::nlevsno; ++sl) {
     double snowmass = h2osoi_ice_(i, sl) + h2osoi_liq_(i, sl);
-    if (sl == ELM::nlevsno - snl_(i) && do_capsnow_(i)) {
+    if (sl == ELMdims::nlevsno - snl_(i) && do_capsnow_(i)) {
       const double snowcap_scl_fct = snowmass / (snowmass + qflx_snwcp_ice_(i) * dtime_);
       aerosol_masses_.mss_bcpho(i, sl) *= snowcap_scl_fct;
       aerosol_masses_.mss_bcphi(i, sl) *= snowcap_scl_fct;
@@ -81,7 +81,7 @@ operator()(const int i) const {
       aerosol_masses_.mss_dst4(i, sl) *= snowcap_scl_fct;
     }
 
-    if (sl < ELM::nlevsno - snl_(i)) {
+    if (sl < ELMdims::nlevsno - snl_(i)) {
       snw_rds_(i, sl) = 0.0;
       aerosol_masses_.mss_bcpho(i, sl) = 0.0;
       aerosol_masses_.mss_bcphi(i, sl) = 0.0;
