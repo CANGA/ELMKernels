@@ -136,14 +136,14 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
     double qsatgdT; // d(qsatg)/dT
 
     if (Land.ltype == istsoil || Land.ltype == istcrop) {
-      qsat::qsat(t_soisno(nlevsno - snl), forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_soisno(nlevsno - snl), forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
       }
       qg_snow = qsatg;
       dqgdT = frac_sno * qsatgdT;
-      qsat::qsat(t_soisno(nlevsno), forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_soisno(nlevsno), forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > hr * qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
@@ -157,7 +157,7 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
         qg_snow = qg_soil;
         dqgdT = (1.0 - frac_h2osfc) * hr * dqgdT;
       }
-      qsat::qsat(t_h2osfc, forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_h2osfc, forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
@@ -166,7 +166,7 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
       dqgdT = dqgdT + frac_h2osfc * qsatgdT;
       qg = frac_sno_eff * qg_snow + (1.0 - frac_sno_eff - frac_h2osfc) * qg_soil + frac_h2osfc * qg_h2osfc;
     } else {
-      qsat::qsat(t_grnd, forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_grnd, forc_pbot, eg, degdT, qsatg, qsatgdT);
       qg = qred * qsatg;
       dqgdT = qred * qsatgdT;
 

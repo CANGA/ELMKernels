@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace ELM::init_soil_state {
+namespace ELM {
 
 // from ColumnDataType.F90
 //-----------------------------------------------------------------------
@@ -208,4 +208,4 @@ void init_vegrootfr(const int& vtype, const double& roota_par, const double& roo
   }
 }
 
-} // namespace ELM::init_soil_state
+} // namespace ELM

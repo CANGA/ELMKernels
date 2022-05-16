@@ -146,7 +146,7 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
 
     // 2 m height relative humidity
-    qsat::qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+    qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
 
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m * 100.0));
 

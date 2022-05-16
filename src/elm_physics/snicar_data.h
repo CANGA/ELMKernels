@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "elm_constants.h"
 #include "array.hh"
 #include "read_input.hh"
 #include "utils.hh"

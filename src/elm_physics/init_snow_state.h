@@ -8,7 +8,7 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::init_snow_state {
+namespace ELM {
 
 // from ColumnDataType.F90 and WaterStateType.F90
 //-----------------------------------------------------------------------
@@ -25,6 +25,6 @@ template <class ArrayD1>
 ACCELERATE
 void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi);
 
-} // namespace ELM::init_snow_state
+} // namespace ELM
 
 #include "init_snow_state_impl.hh"

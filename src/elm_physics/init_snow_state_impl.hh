@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace ELM::init_snow_state {
+namespace ELM {
 
 // from ColumnDataType.F90 and WaterStateType.F90
 //-----------------------------------------------------------------------
@@ -145,4 +145,4 @@ void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, Ar
   }
 }
 
-} // namespace ELM::init_snow_state
+} // namespace ELM

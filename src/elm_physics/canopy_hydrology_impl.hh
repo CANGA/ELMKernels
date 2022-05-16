@@ -154,16 +154,17 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
                int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds,
                double& frac_sno_eff, double& frac_sno)
 {
+  static constexpr double accum_factor{0.1}; // shape factor for accumulation of snow
   if (!Land.lakpoi) {
     using ELM::constants::ELM_PI;
-    double temp_snow_depth, dz_snowf, newsnow, bifall, snowmelt, accum_factor, temp_intsnow, z_avg;
+    double dz_snowf, newsnow, bifall, temp_intsnow;
     // Determine snow height and snow water
     // Use Alta relationship, Anderson(1976); LaChapelle(1961),
     // U.S.Department of Agriculture Forest Service, Project F,
     // Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
 
     // set temporary variables prior to updating
-    temp_snow_depth = snow_depth;
+    const double temp_snow_depth = snow_depth;
     // save initial snow content
     for (int j = 0; j < nlevsno - snl; j++) {
       swe_old(j) = 0.0;
@@ -189,9 +190,8 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       // update int_snow
       int_snow = std::max(int_snow, h2osno); // h2osno could be larger due to frost
       // snowmelt from previous time step * dtime
-      snowmelt = qflx_snow_melt * dtime;
-      // set shape factor for accumulation of snow
-      accum_factor = 0.1;
+      const double snowmelt = qflx_snow_melt * dtime;
+
       /*======================  FSCA PARAMETERIZATIONS  ======================
       fsca parameterization based on *changes* in swe
       first compute change from melt during previous time step */
@@ -235,7 +235,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       } else { // h2osno == 0
         // initialize frac_sno and snow_depth when no snow present initially
         if (newsnow > 0.0) {
-          z_avg = newsnow / bifall;
+          double z_avg = newsnow / bifall;
           frac_sno = tanh(accum_factor * newsnow);
           // make int_snow consistent w/ new fsno, h2osno
           int_snow = 0.0; // reset prior to adding newsnow below

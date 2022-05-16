@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace ELM::qsat {
+namespace ELM {
 
 ACCELERATE
 void qsat(const double& T, const double& p,
@@ -77,4 +77,4 @@ void qsat(const double& T, const double& p,
   qsdT = esdT * vp2 * p; // 1 / K
 }
 
-} // namespace ELM::qsat
+} // namespace ELM

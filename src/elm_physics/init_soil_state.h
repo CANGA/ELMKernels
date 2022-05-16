@@ -11,7 +11,7 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::init_soil_state {
+namespace ELM {
 
 // from ColumnDataType.F90
 //-----------------------------------------------------------------------
@@ -50,6 +50,6 @@ ACCELERATE
 void init_vegrootfr(const int& vtype, const double& roota_par, const double& rootb_par, const ArrayD1 zi,
                     ArrayD1 rootfr);
 
-} // namespace ELM::init_soil_state
+} // namespace ELM
 
 #include "init_soil_state_impl.hh"

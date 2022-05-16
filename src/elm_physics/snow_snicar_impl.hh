@@ -41,6 +41,15 @@ namespace ELM::snow_snicar {
 //   The phenomenon is observed (Grenfell), but so far unquantified, as far as
 //   I am aware.
 // void SnowAge_grain() {
+//
+//   static constexpr double snw_rds_refrz{1000.0}; // effective radius of re-frozen snow [microns]
+//   static constexpr int idx_T_max{10};        // maxiumum temperature index used in aging lookup table [idx]
+//   static constexpr int idx_T_min{0};         // minimum temperature index used in aging lookup table [idx]
+//   static constexpr int idx_Tgrd_max{30};     // maxiumum temperature gradient index used in aging lookup table [idx]
+//   static constexpr int idx_Tgrd_min{0};      // minimum temperature gradient index used in aging lookup table [idx]
+//   static constexpr int idx_rhos_max{7};      // maxiumum snow density index used in aging lookup table [idx]
+//   static constexpr int idx_rhos_min{0};      // minimum snow density index used in aging lookup table [idx]
+//
 //   if (snl > 0) {
 //
 //     snl_btm = nlevsno - 1;
@@ -217,7 +226,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
     //  1) sunlight from atmosphere model
     //  2) minimum amount of snow on ground.
     //     Otherwise, set snow albedo to zero
-    if ((coszen > 0.0) && (h2osno > min_snw)) {
+    if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
 
       // If there is snow, but zero snow layers, we must create a layer locally.
       // This layer is presumed to have the fresh snow effective radius.
@@ -255,7 +264,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
 
       // Error check for snow grain size:
       for (int i = snl_top; i <= snl_btm; ++i) {
-        if ((snw_rds_lcl(i) < snw_rds_min_tbl) || (snw_rds_lcl(i) > snw_rds_max_tbl)) {
+        if ((snw_rds_lcl(i) < detail::snw_rds_min_tbl) || (snw_rds_lcl(i) > detail::snw_rds_max_tbl)) {
           throw std::runtime_error("ELM ERROR: SNICAR snow grain radius out of bounds.");
         }
       }
@@ -264,7 +273,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       // sure mu_not is large enough for stable and meaningful radiation
       // solution: .01 is like sun just touching horizon with its lower edge
       // equivalent to mu0 in sea-ice shortwave model ice_shortwave.F90
-      mu_not = std::max(coszen, cp01);
+      mu_not = std::max(coszen, alg::cp01);
 
       // Set direct or diffuse incident irradiance to 1
       // (This has to be within the bnd loop because mu_not is adjusted in rare cases)
@@ -302,12 +311,16 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
                              const ArrayD2 ss_alb_bc1, const ArrayD2 asm_prm_bc1, const ArrayD2 ext_cff_mss_bc1,
                              const ArrayD2 ss_alb_bc2, const ArrayD2 asm_prm_bc2, const ArrayD2 ext_cff_mss_bc2,
                              const ArrayD3 bcenh, const SubviewD2 mss_cnc_aer_in, SubviewD2 g_star, SubviewD2 omega_star,
-                             SubviewD2 tau_star) {
+                             SubviewD2 tau_star)
+{
+  static constexpr double rds_bcint_lcl{100.0}; // effective radius of within-ice BC [nm]
+  static constexpr double rds_bcext_lcl{100.0}; // effective radius of external BC [nm]
+  static constexpr int DELTA{1};                // always use Delta approximation for snow
 
   // Define local Mie parameters based on snow grain size and aerosol species,
   //  retrieved from a lookup table.
   if (!urbpoi) {
-    if ((coszen > 0.0) && (h2osno > min_snw)) {
+    if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
 
       // Set local aerosol array
       double mss_cnc_aer_lcl[nlevsno][sno_nbr_aer];
@@ -332,7 +345,7 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
         double ext_cff_mss_snw_lcl[nlevsno];
         if (flg_slr_in == 1) {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            const int rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl;
+            const int rds_idx = snw_rds_lcl(i) - detail::snw_rds_min_tbl;
             // snow optical properties (direct radiation)
             ss_alb_snw_lcl[i] = ss_alb_snw_drc(bnd_idx, rds_idx);
             asm_prm_snw_lcl[i] = asm_prm_snw_drc(bnd_idx, rds_idx);
@@ -340,7 +353,7 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
           }
         } else if (flg_slr_in == 2) {
           for (int i = snl_top; i <= snl_btm; ++i) {
-            const int rds_idx = snw_rds_lcl(i) - snw_rds_min_tbl;
+            const int rds_idx = snw_rds_lcl(i) - detail::snw_rds_min_tbl;
             // snow optical properties (diffuse radiation)
             ss_alb_snw_lcl[i] = ss_alb_snw_dfs(bnd_idx, rds_idx);
             asm_prm_snw_lcl[i] = asm_prm_snw_dfs(bnd_idx, rds_idx);
@@ -413,18 +426,18 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
           int idx_bcext_nclrds = round(rds_bcext_lcl / 50) - 1;
 
           // check bounds:
-          if (idx_bcint_icerds < idx_bcint_icerds_min)
-            idx_bcint_icerds = idx_bcint_icerds_min;
-          if (idx_bcint_icerds > idx_bcint_icerds_max)
-            idx_bcint_icerds = idx_bcint_icerds_max;
-          if (idx_bcint_nclrds < idx_bc_nclrds_min)
-            idx_bcint_nclrds = idx_bc_nclrds_min;
-          if (idx_bcint_nclrds > idx_bc_nclrds_max)
-            idx_bcint_nclrds = idx_bc_nclrds_max;
-          if (idx_bcext_nclrds < idx_bc_nclrds_min)
-            idx_bcext_nclrds = idx_bc_nclrds_min;
-          if (idx_bcext_nclrds > idx_bc_nclrds_max)
-            idx_bcext_nclrds = idx_bc_nclrds_max;
+          if (idx_bcint_icerds < detail::idx_bcint_icerds_min)
+            idx_bcint_icerds = detail::idx_bcint_icerds_min;
+          if (idx_bcint_icerds > detail::idx_bcint_icerds_max)
+            idx_bcint_icerds = detail::idx_bcint_icerds_max;
+          if (idx_bcint_nclrds < detail::idx_bc_nclrds_min)
+            idx_bcint_nclrds = detail::idx_bc_nclrds_min;
+          if (idx_bcint_nclrds > detail::idx_bc_nclrds_max)
+            idx_bcint_nclrds = detail::idx_bc_nclrds_max;
+          if (idx_bcext_nclrds < detail::idx_bc_nclrds_min)
+            idx_bcext_nclrds = detail::idx_bc_nclrds_min;
+          if (idx_bcext_nclrds > detail::idx_bc_nclrds_max)
+            idx_bcext_nclrds = detail::idx_bc_nclrds_max;
 
           // retrieve absorption enhancement factor for within-ice BC
           double enh_fct = bcenh(idx_bcint_icerds, idx_bcint_nclrds, bnd_idx);
@@ -490,7 +503,8 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
                                     const int& snl_btm, const double& coszen, const double& h2osno,
                                     const double& mu_not, const ArrayD1 flx_slrd_lcl, const ArrayD1 flx_slri_lcl,
                                     const ArrayD1 albsoi, const ArrayD2 g_star, const ArrayD2 omega_star,
-                                    const ArrayD2 tau_star, ArrayD1 albout_lcl, ArrayD2 flx_abs_lcl) {
+                                    const ArrayD2 tau_star, ArrayD1 albout_lcl, ArrayD2 flx_abs_lcl)
+{
   // Begin radiative transfer solver
   // Given input vertical profiles of optical properties, evaluate the
   // monochromatic Delta-Eddington adding-doubling solution
@@ -518,8 +532,19 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
   | 1|                         |5|
    --    2                  6  ---  [nlevsno + 1]  */
 
+  // Gaussian integration angle and coefficients for diffuse radiation
+  static constexpr double difgauspt[8]      // gaussian angles (radians)
+      = {0.9894009, 0.9445750, 0.8656312, 0.7554044, 0.6178762, 0.4580168, 0.2816036, 0.0950125};
+  static constexpr double difgauswt[8]      // gaussian weights
+      = {0.0271525, 0.0622535, 0.0951585, 0.1246290, 0.1495960, 0.1691565, 0.1826034, 0.1894506};
+
+  static constexpr int ngmax{8};                 // gaussian integration index
+  static constexpr double puny{1.0e-11};         // very small number used in this function
+  static constexpr double argmax{10.0};          // maximum argument of exponential
+  static constexpr double exp_min{exp(-argmax)}; // minimum exponential value
+
   if (!urbpoi) {
-    if ((coszen > 0.0) && (h2osno > min_snw)) {
+    if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
       // local interface reflect/transmit vars
       double trndir[nlevsno + 1]; // solar beam down transmission from top
       double trntdr[nlevsno + 1]; // total transmission to direct beam for layers above
@@ -546,36 +571,36 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
       for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
 
         for (int i = snl_top; i <= snl_btm_itf; ++i) {
-          trndir[i] = c0;
-          trntdr[i] = c0;
-          trndif[i] = c0;
-          rupdir[i] = c0;
-          rupdif[i] = c0;
-          rdndif[i] = c0;
+          trndir[i] = alg::c0;
+          trntdr[i] = alg::c0;
+          trndif[i] = alg::c0;
+          rupdir[i] = alg::c0;
+          rupdif[i] = alg::c0;
+          rdndif[i] = alg::c0;
         }
 
         // initialize top interface of top layer
-        trndir[snl_top] = c1;
-        trntdr[snl_top] = c1;
-        trndif[snl_top] = c1;
-        rdndif[snl_top] = c0;
+        trndir[snl_top] = alg::c1;
+        trntdr[snl_top] = alg::c1;
+        trndif[snl_top] = alg::c1;
+        rdndif[snl_top] = alg::c0;
 
         // begin main level loop
         // for layer interfaces except for the very bottom
         for (int i = snl_top; i <= snl_btm; ++i) {
           // initialize all layer apparent optical properties to 0
-          rdir[i] = c0;
-          rdif_a[i] = c0;
-          rdif_b[i] = c0;
-          tdir[i] = c0;
-          tdif_a[i] = c0;
-          tdif_b[i] = c0;
-          trnlay[i] = c0;
+          rdir[i] = alg::c0;
+          rdif_a[i] = alg::c0;
+          rdif_b[i] = alg::c0;
+          tdir[i] = alg::c0;
+          tdif_a[i] = alg::c0;
+          tdif_b[i] = alg::c0;
+          trnlay[i] = alg::c0;
 
           // compute next layer Delta-eddington solution only if total transmission
           // of radiation to the interface just above the layer exceeds trmin.
 
-          if (trntdr[i] > trmin) {
+          if (trntdr[i] > alg::trmin) {
 
             // calculation over layers with penetrating radiation
 
@@ -586,34 +611,34 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
             const double gs = g_star(bnd_idx, i);
 
             // Delta-Eddington solution expressions
-            // n(uu,et)         = ((uu+c1)*(uu+c1)/et ) - ((uu-c1)*(uu-c1)*et)
-            // u(w,gg,e)        = c1p5*(c1 - w*gg)/e
-            // el(w,gg)         = sqrt(c3*(c1-w)*(c1 - w*gg))
-            const double lm = std::sqrt(c3 * (c1 - ws) * (c1 - ws * gs)); // lm = el(ws,gs)
-            const double ue = c1p5 * (c1 - ws * gs) / lm;                 // ue = u(ws,gs,lm)
+            // n(uu,et)         = ((uu+alg::c1)*(uu+alg::c1)/et ) - ((uu-alg::c1)*(uu-alg::c1)*et)
+            // u(w,gg,e)        = alg::c1p5*(alg::c1 - w*gg)/e
+            // el(w,gg)         = sqrt(alg::c3*(alg::c1-w)*(alg::c1 - w*gg))
+            const double lm = std::sqrt(alg::c3 * (alg::c1 - ws) * (alg::c1 - ws * gs)); // lm = el(ws,gs)
+            const double ue = alg::c1p5 * (alg::c1 - ws * gs) / lm;                 // ue = u(ws,gs,lm)
             const double extins = std::max(exp_min, exp(-lm * ts));
-            const double ne = ((ue + c1) * (ue + c1) / extins) - ((ue - c1) * (ue - c1) * extins); // ne = n(ue,extins)
+            const double ne = ((ue + alg::c1) * (ue + alg::c1) / extins) - ((ue - alg::c1) * (ue - alg::c1) * extins); // ne = n(ue,extins)
 
             // first calculation of rdif, tdif using Delta-Eddington formulas
-            // rdif_a(k) = (ue+c1)*(ue-c1)*(c1/extins - extins)/ne
-            rdif_a[i] = (pow(ue, 2.0) - c1) * (c1 / extins - extins) / ne;
-            tdif_a[i] = c4 * ue / ne;
+            // rdif_a(k) = (ue+alg::c1)*(ue-alg::c1)*(alg::c1/extins - extins)/ne
+            rdif_a[i] = (pow(ue, 2.0) - alg::c1) * (alg::c1 / extins - extins) / ne;
+            tdif_a[i] = alg::c4 * ue / ne;
 
             // evaluate rdir,tdir for direct beam
             trnlay[i] = std::max(exp_min, exp(-ts / mu_not));
 
             // Delta-Eddington solution expressions
-            // alpha(w,uu,gg,e) = p75*w*uu*((c1 + gg*(c1-w))/(c1 - e*e*uu*uu))
-            // agamm(w,uu,gg,e) = p5*w*((c1 + c3*gg*(c1-w)*uu*uu)/(c1-e*e*uu*uu))
+            // alpha(w,uu,gg,e) = p75*w*uu*((alg::c1 + gg*(alg::c1-w))/(alg::c1 - e*e*uu*uu))
+            // agamm(w,uu,gg,e) = p5*w*((alg::c1 + alg::c3*gg*(alg::c1-w)*uu*uu)/(alg::c1-e*e*uu*uu))
             // alp = alpha(ws,mu_not,gs,lm)
             // gam = agamm(ws,mu_not,gs,lm)
-            double alp = cp75 * ws * mu_not * ((c1 + gs * (c1 - ws)) / (c1 - lm * lm * mu_not * mu_not));
-            double gam = cp5 * ws * ((c1 + c3 * gs * (c1 - ws) * mu_not * mu_not) / (c1 - lm * lm * mu_not * mu_not));
+            double alp = alg::cp75 * ws * mu_not * ((alg::c1 + gs * (alg::c1 - ws)) / (alg::c1 - lm * lm * mu_not * mu_not));
+            double gam = alg::cp5 * ws * ((alg::c1 + alg::c3 * gs * (alg::c1 - ws) * mu_not * mu_not) / (alg::c1 - lm * lm * mu_not * mu_not));
             double apg = alp + gam;
             double amg = alp - gam;
 
-            rdir[i] = apg * rdif_a[i] + amg * (tdif_a[i] * trnlay[i] - c1);
-            tdir[i] = apg * tdif_a[i] + (amg * rdif_a[i] - apg + c1) * trnlay[i];
+            rdir[i] = apg * rdif_a[i] + amg * (tdif_a[i] * trnlay[i] - alg::c1);
+            tdir[i] = apg * tdif_a[i] + (amg * rdif_a[i] - apg + alg::c1) * trnlay[i];
 
             // recalculate rdif,tdif using direct angular integration over rdir,tdir,
             // since Delta-Eddington rdif formula is not well-behaved (it is usually
@@ -621,9 +646,9 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
             // integration for most accuracy:
             const double R1 = rdif_a[i]; // use R1 as temporary
             const double T1 = tdif_a[i]; // use T1 as temporary
-            double swt = c0;
-            double smr = c0;
-            double smt = c0;
+            double swt = alg::c0;
+            double smr = alg::c0;
+            double smt = alg::c0;
 
             for (int ng = 0; ng < ngmax; ++ng) {
               const double mu = difgauspt[ng];
@@ -632,8 +657,8 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
               const double trn = std::max(exp_min, exp(-ts / mu));
               // alp = alpha(ws,mu,gs,lm)
               // gam = agamm(ws,mu,gs,lm)
-              alp = cp75 * ws * mu * ((c1 + gs * (c1 - ws)) / (c1 - lm * lm * mu * mu));
-              gam = cp5 * ws * ((c1 + c3 * gs * (c1 - ws) * mu * mu) / (c1 - lm * lm * mu * mu));
+              alp = alg::cp75 * ws * mu * ((alg::c1 + gs * (alg::c1 - ws)) / (alg::c1 - lm * lm * mu * mu));
+              gam = alg::cp5 * ws * ((alg::c1 + alg::c3 * gs * (alg::c1 - ws) * mu * mu) / (alg::c1 - lm * lm * mu * mu));
               apg = alp + gam;
               amg = alp - gam;
               const double rdr = apg * R1 + amg * T1 * trn - amg;
@@ -663,7 +688,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
           //       ---------------------
 
           trndir[i + 1] = trndir[i] * trnlay[i];
-          const double refkm1 = c1 / (c1 - rdndif[i] * rdif_a[i]);
+          const double refkm1 = alg::c1 / (alg::c1 - rdndif[i] * rdif_a[i]);
           const double tdrrdir = trndir[i] * rdir[i];
           const double tdndif = trntdr[i] - trndir[i];
           trntdr[i + 1] = trndir[i] * tdir[i] + (tdndif + tdrrdir * rdndif[i]) * refkm1 * tdif_a[i];
@@ -694,7 +719,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
         for (int i = snl_btm; i >= snl_top; --i) {
           // interface scattering
-          const double refkp1 = c1 / (c1 - rdif_b[i] * rupdif[i + 1]);
+          const double refkp1 = alg::c1 / (alg::c1 - rdif_b[i] * rupdif[i + 1]);
           // dir from top layer plus exp tran ref from lower layer, interface
           // scattered and tran thru top layer from below, plus diff tran ref
           // from lower layer with interface scattering tran thru top from below
@@ -721,7 +746,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
         double refk;
         for (int i = snl_top; i <= snl_btm_itf; ++i) {
           // interface scattering
-          refk = c1 / (c1 - rdndif[i] * rupdif[i]);
+          refk = alg::c1 / (alg::c1 - rdndif[i] * rupdif[i]);
           // dir tran ref from below times interface scattering, plus diff
           // tran and ref from below times interface scattering
           // fdirup(i) = (trndir(i)*rupdir(i) + &
@@ -739,14 +764,14 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
           // netflux, down - up
           // dfdir = fdirdn - fdirup
-          dfdir[i] = trndir[i] + (trntdr[i] - trndir[i]) * (c1 - rupdif[i]) * refk -
-                     trndir[i] * rupdir[i] * (c1 - rdndif[i]) * refk;
+          dfdir[i] = trndir[i] + (trntdr[i] - trndir[i]) * (alg::c1 - rupdif[i]) * refk -
+                     trndir[i] * rupdir[i] * (alg::c1 - rdndif[i]) * refk;
           if (dfdir[i] < puny)
-            dfdir[i] = c0;
+            dfdir[i] = alg::c0;
           // dfdif = fdifdn - fdifup
-          dfdif[i] = trndif[i] * (c1 - rupdif[i]) * refk;
+          dfdif[i] = trndif[i] * (alg::c1 - rupdif[i]) * refk;
           if (dfdif[i] < puny)
-            dfdif[i] = c0;
+            dfdif[i] = alg::c0;
         }
 
         // SNICAR_AD_RT is called twice for direct and diffuse incident fluxes
@@ -757,7 +782,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
           for (int i = snl_top; i <= snl_btm_itf; ++i) {
             dftmp[i] = dfdir[i];
           }
-          refk = c1 / (c1 - rdndif[snl_top] * rupdif[snl_top]);
+          refk = alg::c1 / (alg::c1 - rdndif[snl_top] * rupdif[snl_top]);
           F_sfc_pls =
               (trndir[snl_top] * rupdir[snl_top] + (trntdr[snl_top] - trndir[snl_top]) * rupdif[snl_top]) * refk;
           // diffuse incident
@@ -766,7 +791,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
           for (int i = snl_top; i <= snl_btm_itf; ++i) {
             dftmp[i] = dfdif[i];
           }
-          refk = c1 / (c1 - rdndif[snl_top] * rupdif[snl_top]);
+          refk = alg::c1 / (alg::c1 - rdndif[snl_top] * rupdif[snl_top]);
           F_sfc_pls = trndif[snl_top] * rupdif[snl_top] * refk;
         }
 
@@ -835,10 +860,22 @@ ACCELERATE
 void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, const int& snl_top, const double& coszen,
                                   const double& mu_not, const double& h2osno, const ArrayI1 snw_rds_lcl,
                                   const ArrayD1 albsoi, const ArrayD1 albout_lcl, const ArrayD2 flx_abs_lcl,
-                                  ArrayD1 albout, ArrayD2 flx_abs) {
+                                  ArrayD1 albout, ArrayD2 flx_abs)
+{
+  // cconstant coefficients used for SZA parameterization
+  static constexpr double sza_a0{0.085730};
+  static constexpr double sza_a1{-0.630883};
+  static constexpr double sza_a2{1.303723};
+  static constexpr double sza_b0{1.467291};
+  static constexpr double sza_b1{-3.338043};
+  static constexpr double sza_b2{6.807489};
+
+  static constexpr int nir_bnd_bgn{1};      // first band index in near-IR spectrum [idx]
+  static constexpr int nir_bnd_end{4};      // ending near-IR band index [idx]
+  static constexpr double mu_75{0.2588};    // cosine of 75 degree
 
   if (!urbpoi) {
-    if ((coszen > 0.0) && (h2osno > min_snw)) {
+    if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
 
       // Incident flux weighting parameters
       //  - sum of all VIS bands must equal 1
@@ -900,21 +937,21 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
         const double sza_c1 = sza_a0 + sza_a1 * mu_not + sza_a2 * pow(mu_not, 2.0); // coefficient, SZA parameteirzation
         const double sza_c0 = sza_b0 + sza_b1 * mu_not + sza_b2 * pow(mu_not, 2.0); // coefficient, SZA parameterization
         const double sza_factor =
-            sza_c1 * (log10(snw_rds_lcl(snl_top) * c1) - c6) + sza_c0; // factor used to adjust NIR direct albedo
+            sza_c1 * (log10(snw_rds_lcl(snl_top) * alg::c1) - alg::c6) + sza_c0; // factor used to adjust NIR direct albedo
         const double flx_sza_adjust =
-            albout(1) * (sza_factor - c1) * flx_wgt_sum; // direct NIR flux adjustment from sza_factor
+            albout(1) * (sza_factor - alg::c1) * flx_wgt_sum; // direct NIR flux adjustment from sza_factor
         albout(1) *= sza_factor;
         flx_abs(snl_top, 1) -= flx_sza_adjust;
       }
       // If snow < minimum_snow, but > 0, and there is sun, set albedo to underlying surface albedo
-    } else if ((coszen > 0.0) && (h2osno < min_snw) && (h2osno > 0.0)) {
+    } else if ((coszen > 0.0) && (h2osno < detail::min_snw) && (h2osno > 0.0)) {
       albout(0) = albsoi(0);
       albout(1) = albsoi(1);
       // There is either zero snow, or no sun
     } else {
       albout(0) = 0.0;
       albout(1) = 0.0;
-    } // if ((coszen > 0.0) && (h2osno > min_snw))
+    } // if ((coszen > 0.0) && (h2osno > detail::min_snw))
   }   // if !urbpoi
 } // snow_albedo_radiation_factor()
 

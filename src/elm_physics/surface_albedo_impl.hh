@@ -122,7 +122,7 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
     }
     if (nlevcan == 1) {
       vcmaxcintsun = 0.0;
-      vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn;
+      vcmaxcintsha = (1.0 - exp(-detail::extkn * elai)) / detail::extkn;
       if (elai > 0.0) {
         vcmaxcintsha /= elai;
       } else {
@@ -205,6 +205,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
                       ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z)
 {
+  static constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
+
   if (!urbpoi) {
     if (nlevcan == 1) {
       nrad = 1;
@@ -218,16 +220,16 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
         double dincmax_sum = 0.0;
         for (int iv = 0; iv < nlevcan; ++iv) {
           dincmax_sum += dincmax;
-          if (((elai + esai) - dincmax_sum) > mpe) {
+          if (((elai + esai) - dincmax_sum) > detail::mpe) {
             nrad = iv + 1;
             double dinc = dincmax;
-            tlai_z(iv) = dinc * elai / std::max(elai + esai, mpe);
-            tsai_z(iv) = dinc * esai / std::max(elai + esai, mpe);
+            tlai_z(iv) = dinc * elai / std::max(elai + esai, detail::mpe);
+            tsai_z(iv) = dinc * esai / std::max(elai + esai, detail::mpe);
           } else {
             nrad = iv + 1;
             double dinc = dincmax - (dincmax_sum - (elai + esai));
-            tlai_z(iv) = dinc * elai / std::max(elai + esai, mpe);
-            tsai_z(iv) = dinc * esai / std::max(elai + esai, mpe);
+            tlai_z(iv) = dinc * elai / std::max(elai + esai, detail::mpe);
+            tsai_z(iv) = dinc * esai / std::max(elai + esai, detail::mpe);
             break;
           }
         }
@@ -250,7 +252,7 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
       saisum += tsai_z(iv);
     }
 
-    if (std::abs(laisum - elai) > mpe || std::abs(saisum - esai) > mpe) {
+    if (std::abs(laisum - elai) > detail::mpe || std::abs(saisum - esai) > detail::mpe) {
       throw std::runtime_error("ELM ERROR: multi-layer canopy error 1 in SurfaceAlbedo");
     }
 
@@ -264,16 +266,16 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
         double dincmax_sum = 0.0;
         for (int iv = nrad; iv < nlevcan; ++iv) {
           dincmax_sum += dincmax;
-          if (((blai + bsai) - dincmax_sum) > mpe) {
+          if (((blai + bsai) - dincmax_sum) > detail::mpe) {
             ncan = iv + 1;
             double dinc = dincmax;
-            tlai_z(iv) = dinc * blai / std::max(blai + bsai, mpe);
-            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, mpe);
+            tlai_z(iv) = dinc * blai / std::max(blai + bsai, detail::mpe);
+            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, detail::mpe);
           } else {
             ncan = iv + 1;
             double dinc = dincmax - (dincmax_sum - (blai + bsai));
-            tlai_z(iv) = dinc * blai / std::max(blai + bsai, mpe);
-            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, mpe);
+            tlai_z(iv) = dinc * blai / std::max(blai + bsai, detail::mpe);
+            tsai_z(iv) = dinc * bsai / std::max(blai + bsai, detail::mpe);
             break;
           }
         }
@@ -286,7 +288,7 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
         laisum += tlai_z(iv);
         saisum += tsai_z(iv);
       }
-      if (std::abs(laisum - tlai) > mpe || std::abs(saisum - tsai) > mpe) {
+      if (std::abs(laisum - tlai) > detail::mpe || std::abs(saisum - tsai) > detail::mpe) {
         throw std::runtime_error("ELM ERROR: multi-layer canopy error 1 in SurfaceAlbedo");
       }
     }
@@ -312,14 +314,18 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
                        ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
                        ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z)
 {
+  static constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
+  static constexpr double betads = 0.5;                // two-stream parameter betad for snow
+  static constexpr double betais = 0.5;                // two-stream parameter betai for snow
+
   if (vegsol(Land, coszen, elai, esai)) {
 
     double omega[numrad]; // fraction of intercepted radiation that is scattered (0 to 1)
     double rho[numrad], tau[numrad];
 
     // Weight reflectance/transmittance by lai and sai
-    const double wl = elai / std::max(elai + esai, mpe);
-    const double ws = esai / std::max(elai + esai, mpe);
+    const double wl = elai / std::max(elai + esai, detail::mpe);
+    const double ws = esai / std::max(elai + esai, detail::mpe);
 
     // Calculate two-stream parameters that are independent of waveband:
     // chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
@@ -367,8 +373,8 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
     for (int ib = 0; ib < numrad; ib++) {
 
-      rho[ib] = std::max(alb_pft.rhol[ib] * wl + alb_pft.rhos[ib] * ws, mpe);
-      tau[ib] = std::max(alb_pft.taul[ib] * wl + alb_pft.taus[ib] * ws, mpe);
+      rho[ib] = std::max(alb_pft.rhol[ib] * wl + alb_pft.rhos[ib] * ws, detail::mpe);
+      tau[ib] = std::max(alb_pft.taul[ib] * wl + alb_pft.taus[ib] * ws, detail::mpe);
 
       // Calculate two-stream parameters omega, betad, and betai.
       // Omega, betad, betai are adjusted for snow. Values for omega*betad
@@ -498,8 +504,8 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
           // leaf to canopy scaling coefficients
           double extkb = twostext;
-          vcmaxcintsun = (1.0 - exp(-(extkn + extkb) * elai)) / (extkn + extkb);
-          vcmaxcintsha = (1.0 - exp(-extkn * elai)) / extkn - vcmaxcintsun;
+          vcmaxcintsun = (1.0 - exp(-(detail::extkn + extkb) * elai)) / (detail::extkn + extkb);
+          vcmaxcintsha = (1.0 - exp(-detail::extkn * elai)) / detail::extkn - vcmaxcintsun;
           if (elai > 0.0) {
             vcmaxcintsun = vcmaxcintsun / (fsun_z(0) * elai);
             vcmaxcintsha = vcmaxcintsha / ((1.0 - fsun_z(0)) * elai);
@@ -667,6 +673,11 @@ template <class ArrayD1>
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi)
 {
+  static constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov
+  static constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
+  static constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
+  static constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice (D. Mironov (2010))
+  static constexpr bool lakepuddling = false;          // puddling (not extensively tested and currently hardwired off)
 
   if (!Land.urbpoi) {
     if (coszen > 0.0) {

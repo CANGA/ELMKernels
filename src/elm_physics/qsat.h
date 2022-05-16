@@ -7,12 +7,12 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::qsat {
+namespace ELM {
 
 /*! Computes saturation mixing ratio and the change in saturation. (internal) */
 ACCELERATE
 void qsat(const double& T, const double& p, double& es, double& esdT, double& qs, double& qsdT);
 
-} // namespace ELM::qsat
+} // namespace ELM
 
 #include "qsat_impl.hh"

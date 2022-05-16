@@ -1,7 +1,7 @@
 
 #pragma once
 
-namespace ELM::soil_hydraulics {
+namespace ELM {
 
 ACCELERATE
 void pedotransfer(const double& pct_sand, const double& pct_clay, double& watsat,
@@ -110,4 +110,4 @@ void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay,
   }
 }
 
-} // namespace ELM::soil_hydraulics
+} // namespace ELM

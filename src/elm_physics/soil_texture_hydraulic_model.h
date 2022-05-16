@@ -8,7 +8,7 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::soil_hydraulics {
+namespace ELM {
 
 ACCELERATE
 void pedotransfer(const double& pct_sand, const double& pct_clay, double& watsat, double& bsw, double& sucsat,
@@ -23,6 +23,6 @@ ACCELERATE
 void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay, const ArrayD1 organic, const ArrayD1 zsoi,
                           ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat, ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc);
 
-} // namespace ELM::soil_hydraulics
+} // namespace ELM
 
 #include "soil_texture_hydraulic_model_impl.hh"

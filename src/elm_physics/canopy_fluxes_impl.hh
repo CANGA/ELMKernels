@@ -159,7 +159,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
 
       // Saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       double deldT; // derivative of "el" on "t_veg" [pa/K]
-      qsat::qsat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
+      qsat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
       // Initialize flux profile
       taf = (t_grnd + thm) / 2.0;
@@ -399,7 +399,7 @@ void stability_iteration(
       // The energy loss due to above two limits is added to the sensible heat flux.
       eflx_sh_veg = efsh + dc1 * wtga * dt_veg + err + erre + hvap * ecidif;
       // Re-calculate saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
-      qsat::qsat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
+      qsat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
       // Update vegetation/ground surface temperature, canopy air
       // temperature, canopy vapor pressure, aerodynamic temperature, and
@@ -506,7 +506,7 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     // 2 m height specific humidity
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
     // 2 m height relative humidity
-    qsat::qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
+    qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m) * 100.0);
     rh_ref2m_r = rh_ref2m;
 

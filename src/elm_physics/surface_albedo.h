@@ -52,19 +52,10 @@ flux_absorption_factor() flx_absd_snw flx_absi_snw mss_cnc_aer_in_fdb - from Ini
 
 namespace ELM::surface_albedo {
 
-inline constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
-inline constexpr double mpe = 1.e-06;   // prevents overflow for division by zero
-inline constexpr double extkn = 0.30;
-inline constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
-inline constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
-inline constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
-                                                  // From D. Mironov (2010) Boreal Env. Research
-inline constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov
-                              // (2010) Boreal Env. Research
-inline constexpr bool lakepuddling = false;          // puddling (not extensively tested and currently hardwired off)
-inline constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
-inline constexpr double betads = 0.5;                // two-stream parameter betad for snow
-inline constexpr double betais = 0.5;                // two-stream parameter betai for snow
+namespace detail {
+static constexpr double mpe = 1.e-06;   // prevents overflow for division by zero
+static constexpr double extkn = 0.30;   // nitrogen allocation coefficient
+} // namespace detail
 
 /*
 inputs:
