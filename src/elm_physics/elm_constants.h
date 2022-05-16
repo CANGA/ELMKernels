@@ -1,5 +1,25 @@
 #pragma once
 
+namespace ELM::ELMconst {
+    
+static constexpr double TFRZ{273.15}; // freezing temperature [K]
+static constexpr double ELM_PI{3.14159265358979323846}; // pi
+static constexpr double BOLTZ{1.38065e-23};         // Boltzmann's constant ~ J/K/molecule
+static constexpr double AVOGAD{6.02214e26};         // Avogadro's number ~ molecules/kmole
+static constexpr double MWWV{18.016};               // molecular weight water vapor
+static constexpr double RGAS{AVOGAD * BOLTZ};       // Universal gas constant ~ J/K/kmole
+static constexpr double RWV{RGAS / MWWV};           // Water vapor gas constant ~ J/K/kg
+static constexpr double STEBOL{5.67e-8};     // Stefan-Boltzmann constant ~ W/m^2/K^4
+static constexpr double MWDAIR{28.966};      // molecular weight dry air ~ kg/kmole
+static constexpr double RAIR{RGAS / MWDAIR}; // Dry air gas constant     ~ J/K/kg
+static constexpr double O2_MOLAR_CONST{0.209}; // constant atmospheric O2 molar ratio (mol/mol)
+static constexpr double CO2_PPMV{355.0}; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
+
+static constexpr double DENICE{0.917e3};     // density of ice             ~ kg/m^3
+static constexpr double DENH2O{1.000e3};     // // density of fresh water     ~ kg/m^3
+
+} // namespace ELM::ELMconst
+
 namespace ELM::constants {
     
 static constexpr double TFRZ{273.15}; // freezing temperature [K]
@@ -15,7 +35,33 @@ static constexpr double RAIR{RGAS / MWDAIR}; // Dry air gas constant     ~ J/K/k
 static constexpr double O2_MOLAR_CONST{0.209}; // constant atmospheric O2 molar ratio (mol/mol)
 static constexpr double CO2_PPMV{355.0}; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
-} // namespace ELM::ELMconstants
+static constexpr double DENICE{0.917e3};     // density of ice             ~ kg/m^3
+static constexpr double DENH2O{1.000e3};     // // density of fresh water     ~ kg/m^3
+
+} // namespace ELM::ELMconst
+
+
+namespace ELM::ELMdims {
+// from clm_varpar.F90
+static constexpr int nlevsno{5};     // maximum number of snow layers
+static constexpr int nlevgrnd{15};   // number of total subsurface layers
+static constexpr int nlevurb{5};     // number of urban layers
+static constexpr int numrad{2};      // number of solar radiation bands: vis, nir
+static constexpr int nlevcan{1};     // number of leaf layers in canopy layer
+static constexpr int nlevsoi{10};    // number of soil layers (hydrologically active)
+static constexpr int nlevbed{15};    // number of layers to bedrock (hydrologically inactive below)
+static constexpr int mxpft{25};      // maximum number of PFT's for any mode
+static constexpr int numveg{17};     // number of veg types (without specific crop)
+
+// from snow_snicar - needed here for array sizing
+static constexpr int sno_nbr_aer{8}; // number of aerosol species in snowpack
+static constexpr int numrad_snw{5};  // number of spectral bands used in snow model [nbr]
+
+static constexpr bool use_crop{false};
+static constexpr int numpft{(use_crop) ? mxpft : numveg}; // number of pfts - (use_crop ? 25 : 17)
+
+
+} // namespace ELM::ELMdims
 
 namespace ELM {
 
@@ -25,22 +71,6 @@ enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
 static constexpr int sno_nbr_aer{8};      // number of aerosol species in snowpack
 static constexpr int numrad_snw{5};            // number of spectral bands used in snow model [nbr]
 
-
-// from landunit_varcon.F90
-static constexpr int istsoil{1};
-static constexpr int istcrop{2};
-static constexpr int istice{3};
-static constexpr int istice_mec{4};
-static constexpr int istdlak{5};
-static constexpr int istwet{6};
-static constexpr int isturb_MIN{7};
-static constexpr int isturb_tbd{7};
-static constexpr int isturb_hd{8};
-static constexpr int isturb_md{9};
-static constexpr int isturb_MAX{9};
-static constexpr int max_lunit{9};
-static constexpr int landunit_name_length{40};
-static constexpr int numurbl{isturb_MAX - isturb_MIN + 1};
 
 // from SoilStateType
 static const double smpmin{-1.e8}; // restriction for min of soil potential (mm)
@@ -77,6 +107,8 @@ static constexpr int nsoybeanirrig{24};
 static constexpr int subgridflag{1};
 static constexpr double co2_ppmv{355.0}; // atmospheric CO2 molar ratio (by volume) (umol/mol) - this is really low
 
+
+
 // from clm_varpar.F90
 static constexpr int nlevsno{5}; // this should be set by driver
 static constexpr int nlevgrnd{15};
@@ -90,12 +122,7 @@ static constexpr int numveg{17}; // number of veg types (without specific crop)
 static constexpr bool use_crop{false};
 static constexpr int numpft{(use_crop) ? mxpft : numveg}; // number of pfts - (use_crop ? 25 : 17)
 
-// from column_varcon.F90
-static constexpr int icol_roof{isturb_MIN * 10 + 1};
-static constexpr int icol_sunwall{isturb_MIN * 10 + 2};
-static constexpr int icol_shadewall{isturb_MIN * 10 + 3};
-static constexpr int icol_road_imperv{isturb_MIN * 10 + 4};
-static constexpr int icol_road_perv{isturb_MIN * 10 + 5};
+
 
 // from clm_varcon.F90
 static constexpr double snw_rds_min{54.526}; // minimum allowed snow effective radius (also "fresh snow" value) [microns]

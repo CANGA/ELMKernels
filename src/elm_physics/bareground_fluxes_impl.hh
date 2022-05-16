@@ -150,7 +150,7 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
 
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m * 100.0));
 
-    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       rh_ref2m_r = rh_ref2m;
       t_ref2m_r = t_ref2m;
     }

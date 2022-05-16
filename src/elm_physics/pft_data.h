@@ -25,14 +25,17 @@ struct PFTDataPSN {
 
 // struct for single pft vegetation parameters used in surface_albedo
 struct PFTDataAlb {
-  double rhol[ELM::numrad], rhos[ELM::numrad];
-  double taul[ELM::numrad], taus[ELM::numrad];
+  double rhol[ELMdims::numrad], rhos[ELMdims::numrad];
+  double taul[ELMdims::numrad], taus[ELMdims::numrad];
   double xl;
 };
 
 // struct that stores array objects containing time-invariant vegetation data
 template <typename ArrayD1, typename ArrayD2>
 struct PFTData {
+
+  PFTData();
+  ~PFTData() = default;
 
   ArrayD1 fnr;       //  fraction of nitrogen in RuBisCO
   ArrayD1 act25;     //  Rubisco activity at 25 C (umol/mgRubisco/min)
@@ -75,10 +78,7 @@ struct PFTData {
   ArrayD1 tausvis;   //  visible stem transmittance
   ArrayD1 tausnir;   //  nir stem transmittance
 
-  // default constructor
-  PFTData();
-  // default destructor
-  ~PFTData(){};
+  static constexpr int numpft_{ELMdims::numpft};
 
   // get struct of photosynthesis variables for pft
   ACCELERATE

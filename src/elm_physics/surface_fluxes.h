@@ -2,6 +2,7 @@
 #pragma once
 
 #include "elm_constants.h"
+#include "land_data.h"
 #include <cmath>
 
 #include "kokkos_includes.hh"

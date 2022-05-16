@@ -67,7 +67,7 @@ double calc_cosz(const double& jday, const double& lat, const double& lon, const
 ACCELERATE
 bool vegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai)
 {
-  if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0) {
+  if (!Land.urbpoi && coszen > 0.0 && (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) && (elai + esai) > 0.0) {
     return true;
   } else {
     return false;
@@ -78,7 +78,7 @@ ACCELERATE
 bool novegsol(const LandType& Land, const double& coszen, const double& elai, const double& esai)
 {
   if (!Land.urbpoi && coszen > 0.0) {
-    if (!((Land.ltype == istsoil || Land.ltype == istcrop) && (elai + esai) > 0.0)) {
+    if (!((Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) && (elai + esai) > 0.0)) {
       return true;
     }
   }
@@ -173,7 +173,7 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
         // also in this loop (but optionally in a different loop for vectorized code)
         // weight snow layer radiative absorption factors based on snow fraction and soil albedo
         // (NEEDED FOR ENERGY CONSERVATION)
-        if (subgridflag == 0 || Land.ltype == istdlak) {
+        if (subgridflag == 0 || Land.ltype == LND::istdlak) {
           if (ib == 0) {
             flx_absdv(i) = flx_absd_snw(i, ib) * frac_sno +
                            ((1.0 - frac_sno) * (1.0 - albsod(ib)) * (flx_absd_snw(i, ib) / (1.0 - albsnd(ib))));
@@ -682,16 +682,16 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
   if (!Land.urbpoi) {
     if (coszen > 0.0) {
       for (int ib = 0; ib < numrad; ib++) {
-        if (Land.ltype == istsoil || Land.ltype == istcrop) {
+        if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
           double inc = std::max(0.11 - 0.40 * h2osoi_vol(0), 0.0); // soil water correction factor for soil albedo
           // double soilcol = isoicol;
           albsod(ib) = std::min(albsat(ib) + inc, albdry(ib));
           albsoi(ib) = albsod(ib);
-        } else if (Land.ltype == istice || Land.ltype == istice_mec) {
+        } else if (Land.ltype == LND::istice || Land.ltype == LND::istice_mec) {
           albsod(ib) = albice[ib];
           albsoi(ib) = albsod[ib];
           // comment out lake logic for now
-          // } else if (t_grnd > ELM::constants::TFRZ || (lakepuddling && Land.ltype == istdlak && t_grnd == ELM::constants::TFRZ && lake_icefrac(0)
+          // } else if (t_grnd > ELM::constants::TFRZ || (lakepuddling && Land.ltype == LND::istdlak && t_grnd == ELM::constants::TFRZ && lake_icefrac(0)
           // < 1.0 &&
           //                              lake_icefrac(1) > 0.0)) { // maybe get rid of lake logic?
           //   albsod(ib) = 0.05 / (std::max(0.001, coszen) + 0.15);
@@ -701,7 +701,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           //   // but I'll assume it applies more appropriately to the direct form for now.
           //   // ZMS: Attn EK, currently restoring this for wetlands even though it is wrong in order to try to get
           //   // bfb baseline comparison when no lakes are present. I'm assuming wetlands will be phased out anyway.
-          //   if (Land.ltype == istdlak) {
+          //   if (Land.ltype == LND::istdlak) {
           //     albsoi(ib) = 0.10;
           //   } else {
           //     albsoi(ib) = albsod(ib);
@@ -713,7 +713,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           // Attn EK: This formulation is probably just as good for "wetlands" if they are not phased out.
           // Tenatively I'm restricting this to lakes because I haven't tested it for wetlands. But if anything
           // the albedo should be lower when melting over frozen ground than a solid frozen lake.
-          if (Land.ltype == istdlak && !lakepuddling && snl == 0) {
+          if (Land.ltype == LND::istdlak && !lakepuddling && snl == 0) {
             // Need to reference snow layers here because t_grnd could be over snow or ice
             // but we really want the ice surface temperature with no snow
             double sicefr = 1.0 - exp(-calb * (ELM::constants::TFRZ - t_grnd) / ELM::constants::TFRZ);

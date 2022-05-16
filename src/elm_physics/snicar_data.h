@@ -28,6 +28,9 @@ namespace ELM {
 template <typename ArrayD1, typename ArrayD2, typename ArrayD3>
 struct SnicarData {
 
+  SnicarData();
+  ~SnicarData() = default;
+
   // arrays to store snicar parameters
   ArrayD1 ss_alb_oc1;
   ArrayD1 asm_prm_oc1;
@@ -61,7 +64,10 @@ struct SnicarData {
   ArrayD2 ext_cff_mss_bc2;
   ArrayD3 bcenh;
 
-  SnicarData();
+  static constexpr int numrad_snw_{ELMdims::numrad_snw};
+  static constexpr int idx_Mie_snw_mx_{snow_snicar::detail::idx_Mie_snw_mx};
+  static constexpr int idx_bc_nclrds_max_{snow_snicar::detail::idx_bc_nclrds_max};
+  static constexpr int idx_bcint_icerds_max_{snow_snicar::detail::idx_bcint_icerds_max};
 };
 
 // read all fields in SnicarData

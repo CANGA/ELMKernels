@@ -8,26 +8,26 @@ namespace ELM {
 template <typename ArrayD1, typename ArrayD2>
 PFTData<ArrayD1, ArrayD2>::
 PFTData()
-    : fnr("fnr", ELM::numpft), act25("act25", ELM::numpft),
-      kcha("kcha", ELM::numpft), koha("koha", ELM::numpft),
-      cpha("cpha", ELM::numpft), vcmaxha("vcmaxha", ELM::numpft),
-      jmaxha("jmaxha", ELM::numpft), tpuha("tpuha", ELM::numpft),
-      lmrha("lmrha", ELM::numpft), vcmaxhd("vcmaxhd", ELM::numpft),
-      jmaxhd("jmaxhd", ELM::numpft), tpuhd("tpuhd", ELM::numpft),
-      lmrhd("lmrhd", ELM::numpft), lmrse("lmrse", ELM::numpft),
-      qe("qe", ELM::numpft), theta_cj("theta_cj", ELM::numpft),
-      bbbopt("bbbopt", ELM::numpft), mbbopt("mbbopt", ELM::numpft),
-      c3psn("c3psn", ELM::numpft), slatop("slatop", ELM::numpft),
-      leafcn("leafcn", ELM::numpft), flnr("flnr", ELM::numpft),
-      fnitr("fnitr", ELM::numpft), dleaf("dleaf", ELM::numpft),
-      smpso("smpso", ELM::numpft), smpsc("smpsc", ELM::numpft),
-      tc_stress("tc_stress", 1), z0mr("z0mr", ELM::numpft),
-      displar("displar", ELM::numpft), xl("xl", ELM::numpft),
-      roota_par("roota_par", ELM::numpft), rootb_par("rootb_par", ELM::numpft),
-      rholvis("rholvis", ELM::numpft), rholnir("rholnir", ELM::numpft),
-      rhosvis("rhosvis", ELM::numpft), rhosnir("rhosnir", ELM::numpft),
-      taulvis("taulvis", ELM::numpft), taulnir("taulnir", ELM::numpft),
-      tausvis("tausvis", ELM::numpft), tausnir("tausnir", ELM::numpft)
+    : fnr("fnr", numpft_), act25("act25", numpft_),
+      kcha("kcha", numpft_), koha("koha", numpft_),
+      cpha("cpha", numpft_), vcmaxha("vcmaxha", numpft_),
+      jmaxha("jmaxha", numpft_), tpuha("tpuha", numpft_),
+      lmrha("lmrha", numpft_), vcmaxhd("vcmaxhd", numpft_),
+      jmaxhd("jmaxhd", numpft_), tpuhd("tpuhd", numpft_),
+      lmrhd("lmrhd", numpft_), lmrse("lmrse", numpft_),
+      qe("qe", numpft_), theta_cj("theta_cj", numpft_),
+      bbbopt("bbbopt", numpft_), mbbopt("mbbopt", numpft_),
+      c3psn("c3psn", numpft_), slatop("slatop", numpft_),
+      leafcn("leafcn", numpft_), flnr("flnr", numpft_),
+      fnitr("fnitr", numpft_), dleaf("dleaf", numpft_),
+      smpso("smpso", numpft_), smpsc("smpsc", numpft_),
+      tc_stress("tc_stress", 1), z0mr("z0mr", numpft_),
+      displar("displar", numpft_), xl("xl", numpft_),
+      roota_par("roota_par", numpft_), rootb_par("rootb_par", numpft_),
+      rholvis("rholvis", numpft_), rholnir("rholnir", numpft_),
+      rhosvis("rhosvis", numpft_), rhosnir("rhosnir", numpft_),
+      taulvis("taulvis", numpft_), taulnir("taulnir", numpft_),
+      tausvis("tausvis", numpft_), tausnir("tausnir", numpft_)
     {}
 
 template <typename ArrayD1, typename ArrayD2>
@@ -89,8 +89,9 @@ template <typename h_ArrayD1>
 void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
                    const Comm_type& comm, const std::string& fname_pft)
 {
-  ELM::Array<std::string, 1> pftnames("pftnames", ELM::mxpft);
-  const std::array<std::string, ELM::mxpft> expected_pftnames = 
+  using ELMdims::mxpft;
+  ELM::Array<std::string, 1> pftnames("pftnames", mxpft);
+  const std::array<std::string, mxpft> expected_pftnames = 
     { "not_vegetated",
       "needleleaf_evergreen_temperate_tree",
       "needleleaf_evergreen_boreal_tree",

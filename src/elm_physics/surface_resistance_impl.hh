@@ -10,13 +10,15 @@ void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const do
                           const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,
                           const ArrayD1 h2osoi_ice, const ArrayD1 dz, double& soilbeta)
 {
+  using ELMdims::nlevsno;
+  
   if (!Land.lakpoi) {
 
     // local variables
     double fac, fac_fc, wx;
 
-    if (Land.ltype != istwet && Land.ltype != istice && Land.ltype != istice_mec) {
-      if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype != LND::istwet && Land.ltype != LND::istice && Land.ltype != LND::istice_mec) {
+      if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
         wx = (h2osoi_liq[nlevsno] / denh2o + h2osoi_ice[nlevsno] / denice) / dz[nlevsno];
         fac = std::min(1.0, wx / watsat[0]);
         fac = std::max(fac, 0.01);
@@ -30,11 +32,11 @@ void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const do
         } else {
           soilbeta = 1.0;
         }
-      } else if (Land.ltype == icol_road_perv) {
+      } else if (Land.ltype == LND::icol_road_perv) {
         soilbeta = 0.0;
-      } else if (Land.ltype == icol_sunwall || Land.ltype == icol_shadewall) {
+      } else if (Land.ltype == LND::icol_sunwall || Land.ltype == LND::icol_shadewall) {
         soilbeta = 0.0;
-      } else if (Land.ltype == icol_roof || Land.ltype == icol_road_imperv) {
+      } else if (Land.ltype == LND::icol_roof || Land.ltype == LND::icol_road_imperv) {
         soilbeta = 0.0;
       }
     } else {

@@ -13,7 +13,7 @@ void interception(const LandType& Land, const int& frac_veg_nosno, const double&
   if (!Land.lakpoi) {
     // Canopy interception/storage and throughfall
     // Add precipitation to leaf water
-    if (Land.ltype == istsoil || Land.ltype == istwet || Land.urbpoi || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istwet || Land.urbpoi || Land.ltype == LND::istcrop) {
       qflx_candrip = 0.0;          // rate of canopy runoff
       qflx_through_snow = 0.0;     // snow precipitation direct through canopy
       qflx_through_rain = 0.0;     // rain precipitation direct through canopy
@@ -21,7 +21,7 @@ void interception(const LandType& Land, const int& frac_veg_nosno, const double&
       fracsnow = 0.0;              // fraction of input precip that is snow
       fracrain = 0.0;              // fraction of input precip that is rain
 
-      if (Land.ctype != icol_sunwall && Land.ctype != icol_shadewall) {
+      if (Land.ctype != LND::icol_sunwall && Land.ctype != LND::icol_shadewall) {
         if (frac_veg_nosno == 1 && (forc_rain + forc_snow) > 0.0) {
           // determine fraction of input precipitation that is snow and rain
           fracsnow = forc_snow / (forc_snow + forc_rain);
@@ -54,7 +54,7 @@ void interception(const LandType& Land, const int& frac_veg_nosno, const double&
           }
         }
       }
-    } else if (Land.ltype == istice || Land.ltype == istice_mec) {
+    } else if (Land.ltype == LND::istice || Land.ltype == LND::istice_mec) {
       h2ocan = 0.0;
       qflx_candrip = 0.0;
       qflx_through_snow = 0.0;
@@ -89,7 +89,7 @@ void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_v
   if (!Land.lakpoi) {
     double qflx_prec_grnd_snow, qflx_prec_grnd_rain;
     // Precipitation onto ground (kg/(m2 s))
-    if ((Land.ctype != icol_sunwall) && (Land.ctype != icol_shadewall)) {
+    if ((Land.ctype != LND::icol_sunwall) && (Land.ctype != LND::icol_shadewall)) {
       if (frac_veg_nosno == 0) {
         qflx_prec_grnd_snow = forc_snow;
         qflx_prec_grnd_rain = forc_rain;
@@ -269,7 +269,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       dz_snowf = (snow_depth - temp_snow_depth); // update change in snow depth
     }                                            // end else do_capsnow
     // set frac_sno_eff variable
-    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       if (subgridflag == 1) {
         frac_sno_eff = frac_sno;
       } else {
@@ -278,7 +278,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
     } else {
       frac_sno_eff = 1.0;
     }
-    if (Land.ltype == istwet && t_grnd > ELM::constants::TFRZ) {
+    if (Land.ltype == LND::istwet && t_grnd > ELM::constants::TFRZ) {
       h2osno = 0.0;
       snow_depth = 0.0;
     }
@@ -317,7 +317,7 @@ void fraction_h2osfc(const LandType& Land, const double& micro_sigma,
     double d, fd, dfdd, sigma;
     static constexpr double min_h2osfc = 1.e-8; // arbitrary lower limit on h2osfc for safer numerics...
     // h2osfc only calculated for soil vegetated land units
-    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       // Use newton-raphson method to iteratively determine frac_h2osfc
       // based on amount of surface water storage (h2osfc) and
       // microtopography variability (micro_sigma)

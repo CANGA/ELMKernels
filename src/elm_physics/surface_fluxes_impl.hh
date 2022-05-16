@@ -271,11 +271,11 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
   errsoi += eflx_h2osfc_to_snow;
   // For urban sunwall, shadewall, and roof columns, the "soil" energy balance check
   // must include the heat flux from the interior of the building.
-  if (ctype == icol_sunwall || ctype == icol_shadewall || ctype == icol_roof) {
+  if (ctype == LND::icol_sunwall || ctype == LND::icol_shadewall || ctype == LND::icol_roof) {
     errsoi += eflx_building_heat;
   }
   for (int j = 0; j < ELM::nlevgrnd + ELM::nlevsno; ++j) {
-    if ((ctype != icol_sunwall && ctype != icol_shadewall && ctype != icol_roof) || (j < ELM::nlevurb)) {
+    if ((ctype != LND::icol_sunwall && ctype != LND::icol_shadewall && ctype != LND::icol_roof) || (j < ELM::nlevurb)) {
       // area weight heat absorbed by snow layers
       if (j >= ELM::nlevsno - snl && j < ELM::nlevsno) {
         errsoi -= frac_sno_eff * (t_soisno(j) - tssbef(j)) / fact(j);

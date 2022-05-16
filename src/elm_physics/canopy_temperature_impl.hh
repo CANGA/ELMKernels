@@ -12,7 +12,7 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
 
   if (!Land.lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
-      if ((Land.ctype == icol_sunwall || Land.ctype == icol_shadewall || Land.ctype == icol_roof) && i > nlevurb) {
+      if ((Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall || Land.ctype == LND::icol_roof) && i > nlevurb) {
         tssbef(i) = spval;
       } else {
         tssbef(i) = t_soisno(i);
@@ -60,11 +60,11 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
     double vol_ice;      //  partial volume of ice lens in layer
     double vol_liq;      //  partial volume of liquid water in layer
 
-    if (Land.ctype == icol_road_perv) {
+    if (Land.ctype == LND::icol_road_perv) {
       hr_road_perv = 0.0;
     }
-    if (Land.ltype != istwet && Land.ltype != istice && Land.ltype != istice_mec) {
-      if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype != LND::istwet && Land.ltype != LND::istice && Land.ltype != LND::istice_mec) {
+      if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
         wx = (h2osoi_liq(nlevsno) / denh2o + h2osoi_ice(nlevsno) / denice) / dz(nlevsno);
         fac = std::min(1.0, wx / watsat(0));
         fac = std::max(fac, 0.01);
@@ -74,7 +74,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
         hr = exp(psit / roverg / t_soisno(nlevsno));
         qred = (1.0 - frac_sno - frac_h2osfc) * hr + frac_sno + frac_h2osfc;
         soilalpha = qred;
-      } else if (Land.ctype == icol_road_perv) {
+      } else if (Land.ctype == LND::icol_road_perv) {
 
         // Pervious road depends on water in total soil column
         for (int j = 0; j < nlevbed; j++) {
@@ -98,10 +98,10 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
           }
         }
         soilalpha_u = qred;
-      } else if (Land.ctype == icol_sunwall || Land.ctype == icol_shadewall) {
+      } else if (Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall) {
         qred = 0.0;
         soilalpha_u = spval;
-      } else if (Land.ctype == icol_roof || Land.ctype == icol_road_imperv) {
+      } else if (Land.ctype == LND::icol_roof || Land.ctype == LND::icol_road_imperv) {
         qred = 1.0;
         soilalpha_u = spval;
       }
@@ -135,7 +135,7 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
     double degdT;   // d(eg)/dT
     double qsatgdT; // d(qsatg)/dT
 
-    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       qsat(t_soisno(nlevsno - snl), forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
@@ -195,7 +195,7 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
     // Ground emissivity - only calculate for non-urban landunits
     // Urban emissivities are currently read in from data file
     if (!Land.urbpoi) {
-      if (Land.ltype == istice || Land.ltype == istice_mec) {
+      if (Land.ltype == LND::istice || Land.ltype == LND::istice_mec) {
         emg = 0.97;
       } else {
         emg = (1.0 - frac_sno) * 0.96 + frac_sno * 0.97;
@@ -245,7 +245,7 @@ void forcing_height(const LandType& Land, const bool& veg_active, const int& fra
   // Make forcing height a pft-level quantity that is the atmospheric forcing
   // height plus each pft's z0m+displa
   if (veg_active) {
-    if (Land.ltype == istsoil || Land.ltype == istcrop) {
+    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       if (frac_veg_nosno == 0) {
         forc_hgt_u_patch = forc_hgt_u + z0mg + displa;
         forc_hgt_t_patch = forc_hgt_t + z0mg + displa;
@@ -255,11 +255,11 @@ void forcing_height(const LandType& Land, const bool& veg_active, const int& fra
         forc_hgt_t_patch = forc_hgt_t + z0m + displa;
         forc_hgt_q_patch = forc_hgt_q + z0m + displa;
       }
-    } else if (Land.ltype == istwet || Land.ltype == istice || Land.ltype == istice_mec) {
+    } else if (Land.ltype == LND::istwet || Land.ltype == LND::istice || Land.ltype == LND::istice_mec) {
       forc_hgt_u_patch = forc_hgt_u + z0mg;
       forc_hgt_t_patch = forc_hgt_t + z0mg;
       forc_hgt_q_patch = forc_hgt_q + z0mg;
-    } else if (Land.ltype == istdlak) {
+    } else if (Land.ltype == LND::istdlak) {
       forc_hgt_u_patch = forc_hgt_u;
       forc_hgt_t_patch = forc_hgt_t;
       forc_hgt_q_patch = forc_hgt_q;
@@ -282,13 +282,13 @@ void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_
   eflx_sh_tot = 0.0;
   if (Land.urbpoi) {
     eflx_sh_tot_u = 0.0;
-  } else if (Land.ltype == istsoil || Land.ltype == istcrop) {
+  } else if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
     eflx_sh_tot_r = 0.0;
   }
   eflx_lh_tot = 0.0;
   if (Land.urbpoi) {
     eflx_lh_tot_u = 0.0;
-  } else if (Land.ltype == istsoil || Land.ltype == istcrop) {
+  } else if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
     eflx_lh_tot_r = 0.0;
   }
   eflx_sh_veg = 0.0;

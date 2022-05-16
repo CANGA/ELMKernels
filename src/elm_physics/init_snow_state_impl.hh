@@ -11,7 +11,9 @@ template <typename ArrayD1>
 ACCELERATE
 void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double& int_snow, double& snow_depth,
                      double& h2osfc, double& h2ocan, double& frac_h2osfc, double& fwet, double& fdry, double& frac_sno,
-                     ArrayD1 snw_rds) {
+                     ArrayD1 snw_rds)
+{
+  using ELMdims::nlevsno;
 
   // this should/will be intitialized from input data - 0.0 for now
   // if given swe (h2osno): snow_depth = h2osno / bdsno;
@@ -43,19 +45,19 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
 
   // initial snow radius
   if (snl > 0) {
-    for (int i = 0; i < ELM::nlevsno - snl; ++i) {
+    for (int i = 0; i < nlevsno - snl; ++i) {
       snw_rds(i) = 0.0;
     }
-    for (int i = ELM::nlevsno - snl; i < ELM::nlevsno; ++i) {
+    for (int i = nlevsno - snl; i < nlevsno; ++i) {
       snw_rds(i) = snw_rds_min;
     }
   } else if (h2osno > 0.0) {
-    snw_rds(ELM::nlevsno - 1) = snw_rds_min;
-    for (int i = 0; i < ELM::nlevsno - 1; ++i) {
+    snw_rds(nlevsno - 1) = snw_rds_min;
+    for (int i = 0; i < nlevsno - 1; ++i) {
       snw_rds(i) = 0.0;
     }
   } else {
-    for (int i = 0; i < ELM::nlevsno; ++i) {
+    for (int i = 0; i < nlevsno; ++i) {
       snw_rds(i) = 0.0;
     }
   }
@@ -63,7 +65,9 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
 
 template <class ArrayD1>
 ACCELERATE
-void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi) {
+void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi)
+{
+  using ELMdims::nlevsno;
 
   for (int i = 0; i < nlevsno; i++) {
     dz[i] = spval;

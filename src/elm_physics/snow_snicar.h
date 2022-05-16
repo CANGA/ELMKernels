@@ -46,6 +46,10 @@ static constexpr double c1p5{1.5};
 static constexpr double trmin{0.001};
 } // namespace alg
 
+using ELMdims::nlevsno;
+using ELMdims::numrad;
+using ELMdims::numrad_snw;
+using ELMdims::sno_nbr_aer;
 
 /*! Initialize variables for SNICAR kernels
 \param[in]urbpoi                              [bool] true if urban point, false otherwise
