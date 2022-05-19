@@ -918,7 +918,6 @@ int main(int argc, char **argv) {
     read_atm_data(forc_ZBOT, dd, start, atm_nsteps);
 
     auto coszen = create<ViewD1>("coszen", ncells);
-    auto cosz_factor = create<ViewD1>("cosz_factor", ncells);
 
     ELM::Utils::Date current(start);
 
@@ -951,19 +950,28 @@ int main(int argc, char **argv) {
       double max_dayl;
       double dayl;
       {
-        ELM::Utils::Date forc_dt_start{forc_FSDS.get_data_start_time()};
-        forc_dt_start.increment_seconds(round(forc_FSDS.forc_t_idx(time_plus_half_dt, forc_FSDS.get_data_start_time()) * forc_FSDS.get_forc_dt_secs()));
-        int cosz_doy = current.doy + 1;
-        double declin = ELM::incident_shortwave::declination_angle2(cosz_doy); // should be the same for model and forcing - don't cross day barrier in forcing timeseries
-        double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
-        double cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, declin, forc_FSDS.get_forc_dt_secs(), cosz_forc_decday);
-        double cosz_decday = ELM::Utils::decimal_doy(current) + 1.0;
-        double thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, cosz_decday + dtime_d/2.0);
-        cosz_factor(0) = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
-        //cosz_factor(0) = (thiscosz > 0.001) ? 1.0 : 0.0;
-        coszen(0) = thiscosz;
-        max_dayl = ELM::max_daylength(lat_r);
-        dayl = ELM::daylength(lat_r, declin);
+        // there are three methods to calculate zenith angle
+        // they all produce similar results for the lat/lon tested here.
+
+        // for now a single value for coszen is appropriate
+        // but a slope based factor would necessitate per-cell values
+
+        // first method - average cosz for dt_start to dt_end
+        auto decday = ELM::Utils::decimal_doy(current) + 1.0;
+        coszen(0) = ELM::incident_shortwave::average_cosz(lat_r, lon_r, dtime, decday);
+
+        // second method - point cosz at dt_start + dt/2
+        //auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
+
+        // third method - calc avg cosz over forcing dt (larger than model dt)
+        // then calc point dt at start + dt/2
+        // and use to calculate cosz_factor
+        //ELM::Utils::Date forc_dt_start{forc_FSDS.get_data_start_time()};
+        //forc_dt_start.increment_seconds(round(forc_FSDS.forc_t_idx(time_plus_half_dt, forc_FSDS.get_data_start_time()) * forc_FSDS.get_forc_dt_secs()));
+        //double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
+        //auto cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, forc_FSDS.get_forc_dt_secs(), cosz_forc_decday);
+        //auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
+        //cosz_factor = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
       }
 
 
@@ -1016,7 +1024,7 @@ int main(int argc, char **argv) {
       forc_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
       forc_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
       forc_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
-      forc_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, cosz_factor, forc_solai, forc_solad);
+      forc_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, coszen, forc_solai, forc_solad);
       forc_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
       forc_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
       forc_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);

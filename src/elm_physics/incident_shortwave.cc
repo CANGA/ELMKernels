@@ -110,12 +110,12 @@ double ns::integrate_cosz(const double& t_start, const double& t_end, const doub
 }
 
 // evaluate average cosine(zenith) for a given dt
-double ns::average_cosz(const double&  latrad, const double&  lonrad, const double&  declin,
-                        const double&  dt, const double& jday)
+double ns::average_cosz(const double& latrad, const double&  lonrad, const double&  dt, const double& jday)
 {
   const double dtrad{dt_radians(dt)};
   const double t_start{dt_start_rad(jday, lonrad)};
   const double t_end{dt_end_rad(t_start, dtrad)};
+  const double declin{declination_angle2(static_cast<int>(jday))};
   const double cos_h{coshalfday(latrad, declin)};
   return integrate_cosz(t_start, t_end, dtrad, cos_h, latrad, declin);
 }

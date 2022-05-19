@@ -85,14 +85,12 @@ double integrate_cosz(const double& t_start, const double& t_end, const double& 
 in:
 latrad  [double] latitude [radians]
 lonrad  [double] longititude [radians]
-declin  [double] solar declination angle [radians]
 dt      [double] time increment over which to average cosz [seconds]
 jday    [double] Julian date at the beginning of dt
 
 out:
 cosine of the solar zenith angle averaged over dt
 */
-double average_cosz(const double& latrad, const double& lonrad, const double& declin,
-                    const double& dt, const double& jday);
+double average_cosz(const double& latrad, const double&  lonrad, const double&  dt, const double& jday);
 
 } // namespace ELM::incident_shortwave
