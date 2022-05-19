@@ -34,6 +34,8 @@ struct PFTDataAlb {
 template <typename ArrayD1, typename ArrayD2>
 struct PFTData {
 
+  const int numpft_{ELMdims::numpft};
+
   PFTData();
   ~PFTData() = default;
 
@@ -77,8 +79,6 @@ struct PFTData {
   ArrayD1 taulnir;   //  nir leaf transmittance
   ArrayD1 tausvis;   //  visible stem transmittance
   ArrayD1 tausnir;   //  nir stem transmittance
-
-  const int numpft_{ELMdims::numpft};
 
   // get struct of photosynthesis variables for pft
   ACCELERATE
