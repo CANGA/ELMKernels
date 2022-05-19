@@ -96,6 +96,7 @@ public:
   ArrayD1 dst2_2, dst3_1, dst3_2, dst4_1, dst4_2;
 
   AerosolDataManager();
+  ~AerosolDataManager() = default;
 
   // interpolate and accumulate aerosol forcing data to get aerosol sources for this timestep
   auto get_aerosol_source(const Utils::Date& model_time, const double& dtime) const; 

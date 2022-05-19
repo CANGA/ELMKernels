@@ -31,6 +31,7 @@ public:
   ArrayD2 mlai, msai, mhtop, mhbot;
 
   PhenologyDataManager(const Utils::DomainDecomposition<2>& dd, const size_t& ncells, const size_t& npfts);
+  ~PhenologyDataManager() = default;
 
   // read data from file
   // either all three months of data, or new single month

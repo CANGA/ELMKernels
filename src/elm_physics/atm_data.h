@@ -100,8 +100,9 @@ public:
   // public to provide access from driver
   ArrayD2 data; // 2D (ntimes, ncells) array-like object of forcing data -- device array
 
-  constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time, const size_t& ntimes,
-                           const size_t& ncells);
+  constexpr AtmDataManager(const std::string& filename, const Utils::Date& file_start_time,
+                           const size_t& ntimes, const size_t& ncells);
+  ~AtmDataManager() = default;
 
   // interface to update forcing file info
   constexpr void update_file_info(const Utils::Date& new_file_start_time, const std::string& new_filename);
