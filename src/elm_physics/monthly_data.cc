@@ -17,7 +17,7 @@ double ns::month_frac(const Utils::Date& model_time)
 int ns::first_month_idx(const Utils::Date& model_time)
 {
   const double t{month_frac(model_time)};
-  const int t1{t + 0.5};                         // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
+  const int t1 = t < 0.5 ? 0 : 1; // t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
   const int kmo{std::get<1>(model_time.date())}; // month
   int m1 = kmo + t1 - 2;
   if (m1 < 0) {
@@ -56,7 +56,7 @@ std::tuple<int, int, int> ns::triple_month_indices(const Utils::Date& model_time
 std::pair<double, double> ns::monthly_data_weights(const Utils::Date& model_time)
 {
   const double t{month_frac(model_time)};
-  const int t1{t + 0.5}; // implicit rounding - t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
+  const int t1 = t < 0.5 ? 0 : 1; // t1 = 0 if t < 0.5 and t1 = 1 if t >= 0.5
   double wt1 = (t1 + 0.5) - t;
   return std::make_pair(wt1, 1.0 - wt1);
 }
