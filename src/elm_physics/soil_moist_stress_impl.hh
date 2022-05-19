@@ -103,7 +103,7 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, c
     if (h2osoi_liqvol[nlevsno + i] <= 0.0 || t_soisno(nlevsno + i) <= ELMconst::TFRZ + tc_stress) {
       rootr(i) = 0.0;
     } else {
-      const double s_node = std::max(h2osoi_liqvol[nlevsno + i] / eff_porosity(i), 0.01);
+      const double s_node{std::max(h2osoi_liqvol[nlevsno + i] / eff_porosity(i), 0.01)};
       double smp_node = soil_suction(sucsat(i), s_node, bsw(i));
       smp_node = std::max(smpsc, smp_node);
       rresis[i] = std::min((eff_porosity(i) / watsat(i)) * (smp_node - smpsc) / (smpso - smpsc), 1.0);

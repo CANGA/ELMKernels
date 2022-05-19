@@ -315,8 +315,8 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
                        ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z)
 {
   static constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
-  static constexpr double betads = 0.5;                // two-stream parameter betad for snow
-  static constexpr double betais = 0.5;                // two-stream parameter betai for snow
+  static constexpr double betads{0.5};                // two-stream parameter betad for snow
+  static constexpr double betais{0.5};                // two-stream parameter betai for snow
 
   if (vegsol(Land, coszen, elai, esai)) {
 
@@ -324,25 +324,25 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
     double rho[numrad], tau[numrad];
 
     // Weight reflectance/transmittance by lai and sai
-    const double wl = elai / std::max(elai + esai, detail::mpe);
-    const double ws = esai / std::max(elai + esai, detail::mpe);
+    const double wl{elai / std::max(elai + esai, detail::mpe)};
+    const double ws{esai / std::max(elai + esai, detail::mpe)};
 
     // Calculate two-stream parameters that are independent of waveband:
     // chil, gdir, twostext, avmu, and temp0 and temp2 (used for asu)
-    const double cosz = std::max(0.001, coszen);
+    const double cosz{std::max(0.001, coszen)};
     double chil = std::min(std::max(alb_pft.xl, -0.4), 0.6);
     if (std::abs(chil) <= 0.01) {
       chil = 0.01;
     }
 
-    const double phi1 = 0.5 - 0.633 * chil - 0.330 * chil * chil;
-    const double phi2 = 0.877 * (1.0 - 2.0 * phi1);
-    const double gdir = phi1 + phi2 * cosz;
-    const double twostext = gdir / cosz;
-    const double avmu = (1.0 - phi1 / phi2 * std::log((phi1 + phi2) / phi1)) / phi2;
-    const double temp0 = gdir + phi2 * cosz;
-    const double temp1 = phi1 * cosz;
-    const double temp2 = (1.0 - temp1 / temp0 * std::log((temp1 + temp0) / temp1));
+    const double phi1{0.5 - 0.633 * chil - 0.330 * chil * chil};
+    const double phi2{0.877 * (1.0 - 2.0 * phi1)};
+    const double gdir{phi1 + phi2 * cosz};
+    const double twostext{gdir / cosz};
+    const double avmu{(1.0 - phi1 / phi2 * std::log((phi1 + phi2) / phi1)) / phi2};
+    const double temp0{gdir + phi2 * cosz};
+    const double temp1{phi1 * cosz};
+    const double temp2{(1.0 - temp1 / temp0 * std::log((temp1 + temp0) / temp1))};
 
     // Loop over all wavebands to calculate for the full canopy the scattered fluxes
     // reflected upward and transmitted downward by the canopy and the flux absorbed by the
@@ -382,10 +382,10 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
       // because the product omega*betai, omega*betad is used in solution.
       // Also, the transmittances and reflectances (tau, rho) are linear
       // weights of leaf and stem values.
-      const double omegal = rho[ib] + tau[ib];
-      const double asu = 0.5 * omegal * gdir / temp0 * temp2;
-      const double betadl = (1.0 + avmu * twostext) / (omegal * avmu * twostext) * asu;
-      const double betail = 0.5 * ((rho[ib] + tau[ib]) + (rho[ib] - tau[ib]) * pow(((1.0 + chil) / 2.0), 2.0)) / omegal;
+      const double omegal{rho[ib] + tau[ib]};
+      const double asu{0.5 * omegal * gdir / temp0 * temp2};
+      const double betadl{(1.0 + avmu * twostext) / (omegal * avmu * twostext) * asu};
+      const double betail{0.5 * ((rho[ib] + tau[ib]) + (rho[ib] - tau[ib]) * pow(((1.0 + chil) / 2.0), 2.0)) / omegal};
 
       // Adjust omega, betad, and betai for intercepted snow
       double tmp0, tmp1, tmp2;
@@ -399,22 +399,22 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
         tmp2 = ((1.0 - fwet) * omegal * betail + fwet * omegas[ib] * betais) / tmp0;
       }
       omega[ib] = tmp0;
-      const double betad = tmp1;
-      const double betai = tmp2;
+      const double betad{tmp1};
+      const double betai{tmp2};
 
       // Common terms
-      const double b = 1.0 - omega[ib] + omega[ib] * betai;
-      const double c1 = omega[ib] * betai;
+      const double b{1.0 - omega[ib] + omega[ib] * betai};
+      const double c1{omega[ib] * betai};
       tmp0 = avmu * twostext;
-      const double d = tmp0 * omega[ib] * betad;
-      const double f = tmp0 * omega[ib] * (1.0 - betad);
+      const double d{tmp0 * omega[ib] * betad};
+      const double f{tmp0 * omega[ib] * (1.0 - betad)};
       tmp1 = b * b - c1 * c1;
-      const double h = sqrt(tmp1) / avmu;
-      const double sigma = tmp0 * tmp0 - tmp1;
-      const double p1 = b + avmu * h;
-      const double p2 = b - avmu * h;
-      const double p3 = b + tmp0;
-      const double p4 = b - tmp0;
+      const double h{sqrt(tmp1) / avmu};
+      const double sigma{tmp0 * tmp0 - tmp1};
+      const double p1{b + avmu * h};
+      const double p2{b - avmu * h};
+      const double p3{b + tmp0};
+      const double p4{b - tmp0};
 
       // Absorbed, reflected, transmitted fluxes per unit incoming radiation for full canopy
       double t1 = std::min(h * (elai + esai), 40.0);
@@ -673,11 +673,12 @@ template <class ArrayD1>
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi)
 {
-  static constexpr double calb = 95.6; // Coefficient for calculating ice "fraction" for lake surface albedo From D. Mironov
+  // parameters from D. Mironov (2010)
   static constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
   static constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
-  static constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice (D. Mironov (2010))
-  static constexpr bool lakepuddling = false;          // puddling (not extensively tested and currently hardwired off)
+  static constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
+  static constexpr double calb{95.6}; // Coefficient for calculating ice "fraction" for lake surface albedo
+  static constexpr bool lakepuddling{false};          // puddling (not extensively tested and currently hardwired off)
 
   if (!Land.urbpoi) {
     if (coszen > 0.0) {

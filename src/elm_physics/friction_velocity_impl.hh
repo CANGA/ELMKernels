@@ -16,10 +16,9 @@ namespace ELM::friction_velocity {
 ACCELERATE
 double StabilityFunc1(const double& zeta)
 {
-  double chik, chik2, retval;
-  chik2 = std::sqrt(1.0 - 16.0 * zeta);
-  chik = std::sqrt(chik2);
-  retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELMconst::ELM_PI * 0.5;
+  const double chik2{std::sqrt(1.0 - 16.0 * zeta)};
+  double chik = std::sqrt(chik2);
+  double retval = 2.0 * std::log((1.0 + chik) * 0.5) + std::log((1.0 + chik2) * 0.5) - 2.0 * atan(chik) + ELMconst::ELM_PI * 0.5;
   return retval;
 }
 
@@ -27,9 +26,8 @@ double StabilityFunc1(const double& zeta)
 ACCELERATE
 double StabilityFunc2(const double& zeta)
 {
-  double chik2, retval;
-  chik2 = std::sqrt(1.0 - 16.0 * zeta);
-  retval = 2.0 * std::log((1.0 + chik2) * 0.5);
+  const double chik2{std::sqrt(1.0 - 16.0 * zeta)};
+  double retval = 2.0 * std::log((1.0 + chik2) * 0.5);
   return retval;
 }
 
@@ -37,10 +35,7 @@ ACCELERATE
 void monin_obukhov_length(const double& ur, const double& thv, const double& dthv, const double& zldis,
                           const double& z0m, double& um, double& obu)
 {
-  double rib;  // bulk Richardson number
-  double zeta; // dimensionless height used in Monin-Obukhov theory
-  // double ustar = 0.06; // friction velocity [m/s] -- in CLM, but not used
-  static constexpr double wc = 0.5; // convective velocity [m/s]
+  static constexpr double wc{0.5}; // convective velocity [m/s]
 
   // wind speed
   if (dthv >= 0.0) {
@@ -49,8 +44,8 @@ void monin_obukhov_length(const double& ur, const double& thv, const double& dth
     um = std::sqrt(ur * ur + wc * wc);
   }
 
-  rib = ELMconst::GRAV * zldis * dthv / (thv * um * um);
-
+  const double rib{ELMconst::GRAV * zldis * dthv / (thv * um * um)}; // bulk Richardson number
+  double zeta; // dimensionless height used in Monin-Obukhov theory
   if (rib >= 0.0) { // neutral or stable
     zeta = rib * std::log(zldis / z0m) / (1.0 - 5.0 * std::min(rib, 0.19));
     zeta = std::min(2.0, std::max(zeta, 0.01));
@@ -68,9 +63,9 @@ void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa
                                 const double& obu, const double& z0m, double& ustar)
 {
   using ELMconst::VKC;
-  static constexpr double zetam = 1.574;          // transition point of flux-gradient relation (wind profile)
-  const double zldis = forc_hgt_u_patch - displa; // reference height "minus" zero displacement heght [m]
-  const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
+  static constexpr double zetam{1.574};          // transition point of flux-gradient relation (wind profile)
+  const double zldis{forc_hgt_u_patch - displa}; // reference height "minus" zero displacement heght [m]
+  const double zeta{zldis / obu};                // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetam)) {
     ustar = VKC * um /
@@ -87,12 +82,12 @@ void friction_velocity_wind(const double& forc_hgt_u_patch, const double& displa
 
 ACCELERATE
 void friction_velocity_temp(const double& forc_hgt_t_patch, const double& displa, const double& obu,
-                                const double& z0h, double& temp1)
+                            const double& z0h, double& temp1)
 {
   using ELMconst::VKC;
-  static constexpr double zetat = 0.465;                     // transition point of flux-gradient relation (temp. profile)
-  const double zldis = forc_hgt_t_patch - displa; // reference height "minus" zero displacement heght [m]
-  const double zeta = zldis / obu;                // dimensionless height used in Monin-Obukhov theory
+  static constexpr double zetat{0.465};                     // transition point of flux-gradient relation (temp. profile)
+  const double zldis{forc_hgt_t_patch - displa}; // reference height "minus" zero displacement heght [m]
+  const double zeta{zldis / obu};                // dimensionless height used in Monin-Obukhov theory
 
   if (zeta < (-zetat)) {
     temp1 = VKC / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
@@ -112,7 +107,7 @@ void friction_velocity_humidity(const double& forc_hgt_q_patch, const double& fo
                                     const double& temp1, double& temp2)
 {
   using ELMconst::VKC;
-  static constexpr double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+  static constexpr double zetat{0.465}; // transition point of flux-gradient relation (temp. profile)
 
   if (forc_hgt_q_patch == forc_hgt_t_patch && z0q == z0h) {
     temp2 = temp1;
@@ -136,9 +131,9 @@ ACCELERATE
 void friction_velocity_temp2m(const double& obu, const double& z0h, double& temp12m)
 {
   using ELMconst::VKC;
-  const double zldis = 2.0 + z0h;
-  const double zeta = zldis / obu;
-  const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+  const double zldis{2.0 + z0h};
+  const double zeta{zldis / obu};
+  const double zetat{0.465}; // transition point of flux-gradient relation (temp. profile)
 
   if (zeta < -zetat) {
     temp12m = VKC / (std::log(-zetat * obu / z0h) - StabilityFunc2(-zetat) + StabilityFunc2(z0h / obu) +
@@ -161,9 +156,9 @@ void friction_velocity_humidity2m(const double& obu, const double& z0h, const do
   if (z0q == z0h) {
     temp22m = temp12m;
   } else {
-    const double zldis = 2.0 + z0q;
-    const double zeta = zldis / obu;
-    const double zetat = 0.465; // transition point of flux-gradient relation (temp. profile)
+    const double zldis{2.0 + z0q};
+    const double zeta{zldis / obu};
+    const double zetat{0.465}; // transition point of flux-gradient relation (temp. profile)
     if (zeta < -zetat) {
       temp22m = VKC / (std::log(-zetat * obu / z0q) - StabilityFunc2(-zetat) + StabilityFunc2(z0q / obu) +
                        0.8 * (pow(zetat, -0.333) - pow(-zeta, -0.333)));

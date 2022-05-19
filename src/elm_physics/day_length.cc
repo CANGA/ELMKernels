@@ -15,12 +15,12 @@ namespace ELM {
 // be strictly less than pi/2; lat must be less than pi/2 within a small tolerance.
 double daylength(const double& lat, const double& decl) {
   // number of seconds per radian of hour-angle
-  static constexpr double secs_per_radian = 13750.9871;
+  static constexpr double secs_per_radian{13750.9871};
   // epsilon for defining latitudes "near" the pole
-  static constexpr double lat_epsilon = 10.0 * std::numeric_limits<double>::epsilon();
+  static constexpr double lat_epsilon{10.0 * std::numeric_limits<double>::epsilon()};
   // Define an offset pole as slightly less than pi/2 to avoid problems with cos(lat) being negative
-  static constexpr double pole = ELMconst::ELM_PI / 2.0;
-  static constexpr double offset_pole = pole - lat_epsilon;
+  static constexpr double pole{ELMconst::ELM_PI / 2.0};
+  static constexpr double offset_pole{pole - lat_epsilon};
 
   assert((std::abs(lat) <= (pole + lat_epsilon)) && "lat must be less than pi/2 within a small tolerance");
   assert((std::abs(decl) <= pole) && "decl must be strictly less than pi/2");

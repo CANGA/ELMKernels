@@ -128,7 +128,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 wats
       }
     }
     for (int i = 0; i < nlevs; ++i) {
-      const int snw_offset = i + nlevsno;
+      const int snw_offset{i + nlevsno};
       h2osoi_vol(i) = std::min(h2osoi_vol(i), watsat(i));
       if (t_soisno(snw_offset) <= ELMconst::TFRZ) {
         h2osoi_ice(snw_offset) = dz(snw_offset) * ELMconst::DENICE * h2osoi_vol(i);
@@ -156,7 +156,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 wats
       }
     }
     for (int i = 0; i < nlevgrnd; ++i) {
-      const int snw_offset = i + nlevsno;
+      const int snw_offset{i + nlevsno};
       if (i < nlevsoi) { // soil
         h2osoi_vol(i) = watsat(i);
         h2osoi_liq(snw_offset) = spval;
@@ -171,7 +171,7 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 wats
   // For frozen layers !TODO - does the following make sense ???? it seems to overwrite everything
   //--------------------------------------------
   for (int i = 0; i < nlevgrnd; ++i) {
-    const int snw_offset = i + nlevsno;
+    const int snw_offset{i + nlevsno};
     if (t_soisno(snw_offset) <= ELMconst::TFRZ) {
       h2osoi_ice(snw_offset) = dz(snw_offset) * ELMconst::DENICE * h2osoi_vol(i);
       h2osoi_liq(snw_offset) = 0.0;

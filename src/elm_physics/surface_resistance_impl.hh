@@ -48,10 +48,10 @@ void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const do
 ACCELERATE
 double getlblcef(const double& rho, const double& temp)
 {
-  static constexpr double C = 120.0;      // K
-  static constexpr double T0 = 291.25;    // K
-  static constexpr double mu0 = 18.27e-6; // Pa s
-  static constexpr double prandtl = 0.72;
+  static constexpr double C{120.0};      // K
+  static constexpr double T0{291.25};    // K
+  static constexpr double mu0{18.27e-6}; // Pa s
+  static constexpr double prandtl{0.72};
   // compute the kinetic viscosity
   double mu = mu0 * (T0 + C) / (temp + C) * pow(temp / T0, 1.5) / rho; // m^2 s^-1
   double diffh2o = 0.229e-4 * pow(temp / 273.15, 1.75);                // m^2 s^-1

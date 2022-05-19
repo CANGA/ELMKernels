@@ -51,6 +51,7 @@ void ComputePhenology<ArrayI1, ArrayD1, ArrayD2>::operator()(const int i) const 
   }
 
   // area weight by snow covered fraction
+  // max calls are unnecessary given the < 0.05 check
   elai_(i) = std::max(tlai_(i) * (1.0 - frac_sno_(i)) + tlai_(i) * fb * frac_sno_(i), 0.0);
   esai_(i) = std::max(tsai_(i) * (1.0 - frac_sno_(i)) + tsai_(i) * fb * frac_sno_(i), 0.0);
   if (elai_(i) < 0.05) {

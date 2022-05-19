@@ -113,7 +113,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
   // need to decide where to place photosyns_vars%TimeStepInit()
 
   static constexpr double tlsai_crit{2.0}; // critical value of elai+esai for which aerodynamic parameters are maximum
-  constexpr double btran0 = 0.0;
+  static constexpr double btran0 {0.0}; // initial transpiration factor
 
   if (!Land.lakpoi && !Land.urbpoi) {
     double lt; // elai+esai
@@ -203,6 +203,12 @@ void stability_iteration(
   using ELMconst::VKC;
   using ELMconst::CSOILC;
 
+  static constexpr double btran0{0.0}; // initial transpiration factor
+  static constexpr double beta{1.0};   // coefficient of convective velocity [-]
+  static constexpr double zii{1000.0}; // convective boundary layer height [m]
+  static constexpr double ria{0.5};    // free parameter for stable formulation ("gamma" in Sakaguchi&Zeng,2008)
+  static constexpr double dlemin{0.1}; // max limit for energy flux convergence [w/m2]
+  static constexpr double dtmin{0.01}; // max limit for temperature convergence [K]
   if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0) {
     bool stop = false;
     int itmax = 40; // maximum number of iterations [-]
@@ -219,13 +225,6 @@ void stability_iteration(
     double dc1, dc2, efsh, erre, err, efe, efeold, lw_grnd, dels, ecidif;
     double tstar, qstar, thvstar, wc, zeta, wtaq, wtlq, dele, det, deldT;
     double rssun, rssha;
-    static const double btran0 = 0.0;
-    static const double beta = 1.0;   // coefficient of convective velocity [-]
-    static const double zii = 1000.0; // convective boundary layer height [m]
-    static const double ria =
-        0.5; // free parameter for stable formulation (currently = 0.5, "gamma" in Sakaguchi&Zeng,2008)
-    static const double dlemin = 0.1; // max limit for energy flux convergence [w/m2]
-    static const double dtmin = 0.01; // max limit for temperature convergence [K]
 
     double ci_z[nlevcan] = {0.0}; // solution to integration eval from previous iteration
     while (itlef <= itmax && !stop) {

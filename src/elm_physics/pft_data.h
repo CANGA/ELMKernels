@@ -78,7 +78,7 @@ struct PFTData {
   ArrayD1 tausvis;   //  visible stem transmittance
   ArrayD1 tausnir;   //  nir stem transmittance
 
-  static constexpr int numpft_{ELMdims::numpft};
+  const int numpft_{ELMdims::numpft};
 
   // get struct of photosynthesis variables for pft
   ACCELERATE

@@ -164,7 +164,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
     // Progress Rep. 1, Alta Avalanche Study Center:Snow Layer Densification.
 
     // set temporary variables prior to updating
-    const double temp_snow_depth = snow_depth;
+    const double temp_snow_depth{snow_depth};
     // save initial snow content
     for (int j = 0; j < nlevsno - snl; j++) {
       swe_old(j) = 0.0;
@@ -190,7 +190,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
       // update int_snow
       int_snow = std::max(int_snow, h2osno); // h2osno could be larger due to frost
       // snowmelt from previous time step * dtime
-      const double snowmelt = qflx_snow_melt * dtime;
+      const double snowmelt{qflx_snow_melt * dtime};
 
       /*======================  FSCA PARAMETERIZATIONS  ======================
       fsca parameterization based on *changes* in swe
@@ -314,7 +314,7 @@ void fraction_h2osfc(const LandType& Land, const double& micro_sigma,
 {
   if (!Land.lakpoi) {
     double d, fd, dfdd, sigma;
-    static constexpr double min_h2osfc = 1.e-8; // arbitrary lower limit on h2osfc for safer numerics...
+    static constexpr double min_h2osfc{1.e-8}; // arbitrary lower limit on h2osfc for safer numerics...
     // h2osfc only calculated for soil vegetated land units
     if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       // Use newton-raphson method to iteratively determine frac_h2osfc

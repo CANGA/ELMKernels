@@ -15,8 +15,6 @@
 
 namespace ELM::photosynthesis {
 
-constexpr double sco = 0.5 * 0.209 / (42.75 / 1.e06); // relative specificity of rubisco
-
 ACCELERATE
 double ft(const double& tl, const double& ha);
 

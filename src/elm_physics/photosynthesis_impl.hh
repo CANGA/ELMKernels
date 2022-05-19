@@ -13,8 +13,9 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
                     const ArrayD1 lai_z, double ci_z[nlevcan], double& rs) {
 
   // photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
-  const double fnps = 0.15;      // fraction of light absorbed by non-photosynthetic pigments
-  const double theta_psii = 0.7; // empirical curvature parameter for electron transport rate
+  static constexpr double fnps{0.15};      // fraction of light absorbed by non-photosynthetic pigments
+  static constexpr double theta_psii{0.7}; // empirical curvature parameter for electron transport rate
+  static constexpr double sco{0.5 * 0.209 / (42.75 / 1.e06)}; // relative specificity of rubisco
   // C3 or C4 photosynthesis logical variable
   bool c3flag{false};
   if (round(psnveg.c3psn) == 1) {
@@ -333,7 +334,7 @@ void ci_func(const double& ci, // intracellular leaf CO2 (Pa)
                  const double& bbb,      //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
                  const double& mbb)      //  Ball-Berry slope of conductance-photosynthesis relationship
 {
-  static const double theta_ip = 0.95;
+  static constexpr double theta_ip{0.95};
 
   if (c3flag) {
     // C3: Rubisco-limited photosynthesis
@@ -425,8 +426,8 @@ void brent(
     const double& bbb,      //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
     const double& mbb)      //  Ball-Berry slope of conductance-photosynthesis relationship
 {
-  static const int ITMAX = 20;      // maximum number of iterations
-  static const double EPS = 1.0e-2; // relative error tolerance
+  static constexpr int ITMAX{20};      // maximum number of iterations
+  static constexpr double EPS{1.0e-2}; // relative error tolerance
   double d, e, p, q, r, s, tol1, xm;
   double a = x1;
   double b = x2;
@@ -542,9 +543,9 @@ void hybrid(
     const double& bbb,      //  Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
     const double& mbb)      //  Ball-Berry slope of conductance-photosynthesis relationship
 {
-  static const double eps = 1.0e-2; // relative accuracy
-  static const double eps1 = 1.0e-4;
-  static const int itmax = 40; // maximum number of iterations
+  static constexpr double eps = 1.0e-2; // relative accuracy
+  static constexpr double eps1 = 1.0e-4;
+  static constexpr int itmax = 40; // maximum number of iterations
   double x1, f0, f1, x, dx, tol, minx, minf;
 
   ci_func(x0, f0, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol, vcmax_z, forc_pbot, c3flag, ac, aj, ap, ag, an,
@@ -635,9 +636,10 @@ double fth25(const double& hd, const double& se) {
 */
 ACCELERATE
 void photosynthesis_total(const double& psnsun, const double& psnsun_wc, const double& psnsun_wj,
-                              const double& psnsun_wp, const double& laisun, const double& psnsha,
-                              const double& psnsha_wc, const double& psnsha_wj, const double& psnsha_wp,
-                              const double& laisha, double& fpsn, double& fpsn_wc, double& fpsn_wj, double& fpsn_wp) {
+                          const double& psnsun_wp, const double& laisun, const double& psnsha,
+                          const double& psnsha_wc, const double& psnsha_wj, const double& psnsha_wp,
+                          const double& laisha, double& fpsn, double& fpsn_wc, double& fpsn_wj, double& fpsn_wp)
+{
   fpsn = psnsun * laisun + psnsha * laisha;
   fpsn_wc = psnsun_wc * laisun + psnsha_wc * laisha;
   fpsn_wj = psnsun_wj * laisun + psnsha_wj * laisha;

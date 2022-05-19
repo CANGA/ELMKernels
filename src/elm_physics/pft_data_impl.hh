@@ -120,7 +120,7 @@ void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
     };
 
   // read pftnames
-  const int strlen = 40;
+  const int strlen{40};
   ELM::IO::read_names(comm, fname_pft, "pftname", strlen, pftnames);
 
   // check to make sure order is as expected

@@ -614,18 +614,18 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
             // delta-transformed single-scattering properties
             // of this layer
-            const double ts = tau_star(bnd_idx, i);
-            const double ws = omega_star(bnd_idx, i);
-            const double gs = g_star(bnd_idx, i);
+            const double ts{tau_star(bnd_idx, i)};
+            const double ws{omega_star(bnd_idx, i)};
+            const double gs{g_star(bnd_idx, i)};
 
             // Delta-Eddington solution expressions
             // n(uu,et)         = ((uu+alg::c1)*(uu+alg::c1)/et ) - ((uu-alg::c1)*(uu-alg::c1)*et)
             // u(w,gg,e)        = alg::c1p5*(alg::c1 - w*gg)/e
             // el(w,gg)         = sqrt(alg::c3*(alg::c1-w)*(alg::c1 - w*gg))
-            const double lm = std::sqrt(alg::c3 * (alg::c1 - ws) * (alg::c1 - ws * gs)); // lm = el(ws,gs)
-            const double ue = alg::c1p5 * (alg::c1 - ws * gs) / lm;                 // ue = u(ws,gs,lm)
-            const double extins = std::max(exp_min, exp(-lm * ts));
-            const double ne = ((ue + alg::c1) * (ue + alg::c1) / extins) - ((ue - alg::c1) * (ue - alg::c1) * extins); // ne = n(ue,extins)
+            const double lm{std::sqrt(alg::c3 * (alg::c1 - ws) * (alg::c1 - ws * gs))}; // lm = el(ws,gs)
+            const double ue{alg::c1p5 * (alg::c1 - ws * gs) / lm};                 // ue = u(ws,gs,lm)
+            const double extins{std::max(exp_min, exp(-lm * ts))};
+            const double ne{((ue + alg::c1) * (ue + alg::c1) / extins) - ((ue - alg::c1) * (ue - alg::c1) * extins)}; // ne = n(ue,extins)
 
             // first calculation of rdif, tdif using Delta-Eddington formulas
             // rdif_a(k) = (ue+alg::c1)*(ue-alg::c1)*(alg::c1/extins - extins)/ne
@@ -652,17 +652,17 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
             // since Delta-Eddington rdif formula is not well-behaved (it is usually
             // biased low and can even be negative); use ngmax angles and gaussian
             // integration for most accuracy:
-            const double R1 = rdif_a[i]; // use R1 as temporary
-            const double T1 = tdif_a[i]; // use T1 as temporary
+            const double R1{rdif_a[i]}; // use R1 as temporary
+            const double T1{tdif_a[i]}; // use T1 as temporary
             double swt = alg::c0;
             double smr = alg::c0;
             double smt = alg::c0;
 
             for (int ng = 0; ng < ngmax; ++ng) {
-              const double mu = difgauspt[ng];
-              const double gwt = difgauswt[ng];
+              const double mu{difgauspt[ng]};
+              const double gwt{difgauswt[ng]};
               swt = swt + mu * gwt;
-              const double trn = std::max(exp_min, exp(-ts / mu));
+              const double trn{std::max(exp_min, exp(-ts / mu))};
               // alp = alpha(ws,mu,gs,lm)
               // gam = agamm(ws,mu,gs,lm)
               alp = alg::cp75 * ws * mu * ((alg::c1 + gs * (alg::c1 - ws)) / (alg::c1 - lm * lm * mu * mu));
@@ -696,9 +696,9 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
           //       ---------------------
 
           trndir[i + 1] = trndir[i] * trnlay[i];
-          const double refkm1 = alg::c1 / (alg::c1 - rdndif[i] * rdif_a[i]);
-          const double tdrrdir = trndir[i] * rdir[i];
-          const double tdndif = trntdr[i] - trndir[i];
+          const double refkm1{alg::c1 / (alg::c1 - rdndif[i] * rdif_a[i])};
+          const double tdrrdir{trndir[i] * rdir[i]};
+          const double tdndif{trntdr[i] - trndir[i]};
           trntdr[i + 1] = trndir[i] * tdir[i] + (tdndif + tdrrdir * rdndif[i]) * refkm1 * tdif_a[i];
           rdndif[i + 1] = rdif_b[i] + (tdif_b[i] * rdndif[i] * refkm1 * tdif_a[i]);
           trndif[i + 1] = trndif[i] * refkm1 * tdif_a[i];
@@ -727,7 +727,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
         for (int i = snl_btm; i >= snl_top; --i) {
           // interface scattering
-          const double refkp1 = alg::c1 / (alg::c1 - rdif_b[i] * rupdif[i + 1]);
+          const double refkp1{alg::c1 / (alg::c1 - rdif_b[i] * rupdif[i + 1])};
           // dir from top layer plus exp tran ref from lower layer, interface
           // scattered and tran thru top layer from below, plus diff tran ref
           // from lower layer with interface scattering tran thru top from below
@@ -815,7 +815,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
         }
 
         // absobed flux by the underlying ground
-        const double F_btm_net = dftmp[snl_btm_itf];
+        const double F_btm_net{dftmp[snl_btm_itf]};
 
         // note here, snl_btm_itf = 1 by snow column set up in ELM
         flx_abs_lcl(nlevsno, bnd_idx) = F_btm_net;
@@ -847,8 +847,8 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
         // Energy conservation check:
         // Incident direct+diffuse radiation equals (absorbed+bulk_transmitted+bulk_reflected)
-        const double energy_sum =
-            (mu_not * ELMconst::ELM_PI * flx_slrd_lcl(bnd_idx)) + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls);
+        const double energy_sum{(mu_not * ELMconst::ELM_PI * flx_slrd_lcl(bnd_idx))
+            + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls)};
         if (std::abs(energy_sum) > 0.00001) {
           throw std::runtime_error("ELM ERROR: SNICAR Energy conservation error.");
         }
@@ -944,12 +944,12 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
       // calculate the scaling factor for NIR direct albedo if SZA>75 degree
       // coefficients used for SZA parameterization
       if ((mu_not < mu_75) && (flg_slr_in == 1)) {
-        const double sza_c1 = sza_a0 + sza_a1 * mu_not + sza_a2 * pow(mu_not, 2.0); // coefficient, SZA parameteirzation
-        const double sza_c0 = sza_b0 + sza_b1 * mu_not + sza_b2 * pow(mu_not, 2.0); // coefficient, SZA parameterization
-        const double sza_factor =
-            sza_c1 * (log10(snw_rds_lcl(snl_top) * alg::c1) - alg::c6) + sza_c0; // factor used to adjust NIR direct albedo
-        const double flx_sza_adjust =
-            albout(1) * (sza_factor - alg::c1) * flx_wgt_sum; // direct NIR flux adjustment from sza_factor
+        const double sza_c1{sza_a0 + sza_a1 * mu_not + sza_a2 * pow(mu_not, 2.0)}; // coefficient, SZA parameteirzation
+        const double sza_c0{sza_b0 + sza_b1 * mu_not + sza_b2 * pow(mu_not, 2.0)}; // coefficient, SZA parameterization
+        const double sza_factor{sza_c1 *
+            (log10(snw_rds_lcl(snl_top) * alg::c1) - alg::c6) + sza_c0}; // factor used to adjust NIR direct albedo
+        const double flx_sza_adjust{albout(1) *
+            (sza_factor - alg::c1) * flx_wgt_sum}; // direct NIR flux adjustment from sza_factor
         albout(1) *= sza_factor;
         flx_abs(snl_top, 1) -= flx_sza_adjust;
       }

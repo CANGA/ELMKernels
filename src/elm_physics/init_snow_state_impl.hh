@@ -35,8 +35,8 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
     frac_sno = 0.0;
     // snow cover fraction as in Niu and Yang 2007
     if (snow_depth > 0.0) {
-      const double snowbd = std::min(400.0, h2osno / snow_depth); // bulk density of snow (kg/m3)
-      const double fmelt = pow(snowbd / 100.0, 1.0);
+      const double snowbd{std::min(400.0, h2osno / snow_depth)}; // bulk density of snow (kg/m3)
+      const double fmelt{pow(snowbd / 100.0, 1.0)};
       // 100 is the assumed fresh snow density; 1 is a melting factor that could be
       // reconsidered, optimal value of 1.5 in Niu et al., 2007
       frac_sno = tanh(snow_depth / (2.5 * ELMconst::ZLND * fmelt));

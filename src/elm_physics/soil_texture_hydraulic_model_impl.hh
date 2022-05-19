@@ -27,10 +27,10 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
 
   double xksat;
   pedotransfer(pct_sand, pct_clay, watsat, bsw, sucsat, xksat);
-  const double om_watsat = std::max(0.93 - 0.1 * (zsoi / zsapric), 0.83);
-  const double om_b = std::min(2.7 + 9.3 * (zsoi / zsapric), 12.0);
-  const double om_sucsat = std::min(10.3 - 0.2 * (zsoi / zsapric), 10.1);
-  const double om_hksat = std::max(0.28 - 0.2799 * (zsoi / zsapric), 0.0001);
+  const double om_watsat{std::max(0.93 - 0.1 * (zsoi / zsapric), 0.83)};
+  const double om_b{std::min(2.7 + 9.3 * (zsoi / zsapric), 12.0)};
+  const double om_sucsat{std::min(10.3 - 0.2 * (zsoi / zsapric), 10.1)};
+  const double om_hksat{std::max(0.28 - 0.2799 * (zsoi / zsapric), 0.0001)};
 
   // const double bulk_den = (1.0 - watsat) * 2.7e3;
   // const double tkm = (1.0 - om_frac) * (8.8 * sand + 2.92 * clay) / (sand + clay) + om_tkm * om_frac; // W/(m K)

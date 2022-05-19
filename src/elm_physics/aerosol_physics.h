@@ -18,7 +18,7 @@ struct AerosolMasses {
   AerosolMasses(const size_t& ncells);
   ~AerosolMasses() = default;
   ArrayD2 mss_bcphi, mss_bcpho, mss_dst1, mss_dst2, mss_dst3, mss_dst4;
-  static constexpr int nlevsno_{ELMdims::nlevsno};
+  const int nlevsno_{ELMdims::nlevsno};
 };
 
 template <typename ArrayD2>
@@ -26,7 +26,7 @@ struct AerosolConcentrations {
   AerosolConcentrations(const size_t& ncells);
   ~AerosolConcentrations() = default;
   ArrayD2 mss_cnc_bcphi, mss_cnc_bcpho, mss_cnc_dst1, mss_cnc_dst2, mss_cnc_dst3, mss_cnc_dst4;
-  static constexpr int nlevsno_{ELMdims::nlevsno};
+  const int nlevsno_{ELMdims::nlevsno};
 };
 
 }

@@ -34,9 +34,9 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
                          double& z0hg, double& z0qg, double& obu, double& um, double& temp1, double& temp2,
                          double& temp12m, double& temp22m, double& ustar)
 {
-  static constexpr int niters = 3;      // number of iterations
-  static constexpr double beta = 1.0;   // coefficient of convective velocity [-]
-  static constexpr double zii = 1000.0; // convective boundary height [m]
+  static constexpr int niters{3};      // number of iterations
+  static constexpr double beta{1.0};   // coefficient of convective velocity [-]
+  static constexpr double zii{1000.0}; // convective boundary height [m]
 
   double tstar;                     // temperature scaling parameter
   double qstar;                     // moisture scaling parameter
