@@ -41,6 +41,7 @@
 #include "surface_fluxes.h"
 #include "soil_texture_hydraulic_model.h"
 #include "soil_temperature.h"
+#include "soil_thermal_properties.h"
 
 // conditional compilation options
 #include "invoke_kernel.hh"
@@ -673,6 +674,10 @@ int main(int argc, char **argv) {
     // soil thermal properties
     auto tkmg = create<ViewD2>("tkmg", ncells, nlevgrnd);
     auto tkdry = create<ViewD2>("tkdry", ncells, nlevgrnd);
+    auto tk = create<ViewD2>("tk", ncells, nlevgrnd + nlevsno);
+    auto csol = create<ViewD2>("csol", ncells, nlevgrnd + nlevsno);
+    auto tk_h2osfc = create<ViewD1>("tk_h2osfc", ncells);
+
 
 
     // soil fluxes (outputs)
@@ -878,7 +883,8 @@ int main(int argc, char **argv) {
                               Kokkos::subview(watopt, idx, Kokkos::ALL),
                               Kokkos::subview(watfc, idx, Kokkos::ALL),
                               Kokkos::subview(tkmg, idx, Kokkos::ALL),
-                              Kokkos::subview(tkdry, idx, Kokkos::ALL));
+                              Kokkos::subview(tkdry, idx, Kokkos::ALL),
+                              Kokkos::subview(csol, idx, Kokkos::ALL));
 
 
       ELM::init_vegrootfr(

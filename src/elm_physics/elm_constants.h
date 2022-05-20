@@ -47,6 +47,8 @@ namespace ELM::ELMconst {
   static constexpr double HSUB{HVAP + HFUS};              // Latent heat of sublimation    [J/kg]
   static constexpr double VKC{0.4};                       // von Karman constant [-]
   static constexpr double CPAIR{1.00464e3};               // specific heat of dry air   ~ J/kg/K
+  static constexpr double CPICE{2.11727e3};               // specific heat of fresh ice ~ J/kg/K
+  static constexpr double CPWAT{4.188e3};                 // specific heat of fresh h2o ~ J/kg/K
   static constexpr double CSOILC{0.004};                  // Drag coefficient for soil under canopy [-]
   static constexpr double ZLND{0.01};                     // Roughness length for soil [m]
   static constexpr double ZSNO{0.0024};                   // Roughness length for snow [m]

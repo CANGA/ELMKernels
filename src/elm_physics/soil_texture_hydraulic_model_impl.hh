@@ -20,13 +20,15 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
                            const double& zsoi, const double& om_frac,
                            double& watsat, double& bsw, double& sucsat,
                            double& watdry, double& watopt, double& watfc,
-                           double& tkmg, double& tkdry)
+                           double& tkmg, double& tkdry, double& csol)
 {
   static constexpr double zsapric{0.5};  // depth (m) that organic matter takes on characteristics of sapric peat
   static constexpr double pcalpha{0.5};  // percolation threshold
   static constexpr double pcbeta{0.139}; // percolation exponent
   static constexpr double om_tkd{0.05};  // thermal conductivity of dry organic soil (Farouki, 1981)
   static constexpr double om_tkm{0.25};  // thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
+  static constexpr double csol_bedrock{2.0e6}; // vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
+  static constexpr double om_csol{2.5};  // heat capacity of peat soil *10^6 (J/K m3) (Farouki, 1986)
 
   double xksat;
   pedotransfer(pct_sand, pct_clay, watsat, bsw, sucsat, xksat);
@@ -71,12 +73,8 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
 
   tkdry = ((0.135 * bulk_den + 64.7) / (2.7e3 - 0.947 * bulk_den)) * (1.0 - om_frac) + om_tkd * om_frac;
 
-  // this%csol_col(c,lev)   = ((1._r8-om_frac)*(2.128_r8*sand+2.385_r8*clay) / (sand+clay) + &
-  //      om_csol*om_frac)*1.e6_r8  ! J/(m3 K)
-
-  // if (lev > nlevbed) then
-  //    this%csol_col(c,lev) = csol_bedrock
-  // endif
+  csol = ((1.0 - om_frac) * (2.128 * pct_sand + 2.385 * pct_clay) /
+         (pct_sand + pct_clay) + om_csol * om_frac) * 1.0e6; // J/(m3 K)
 
   watdry = watsat * pow((316230.0 / sucsat), (-1.0 / bsw));
   watopt = watsat * pow((158490.0 / sucsat), (-1.0 / bsw));
@@ -98,20 +96,24 @@ void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay,
                           const ArrayD1 organic, const ArrayD1 zsoi,
                           ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat,
                           ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc,
-                          ArrayD1 tkmg, ArrayD1 tkdry)
+                          ArrayD1 tkmg, ArrayD1 tkdry, ArrayD1 csol)
 {
+  static constexpr double csol_bedrock{2.0e6}; // copied here for now
+
   double om_frac;
   for (int i = 0; i < ELM::nlevsoi; ++i) {
     om_frac = pow((organic(i) / ELM::organic_max), 2.0);
     soil_hydraulic_params(pct_sand(i), pct_clay(i), zsoi(i + ELM::nlevsno), om_frac, watsat(i), bsw(i), sucsat(i),
                           watdry(i), watopt(i), watfc(i),
-                          tkmg(i), tkdry(i));
+                          tkmg(i), tkdry(i), csol(i));
   }
 
   for (int i = ELM::nlevsoi; i < ELM::nlevgrnd; ++i) {
     om_frac = 0.0;
     soil_hydraulic_params(pct_sand(ELM::nlevsoi - 1), pct_clay(ELM::nlevsoi - 1), zsoi(i + ELM::nlevsno), om_frac,
-                          watsat(i), bsw(i), sucsat(i), watdry(i), watopt(i), watfc(i), tkmg(i), tkdry(i));
+                          watsat(i), bsw(i), sucsat(i), watdry(i), watopt(i), watfc(i), tkmg(i), tkdry(i), csol(i));
+
+    csol(i) = csol_bedrock;
   }
 }
 
