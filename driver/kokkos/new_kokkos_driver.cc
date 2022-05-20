@@ -40,6 +40,7 @@
 #include "snow_snicar.h"
 #include "surface_fluxes.h"
 #include "soil_texture_hydraulic_model.h"
+#include "soil_temperature.h"
 
 // conditional compilation options
 #include "invoke_kernel.hh"
@@ -442,9 +443,10 @@ int main(int argc, char **argv) {
 
 
     // soil color and texture constants
+    int max_soil_color = 20; // largest option - can't know until NC file is read
     auto isoicol = create<ViewI1>("isoicol", ncells);
-    auto albsat = create<ViewD2>("albsat", ncells, 2);
-    auto albdry = create<ViewD2>("albdry", ncells, 2);
+    auto albsat = create<ViewD2>("albsat", max_soil_color, 2);
+    auto albdry = create<ViewD2>("albdry", max_soil_color, 2);
     auto pct_sand = create<ViewD2>("pct_sand", ncells, nlevgrnd);
     auto pct_clay = create<ViewD2>("pct_clay", ncells, nlevgrnd);
     auto organic = create<ViewD2>("organic", ncells, nlevgrnd);
@@ -489,10 +491,6 @@ int main(int argc, char **argv) {
     auto swe_old = create<ViewD2>("swe_old", ncells, nlevsno);
     
     auto t_soisno = create<ViewD2>("t_soisno", ncells, nlevsno + nlevgrnd);
-    double tsoi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 278.3081064745931, 276.1568781897738,
-      275.55803480737063, 275.2677090940866, 274.7286996980052, 273.15, 272.4187794248787, 270.65049816473027,
-      267.8224112387398, 265.7450135695632, 264.49481140089864, 264.14163363048056, 264.3351872934207, 264.1163763444719, 263.88852987294865};
-
 
     // for can_sun_shade
     auto nrad = create<ViewI1>("nrad", ncells);
@@ -664,6 +662,19 @@ int main(int argc, char **argv) {
     auto omega_star = create<ViewD3>("omega_star", ncells, numrad_snw, nlevsno);
     auto tau_star = create<ViewD3>("tau_star", ncells, numrad_snw, nlevsno);
 
+    // soil temperature
+    auto hs_soil = create<ViewD1>("hs_soil", ncells);
+    auto hs_h2osfc = create<ViewD1>("hs_h2osfc", ncells);
+    auto hs_top = create<ViewD1>("hs_top", ncells);
+    auto hs_top_snow = create<ViewD1>("hs_top_snow", ncells);
+    auto dhsdT = create<ViewD1>("dhsdT", ncells);
+    auto sabg_chk = create<ViewD1>("sabg_chk", ncells);
+
+    // soil thermal properties
+    auto tkmg = create<ViewD2>("tkmg", ncells, nlevgrnd);
+    auto tkdry = create<ViewD2>("tkdry", ncells, nlevgrnd);
+
+
     // soil fluxes (outputs)
     auto eflx_soil_grnd = create<ViewD1>("eflx_soil_grnd", ncells);
     auto qflx_evap_grnd = create<ViewD1>("qflx_evap_grnd", ncells);
@@ -730,10 +741,6 @@ int main(int argc, char **argv) {
       }
       Kokkos::deep_copy(zisoi, h_zisoi);
     }
-    
-
-
-
 
 
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -869,7 +876,9 @@ int main(int argc, char **argv) {
                               Kokkos::subview(sucsat, idx, Kokkos::ALL),
                               Kokkos::subview(watdry, idx, Kokkos::ALL),
                               Kokkos::subview(watopt, idx, Kokkos::ALL),
-                              Kokkos::subview(watfc, idx, Kokkos::ALL));
+                              Kokkos::subview(watfc, idx, Kokkos::ALL),
+                              Kokkos::subview(tkmg, idx, Kokkos::ALL),
+                              Kokkos::subview(tkdry, idx, Kokkos::ALL));
 
 
       ELM::init_vegrootfr(
@@ -900,6 +909,79 @@ int main(int argc, char **argv) {
     });
 
 
+    // hardwired soil/snow water state
+    {
+      double h2osoi_ice_hardwire[] = {
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 51.095355179469955, 131.99213225849098,
+        17.829256395227745, 95.72899575304584, 155.31526899797177,
+        0.01, 0.01, 0.01,
+        0.01, 0.01 };
+
+      double h2osoi_liq_hardwire[] = {
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 7.045411435071487,
+        14.353496179256807, 36.308518784697064, 62.46145027256513,
+        97.14000248023912, 97.47148319510016, 78.52160092062527,
+        65.63904088905001, 41.25305599181871, 70.8566046019581,
+        0.01, 0.01, 0.01,
+        0.01, 0.01 };
+
+      auto h_soi_ice = Kokkos::create_mirror_view(h2osoi_ice);
+      auto h_soi_liq = Kokkos::create_mirror_view(h2osoi_liq);
+      for (int n = 0; n < ncells; ++n) {
+        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+          h_soi_ice(n, i) = h2osoi_ice_hardwire[i];
+          h_soi_liq(n, i) = h2osoi_liq_hardwire[i];
+        }
+      }
+      Kokkos::deep_copy(h2osoi_ice, h_soi_ice);
+      Kokkos::deep_copy(h2osoi_liq, h_soi_liq);
+
+
+      double h2osoi_vol_hardwire[] = {
+        0.4016484663460637, 0.5196481455614503, 0.7967166638201649,
+        0.8331813710901114, 0.7859200286330449, 0.7517405589446893,
+        0.6621235242027332, 0.1535948180493002, 0.15947477948341815,
+        0.15954052527228618, 8.420726808634413e-06, 5.107428986500891e-06,
+        3.0978122726178113e-06, 1.8789181213767733e-06, 1.5092697845407248e-06 };
+      auto h_soi_vol = Kokkos::create_mirror_view(h2osoi_vol);
+      for (int n = 0; n < ncells; ++n) {
+        for (int i = 0; i < nlevgrnd; ++i) {
+          h_soi_vol(n, i) = h2osoi_vol_hardwire[i];
+        }
+      }
+      Kokkos::deep_copy(h2osoi_vol, h_soi_vol);
+
+    }
+
+
+    // hardwired soil/snow temp info
+    {
+     double tsoi_hardwire[] = {
+      0.0, 0.0, 0.0,
+      0.0, 0.0, 278.3081064745931,
+      276.1568781897738, 275.55803480737063, 275.2677090940866,
+      274.7286996980052, 273.15, 272.4187794248787,
+      270.65049816473027, 267.8224112387398, 265.7450135695632,
+      264.49481140089864, 264.14163363048056, 264.3351872934207,
+      264.1163763444719, 263.88852987294865 };
+      auto h_tsoi = Kokkos::create_mirror_view(t_soisno);
+      for (int n = 0; n < ncells; ++n) {
+        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+          h_tsoi(n, i) = tsoi_hardwire[i];
+        }
+      }
+      auto h_tgrnd = Kokkos::create_mirror_view(t_grnd);
+      h_tgrnd(idx) = h_tsoi(idx, nlevsno - snl(idx));
+      Kokkos::deep_copy(t_soisno, h_tsoi);
+      Kokkos::deep_copy(t_grnd, h_tgrnd);
+    }
+
+
+
 
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -926,25 +1008,11 @@ int main(int argc, char **argv) {
       ELM::Utils::Date time_plus_half_dt(current);
       time_plus_half_dt.increment_seconds(dtime/2);
 
-      // run init_timestep in it's own loop @ beginning of each step
-      // need for a few variables that are needed by downstream
-      // data processing kernels, before main physics section
-      // more will be added to this kernel in the future
-      Kokkos::parallel_for("init_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
-
-        ELM::init_timestep(lakpoi, veg_active(idx),
-                           frac_veg_nosno_alb(idx),
-                           snl(idx), h2osno(idx),
-                           Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-                           Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-                           do_capsnow(idx),
-                           frac_veg_nosno(idx),
-                           Kokkos::subview(frac_iceold, idx, Kokkos::ALL));
-      });
-
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      // get coszen - should make this a function
+      // get coszen
+      // only one value currently
+      // will change when slope aspect modifier is completed
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
       double max_dayl;
@@ -958,7 +1026,7 @@ int main(int argc, char **argv) {
 
         // first method - average cosz for dt_start to dt_end
         auto decday = ELM::Utils::decimal_doy(current) + 1.0;
-        coszen(0) = ELM::incident_shortwave::average_cosz(lat_r, lon_r, dtime, decday);
+        assign(coszen, ELM::incident_shortwave::average_cosz(lat_r, lon_r, dtime, decday));
 
         // second method - point cosz at dt_start + dt/2
         //auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
@@ -972,6 +1040,11 @@ int main(int argc, char **argv) {
         //auto cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, forc_FSDS.get_forc_dt_secs(), cosz_forc_decday);
         //auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
         //cosz_factor = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
+
+
+
+        max_dayl = ELM::max_daylength(lat_r);
+        dayl = ELM::daylength(lat_r, ELM::incident_shortwave::declination_angle2(current.doy + 1));
       }
 
 
@@ -996,54 +1069,78 @@ int main(int argc, char **argv) {
       // then we would only need one copy from host view into the device view
       // instead of the two we currently have
       // will fix later - too infrequently run (once per month) to cause concern
-      if (phen_data.need_data()) {
-        Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop);
-        Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot);
+      {
+        if (phen_data.need_data()) {
+          Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai);
+          Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai);
+          Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop);
+          Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot);
+        }
+        // reads three months of data on first call
+        // after first call, read new data if phen_data.need_new_data_ == true
+        auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, vtype); // if needed
+        // copy host views to device
+        // could be made more efficient, see above
+        if (phen_updated) {
+          Kokkos::deep_copy(phen_data.mlai, host_phen_views["MONTHLY_LAI"]);
+          Kokkos::deep_copy(phen_data.msai, host_phen_views["MONTHLY_SAI"]);
+          Kokkos::deep_copy(phen_data.mhtop, host_phen_views["MONTHLY_HEIGHT_TOP"]);
+          Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
+        }
+        // run parallel kernel to process phenology data
+        phen_data.get_data(current, snow_depth,
+                           frac_sno, vtype, elai, esai,
+                           htop, hbot, tlai, tsai,
+                           frac_veg_nosno_alb);
       }
-      // reads three months of data on first call
-      // after first call, read new data if phen_data.need_new_data_ == true
-      auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, vtype); // if needed
-      // copy host views to device
-      // could be made more efficient, see above
-      if (phen_updated) {
-        Kokkos::deep_copy(phen_data.mlai, host_phen_views["MONTHLY_LAI"]);
-        Kokkos::deep_copy(phen_data.msai, host_phen_views["MONTHLY_SAI"]);
-        Kokkos::deep_copy(phen_data.mhtop, host_phen_views["MONTHLY_HEIGHT_TOP"]);
-        Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
-      }
-      // run parallel kernel to process phenology data
-      phen_data.get_data(current, snow_depth,
-                         frac_sno, vtype, elai, esai,
-                         htop, hbot, tlai, tsai,
-                         frac_veg_nosno_alb);
 
-      // get new and data and process in parallel
-      forc_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
-      forc_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
-      forc_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
-      forc_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
-      forc_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, coszen, forc_solai, forc_solad);
-      forc_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
-      forc_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
-      forc_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
+
+      // get forcing data and process in parallel
+      {
+        forc_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
+        forc_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
+        forc_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_pbot, forc_qbot, forc_rh);
+        forc_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot, forc_qbot, forc_tbot, forc_lwrad);
+        forc_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, coszen, forc_solai, forc_solad);
+        forc_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_rain, forc_snow);
+        forc_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, forc_u, forc_v);
+        forc_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_hgt, forc_hgt_u, forc_hgt_t,  forc_hgt_q);
+      }
 
       // calculate constitutive air properties
-      ELM::atm_forcing_physics::ConstitutiveAirProperties
-        compute_air(forc_qbot, forc_pbot,
-                    forc_tbot, forc_vp,
-                    forc_rho, forc_po2,
-                    forc_pco2);
+      {
+        ELM::atm_forcing_physics::ConstitutiveAirProperties
+          compute_air(forc_qbot, forc_pbot,
+                      forc_tbot, forc_vp,
+                      forc_rho, forc_po2,
+                      forc_pco2);
 
-      invoke_kernel(compute_air, std::make_tuple(forc_pbot.extent(0)), "ConstitutiveAirProperties");
+        invoke_kernel(compute_air, std::make_tuple(forc_pbot.extent(0)), "ConstitutiveAirProperties");
+      }
+
 
       // get aerosol mss and cnc
-      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_data, aerosol_masses);
-      ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, do_capsnow, snl, h2osoi_liq,
-      h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
+      {
+        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_data, aerosol_masses);
+        ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, do_capsnow, snl, h2osoi_liq,
+        h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
+      }
 
 
+
+      {
+        Kokkos::parallel_for("init_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
+
+          ELM::init_timestep(lakpoi, veg_active(idx),
+                             frac_veg_nosno_alb(idx),
+                             snl(idx), h2osno(idx),
+                             Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+                             Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+                             do_capsnow(idx),
+                             frac_veg_nosno(idx),
+                             Kokkos::subview(frac_iceold, idx, Kokkos::ALL));
+        });
+      }
 
 
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -1104,8 +1201,8 @@ int main(int argc, char **argv) {
               t_grnd(idx),
               coszen(idx),
               Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
-              Kokkos::subview(albsat, idx, Kokkos::ALL),
-              Kokkos::subview(albdry, idx, Kokkos::ALL),
+              Kokkos::subview(albsat, isoicol(idx), Kokkos::ALL),
+              Kokkos::subview(albdry, isoicol(idx), Kokkos::ALL),
               Kokkos::subview(albsod, idx, Kokkos::ALL),
               Kokkos::subview(albsoi, idx, Kokkos::ALL));
 
@@ -1710,8 +1807,6 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
-          int fake_frac_veg_nosno = frac_veg_nosno(0);
-
           // temporary data to pass between functions
           double zldis;   // reference height "minus" zero displacement height [m]
           double displa;  // displacement height [m]
@@ -2069,6 +2164,78 @@ int main(int argc, char **argv) {
               rh_ref2m_r(idx));
         }
 
+
+
+
+
+
+
+
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        // call soil_temperature kernels
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        {
+          const auto& snotop = nlevsno-snl(idx);
+          const auto& soitop = nlevsno;
+          hs_soil(idx) = ELM::soil_temperature::calc_hs_soil(
+              frac_veg_nosno(idx),
+              t_soisno(idx, soitop),
+              sabg_soil(idx),
+              dlrad(idx),
+              emg(idx),
+              forc_lwrad(idx),
+              eflx_sh_soil(idx),
+              qflx_ev_soil(idx),
+              htvp(idx));
+
+          hs_h2osfc(idx) = ELM::soil_temperature::calc_hs_h2osfc(
+              frac_veg_nosno(idx),
+              t_h2osfc(idx),
+              sabg_soil(idx),
+              dlrad(idx),
+              emg(idx),
+              forc_lwrad(idx),
+              eflx_sh_soil(idx),
+              qflx_ev_soil(idx),
+              htvp(idx));
+
+          hs_top(idx) = ELM::soil_temperature::calc_hs_top(
+              frac_veg_nosno(idx),
+              t_grnd(idx),
+              sabg_lyr(idx, snotop),
+              dlrad(idx),
+              emg(idx),
+              forc_lwrad(idx),
+              eflx_sh_grnd(idx),
+              qflx_evap_soi(idx),
+              htvp(idx));
+
+          hs_top_snow(idx) = ELM::soil_temperature::calc_hs_top_snow(
+              frac_veg_nosno(idx),
+              t_soisno(idx, snotop),
+              sabg_lyr(idx, snotop),
+              dlrad(idx),
+              emg(idx),
+              forc_lwrad(idx),
+              eflx_sh_snow(idx),
+              qflx_ev_snow(idx),
+              htvp(idx));
+
+          dhsdT(idx) = ELM::soil_temperature::calc_dhsdT(
+              cgrnd(idx),
+              emg(idx),
+              t_grnd(idx));
+
+          sabg_chk(idx) = ELM::soil_temperature::check_absorbed_solar(
+              frac_sno_eff(idx),
+              sabg_snow(idx),
+              sabg_soil(idx));
+
+        }
+
+
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         // call surface_fluxes kernels
@@ -2150,6 +2317,26 @@ int main(int argc, char **argv) {
         }
 
       }); // parallel for over cells
+
+       std::cout << "soil temp fluxes:  "
+          << hs_soil(0) << "  "
+          << hs_h2osfc(0) << "  "
+          << hs_top(0) << "  "
+          << hs_top_snow(0) << "  "
+          << dhsdT(0) << "  "
+          << sabg_chk(0) << std::endl;
+
+
+          std::cout << "hs_soil:  "
+          << frac_veg_nosno(0) << "  "
+          << t_soisno(0, nlevsno) << "  "
+          << sabg_soil(0) << "  "
+          << dlrad(0) << "  "
+          << emg(0) << "  "
+          << forc_lwrad(0) << "  "
+          << eflx_sh_soil(0) << "  "
+          << qflx_ev_soil(0) << "  "
+          << htvp(0) << std::endl;
 
       for (int i = 0; i < ncells; ++i) {
         std::cout << "elai: " << elai(i) << std::endl;

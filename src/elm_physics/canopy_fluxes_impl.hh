@@ -116,7 +116,6 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
   static constexpr double btran0 {0.0}; // initial transpiration factor
 
   if (!Land.lakpoi && !Land.urbpoi) {
-    double lt; // elai+esai
     if (frac_veg_nosno == 0) {
       btran = 0.0;
       t_veg = forc_t;
@@ -147,7 +146,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
 
       // Modify aerodynamic parameters for sparse/dense canopy (X. Zeng)
       // removed alpha_aero (const 1.0) from computation of egvf
-      lt = std::min(elai + esai, tlsai_crit);
+      double lt = std::min(elai + esai, tlsai_crit);
       double egvf = (1.0 - exp(-lt)) / (1.0 - exp(-tlsai_crit));
       displa *= egvf;
       z0mv = exp(egvf * std::log(z0mv) + (1.0 - egvf) * std::log(z0mg));

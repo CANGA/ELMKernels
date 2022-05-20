@@ -19,11 +19,14 @@ ACCELERATE
 void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
                            const double& zsoi, const double& om_frac,
                            double& watsat, double& bsw, double& sucsat,
-                           double& watdry, double& watopt, double& watfc)
+                           double& watdry, double& watopt, double& watfc,
+                           double& tkmg, double& tkdry)
 {
-  static constexpr double zsapric = 0.5;  // depth (m) that organic matter takes on characteristics of sapric peat
-  static constexpr double pcalpha = 0.5;  // percolation threshold
-  static constexpr double pcbeta = 0.139; // percolation exponent
+  static constexpr double zsapric{0.5};  // depth (m) that organic matter takes on characteristics of sapric peat
+  static constexpr double pcalpha{0.5};  // percolation threshold
+  static constexpr double pcbeta{0.139}; // percolation exponent
+  static constexpr double om_tkd{0.05};  // thermal conductivity of dry organic soil (Farouki, 1981)
+  static constexpr double om_tkm{0.25};  // thermal conductivity of organic soil (Farouki, 1986) [W/m/K]
 
   double xksat;
   pedotransfer(pct_sand, pct_clay, watsat, bsw, sucsat, xksat);
@@ -32,8 +35,9 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
   const double om_sucsat{std::min(10.3 - 0.2 * (zsoi / zsapric), 10.1)};
   const double om_hksat{std::max(0.28 - 0.2799 * (zsoi / zsapric), 0.0001)};
 
-  // const double bulk_den = (1.0 - watsat) * 2.7e3;
-  // const double tkm = (1.0 - om_frac) * (8.8 * sand + 2.92 * clay) / (sand + clay) + om_tkm * om_frac; // W/(m K)
+  const double bulk_den{(1.0 - watsat) * 2.7e3};
+  const double tkm = (1.0 - om_frac) * (8.8 * pct_sand + 2.92 * pct_clay) /
+        (pct_sand + pct_clay) + om_tkm * om_frac; // W/(m K)
   watsat = (1.0 - om_frac) * watsat + om_watsat * om_frac;
   bsw = (1.0 - om_frac) * (2.91 + 0.159 * pct_clay) + om_frac * om_b;
   sucsat = (1.0 - om_frac) * sucsat + om_sucsat * om_frac;
@@ -61,12 +65,11 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
 
   double hksat = uncon_frac * uncon_hksat + (perc_frac * om_frac) * om_hksat;
 
-  // this%tkmg_col(c,lev)   = tkm ** (1._r8- this%watsat_col(c,lev))
+  tkmg = pow(tkm, (1.0 - watsat));
 
   // this%tksatu_col(c,lev) = this%tkmg_col(c,lev)*0.57_r8**this%watsat_col(c,lev)
 
-  // this%tkdry_col(c,lev)  = ((0.135_r8*this%bd_col(c,lev) + 64.7_r8) / &
-  //      (2.7e3_r8 - 0.947_r8*this%bd_col(c,lev)))*(1._r8-om_frac) + om_tkd*om_frac
+  tkdry = ((0.135 * bulk_den + 64.7) / (2.7e3 - 0.947 * bulk_den)) * (1.0 - om_frac) + om_tkd * om_frac;
 
   // this%csol_col(c,lev)   = ((1._r8-om_frac)*(2.128_r8*sand+2.385_r8*clay) / (sand+clay) + &
   //      om_csol*om_frac)*1.e6_r8  ! J/(m3 K)
@@ -94,19 +97,21 @@ ACCELERATE
 void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay,
                           const ArrayD1 organic, const ArrayD1 zsoi,
                           ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat,
-                          ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc)
+                          ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc,
+                          ArrayD1 tkmg, ArrayD1 tkdry)
 {
   double om_frac;
   for (int i = 0; i < ELM::nlevsoi; ++i) {
     om_frac = pow((organic(i) / ELM::organic_max), 2.0);
     soil_hydraulic_params(pct_sand(i), pct_clay(i), zsoi(i + ELM::nlevsno), om_frac, watsat(i), bsw(i), sucsat(i),
-                          watdry(i), watopt(i), watfc(i));
+                          watdry(i), watopt(i), watfc(i),
+                          tkmg(i), tkdry(i));
   }
 
   for (int i = ELM::nlevsoi; i < ELM::nlevgrnd; ++i) {
     om_frac = 0.0;
     soil_hydraulic_params(pct_sand(ELM::nlevsoi - 1), pct_clay(ELM::nlevsoi - 1), zsoi(i + ELM::nlevsno), om_frac,
-                          watsat(i), bsw(i), sucsat(i), watdry(i), watopt(i), watfc(i));
+                          watsat(i), bsw(i), sucsat(i), watdry(i), watopt(i), watfc(i), tkmg(i), tkdry(i));
   }
 }
 
