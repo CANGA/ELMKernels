@@ -86,7 +86,6 @@ void calc_soil_tk(const int& ltype,
 }
 
 
-// bw [nlevsno]    partial density of water in the snow pack (ice + liquid) [kg/m3] 
 template <typename ArrayD1>
 ACCELERATE
 void calc_snow_tk(const int& snl,
@@ -94,26 +93,33 @@ void calc_snow_tk(const int& snl,
                   const ArrayD1 h2osoi_liq,
                   const ArrayD1 h2osoi_ice,
                   const ArrayD1 dz,
-                  ArrayD1 bw,
                   ArrayD1 thk)
 {
   static constexpr double TKAIR{0.023};  // thermal conductivity of air   [W/m/K]
   using detail::TKICE;
   using ELMconst::TFRZ;
-
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
 
-  if (snl > 0) {
-    for (int i = nlevsno - snl; i < nlevsno; ++i) {
-      bw(i) = (h2osoi_ice(i) + h2osoi_liq(i)) / (frac_sno * dz(i));
-      thk(i) = TKAIR + (7.75e-5 * bw(i) + 1.105e-6 * bw(i) * bw(i)) * (TKICE - TKAIR);
-    }
+  // zero out inactive layers
+  const int top = nlevsno - snl;
+  for (int i = 0; i < top; ++i) {
+    thk(i) = 0.0;
+  }
+
+  // calculate for all active snow layers
+  for (int i = top; i < nlevsno; ++i) {
+    // partial density of water in the snow pack (ice + liquid) [kg/m3] 
+    double bw = (h2osoi_ice(i) + h2osoi_liq(i)) / (frac_sno * dz(i));
+    thk(i) = TKAIR + (7.75e-5 * bw + 1.105e-6 * bw * bw) * (TKICE - TKAIR);
   }
 }
 
 
 // Thermal conductivity at the layer interface
+// tk[nlevgrnd+nlevsno]
+// tk(i) is the interface between cells i and i+1
+// this is different than zi, where zi(i) is between cells i-1 and i 
 template <typename ArrayD1>
 ACCELERATE
 void calc_face_tk(const int& snl,
@@ -125,9 +131,18 @@ void calc_face_tk(const int& snl,
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
 
-  for (int i = nlevsno - snl; i < nlevgrnd + nlevsno - 1; ++i) {
-    tk(i) = thk(i) * thk(i+1) * (z(i+1) - z(i)) / (thk(i) * (z(i+1) - zi(i)) + thk(i+1) * (zi(i) - z(i)));
-  }  
+  // zero out inactive interfaces
+  const int top = nlevsno - snl;
+  for (int i = 0; i < top; ++i) {
+    tk(i) = 0.0;
+  }
+
+  // active interfaces above bottom interface
+  for (int i = top; i < top - 1; ++i) {
+    tk(i) = thk(i) * thk(i+1) * (z(i+1) - z(i)) / (thk(i) * (z(i+1) - zi(i+1)) + thk(i+1) * (zi(i+1) - z(i)));
+  }
+
+  // bottom interface
   tk(nlevgrnd + nlevsno - 1) = 0.0;
 }
 
@@ -191,8 +206,7 @@ void calc_soil_heat_capacity(const int& ltype,
 // Snow heat capacity
 template <typename ArrayD1>
 ACCELERATE
-void calc_soil_heat_capacity(
-                             const int& snl,
+void calc_snow_heat_capacity(const int& snl,
                              const double& frac_sno,
                              const ArrayD1 h2osoi_ice,
                              const ArrayD1 h2osoi_liq,
@@ -204,13 +218,18 @@ void calc_soil_heat_capacity(
   using ELMconst::CPICE;
   using ELMconst::CPWAT;
 
-  if (snl > 0) {
-    for (int i = nlevsno - snl; i < nlevsno; ++i) {
-      if (frac_sno < 0.0) {
-        cv(i) = std::max(thin_sfclayer, (CPWAT * h2osoi_liq(i) + CPICE * h2osoi_ice(i)) / frac_sno);
-      } else {
-        cv(i) = thin_sfclayer;
-      }
+   // zero out inactive layers
+  const int top = nlevsno - snl;
+  for (int i = 0; i < top; ++i) {
+    cv(i) = 0.0;
+  }
+
+  // calculate for all active snow layers
+  for (int i = top; i < nlevsno; ++i) {
+    if (frac_sno < 0.0) {
+      cv(i) = std::max(thin_sfclayer, (CPWAT * h2osoi_liq(i) + CPICE * h2osoi_ice(i)) / frac_sno);
+    } else {
+      cv(i) = thin_sfclayer;
     }
   }
 }

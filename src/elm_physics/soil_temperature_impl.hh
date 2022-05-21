@@ -5,9 +5,9 @@
 namespace ELM::soil_temperature::detail {
 
   ACCELERATE
-  double calc_lwrad_emit(const double& emg, const double& t_grnd)
+  double calc_lwrad_emit(const double& emg, const double& temp)
   {
-    return emg * ELMconst::STEBOL * pow(t_grnd, 4.0);
+    return emg * ELMconst::STEBOL * pow(temp, 4.0);
   }
 
   ACCELERATE
@@ -16,99 +16,27 @@ namespace ELM::soil_temperature::detail {
     return 4.0 * emg * ELMconst::STEBOL * pow(t_grnd, 3.0);
   }
 
-  // t_soisno is t_soisno(nlevsno-snl)
-  ACCELERATE
-  double calc_lwrad_emit_snow(const double& emg, const double& t_soisno)
-  {
-    return emg * ELMconst::STEBOL * pow(t_soisno, 4.0);
-  }
-
-  // t_soisno is t_soisno(nlevsno)
-  ACCELERATE
-  double calc_lwrad_emit_soil(const double& emg, const double& t_soisno)
-  {
-    return emg * ELMconst::STEBOL * pow(t_soisno, 4.0);
-  }
-
-  ACCELERATE
-  double calc_lwrad_emit_h2osfc(const double& emg, const double& t_h2osfc)
-  {
-    return emg * ELMconst::STEBOL * pow(t_h2osfc, 4.0);
-  }
-
 } // namespace ELM::soil_temperature::detail
 
 namespace ELM::soil_temperature {
 
-  // t_soisno is t_soisno(nlevsno)
-  // return value is also ELM's elfx_gnet_soil without any pft weighting
   ACCELERATE
-  double calc_hs_soil(const int& frac_veg_nosno,
-                      const double& t_soisno,
-                      const double& sabg_soil,
-                      const double& dlrad,
-                      const double& emg,
-                      const double& forc_lwrad,
-                      const double& eflx_sh_soil,
-                      const double& qflx_ev_soil,
-                      const double& htvp)
+  double calc_surface_heat_flux(const int& frac_veg_nosno,
+                                const double& dlrad,
+                                const double& emg,
+                                const double& forc_lwrad,
+                                const double& htvp,
+                                const double& solar_abg,
+                                const double& temp,
+                                const double& eflx_sh,
+                                const double& qflx_ev)
   {
-    return sabg_soil + dlrad + (1.0 - frac_veg_nosno) * emg * forc_lwrad -
-      detail::calc_lwrad_emit_soil(emg, t_soisno) - (eflx_sh_soil + qflx_ev_soil * htvp);
-  }
-
-  // return value is also ELM's elfx_gnet_h2osfc without any pft weighting
-  ACCELERATE
-  double calc_hs_h2osfc(const int& frac_veg_nosno,
-                        const double& t_h2osfc,
-                        const double& sabg_soil,
-                        const double& dlrad,
-                        const double& emg,
-                        const double& forc_lwrad,
-                        const double& eflx_sh_soil,
-                        const double& qflx_ev_soil,
-                        const double& htvp)
-  {
-    return sabg_soil + dlrad + (1.0 - frac_veg_nosno) * emg * forc_lwrad -
-      detail::calc_lwrad_emit_h2osfc(emg, t_h2osfc) - (eflx_sh_soil + qflx_ev_soil * htvp);
-  }
-
-  // sabg_lyr is sabg_lyr(nlevsno-snl)
-  ACCELERATE
-  double calc_hs_top(const int& frac_veg_nosno,
-                     const double& t_grnd,
-                     const double& sabg_lyr,
-                     const double& dlrad,
-                     const double& emg,
-                     const double& forc_lwrad,
-                     const double& eflx_sh_grnd,
-                     const double& qflx_evap_soi,
-                     const double& htvp)
-  {
-    return sabg_lyr + dlrad + (1.0 - frac_veg_nosno) * emg * forc_lwrad -
-      detail::calc_lwrad_emit(emg, t_grnd) - (eflx_sh_grnd + qflx_evap_soi * htvp);
-  }
-
-  // t_soisno is t_soisno(nlevsno-snl)
-  // sabg_lyr is sabg_lyr(nlevsno-snl)
-  // return value is also ELM's elfx_gnet_snow without any pft weighting
-  ACCELERATE
-  double calc_hs_top_snow(const int& frac_veg_nosno,
-                          const double& t_soisno,
-                          const double& sabg_lyr,
-                          const double& dlrad,
-                          const double& emg,
-                          const double& forc_lwrad,
-                          const double& eflx_sh_snow,
-                          const double& qflx_ev_snow,
-                          const double& htvp)
-  {
-    return sabg_lyr + dlrad + (1.0 - frac_veg_nosno) * emg * forc_lwrad -
-      detail::calc_lwrad_emit_snow(emg, t_soisno) - (eflx_sh_snow + qflx_ev_snow * htvp);
+    return solar_abg + dlrad + (1.0 - frac_veg_nosno) * emg * forc_lwrad -
+      detail::calc_lwrad_emit(emg, temp) - (eflx_sh + qflx_ev * htvp);
   }
 
   ACCELERATE
-  double calc_dhsdT (const double& cgrnd, const double& emg, const double& t_grnd)
+  double calc_dhsdT(const double& cgrnd, const double& emg, const double& t_grnd)
   {
     return -cgrnd - detail::calc_dlwrad_emit(emg, t_grnd);
   }
@@ -120,7 +48,11 @@ namespace ELM::soil_temperature {
   }
 
 
-  template <typename ArrayI1, typename ArrayD1>
+  // calculates fn, the diffusive heat flux through layer interfaces
+  // fn[nlevgrnd+nlevsno]
+  // fn(i) is the interface between cells i and i+1
+  // this is different than zi, where zi(i) is between cells i-1 and i 
+  template <typename ArrayD1>
   ACCELERATE
   void calc_diffusive_heat_flux(const int& snl,
                                 const ArrayD1 tk,
@@ -131,18 +63,26 @@ namespace ELM::soil_temperature {
     using ELMdims::nlevgrnd;
     using ELMdims::nlevsno;
 
-    for (int i = 0; i < nlevgrnd + nlevsno; ++i) {
-      if (i >= nlevsno - snl) { // at or below top of snow/surface
-        if (i < nlevgrnd + nlevsno - 1) { // not the bottom
-          fn(i) = tk(i) * (t_soisno(i+1) - t_soisno(i)) / (z(i+1)-z(i));
-        } else { // the bottom
-          fn(i) = 0.0; // hardwired as 0 for now, maybe add eflx_bot in the future (it's default 0 in ELM)
-        }
-      }
+    // zero out inactive layer interfaces
+    const int top = nlevsno - snl;
+    for (int i = 0; i < top; ++i) {
+      fn(i) = 0.0;
     }
+
+    // all active layer interfaces above bottom interface
+    for (int i = top; i < nlevgrnd + nlevsno - 1; ++i) {
+      fn(i) = tk(i) * (t_soisno(i+1) - t_soisno(i)) / (z(i+1)-z(i));
+    }
+
+    // bottom layer flux
+    // hardwired as 0 for now, both here and in ELM
+    // could add external eflx_bot in the future
+    // eg to represent geothermal heat or
+    // coupling condition from driving model  
+    fn(nlevgrnd + nlevsno - 1) = 0.0;
   }
 
-  template <typename ArrayI1, typename ArrayD1>
+  template <typename ArrayD1>
   ACCELERATE
   void calc_heat_flux_matrix_factor(const int& snl,
                                     const double& dtime,
@@ -156,12 +96,19 @@ namespace ELM::soil_temperature {
     using ELMdims::nlevgrnd;
     using ELMdims::nlevsno;
 
-    for (int i = 0; i < nlevgrnd + nlevsno; ++i) {
-      if (i == nlevsno - snl) {
-        fact(i) = dtime / cv(i) * dz(i) / (0.5 * (z(i) - zi(i-1) + capr * (z(i+1) - zi(i-1))));
-      } else {
-        fact(i) = dtime / cv(i);
-      }
+    // zero out inactive layers
+    const int top = nlevsno - snl;
+    for (int i = 0; i < top; ++i) {
+      fact(i) = 0.0;
+    }
+
+    // top active layer (snow or top subsurface layer if no snow)
+    fact(top) = dtime / cv(top) * dz(top) / (0.5 * (z(top) -
+        zi(top) + capr * (z(top+1) - zi(top))));
+
+    // all layers below top active layer
+    for (int i = top + 1; i < nlevgrnd + nlevsno; ++i) {
+      fact(i) = dtime / cv(i);
     }
   }
 

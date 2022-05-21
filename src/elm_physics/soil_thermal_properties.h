@@ -49,7 +49,6 @@ void calc_snow_tk(const int& snl,
                   const ArrayD1 h2osoi_liq,
                   const ArrayD1 h2osoi_ice,
                   const ArrayD1 dz,
-                  ArrayD1 bw,
                   ArrayD1 thk);
 
 
@@ -64,9 +63,9 @@ void calc_face_tk(const int& snl,
 template <typename ArrayD1>
 ACCELERATE
 void calc_h2osfc_tk(const double& h2osfc,
-                      const ArrayD1 thk,
-                      const ArrayD1 z,
-                      double& tk_h2osfc);
+                    const ArrayD1 thk,
+                    const ArrayD1 z,
+                    double& tk_h2osfc);
 
 
 template <typename ArrayD1>
@@ -84,8 +83,7 @@ void calc_soil_heat_capacity(const int& ltype,
 
 template <typename ArrayD1>
 ACCELERATE
-void calc_soil_heat_capacity(
-                             const int& snl,
+void calc_snow_heat_capacity(const int& snl,
                              const double& frac_sno,
                              const ArrayD1 h2osoi_ice,
                              const ArrayD1 h2osoi_liq,

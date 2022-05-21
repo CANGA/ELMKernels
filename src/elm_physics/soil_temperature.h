@@ -25,82 +25,43 @@ namespace ELM::soil_temperature::detail {
   
   ACCELERATE
   double calc_dlwrad_emit(const double& emg, const double& t_grnd);
-  
-  // t_soisno is t_soisno(nlevsno-snl)
-  ACCELERATE
-  double calc_lwrad_emit_snow(const double& emg, const double& t_soisno);
-  
-  // t_soisno is t_soisno(nlevsno)
-  ACCELERATE
-  double calc_lwrad_emit_soil(const double& emg, const double& t_soisno);
-  
-  ACCELERATE
-  double calc_lwrad_emit_h2osfc(const double& emg, const double& t_h2osfc);
 
 } //namespace soil_temperature::detail
 
 
 namespace ELM::soil_temperature {
 
-  // t_soisno is t_soisno(nlevsno)
-  // return value is also ELM's elfx_gnet_soil without any pft weighting
+/*
+generic function to calc surface heat fluxes
+can calc:
+hs_soil: sabg_soil, t_soisno(nlevsno), eflx_sh_soil, qflx_ev_soil
+hs_h2osfc: sabg_soil, t_h2osfc, eflx_sh_h2osfc, qflx_ev_h2osfc
+hs_snow: sabg_snow, t_soisno(nlevsno - snl), eflx_sh_snow, qflx_ev_snow
+hs_top: sabg_lyr(nlevsno - snl), t_grnd, eflx_sh_grnd, qflx_evap_soi
+hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qflx_ev_snow
+*/
   ACCELERATE
-  double calc_hs_soil(const int& frac_veg_nosno,
-                      const double& t_soisno,
-                      const double& sabg_soil,
-                      const double& dlrad,
-                      const double& emg,
-                      const double& forc_lwrad,
-                      const double& eflx_sh_soil,
-                      const double& qflx_ev_soil,
-                      const double& htvp);
+  double calc_surface_heat_flux(const int& frac_veg_nosno,
+                                const double& dlrad,
+                                const double& emg,
+                                const double& forc_lwrad,
+                                const double& htvp,
+                                const double& solar_abg,
+                                const double& temp,
+                                const double& eflx_sh,
+                                const double& qflx_ev);
 
-  // return value is also ELM's elfx_gnet_h2osfc without any pft weighting
+  // calculate derivative of heat flux wrt temperature
   ACCELERATE
-  double calc_hs_h2osfc(const int& frac_veg_nosno,
-                        const double& t_h2osfc,
-                        const double& sabg_soil,
-                        const double& dlrad,
-                        const double& emg,
-                        const double& forc_lwrad,
-                        const double& eflx_sh_soil,
-                        const double& qflx_ev_soil,
-                        const double& htvp);
+  double calc_dhsdT(const double& cgrnd, const double& emg, const double& t_grnd);
 
-  // sabg_lyr is sabg_lyr(nlevsno-snl)
-  ACCELERATE
-  double calc_hs_top(const int& frac_veg_nosno,
-                     const double& t_grnd,
-                     const double& sabg_lyr,
-                     const double& dlrad,
-                     const double& emg,
-                     const double& forc_lwrad,
-                     const double& eflx_sh_grnd,
-                     const double& qflx_evap_soi,
-                     const double& htvp);
-
-  // t_soisno is t_soisno(nlevsno-snl)
-  // sabg_lyr is sabg_lyr(nlevsno-snl)
-  // return value is also ELM's elfx_gnet_snow without any pft weighting
-  ACCELERATE
-  double calc_hs_top_snow(const int& frac_veg_nosno,
-                          const double& t_soisno,
-                          const double& sabg_lyr,
-                          const double& dlrad,
-                          const double& emg,
-                          const double& forc_lwrad,
-                          const double& eflx_sh_snow,
-                          const double& qflx_ev_snow,
-                          const double& htvp);
-
-  ACCELERATE
-  double calc_dhsdT (const double& cgrnd, const double& emg, const double& t_grnd);
-
+  // save sabg for balancecheck, in case frac_sno is set to zero later
   ACCELERATE
   double check_absorbed_solar(const double& frac_sno_eff, const double& sabg_snow, const double& sabg_soil);
 
 
-  template <typename ArrayI1, typename ArrayD1>
+  // calculates fn, the diffusive heat flux through layer interfaces
+  template <typename ArrayD1>
   ACCELERATE
   void calc_diffusive_heat_flux(const int& snl,
                                 const ArrayD1 tk,
@@ -116,7 +77,7 @@ fn[nlevsno+nlevgrnd]     heat diffusion through the layer interface [W/m2]
 fact[nlevsno+nlevgrnd]   used in computing tridiagonal matrix
 
 */
-  template <typename ArrayI1, typename ArrayD1>
+  template <typename ArrayD1>
   ACCELERATE
   void calc_heat_flux_matrix_factor(const int& snl,
                                     const double& dtime,
