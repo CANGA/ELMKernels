@@ -102,6 +102,7 @@ namespace ELM::ELMdims {
   static constexpr int numpft{(ELM::use_crop) ? mxpft : numveg}; // number of pfts - (use_crop ? 25 : 17)
   static constexpr int sno_nbr_aer{8}; // number of aerosol species in snowpack
   static constexpr int numrad_snw{5};  // number of spectral bands used in snow model [nbr]
+  static constexpr int nband{5};       // number of bands of the tridigonal matrix
 } // namespace ELM::ELMdims
 
 

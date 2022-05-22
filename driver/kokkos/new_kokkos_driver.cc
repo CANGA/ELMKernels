@@ -42,7 +42,10 @@
 #include "soil_texture_hydraulic_model.h"
 #include "soil_temperature.h"
 #include "soil_temp_rhs.h"
+#include "soil_temp_lhs.h"
 #include "soil_thermal_properties.h"
+
+#include "helper_functions.hh"
 
 // conditional compilation options
 #include "invoke_kernel.hh"
@@ -61,16 +64,8 @@ using h_ViewD1 = ViewD1::HostMirror;
 using h_ViewD2 = ViewD2::HostMirror;
 using h_ViewD3 = ViewD3::HostMirror;
 
-
-template <class Array_t> Array_t create(const std::string &name, int D0)
-{ return Array_t(name, D0); }
-template <class Array_t> Array_t create(const std::string &name, int D0, int D1)
-{ return Array_t(name, D0, D1); }
-template <class Array_t> Array_t create(const std::string &name, int D0, int D1, int D2)
-{ return Array_t(name, D0, D1, D2); }
-template <class Array_t, typename T> void assign(Array_t &arr, T val)
-{ Kokkos::deep_copy(arr, val); }
-
+using ELM::Utils::create;
+using ELM::Utils::assign;
 
 using AtmForcType = ELM::AtmForcType;
 
@@ -678,6 +673,7 @@ int main(int argc, char **argv) {
     auto dhsdT = create<ViewD1>("dhsdT", ncells); // derivative of heat flux wrt temperature
     auto sabg_chk = create<ViewD1>("sabg_chk", ncells); // sum of soil/snow absorbed solar for balance check
     auto soitemp_rhs_vec = create<ViewD2>("soitemp_rhs_vec", ncells, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
+    auto soitemp_lhs_matrix = create<ViewD3>("soitemp_lhs_matrix", ncells, nlevgrnd + nlevsno + 1, ELM::ELMdims::nband); // LHS for soil temp solve
 
     // soil thermal properties
     // local vars calculated in thermal props
@@ -2373,6 +2369,20 @@ int main(int argc, char **argv) {
           c_h2osfc,
           hs_h2osfc,
           soitemp_rhs_vec);
+
+      ELM::soil_temp_lhs::set_LHS(
+          dtime,
+          snl,
+          dz_h2osfc,
+          c_h2osfc,
+          tk_h2osfc,
+          frac_h2osfc,
+          frac_sno_eff,
+          dhsdT,
+          zsoi,
+          soitemp_fact,
+          tk,
+          soitemp_lhs_matrix);
 
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {

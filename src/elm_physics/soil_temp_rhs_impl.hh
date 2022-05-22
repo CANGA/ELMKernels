@@ -2,12 +2,9 @@
 
 #pragma once
 
-namespace ELM::soil_temp_rhs {
+#include "helper_functions.hh"
 
-template <class Array_t> Array_t create(const std::string &name, int D0)
-{ return Array_t(name, D0); }
-template <class Array_t> Array_t create(const std::string &name, int D0, int D1)
-{ return Array_t(name, D0, D1); }
+namespace ELM::soil_temp_rhs {
 
 /* DESCRIPTION:
 Setup the RHS-Vector for the numerical solution of temperature for snow,
@@ -20,22 +17,14 @@ rvector = |    SSW    |
           !   Soil    |
           !===========|
 
- rt(bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)        ! "r" vector for tridiagonal solution
- fn_h2osfc(bounds%begc:bounds%endc)                      ! heat diffusion through standing-water/soil interface [W/m2]
- rt_snow(bounds%begc:bounds%endc,-nlevsno:-1)            ! RHS vector corresponding to snow layers
- rt_ssw(bounds%begc:bounds%endc,1)                       ! RHS vector corresponding to standing surface water
- rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector corresponding to soil layer
-
- // for h2osfc
- const ArrayD1 tk_h2osfc,
- const ArrayD1 t_h2osfc,
- const ArrayD1 dz_h2osfc,
- const ArrayD1 c_h2osfc,
- const ArrayD1 hs_h2osfc,
-
- // later
- ArrayD2 rvector
+original ELM bounds:
+rt(bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)        ! "r" vector for tridiagonal solution
+fn_h2osfc(bounds%begc:bounds%endc)                      ! heat diffusion through standing-water/soil interface [W/m2]
+rt_snow(bounds%begc:bounds%endc,-nlevsno:-1)            ! RHS vector corresponding to snow layers
+rt_ssw(bounds%begc:bounds%endc,1)                       ! RHS vector corresponding to standing surface water
+rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector corresponding to soil layer
 */
+
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   void set_RHS(const double& dtime,
                const ArrayI1 snl,
@@ -56,7 +45,7 @@ rvector = |    SSW    |
                ArrayD2 rhs_vec)
   {
     using ELMdims::nlevsno;
-    
+    using ELM::Utils::create;
 
     auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", snl.extent(0));
     auto rt_snow = create<ArrayD2>("rt_snow", snl.extent(0), nlevsno);
@@ -65,16 +54,11 @@ rvector = |    SSW    |
 
     auto kernel = [=] (const int& c) {
       detail::get_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
-                           fact, fn, sabg_lyr, rt_snow);
-      
+          fact, fn, sabg_lyr, rt_snow);
       detail::get_rhs_ssw(c, dtime, tk_h2osfc, t_h2osfc, dz_h2osfc,
-                          c_h2osfc, hs_h2osfc, dhsdT, t_soisno, z,
-                          fn_h2osfc, rt_ssw);
-
+          c_h2osfc, hs_h2osfc, dhsdT, t_soisno, z, fn_h2osfc, rt_ssw);
       detail::get_rhs_soil(c, snl, hs_soil, hs_top_snow, frac_sno_eff,
-                           dhsdT, t_soisno, fact, fn, sabg_lyr,
-                           rt_soil);
-
+          dhsdT, t_soisno, fact, fn, sabg_lyr, rt_soil);
       detail::assemble_rhs(c, rt_snow, rt_ssw, rt_soil, rhs_vec);
     };
 
