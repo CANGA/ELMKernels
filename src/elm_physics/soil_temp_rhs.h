@@ -9,23 +9,23 @@
 namespace ELM::soil_temp_rhs {
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-  void set_soil_temp_RHS(const double& dtime,
-                         const ArrayI1 snl,
-                         const ArrayD1 hs_top_snow,
-                         const ArrayD1 dhsdT,
-                         const ArrayD1 hs_soil,
-                         const ArrayD1 frac_sno_eff,
-                         const ArrayD2 t_soisno,
-                         const ArrayD2 fact,
-                         const ArrayD2 fn,
-                         const ArrayD2 sabg_lyr,
-                         const ArrayD2 z,
-                         const ArrayD1 tk_h2osfc,
-                         const ArrayD1 t_h2osfc,
-                         const ArrayD1 dz_h2osfc,
-                         const ArrayD1 c_h2osfc,
-                         const ArrayD1 hs_h2osfc,
-                         ArrayD2 rhs_vec);
+  void set_RHS(const double& dtime,
+               const ArrayI1 snl,
+               const ArrayD1 hs_top_snow,
+               const ArrayD1 dhsdT,
+               const ArrayD1 hs_soil,
+               const ArrayD1 frac_sno_eff,
+               const ArrayD2 t_soisno,
+               const ArrayD2 fact,
+               const ArrayD2 fn,
+               const ArrayD2 sabg_lyr,
+               const ArrayD2 z,
+               const ArrayD1 tk_h2osfc,
+               const ArrayD1 t_h2osfc,
+               const ArrayD1 dz_h2osfc,
+               const ArrayD1 c_h2osfc,
+               const ArrayD1 hs_h2osfc,
+               ArrayD2 rhs_vec);
 
 } // namespace ELM::soil_temp_rhs
 
