@@ -11,9 +11,10 @@
 namespace ELM::soil_thermal {
 
   namespace detail {
-    static constexpr double TKICE = 2.290; // thermal conductivity of ice   [W/m/K]
-    static constexpr double TKWAT = 0.57;  // thermal conductivity of water [W/m/K]
-    static constexpr double TKBDRK = 3.0;  // thermal conductivity of 'typical' saturated granitic rock (Clauser and Huenges, 1995)(W/m/K)
+    static constexpr double TKICE{2.290}; // thermal conductivity of ice   [W/m/K]
+    static constexpr double TKWAT{0.57};  // thermal conductivity of water [W/m/K]
+    static constexpr double TKBDRK{3.0};  // thermal conductivity of 'typical' saturated granitic rock (Clauser and Huenges, 1995)(W/m/K)
+    static constexpr double THIN_SFCLAYER{1.0e-6};   // Threshold for thin surface layer
   }
 
 /*
@@ -88,6 +89,14 @@ void calc_snow_heat_capacity(const int& snl,
                              const ArrayD1 h2osoi_ice,
                              const ArrayD1 h2osoi_liq,
                              ArrayD1 cv);
+
+
+ACCELERATE
+double calc_h2osfc_heat_capacity(const int& snl, const double& h2osfc, const double& frac_h2osfc);
+
+// this should be somewhere else
+ACCELERATE
+double calc_h2osfc_height(const int& snl, const double& h2osfc, const double& frac_h2osfc);
 
 } // namespace ELM::soil_thermal
 

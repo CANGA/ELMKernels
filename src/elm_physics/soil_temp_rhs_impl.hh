@@ -2,7 +2,7 @@
 
 #pragma once
 
-namespace ELM::soil_matrix {
+namespace ELM::soil_temp_rhs {
 
 template <class Array_t> Array_t create(const std::string &name, int D0)
 { return Array_t(name, D0); }
@@ -37,17 +37,23 @@ rvector = |    SSW    |
  ArrayD2 rvector
 */
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-  void set_rhs(const double& dtime,
-               const ArrayI1 snl,
-               const ArrayD1 hs_top_snow,
-               const ArrayD1 dhsdT,
-               const ArrayD1 hs_soil,
-               const ArrayD1 frac_sno_eff,
-               const ArrayD2 t_soisno,
-               const ArrayD2 fact,
-               const ArrayD2 fn,
-               const ArrayD2 sabg_lyr,
-               const ArrayD2 z)
+  void set_RHS(const double& dtime,
+                         const ArrayI1 snl,
+                         const ArrayD1 hs_top_snow,
+                         const ArrayD1 dhsdT,
+                         const ArrayD1 hs_soil,
+                         const ArrayD1 frac_sno_eff,
+                         const ArrayD2 t_soisno,
+                         const ArrayD2 fact,
+                         const ArrayD2 fn,
+                         const ArrayD2 sabg_lyr,
+                         const ArrayD2 z,
+                         const ArrayD1 tk_h2osfc,
+                         const ArrayD1 t_h2osfc,
+                         const ArrayD1 dz_h2osfc,
+                         const ArrayD1 c_h2osfc,
+                         const ArrayD1 hs_h2osfc,
+                         ArrayD2 rhs_vec)
   {
     using ELMdims::nlevsno;
     
@@ -58,24 +64,31 @@ rvector = |    SSW    |
     auto rt_soil = create<ArrayD2>("rt_soil", snl.extent(0), nlevgrnd);
 
     auto kernel = [=] (const int& c) {
-      set_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
-                   fact, fn, sabg_lyr, rt_snow);
-      //set_rhs_ssw();
-      set_rhs_soil(c, snl, hs_soil, hs_top_snow, frac_sno_eff,
-                   dhsdT, t_soisno, fact, fn, sabg_lyr,
-                   rt_soil);
+      detail::get_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
+                           fact, fn, sabg_lyr, rt_snow);
+      
+      detail::get_rhs_ssw(c, dtime, tk_h2osfc, t_h2osfc, dz_h2osfc,
+                          c_h2osfc, hs_h2osfc, dhsdT, t_soisno, z,
+                          fn_h2osfc, rt_ssw);
+
+      detail::get_rhs_soil(c, snl, hs_soil, hs_top_snow, frac_sno_eff,
+                           dhsdT, t_soisno, fact, fn, sabg_lyr,
+                           rt_soil);
+
+      detail::assemble_rhs(c, rt_snow, rt_ssw, rt_soil, rhs_vec);
     };
 
-    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "set_rhs");
-
-    for (int i = 0; i < ELMdims::nlevgrnd; ++i)
-      std::cout << "set_rhs: " << i << "  " << rt_soil(0,i) << std::endl; 
-    
+    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp_rhs::set_RHS");
   }
+
+} // namespace ELM::soil_temp_rhs
+
+
+namespace ELM::soil_temp_rhs::detail {
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   ACCELERATE
-  void set_rhs_snow(const int& c,
+  void get_rhs_snow(const int& c,
                     const ArrayI1 snl,
                     const ArrayD1 hs_top_snow,
                     const ArrayD1 dhsdT,
@@ -88,7 +101,7 @@ rvector = |    SSW    |
     using ELMdims::nlevsno;
 
     const int top = nlevsno - snl(c);
-    if (top > 0) {
+    if (top > nlevsno) {
       
       // set inactive layers to zero
       for (int i = 0; i < top; ++i) {
@@ -115,7 +128,7 @@ rvector = |    SSW    |
   // surface water layer has two coefficients
   template <typename ArrayD1, typename ArrayD2>
   ACCELERATE
-  void set_rhs_ssw(const int& c,
+  void get_rhs_ssw(const int& c,
                    const double& dtime,
                    const ArrayD1 tk_h2osfc,
                    const ArrayD1 t_h2osfc,
@@ -134,12 +147,11 @@ rvector = |    SSW    |
         (0.5 * dz_h2osfc(c) + z(c, nlevsno));
     rt_ssw(c) = t_h2osfc(c) + (dtime / c_h2osfc(c)) * (hs_h2osfc(c) - dhsdT(c) *
         t_h2osfc(c) + cnfac * fn_h2osfc(c));
-
   }
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   ACCELERATE
-  void set_rhs_soil(const int& c,
+  void get_rhs_soil(const int& c,
                     const ArrayI1 snl,
                     const ArrayD1 hs_soil,
                     const ArrayD1 hs_top_snow,
@@ -179,5 +191,31 @@ rvector = |    SSW    |
   }
 
 
+  template <typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void assemble_rhs(const int& c,
+                    const ArrayD2 rt_snow,
+                    const ArrayD1 rt_ssw,
+                    const ArrayD2 rt_soil,
+                    ArrayD2 rhs_vec)
+  {
+    using ELMdims::nlevsno;
+    using ELMdims::nlevgrnd;
 
-} // namespace ELM::soil_matrix {
+    // assemble the RHS vector
+    // this has nlevsno + 1 + nlevgrnd entries
+    //          rt_snow + rt_ssw + rt_soil
+    for (int i = 0; i < nlevsno; ++i) {
+      rhs_vec(c, i) = rt_snow(c, i);
+    }
+
+    rhs_vec(c, nlevsno) = rt_ssw(c);
+
+    const int offset = nlevsno + 1;
+    for (int i = 0; i < nlevgrnd; ++i) {
+      rhs_vec(c, i + offset) = rt_soil(c, i);
+    }
+  }
+
+
+} // namespace ELM::soil_temp_rhs::detail

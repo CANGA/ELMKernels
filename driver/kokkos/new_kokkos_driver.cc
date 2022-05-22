@@ -41,7 +41,7 @@
 #include "surface_fluxes.h"
 #include "soil_texture_hydraulic_model.h"
 #include "soil_temperature.h"
-#include "soil_temperature_matrix.h"
+#include "soil_temp_rhs.h"
 #include "soil_thermal_properties.h"
 
 // conditional compilation options
@@ -677,6 +677,7 @@ int main(int argc, char **argv) {
     auto hs_top_snow = create<ViewD1>("hs_top_snow", ncells); // [W/m2] net heat flux into snow surface layer
     auto dhsdT = create<ViewD1>("dhsdT", ncells); // derivative of heat flux wrt temperature
     auto sabg_chk = create<ViewD1>("sabg_chk", ncells); // sum of soil/snow absorbed solar for balance check
+    auto soitemp_rhs_vec = create<ViewD2>("soitemp_rhs_vec", ncells, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
 
     // soil thermal properties
     // local vars calculated in thermal props
@@ -684,9 +685,12 @@ int main(int argc, char **argv) {
     auto thk = create<ViewD2>("tk", ncells, nlevgrnd + nlevsno); // thermal conductivity of layer
     auto tk = create<ViewD2>("tk", ncells, nlevgrnd + nlevsno); // thermal conductivity at layer interface
     auto cv = create<ViewD2>("cv", ncells, nlevgrnd + nlevsno);
-    auto temp_fn = create<ViewD2>("temp_fn", ncells, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
-    auto temp_fact = create<ViewD2>("temp_fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix
+    auto soitemp_fn = create<ViewD2>("soitemp_fn", ncells, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
+    auto soitemp_fact = create<ViewD2>("soitemp_fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix
     auto tk_h2osfc = create<ViewD1>("tk_h2osfc", ncells);
+    auto c_h2osfc = create<ViewD1>("c_h2osfc", ncells);
+    // seems out of place, but this is where it's used
+    auto dz_h2osfc = create<ViewD1>("dz_h2osfc", ncells);
 
     // soil fluxes (outputs)
     auto eflx_soil_grnd = create<ViewD1>("eflx_soil_grnd", ncells);
@@ -2253,6 +2257,16 @@ int main(int argc, char **argv) {
               Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(cv, idx, Kokkos::ALL));
 
+          c_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_heat_capacity(
+              snl(idx),
+              h2osfc(idx),
+              frac_h2osfc(idx));
+
+          dz_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_height(
+              snl(idx),
+              h2osfc(idx),
+              frac_h2osfc(idx));
+
         }
 
 
@@ -2324,7 +2338,7 @@ int main(int argc, char **argv) {
               Kokkos::subview(tk, idx, Kokkos::ALL),
               Kokkos::subview(t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(temp_fn, idx, Kokkos::ALL));
+              Kokkos::subview(soitemp_fn, idx, Kokkos::ALL));
 
 
           ELM::soil_temperature::calc_heat_flux_matrix_factor(
@@ -2334,14 +2348,14 @@ int main(int argc, char **argv) {
               Kokkos::subview(dz, idx, Kokkos::ALL),
               Kokkos::subview(zsoi, idx, Kokkos::ALL),
               Kokkos::subview(zisoi, idx, Kokkos::ALL),
-              Kokkos::subview(temp_fact, idx, Kokkos::ALL));
+              Kokkos::subview(soitemp_fact, idx, Kokkos::ALL));
 
         }
 
       }); // parallel for over cells
       
       // this launches it's own kernel
-      ELM::soil_matrix::set_rhs(
+      ELM::soil_temp_rhs::set_RHS(
           dtime,
           snl,
           hs_top_snow,
@@ -2349,10 +2363,16 @@ int main(int argc, char **argv) {
           hs_soil,
           frac_sno_eff,
           t_soisno,
-          temp_fact,
-          temp_fn,
+          soitemp_fact,
+          soitemp_fn,
           sabg_lyr,
-          zsoi);
+          zsoi,
+          tk_h2osfc,
+          t_h2osfc,
+          dz_h2osfc,
+          c_h2osfc,
+          hs_h2osfc,
+          soitemp_rhs_vec);
 
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
@@ -2451,7 +2471,7 @@ int main(int argc, char **argv) {
               frac_sno_eff(idx),
               Kokkos::subview(t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(tssbef, idx, Kokkos::ALL),
-              Kokkos::subview(temp_fact, idx, Kokkos::ALL));
+              Kokkos::subview(soitemp_fact, idx, Kokkos::ALL));
         }
 
       }); // parallel for over cells
