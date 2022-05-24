@@ -2,6 +2,9 @@
 
 #pragma once
 
+#include "pentadiagonal_solver.h"
+#include "helper_functions.hh"
+
 namespace ELM::soil_temperature::detail {
 
   ACCELERATE
@@ -111,5 +114,67 @@ namespace ELM::soil_temperature {
       fact(i) = dtime / cv(i);
     }
   }
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void set_tvector(const int& c,
+                   const ArrayI1 snl,
+                   const ArrayD1 t_h2osfc,
+                   const ArrayD2 t_soisno,
+                   ArrayD2 tvector)
+  {
+    const int top = nlevsno - snl(c);
+    
+    // zero inactive layers
+    for (int i = 0; i < top; ++i)
+      tvector(c, i) = 0.0;
+
+    // snow layers
+    for (int i = top; i < nlevsno; ++i)
+      tvector(c, i) = t_soisno(c, i);
+
+    // surface water
+    tvector(c, nlevsno) = t_h2osfc(c);
+
+    // soil
+    for (int i = nlevsno; i < nlevsno + nlevgrnd; ++i)
+      tvector(c, i + 1) = t_soisno(c, i);
+  }
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
+  void solve_temperature(const ArrayI1 snl,
+                         const ArrayD1 t_h2osfc,
+                         const ArrayD2 t_soisno,
+                         const ArrayD3 lhs_matrix,
+                         ArrayD2 rhs_vector)
+  {
+    using ELMdims::nlevgrnd;
+    using ELMdims::nlevsno;
+    using ELM::Utils::create;
+
+    const int ncells = snl.extent(0);
+    auto tvector = create<ArrayD2>("tvector", ncells, nlevsno + nlevgrnd + 1);
+
+    auto tvec_kernel = [=] (const int& c) {
+      set_tvector(c, snl, t_h2osfc, t_soisno, tvector);
+    };
+
+    invoke_kernel(tvec_kernel, std::make_tuple(ncells), "soil_temp::set_t_vector");
+
+    // maximum size of system
+    const int N = nlevgrnd + nlevsno + 1;
+
+    auto A = create<ArrayD2>("A", ncells, N - 1); // A(Ai, ..., An-1)
+    auto B = create<ArrayD2>("B", ncells, N - 2); // B(Bi, ..., Bn-2)
+    auto Z = create<ArrayD2>("Z", ncells, N); // Z(Zi, ..., Zn)
+
+    auto solver = [=] (const int& c) {
+      solver::PDMA(c, snl, lhs_matrix, A, B, Z, rhs_vector);
+    };
+
+    invoke_kernel(solver, std::make_tuple(snl.extent(0)), "soil_temp::solve_temp");
+
+  }
+
 
 } // namespace ELM::soil_temperature

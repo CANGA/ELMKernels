@@ -87,6 +87,24 @@ fact[nlevsno+nlevgrnd]   used in computing tridiagonal matrix
                                     const ArrayD1 zi,
                                     ArrayD1 fact);
 
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void set_tvector(const int& c,
+                   const ArrayI1 snl,
+                   const ArrayD1 t_h2osfc,
+                   const ArrayD2 t_soisno,
+                   ArrayD2 tvector);
+
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
+  void solve_temperature(const ArrayI1 snl,
+                         const ArrayD1 t_h2osfc,
+                         const ArrayD2 t_soisno,
+                         const ArrayD3 lhs_matrix,
+                         ArrayD2 rhs_vector);
+
+
 } // namespace ELM::soil_temperature
 
 #include "soil_temperature_impl.hh"
