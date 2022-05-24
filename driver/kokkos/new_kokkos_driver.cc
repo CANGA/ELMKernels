@@ -2387,6 +2387,13 @@ int main(int argc, char **argv) {
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
+
+      ELM::soil_temp_lhs::detail::solve(
+          snl(idx),
+          Kokkos::subview(soitemp_lhs_matrix, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(soitemp_rhs_vec, idx, Kokkos::ALL));
+
+
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         // call surface_fluxes kernels

@@ -122,6 +122,13 @@ namespace ELM::soil_temp_lhs::detail {
                     ArrayD3 lhs_matrix);
 
 
+  template <typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void solve(const int& snl,
+             const ArrayD2 lhs_matrix,
+             const ArrayD1 rhs_vector);
+
+
 } // namespace ELM::soil_temp_lhs::detail
 
 #include "soil_temp_lhs_impl.hh"

@@ -1,6 +1,8 @@
 
 /*
-Temperature is represented as a tridiagonal system stored in a 5-band
+Temperature is represented as a pentadiagonal system
+
+5-band
 matrix (diag-2, diag-1, diag, diag+1, diag+2)
 
 Non-zero pattern of bmatrix:
@@ -330,7 +332,7 @@ namespace ELM::soil_temp_lhs::detail {
       bmatrix_ssw_soil(c, i) = 0.0;
     }
 
-    bmatrix_ssw_soil(c, 2) = - (1.0 - cnfac) * (dtime / c_h2osfc(c)) * tk_h2osfc(c) /
+    bmatrix_ssw_soil(c, 1) = - (1.0 - cnfac) * (dtime / c_h2osfc(c)) * tk_h2osfc(c) /
         (0.5 * dz_h2osfc(c) + z(c, nlevsno));
   }
 
@@ -456,5 +458,89 @@ namespace ELM::soil_temp_lhs::detail {
     // for lev idx 6 and bnd idx 3
     lhs_matrix(c, nlevsno + 1, 3) = bmatrix_soil_ssw(c, 3);
   }
+
+
+
+
+
+
+  // basic implementation of a pentadiagonal linear solver
+  // will perform well on CPU, possibly poorly on GPU
+  // should implement cyclic reduction to maximize GPU performance
+  // S. S. Askar, A. A. Karawia, "On Solving Pentadiagonal Linear Systems via Transformations",
+  // Mathematical Problems in Engineering, vol. 2015, Article ID 232456, 9 pages, 2015.
+  // https://doi.org/10.1155/2015/232456
+  template <typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void solve(const int& snl,
+             const ArrayD2 lhs_matrix,
+             const ArrayD1 rhs_vector)
+  {
+    using ELMdims::nlevsno;
+    using ELMdims::nlevgrnd;
+    using ELM::Utils::create;
+
+    // maximum size of system
+    const int N = nlevgrnd + nlevsno + 1;
+    // top active layer
+    const int top = nlevsno - snl;
+
+    // working vectors
+    // temporarily allocated here for simplicity
+    auto A = create<ArrayD1>("A", N - 1); // A(Ai, ..., An-1)
+    auto B = create<ArrayD1>("B", N - 2); // B(Bi, ..., Bn-2)
+    auto Z = create<ArrayD1>("Z", N); // Z(Zi, ..., Zn)
+    auto Y = create<ArrayD1>("Y", N - 1); // Y(Yi+1, ..., Yn)
+    auto U = create<ArrayD1>("U", N); // U(Ui, ..., Un)
+    // solution vector
+    auto X = create<ArrayD1>("X", N);
+
+    // form coefficients
+    // forward sweep
+    // top layer calculations
+    U(top) = lhs_matrix(top, 2);
+    A(top) = lhs_matrix(top, 1) / U(top);
+    B(top) = lhs_matrix(top, 0) / U(top);
+    Z(top) = rhs_vector(top) / U(top);
+
+    // 2nd from top
+    Y(top) = lhs_matrix(top + 1, 3);
+    U(top + 1) = lhs_matrix(top + 1, 2) - A(top) * Y(top);
+    A(top + 1) = (lhs_matrix(top + 1, 1) - B(top) * Y(top)) / U(top + 1);
+    B(top + 1) = lhs_matrix(top + 1, 0) / U(top + 1);
+    Z(top + 1) = (rhs_vector(top + 1) - Z(top) * Y(top)) / U(top + 1);
+
+    // for cells (top + 2 : N - 3)
+    for (int i = top + 2; i < N - 2; ++i) {
+      Y(i - 1) = lhs_matrix(i, 3) - A(i - 2) * lhs_matrix(i, 4);
+      U(i) = lhs_matrix(i, 2) - B(i - 2) * lhs_matrix(i, 4) - A(i - 1) * Y(i - 1);
+      A(i) = (lhs_matrix(i, 1) - B(i - 1) * Y(i - 1)) / U(i);
+      B(i) = lhs_matrix(i, 0) / U(i);
+      Z(i) = (rhs_vector(i) - Z(i - 2) * lhs_matrix(i, 4) - Z(i - 1) * Y(i - 1)) / U(i);
+    }
+
+    // 2nd from bottom
+    Y(N - 3) = lhs_matrix(N - 2, 3) - A(N - 4) * lhs_matrix(N - 2, 4);
+    U(N - 2) = lhs_matrix(N - 2, 2) - B(N - 4) * lhs_matrix(N - 2, 4) -
+      A(N - 3) * Y(N - 3);
+    A(N - 2) = (lhs_matrix(N - 2, 1) - B(N - 3) * Y(N - 3)) / U(N - 2);
+
+    // bottom cell
+    Y(N - 2) = lhs_matrix(N - 1, 3) - A(N - 3) * lhs_matrix(N - 1, 4);
+    U(N - 1) = lhs_matrix(N - 1, 2) - B(N - 3) * lhs_matrix(N - 1, 4) -
+      A(N - 2) * Y(N - 2);
+    Z(N - 2) = (rhs_vector(N - 2) - Z(N - 3) * lhs_matrix(N - 2, 4) -
+      Z(N - 3) * Y(N - 3)) / U(N - 2);
+    Z(N - 1) = (rhs_vector(N - 1) - Z(N - 2) * lhs_matrix(N - 1, 4) -
+      Z(N - 2) * Y(N - 2)) / U(N - 1);
+
+    // obtain solution via backward substitution
+    X(N - 1) = Z(N - 1);
+    X(N - 2) = Z(N - 2) - A(N - 2) * X(N - 1);
+    for (int i = N - 3; i >= 0; --i)
+      X(i) = Z(i) - A(i) * X(i + 1) - B(i) * X(i + 2);
+
+  }
+
 
 } // namespace ELM::soil_temp_lhs::detail
