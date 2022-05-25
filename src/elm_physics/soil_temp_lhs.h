@@ -5,7 +5,7 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::soil_temp_lhs {
+namespace ELM::soil_temp {
 
   // lhs_matrix(ncells, nlevgrnd+nlevsno+1, nband) LHS matrix for numerical solution of temperature
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
@@ -22,10 +22,10 @@ namespace ELM::soil_temp_lhs {
                const ArrayD2 tk,
                ArrayD3 lhs_matrix);
 
-} // namespace ELM::soil_temp_lhs
+} // namespace ELM::soil_temp
 
 
-namespace ELM::soil_temp_lhs::detail {
+namespace ELM::soil_temp::detail {
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
   ACCELERATE
@@ -122,6 +122,6 @@ namespace ELM::soil_temp_lhs::detail {
                     ArrayD3 lhs_matrix);
 
 
-} // namespace ELM::soil_temp_lhs::detail
+} // namespace ELM::soil_temp::detail
 
 #include "soil_temp_lhs_impl.hh"

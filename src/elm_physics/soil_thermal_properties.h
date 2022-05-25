@@ -30,65 +30,71 @@ tkdry [nlevgrnd]
 
 
 */
-template <typename ArrayD1>
+template <typename ArrayD2>
 ACCELERATE
-void calc_soil_tk(const int& ltype,
-                  const ArrayD1 h2osoi_liq,
-                  const ArrayD1 h2osoi_ice,
-                  const ArrayD1 t_soisno,
-                  const ArrayD1 dz,
-                  const ArrayD1 watsat,
-                  const ArrayD1 tkmg,
-                  const ArrayD1 tkdry,
-                  ArrayD1 thk);
+void calc_soil_tk(const int& c,
+                  const int& ltype,
+                  const ArrayD2 h2osoi_liq,
+                  const ArrayD2 h2osoi_ice,
+                  const ArrayD2 t_soisno,
+                  const ArrayD2 dz,
+                  const ArrayD2 watsat,
+                  const ArrayD2 tkmg,
+                  const ArrayD2 tkdry,
+                  ArrayD2 thk);
 
 
-template <typename ArrayD1>
+template <typename ArrayD2>
 ACCELERATE
-void calc_snow_tk(const int& snl,
+void calc_snow_tk(const int& c,
+                  const int& snl,
                   const double& frac_sno,
-                  const ArrayD1 h2osoi_liq,
-                  const ArrayD1 h2osoi_ice,
-                  const ArrayD1 dz,
-                  ArrayD1 thk);
+                  const ArrayD2 h2osoi_liq,
+                  const ArrayD2 h2osoi_ice,
+                  const ArrayD2 dz,
+                  ArrayD2 thk);
 
 
-template <typename ArrayD1>
+template <typename ArrayD2>
 ACCELERATE
-void calc_face_tk(const int& snl,
-                  const ArrayD1 thk,
-                  const ArrayD1 z,
-                  const ArrayD1 zi,
-                  ArrayD1 tk);
+void calc_face_tk(const int& c,
+                  const int& snl,
+                  const ArrayD2 thk,
+                  const ArrayD2 z,
+                  const ArrayD2 zi,
+                  ArrayD2 tk);
 
-template <typename ArrayD1>
+
+template <typename ArrayD2>
 ACCELERATE
-void calc_h2osfc_tk(const double& h2osfc,
-                    const ArrayD1 thk,
-                    const ArrayD1 z,
-                    double& tk_h2osfc);
-
-
-template <typename ArrayD1>
-ACCELERATE
-void calc_soil_heat_capacity(const int& ltype,
+void calc_soil_heat_capacity(const int& c,
+                             const int& ltype,
                              const int& snl,
                              const double& h2osno,
-                             const ArrayD1 watsat,
-                             const ArrayD1 h2osoi_ice,
-                             const ArrayD1 h2osoi_liq,
-                             const ArrayD1 dz,
-                             const ArrayD1 csol,
-                             ArrayD1 cv);
+                             const ArrayD2 watsat,
+                             const ArrayD2 h2osoi_ice,
+                             const ArrayD2 h2osoi_liq,
+                             const ArrayD2 dz,
+                             const ArrayD2 csol,
+                             ArrayD2 cv);
 
 
-template <typename ArrayD1>
+template <typename ArrayD2>
 ACCELERATE
-void calc_snow_heat_capacity(const int& snl,
+void calc_snow_heat_capacity(const int& c,
+                             const int& snl,
                              const double& frac_sno,
-                             const ArrayD1 h2osoi_ice,
-                             const ArrayD1 h2osoi_liq,
-                             ArrayD1 cv);
+                             const ArrayD2 h2osoi_ice,
+                             const ArrayD2 h2osoi_liq,
+                             ArrayD2 cv);
+
+
+template <typename ArrayD2>
+ACCELERATE
+double calc_h2osfc_tk(const int& c,
+                      const double& h2osfc,
+                      const ArrayD2 thk,
+                      const ArrayD2 z);
 
 
 ACCELERATE

@@ -38,7 +38,6 @@ namespace ELM::solver {
     Z(c, top) = RHS(c, top) * U1;
 
     // 2nd from top
-    //Y(top) = LHS(c, top + 1, 3);
     double Y1 = LHS(c, top + 1, 3);
     U1 = 1.0 / (LHS(c, top + 1, 2) - A(c, top) * Y1);
     A(c, top + 1) = (LHS(c, top + 1, 1) - B(c, top) * Y1) * U1;
@@ -74,7 +73,6 @@ namespace ELM::solver {
     RHS(c, N - 2) = Z(c, N - 2) - A(c, N - 2) * RHS(c, N - 1);
     for (int i = N - 3; i >= 0; --i)
       RHS(c, i) = Z(c, i) - A(c, i) * RHS(c, i + 1) - B(c, i) * RHS(c, i + 2);
-
   }
 
 } // namespace ELM::solver

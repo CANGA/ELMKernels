@@ -2,9 +2,10 @@
 
 #pragma once
 
+#include "soil_temperature.h"
 #include "helper_functions.hh"
 
-namespace ELM::soil_temp_rhs {
+namespace ELM::soil_temp {
 
 /* DESCRIPTION:
 Setup the RHS-Vector for the numerical solution of temperature for snow,
@@ -18,7 +19,7 @@ rvector = |    SSW    |
           !===========|
 
 original ELM bounds:
-rt(bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)        ! "r" vector for tridiagonal solution
+rt(bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)         ! "r" vector for tridiagonal solution
 fn_h2osfc(bounds%begc:bounds%endc)                      ! heat diffusion through standing-water/soil interface [W/m2]
 rt_snow(bounds%begc:bounds%endc,-nlevsno:-1)            ! RHS vector corresponding to snow layers
 rt_ssw(bounds%begc:bounds%endc,1)                       ! RHS vector corresponding to standing surface water
@@ -45,7 +46,7 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
                ArrayD2 rhs_vec)
   {
     using ELMdims::nlevsno;
-    using ELM::Utils::create;
+    using Utils::create;
 
     auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", snl.extent(0));
     auto rt_snow = create<ArrayD2>("rt_snow", snl.extent(0), nlevsno);
@@ -62,13 +63,13 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
       detail::assemble_rhs(c, rt_snow, rt_ssw, rt_soil, rhs_vec);
     };
 
-    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp_rhs::set_RHS");
+    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp::set_RHS");
   }
 
-} // namespace ELM::soil_temp_rhs
+} // namespace ELM::soil_temp
 
 
-namespace ELM::soil_temp_rhs::detail {
+namespace ELM::soil_temp::detail {
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   ACCELERATE
@@ -83,6 +84,8 @@ namespace ELM::soil_temp_rhs::detail {
                     ArrayD2 rt_snow)
   {
     using ELMdims::nlevsno;
+    using detail::cnfac;
+
 
     const int top = nlevsno - snl(c);
     if (top > nlevsno) {
@@ -126,6 +129,7 @@ namespace ELM::soil_temp_rhs::detail {
                    ArrayD1 rt_ssw)
   {
     using ELMdims::nlevsno;
+    using detail::cnfac;
     
     fn_h2osfc(c) = tk_h2osfc(c) * (t_soisno(c, nlevsno) - t_h2osfc(c)) /
         (0.5 * dz_h2osfc(c) + z(c, nlevsno));
@@ -149,6 +153,7 @@ namespace ELM::soil_temp_rhs::detail {
   {
     using ELMdims::nlevsno;
     using ELMdims::nlevgrnd;
+    using detail::cnfac;
 
     // top subsurface layer
     if (snl(c) == 0) {
@@ -202,4 +207,4 @@ namespace ELM::soil_temp_rhs::detail {
   }
 
 
-} // namespace ELM::soil_temp_rhs::detail
+} // namespace ELM::soil_temp::detail

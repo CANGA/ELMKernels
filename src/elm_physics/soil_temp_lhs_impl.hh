@@ -1,9 +1,27 @@
 
 /*
 Temperature is represented as a pentadiagonal system
+to accommodate coefficients for snow-soil and soil-surface water
+interactions
 
-5-band
-matrix (diag-2, diag-1, diag, diag+1, diag+2)
+matrix is stored in sparse 5-band format
+in ELM: bmatrix(ncells, nband, nlevgrnd+nlevsno+1) banded matrix for numerical solution of temperature
+here: bmatrix(ncells, nlevgrnd+nlevsno+1, nband) banded matrix for numerical solution of temperature
+
+bmatrix(:, :, 0) = 2nd superdiag
+bmatrix(:, :, 1) = 1st superdiag
+bmatrix(:, :, 2) = diagonal
+bmatrix(:, :, 3) = 1st subdiagonal
+bmatrix(:, :, 4) = 2nd subdiagonal
+
+submatrix original ELM bounds:
+bmatrix_snow(bounds%begc:bounds%endc,nband,-nlevsno:-1      )  ! block-diagonal matrix for snow layers
+bmatrix_ssw(bounds%begc:bounds%endc,nband,       0:0       )   ! block-diagonal matrix for standing surface water
+bmatrix_soil(bounds%begc:bounds%endc,nband,       1:nlevgrnd)  ! block-diagonal matrix for soil layers
+bmatrix_snow_soil(bounds%begc:bounds%endc,nband,-1:-1)         ! off-diagonal matrix for snow-soil interaction
+bmatrix_ssw_soil(bounds%begc:bounds%endc,nband, 0:0 )          ! off-diagonal matrix for standing surface water-soil interaction
+bmatrix_soil_snow(bounds%begc:bounds%endc,nband, 1:1 )         ! off-diagonal matrix for soil-snow interaction
+bmatrix_soil_ssw(bounds%begc:bounds%endc,nband, 1:1 )          ! off-diagonal matrix for soil-standing surface water interaction
 
 Non-zero pattern of bmatrix:
        SNOW-LAYERS
@@ -73,26 +91,14 @@ conversion from ELM
  i       (i+5)      (i+5)          (i-1)          --
 conversion from bmatrix
          b          (b)          (b-6)            --
-
-main matrix:
-in ELM: bmatrix(ncells, nband, nlevgrnd+nlevsno+1) banded matrix for numerical solution of temperature
-here: bmatrix(ncells, nlevgrnd+nlevsno+1, nband) banded matrix for numerical solution of temperature
-
-submatrix original ELM bounds:
-bmatrix_snow(bounds%begc:bounds%endc,nband,-nlevsno:-1      )  ! block-diagonal matrix for snow layers
-bmatrix_ssw(bounds%begc:bounds%endc,nband,       0:0       )   ! block-diagonal matrix for standing surface water
-bmatrix_soil(bounds%begc:bounds%endc,nband,       1:nlevgrnd)  ! block-diagonal matrix for soil layers
-bmatrix_snow_soil(bounds%begc:bounds%endc,nband,-1:-1)         ! off-diagonal matrix for snow-soil interaction
-bmatrix_ssw_soil(bounds%begc:bounds%endc,nband, 0:0 )          ! off-diagonal matrix for standing surface water-soil interaction
-bmatrix_soil_snow(bounds%begc:bounds%endc,nband, 1:1 )         ! off-diagonal matrix for soil-snow interaction
-bmatrix_soil_ssw(bounds%begc:bounds%endc,nband, 1:1 )          ! off-diagonal matrix for soil-standing surface water interaction
 */
 
 #pragma once
 
+#include "soil_temperature.h"
 #include "helper_functions.hh"
 
-namespace ELM::soil_temp_lhs {
+namespace ELM::soil_temp {
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
   void set_LHS(const double& dtime,
@@ -111,7 +117,7 @@ namespace ELM::soil_temp_lhs {
     using ELMdims::nlevsno;
     using ELMdims::nlevgrnd;
     using ELMdims::nband;
-    using ELM::Utils::create;
+    using Utils::create;
 
     auto bmatrix_snow = create<ArrayD3>("bmatrix_snow", snl.extent(0), nlevsno, nband);
     auto bmatrix_soil = create<ArrayD3>("bmatrix_soil", snl.extent(0), nlevgrnd, nband);
@@ -138,15 +144,14 @@ namespace ELM::soil_temp_lhs {
           bmatrix_soil_ssw, bmatrix_ssw, bmatrix_snow, bmatrix_soil, lhs_matrix);
     };
 
-    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp_lhs::set_LHS");
+    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp::set_LHS");
   }
 
-} // namespace ELM::soil_temp_lhs
+} // namespace ELM::soil_temp
 
 
-namespace ELM::soil_temp_lhs::detail {
+namespace ELM::soil_temp::detail {
 
-  static constexpr double cnfac{0.5}; // Crank Nicholson factor between 0 and 1
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
   ACCELERATE
@@ -159,6 +164,7 @@ namespace ELM::soil_temp_lhs::detail {
                        ArrayD3 bmatrix_snow)
   {
     using ELMdims::nlevsno;
+    using detail::cnfac;
 
     for (int i = 0; i < bmatrix_snow.extent(1); ++i) {
       for (int j = 0; j < bmatrix_snow.extent(2); ++j) {
@@ -198,6 +204,7 @@ namespace ELM::soil_temp_lhs::detail {
                        ArrayD2 bmatrix_snow_soil)
   {
     using ELMdims::nlevsno;
+    using detail::cnfac;
 
     for (int i = 0; i < bmatrix_snow_soil.extent(1); ++i) {
       bmatrix_snow_soil(c, i) = 0.0;
@@ -226,6 +233,7 @@ namespace ELM::soil_temp_lhs::detail {
   {
     using ELMdims::nlevsno;
     using ELMdims::nlevgrnd;
+    using detail::cnfac;
 
     for (int i = 0; i < bmatrix_soil.extent(1); ++i) {
       for (int j = 0; j < bmatrix_soil.extent(2); ++j) {
@@ -283,6 +291,7 @@ namespace ELM::soil_temp_lhs::detail {
                        ArrayD2 bmatrix_soil_snow)
   {
     using ELMdims::nlevsno;
+    using detail::cnfac;
 
     for (int i = 0; i < bmatrix_soil_snow.extent(1); ++i) {
       bmatrix_soil_snow(c, i) = 0.0;
@@ -309,6 +318,8 @@ namespace ELM::soil_temp_lhs::detail {
                       const ArrayD2 z,
                       ArrayD2 bmatrix_ssw)
   {
+    using detail::cnfac;
+
     for (int i = 0; i < bmatrix_ssw.extent(1); ++i) {
       bmatrix_ssw(c, i) = 0.0;
     }
@@ -328,6 +339,8 @@ namespace ELM::soil_temp_lhs::detail {
                            const ArrayD2 z,
                            ArrayD2 bmatrix_ssw_soil)
   {
+    using detail::cnfac;
+
     for (int i = 0; i < bmatrix_ssw_soil.extent(1); ++i) {
       bmatrix_ssw_soil(c, i) = 0.0;
     }
@@ -348,6 +361,8 @@ namespace ELM::soil_temp_lhs::detail {
                            const ArrayD2 z,
                            ArrayD2 bmatrix_soil_ssw)
   {
+    using detail::cnfac;
+
     for (int i = 0; i < bmatrix_soil_ssw.extent(1); ++i) {
       bmatrix_soil_ssw(c, i) = 0.0;
     }
@@ -459,4 +474,4 @@ namespace ELM::soil_temp_lhs::detail {
     lhs_matrix(c, nlevsno + 1, 3) = bmatrix_soil_ssw(c, 3);
   }
 
-} // namespace ELM::soil_temp_lhs::detail
+} // namespace ELM::soil_temp::detail

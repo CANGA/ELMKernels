@@ -6,7 +6,7 @@
 
 #include "kokkos_includes.hh"
 
-namespace ELM::soil_temp_rhs {
+namespace ELM::soil_temp {
 
   // rhs_vec(ncells, nlevgrnd+nlevsno+1) RHS vector for numerical solution of temperature
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
@@ -28,13 +28,12 @@ namespace ELM::soil_temp_rhs {
                const ArrayD1 hs_h2osfc,
                ArrayD2 rhs_vec);
 
-} // namespace ELM::soil_temp_rhs
+} // namespace ELM::soil_temp
 
 
-namespace ELM::soil_temp_rhs::detail {
+namespace ELM::soil_temp::detail {
 
-  static constexpr double cnfac{0.5}; // Crank Nicholson factor between 0 and 1
-  
+
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   ACCELERATE
   void get_rhs_snow(const int& c,
@@ -84,6 +83,6 @@ namespace ELM::soil_temp_rhs::detail {
                     const ArrayD2 rt_soil,
                     ArrayD2 rhs_vec);
 
-} // namespace ELM::soil_temp_rhs::detail
+} // namespace ELM::soil_temp::detail
 
 #include "soil_temp_rhs_impl.hh"

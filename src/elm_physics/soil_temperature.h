@@ -17,19 +17,7 @@ sabg_chk                  ! sum of soil/snow using current fsno, for balance che
 
 #include "kokkos_includes.hh"
 
-
-namespace ELM::soil_temperature::detail {
-
-  ACCELERATE
-  double calc_lwrad_emit(const double& emg, const double& t_grnd);
-  
-  ACCELERATE
-  double calc_dlwrad_emit(const double& emg, const double& t_grnd);
-
-} //namespace soil_temperature::detail
-
-
-namespace ELM::soil_temperature {
+namespace ELM::soil_temp {
 
 /*
 generic function to calc surface heat fluxes
@@ -70,13 +58,64 @@ hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qfl
                                 ArrayD1 fn);
 
 
-/*
-cv[nlevsno+nlevgrnd]     heat capacity [J/(m2 K)]
-tk[nlevsno+nlevgrnd]     thermal conductivity [W/(m K)]
-fn[nlevsno+nlevgrnd]     heat diffusion through the layer interface [W/m2]
-fact[nlevsno+nlevgrnd]   used in computing tridiagonal matrix
+  template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  void solve_temperature(const double& dtime,
+                         const ArrayI1 snl,
+                         const ArrayI1 frac_veg_nosno,
+                         const ArrayD1 dlrad,
+                         const ArrayD1 emg,
+                         const ArrayD1 forc_lwrad,
+                         const ArrayD1 htvp,
+                         const ArrayD1 cgrnd,
+                         const ArrayD1 eflx_sh_soil,
+                         const ArrayD1 qflx_ev_soil,
+                         const ArrayD1 eflx_sh_h2osfc,
+                         const ArrayD1 qflx_ev_h2osfc,
+                         const ArrayD1 eflx_sh_grnd,
+                         const ArrayD1 qflx_evap_soi,
+                         const ArrayD1 eflx_sh_snow,
+                         const ArrayD1 qflx_ev_snow,
+                         const ArrayD1 frac_sno_eff,
+                         const ArrayD1 frac_sno,
+                         const ArrayD1 frac_h2osfc,
+                         const ArrayD1 h2osno,
+                         const ArrayD1 h2osfc,
+                         const ArrayD1 sabg_snow,
+                         const ArrayD1 sabg_soil,
+                         const ArrayD2 sabg_lyr,
+                         const ArrayD2 h2osoi_liq,
+                         const ArrayD2 h2osoi_ice,
+                         const ArrayD2 watsat,
+                         const ArrayD2 tkmg,
+                         const ArrayD2 tkdry,
+                         const ArrayD2 csol,
+                         const ArrayD2 dz,
+                         const ArrayD2 zsoi,
+                         const ArrayD2 zisoi,
+                         ArrayD1 t_h2osfc,
+                         ArrayD1 t_grnd,
+                         ArrayD2 t_soisno,
+                         ArrayD2 fact);
 
-*/
+
+} // namespace ELM::soil_temp
+
+
+namespace ELM::soil_temp::detail {
+
+  static constexpr double cnfac{0.5}; // Crank Nicholson factor between 0 and 1
+
+  ACCELERATE
+  double calc_lwrad_emit(const double& emg, const double& t_grnd);
+
+  ACCELERATE
+  double calc_dlwrad_emit(const double& emg, const double& t_grnd);
+
+
+  // cv[nlevsno+nlevgrnd]     heat capacity [J/(m2 K)]
+  // tk[nlevsno+nlevgrnd]     thermal conductivity [W/(m K)]
+  // fn[nlevsno+nlevgrnd]     heat diffusion through the layer interface [W/m2]
+  // fact[nlevsno+nlevgrnd]   used in computing matrix
   template <typename ArrayD1>
   ACCELERATE
   void calc_heat_flux_matrix_factor(const int& snl,
@@ -87,7 +126,6 @@ fact[nlevsno+nlevgrnd]   used in computing tridiagonal matrix
                                     const ArrayD1 zi,
                                     ArrayD1 fact);
 
-
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   ACCELERATE
   void set_tvector(const int& c,
@@ -97,14 +135,15 @@ fact[nlevsno+nlevgrnd]   used in computing tridiagonal matrix
                    ArrayD2 tvector);
 
 
-  template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
-  void solve_temperature(const ArrayI1 snl,
-                         const ArrayD1 t_h2osfc,
-                         const ArrayD2 t_soisno,
-                         const ArrayD3 lhs_matrix,
-                         ArrayD2 rhs_vector);
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void update_temperature(const int& c,
+                          const ArrayI1 snl,
+                          const ArrayD1 frac_h2osfc,
+                          const ArrayD2 tvector,
+                          ArrayD1 t_h2osfc,
+                          ArrayD2 t_soisno);
 
-
-} // namespace ELM::soil_temperature
+} //namespace soil_temp::detail
 
 #include "soil_temperature_impl.hh"

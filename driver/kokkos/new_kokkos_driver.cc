@@ -44,6 +44,7 @@
 #include "soil_temp_rhs.h"
 #include "soil_temp_lhs.h"
 #include "soil_thermal_properties.h"
+#include "pentadiagonal_solver.h"
 
 #include "helper_functions.hh"
 
@@ -664,30 +665,8 @@ int main(int argc, char **argv) {
     auto omega_star = create<ViewD3>("omega_star", ncells, numrad_snw, nlevsno);
     auto tau_star = create<ViewD3>("tau_star", ncells, numrad_snw, nlevsno);
 
-    // soil temperature
-    auto hs_soil = create<ViewD1>("hs_soil", ncells); // [W/m2] soil heat flux
-    auto hs_snow = create<ViewD1>("hs_snow", ncells); // [W/m2] snow heat flux - maybe use for coupling?
-    auto hs_h2osfc = create<ViewD1>("hs_h2osfc", ncells); // [W/m2] standing water heat flux
-    auto hs_top = create<ViewD1>("hs_top", ncells); // [W/m2] net heat flux into surface layer
-    auto hs_top_snow = create<ViewD1>("hs_top_snow", ncells); // [W/m2] net heat flux into snow surface layer
-    auto dhsdT = create<ViewD1>("dhsdT", ncells); // derivative of heat flux wrt temperature
-    auto sabg_chk = create<ViewD1>("sabg_chk", ncells); // sum of soil/snow absorbed solar for balance check
-    auto soitemp_rhs_vec = create<ViewD2>("soitemp_rhs_vec", ncells, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
-    auto soitemp_lhs_matrix = create<ViewD3>("soitemp_lhs_matrix", ncells, nlevgrnd + nlevsno + 1, ELM::ELMdims::nband); // LHS for soil temp solve
-
-    // soil thermal properties
-    // local vars calculated in thermal props
-    // and used only in soil temp kernels
-    auto thk = create<ViewD2>("tk", ncells, nlevgrnd + nlevsno); // thermal conductivity of layer
-    auto tk = create<ViewD2>("tk", ncells, nlevgrnd + nlevsno); // thermal conductivity at layer interface
-    auto cv = create<ViewD2>("cv", ncells, nlevgrnd + nlevsno);
-    auto soitemp_fn = create<ViewD2>("soitemp_fn", ncells, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
-    auto soitemp_fact = create<ViewD2>("soitemp_fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix
-    auto tk_h2osfc = create<ViewD1>("tk_h2osfc", ncells);
-    auto c_h2osfc = create<ViewD1>("c_h2osfc", ncells);
-    // seems out of place, but this is where it's used
-    auto dz_h2osfc = create<ViewD1>("dz_h2osfc", ncells);
-
+    // from soil temp - used in soil_e_balance 
+    auto fact = create<ViewD2>("fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix
     // soil fluxes (outputs)
     auto eflx_soil_grnd = create<ViewD1>("eflx_soil_grnd", ncells);
     auto qflx_evap_grnd = create<ViewD1>("qflx_evap_grnd", ncells);
@@ -2198,70 +2177,70 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
 
-          ELM::soil_thermal::calc_soil_tk(
-              Land.ltype,
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(watsat, idx, Kokkos::ALL),
-              Kokkos::subview(tkmg, idx, Kokkos::ALL),
-              Kokkos::subview(tkdry, idx, Kokkos::ALL),
-              Kokkos::subview(thk, idx, Kokkos::ALL));
+          //ELM::soil_thermal::calc_soil_tk(
+          //    Land.ltype,
+          //    Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+          //    Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+          //    Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+          //    Kokkos::subview(dz, idx, Kokkos::ALL),
+          //    Kokkos::subview(watsat, idx, Kokkos::ALL),
+          //    Kokkos::subview(tkmg, idx, Kokkos::ALL),
+          //    Kokkos::subview(tkdry, idx, Kokkos::ALL),
+          //    Kokkos::subview(thk, idx, Kokkos::ALL));
 
 
 
-          ELM::soil_thermal::calc_snow_tk(
-              snl(idx),
-              frac_sno(idx),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(thk, idx, Kokkos::ALL));
+          //ELM::soil_thermal::calc_snow_tk(
+          //    snl(idx),
+          //    frac_sno(idx),
+          //    Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+          //    Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+          //    Kokkos::subview(dz, idx, Kokkos::ALL),
+          //    Kokkos::subview(thk, idx, Kokkos::ALL));
 
 
-          ELM::soil_thermal::calc_face_tk(
-              snl(idx),
-              Kokkos::subview(thk, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL),
-              Kokkos::subview(tk, idx, Kokkos::ALL));
+          //ELM::soil_thermal::calc_face_tk(
+          //    snl(idx),
+          //    Kokkos::subview(thk, idx, Kokkos::ALL),
+          //    Kokkos::subview(zsoi, idx, Kokkos::ALL),
+          //    Kokkos::subview(zisoi, idx, Kokkos::ALL),
+          //    Kokkos::subview(tk, idx, Kokkos::ALL));
 
-          ELM::soil_thermal::calc_h2osfc_tk(
-              h2osfc(idx),
-              Kokkos::subview(thk, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              tk_h2osfc(idx));
-
-
-          ELM::soil_thermal::calc_soil_heat_capacity(
-              Land.ltype,
-              snl(idx),
-              h2osno(idx),
-              Kokkos::subview(watsat, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(csol, idx, Kokkos::ALL),
-              Kokkos::subview(cv, idx, Kokkos::ALL));
+          //ELM::soil_thermal::calc_h2osfc_tk(
+          //    h2osfc(idx),
+          //    Kokkos::subview(thk, idx, Kokkos::ALL),
+          //    Kokkos::subview(zsoi, idx, Kokkos::ALL),
+          //    tk_h2osfc(idx));
 
 
-          ELM::soil_thermal::calc_snow_heat_capacity(
-              snl(idx),
-              frac_sno(idx),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(cv, idx, Kokkos::ALL));
+          //ELM::soil_thermal::calc_soil_heat_capacity(
+          //    Land.ltype,
+          //    snl(idx),
+          //    h2osno(idx),
+          //    Kokkos::subview(watsat, idx, Kokkos::ALL),
+          //    Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+          //    Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+          //    Kokkos::subview(dz, idx, Kokkos::ALL),
+          //    Kokkos::subview(csol, idx, Kokkos::ALL),
+          //    Kokkos::subview(cv, idx, Kokkos::ALL));
 
-          c_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_heat_capacity(
-              snl(idx),
-              h2osfc(idx),
-              frac_h2osfc(idx));
 
-          dz_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_height(
-              snl(idx),
-              h2osfc(idx),
-              frac_h2osfc(idx));
+          //ELM::soil_thermal::calc_snow_heat_capacity(
+          //    snl(idx),
+          //    frac_sno(idx),
+          //    Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+          //    Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+          //    Kokkos::subview(cv, idx, Kokkos::ALL));
+
+          //c_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_heat_capacity(
+          //    snl(idx),
+          //    h2osfc(idx),
+          //    frac_h2osfc(idx));
+
+          //dz_h2osfc(idx) = ELM::soil_thermal::calc_h2osfc_height(
+          //    snl(idx),
+          //    h2osfc(idx),
+          //    frac_h2osfc(idx));
 
         }
 
@@ -2273,125 +2252,163 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
-          const auto snotop = nlevsno-snl(idx);
-          const auto& soitop = nlevsno;
-          hs_soil(idx) = ELM::soil_temperature::calc_surface_heat_flux(
-              frac_veg_nosno(idx),
-              dlrad(idx),
-              emg(idx),
-              forc_lwrad(idx),
-              htvp(idx),
-              sabg_soil(idx),
-              t_soisno(idx, soitop),
-              eflx_sh_soil(idx),
-              qflx_ev_soil(idx));
+     //     const auto snotop = nlevsno-snl(idx);
+     //     const auto& soitop = nlevsno;
+     //     hs_soil(idx) = ELM::soil_temp::calc_surface_heat_flux(
+     //         frac_veg_nosno(idx),
+     //         dlrad(idx),
+     //         emg(idx),
+     //         forc_lwrad(idx),
+     //         htvp(idx),
+     //         sabg_soil(idx),
+     //         t_soisno(idx, soitop),
+     //         eflx_sh_soil(idx),
+     //         qflx_ev_soil(idx));
 
-          hs_h2osfc(idx) = ELM::soil_temperature::calc_surface_heat_flux(
-              frac_veg_nosno(idx),
-              dlrad(idx),
-              emg(idx),
-              forc_lwrad(idx),
-              htvp(idx),
-              sabg_soil(idx),
-              t_h2osfc(idx),
-              eflx_sh_h2osfc(idx),
-              qflx_ev_h2osfc(idx));
+     //     hs_h2osfc(idx) = ELM::soil_temp::calc_surface_heat_flux(
+     //         frac_veg_nosno(idx),
+     //         dlrad(idx),
+     //         emg(idx),
+     //         forc_lwrad(idx),
+     //         htvp(idx),
+     //         sabg_soil(idx),
+     //         t_h2osfc(idx),
+     //         eflx_sh_h2osfc(idx),
+     //         qflx_ev_h2osfc(idx));
 
-          hs_top(idx) = ELM::soil_temperature::calc_surface_heat_flux(
-              frac_veg_nosno(idx),
-              dlrad(idx),
-              emg(idx),
-              forc_lwrad(idx),
-              htvp(idx),
-              sabg_lyr(idx, snotop),
-              t_grnd(idx),
-              eflx_sh_grnd(idx),
-              qflx_evap_soi(idx));
+     //     hs_top(idx) = ELM::soil_temp::calc_surface_heat_flux(
+     //         frac_veg_nosno(idx),
+     //         dlrad(idx),
+     //         emg(idx),
+     //         forc_lwrad(idx),
+     //         htvp(idx),
+     //         sabg_lyr(idx, snotop),
+     //         t_grnd(idx),
+     //         eflx_sh_grnd(idx),
+     //         qflx_evap_soi(idx));
 
-          hs_top_snow(idx) = ELM::soil_temperature::calc_surface_heat_flux(
-              frac_veg_nosno(idx),
-              dlrad(idx),
-              emg(idx),
-              forc_lwrad(idx),
-              htvp(idx),
-              sabg_lyr(idx, snotop),
-              t_soisno(idx, snotop),
-              eflx_sh_snow(idx),
-              qflx_ev_snow(idx));
+     //     hs_top_snow(idx) = ELM::soil_temp::calc_surface_heat_flux(
+     //         frac_veg_nosno(idx),
+     //         dlrad(idx),
+     //         emg(idx),
+     //         forc_lwrad(idx),
+     //         htvp(idx),
+     //         sabg_lyr(idx, snotop),
+     //         t_soisno(idx, snotop),
+     //         eflx_sh_snow(idx),
+     //         qflx_ev_snow(idx));
 
-          dhsdT(idx) = ELM::soil_temperature::calc_dhsdT(
-              cgrnd(idx),
-              emg(idx),
-              t_grnd(idx));
+     //     dhsdT(idx) = ELM::soil_temp::calc_dhsdT(
+     //         cgrnd(idx),
+     //         emg(idx),
+     //         t_grnd(idx));
 
-          sabg_chk(idx) = ELM::soil_temperature::check_absorbed_solar(
-              frac_sno_eff(idx),
-              sabg_snow(idx),
-              sabg_soil(idx));
+     //     sabg_chk(idx) = ELM::soil_temp::check_absorbed_solar(
+     //         frac_sno_eff(idx),
+     //         sabg_snow(idx),
+     //         sabg_soil(idx));
 
-          ELM::soil_temperature::calc_diffusive_heat_flux(
-              snl(idx),
-              Kokkos::subview(tk, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(soitemp_fn, idx, Kokkos::ALL));
+     //     ELM::soil_temp::calc_diffusive_heat_flux(
+     //         snl(idx),
+     //         Kokkos::subview(tk, idx, Kokkos::ALL),
+     //         Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+     //         Kokkos::subview(zsoi, idx, Kokkos::ALL),
+     //         Kokkos::subview(soitemp_fn, idx, Kokkos::ALL));
 
 
-          ELM::soil_temperature::calc_heat_flux_matrix_factor(
-              snl(idx),
-              dtime,
-              Kokkos::subview(cv, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL),
-              Kokkos::subview(soitemp_fact, idx, Kokkos::ALL));
+     //     ELM::soil_temp::calc_heat_flux_matrix_factor(
+     //         snl(idx),
+     //         dtime,
+     //         Kokkos::subview(cv, idx, Kokkos::ALL),
+     //         Kokkos::subview(dz, idx, Kokkos::ALL),
+     //         Kokkos::subview(zsoi, idx, Kokkos::ALL),
+     //         Kokkos::subview(zisoi, idx, Kokkos::ALL),
+     //         Kokkos::subview(soitemp_fact, idx, Kokkos::ALL));
 
         }
 
       }); // parallel for over cells
       
-      // this launches it's own kernel
-      ELM::soil_temp_rhs::set_RHS(
-          dtime,
-          snl,
-          hs_top_snow,
-          dhsdT,
-          hs_soil,
-          frac_sno_eff,
-          t_soisno,
-          soitemp_fact,
-          soitemp_fn,
-          sabg_lyr,
-          zsoi,
-          tk_h2osfc,
-          t_h2osfc,
-          dz_h2osfc,
-          c_h2osfc,
-          hs_h2osfc,
-          soitemp_rhs_vec);
+  //    // this launches it's own kernel
+  //    ELM::soil_temp::set_RHS(
+  //        dtime,
+  //        snl,
+  //        hs_top_snow,
+  //        dhsdT,
+  //        hs_soil,
+  //        frac_sno_eff,
+  //        t_soisno,
+  //        soitemp_fact,
+  //        soitemp_fn,
+  //        sabg_lyr,
+  //        zsoi,
+  //        tk_h2osfc,
+  //        t_h2osfc,
+  //        dz_h2osfc,
+  //        c_h2osfc,
+  //        hs_h2osfc,
+  //        soitemp_rhs_vec);
 
-      ELM::soil_temp_lhs::set_LHS(
+  //    ELM::soil_temp::set_LHS(
+  //        dtime,
+  //        snl,
+  //        dz_h2osfc,
+  //        c_h2osfc,
+  //        tk_h2osfc,
+  //        frac_h2osfc,
+  //        frac_sno_eff,
+  //       dhsdT,
+  //       zsoi,
+  //       soitemp_fact,
+  //       tk,
+  //       soitemp_lhs_matrix);
+
+      ELM::soil_temp::solve_temperature<ViewD3>(
           dtime,
           snl,
-          dz_h2osfc,
-          c_h2osfc,
-          tk_h2osfc,
+          frac_veg_nosno,
+          dlrad,
+          emg,
+          forc_lwrad,
+          htvp,
+          cgrnd,
+          eflx_sh_soil,
+          qflx_ev_soil,
+          eflx_sh_h2osfc,
+          qflx_ev_h2osfc,
+          eflx_sh_grnd,
+          qflx_evap_soi,
+          eflx_sh_snow,
+          qflx_ev_snow,
+          frac_sno_eff,
+          frac_sno,
           frac_h2osfc,
-          frac_sno_eff,
-          dhsdT,
+          h2osno,
+          h2osfc,
+          sabg_snow,
+          sabg_soil,
+          sabg_lyr,
+          h2osoi_liq,
+          h2osoi_ice,
+          watsat,
+          tkmg,
+          tkdry,
+          csol,
+          dz,
           zsoi,
-          soitemp_fact,
-          tk,
-          soitemp_lhs_matrix);
-
+          zisoi,
+          t_h2osfc,
+          t_grnd,
+          t_soisno,
+          fact);
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
 
-      ELM::soil_temp_lhs::detail::solve(
-          snl(idx),
-          Kokkos::subview(soitemp_lhs_matrix, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(soitemp_rhs_vec, idx, Kokkos::ALL));
+      //ELM::solver::PDMA(
+      //    snl(idx),
+      //    Kokkos::subview(soitemp_lhs_matrix, idx, Kokkos::ALL, Kokkos::ALL),
+      //    Kokkos::subview(soitemp_rhs_vec, idx, Kokkos::ALL));
 
 
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -2488,36 +2505,31 @@ int main(int argc, char **argv) {
               frac_sno_eff(idx),
               Kokkos::subview(t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(tssbef, idx, Kokkos::ALL),
-              Kokkos::subview(soitemp_fact, idx, Kokkos::ALL));
+              Kokkos::subview(fact, idx, Kokkos::ALL));
         }
 
       }); // parallel for over cells
 
-      std::cout << "soil temp fluxes:  "
-          << hs_soil(0) << "  "
-          << hs_h2osfc(0) << "  "
-          << hs_top(0) << "  "
-          << hs_top_snow(0) << "  "
-          << dhsdT(0) << "  "
-          << soil_e_balance(0) << "  "
-          << sabg_chk(0) << std::endl;
+  //    std::cout << "soil temp fluxes:  "
+  //        << hs_soil(0) << "  "
+  //        << hs_h2osfc(0) << "  "
+  //        << hs_top(0) << "  "
+  //        << hs_top_snow(0) << "  "
+  //        << dhsdT(0) << "  "
+  //        << soil_e_balance(0) << "  "
+  //        << sabg_chk(0) << std::endl;
 
       std::cout << "lwrad_out:  "
           << eflx_lwrad_out(0) << "  "
           << eflx_lwrad_net(0) << std::endl;
 
-      std::cout << "t_soisno vs t_grnd:  "
-          << t_soisno(0, nlevsno) << "  "
+      for (int i = 0; i < nlevsno + nlevgrnd; ++i)
+        std::cout << "t_soisno:  " << i << "  "
+          << t_soisno(0, i) << "\n";
+
+      std::cout << "t_grnd:  "
           << t_grnd(0) << std::endl;
 
-      std::cout << "hs_soil:  "
-          << sabg_soil(0) << "  "
-          << dlrad(0) << "  "
-          << emg(0) << "  "
-          << forc_lwrad(0) << "  "
-          << eflx_sh_soil(0) << "  "
-          << qflx_ev_soil(0) << "  "
-          << htvp(0) << std::endl;
 
       for (int i = 0; i < ncells; ++i) {
         std::cout << "elai: " << elai(i) << std::endl;
