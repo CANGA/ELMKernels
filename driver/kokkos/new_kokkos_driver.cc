@@ -45,6 +45,7 @@
 #include "soil_temp_lhs.h"
 #include "soil_thermal_properties.h"
 #include "pentadiagonal_solver.h"
+#include "snow_hydrology.h"
 
 #include "helper_functions.hh"
 
@@ -678,6 +679,8 @@ int main(int argc, char **argv) {
     auto soil_e_balance = create<ViewD1>("soil_e_balance", ncells);
 
     // dummy vars for energy balance
+    auto qflx_top_soil = create<ViewD1>("qflx_top_soil", ncells);
+    auto mflx_neg_snow = create<ViewD1>("mflx_neg_snow", ncells);
     auto eflx_snomelt = create<ViewD1>("eflx_snomelt", ncells);
     auto qflx_snomelt = create<ViewD1>("qflx_snomelt", ncells);
     auto xmf_dummy = create<ViewD1>("xmf", ncells);
@@ -2430,11 +2433,61 @@ int main(int argc, char **argv) {
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        // call snow hydrology kernels
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+        {
 
-      //ELM::solver::PDMA(
-      //    snl(idx),
-      //    Kokkos::subview(soitemp_lhs_matrix, idx, Kokkos::ALL, Kokkos::ALL),
-      //    Kokkos::subview(soitemp_rhs_vec, idx, Kokkos::ALL));
+          ELM::snow::snow_water(
+              do_capsnow(idx),
+              snl(idx),
+              dtime,
+              frac_sno_eff(idx),
+              h2osno(idx),
+              qflx_sub_snow(idx),
+              qflx_evap_grnd(idx),
+              qflx_dew_snow(idx),
+              qflx_dew_grnd(idx),
+              qflx_rain_grnd(idx),
+              qflx_snomelt(idx),
+              qflx_snow_melt(idx),
+              qflx_top_soil(idx),
+              int_snow(idx),
+              frac_sno(idx),
+              mflx_neg_snow(idx),
+              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
+              Kokkos::subview(dz, idx, Kokkos::ALL));
+        }
+
+      });
+
+      // aerosol deposition must be called between these two snow hydrology functions
+      // look at combining aerosol_phase_change and aerosol deposition
+      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_data, aerosol_masses);
+
+      Kokkos::parallel_for("third_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
+
+        {
+
+          ELM::snow::aerosol_phase_change(
+              snl(idx),
+              dtime,
+              qflx_sub_snow(idx),
+              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL));
+
+        }
 
 
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
