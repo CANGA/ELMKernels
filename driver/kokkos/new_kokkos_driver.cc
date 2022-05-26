@@ -678,10 +678,16 @@ int main(int argc, char **argv) {
     auto soil_e_balance = create<ViewD1>("soil_e_balance", ncells);
 
     // dummy vars for energy balance
+    auto eflx_snomelt = create<ViewD1>("eflx_snomelt", ncells);
+    auto qflx_snomelt = create<ViewD1>("qflx_snomelt", ncells);
     auto xmf_dummy = create<ViewD1>("xmf", ncells);
     auto xmf_h2osfc_dummy = create<ViewD1>("xmf_h2osfc", ncells);
     auto eflx_h2osfc_to_snow_dummy = create<ViewD1>("eflx_h2osfc_to_snow", ncells);
+    auto qflx_h2osfc_to_ice_dummy = create<ViewD1>("eflx_h2osfc_to_snow", ncells);
     auto eflx_building_heat_dummy = create<ViewD1>("eflx_building_heat", ncells);
+    auto qflx_snofrz = create<ViewD1>("qflx_snofrz", ncells);
+    auto qflx_snofrz_lyr = create<ViewD2>("qflx_snofrz_lyr", ncells, nlevsno);
+    auto imelt = create<ViewI2>("imelt", ncells, nlevgrnd + nlevsno);
     assign(xmf_dummy, 0.0);
     assign(xmf_h2osfc_dummy, 0.0);
     assign(eflx_h2osfc_to_snow_dummy, 0.0);
@@ -2363,6 +2369,12 @@ int main(int argc, char **argv) {
   //       tk,
   //       soitemp_lhs_matrix);
 
+      
+
+
+
+
+
       ELM::soil_temp::solve_temperature<ViewD3>(
           dtime,
           snl,
@@ -2383,22 +2395,36 @@ int main(int argc, char **argv) {
           frac_sno_eff,
           frac_sno,
           frac_h2osfc,
-          h2osno,
-          h2osfc,
           sabg_snow,
           sabg_soil,
           sabg_lyr,
-          h2osoi_liq,
-          h2osoi_ice,
           watsat,
+          sucsat,
+          bsw,
           tkmg,
           tkdry,
           csol,
           dz,
           zsoi,
           zisoi,
+          h2osfc,
+          h2osno,
+          snow_depth,
+          int_snow,
           t_h2osfc,
           t_grnd,
+          xmf_h2osfc_dummy,
+          xmf_dummy,
+          qflx_h2osfc_to_ice_dummy,
+          eflx_h2osfc_to_snow_dummy,
+          qflx_snofrz,
+          qflx_snow_melt,
+          qflx_snomelt,
+          eflx_snomelt,
+          imelt,
+          h2osoi_liq,
+          h2osoi_ice,
+          qflx_snofrz_lyr,
           t_soisno,
           fact);
 
@@ -2538,6 +2564,8 @@ int main(int argc, char **argv) {
         std::cout << "tsai: " << tsai(i) << std::endl;
         std::cout << "htop: " << htop(i) << std::endl;
         std::cout << "hbot: " << hbot(i) << std::endl;
+        std::cout << "forc_tbot: " << forc_tbot(i) << std::endl;
+        std::cout << "h2osno: " << h2osno(i) << std::endl;
         std::cout << "frac_veg_nosno_alb: " << frac_veg_nosno_alb(i) << std::endl;
       }
 

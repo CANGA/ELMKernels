@@ -8,6 +8,7 @@
 #include "soil_temp_lhs.h"
 #include "soil_thermal_properties.h"
 #include "helper_functions.hh"
+#include "phase_change.h"
 
 namespace ELM::soil_temp {
 
@@ -73,7 +74,8 @@ namespace ELM::soil_temp {
     fn(nlevgrnd + nlevsno - 1) = 0.0;
   }
 
-  template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  template <typename ArrayD3, typename ArrayI1,
+  typename ArrayI2, typename ArrayD1, typename ArrayD2>
   void solve_temperature(const double& dtime,
                          const ArrayI1 snl,
                          const ArrayI1 frac_veg_nosno,
@@ -93,22 +95,36 @@ namespace ELM::soil_temp {
                          const ArrayD1 frac_sno_eff,
                          const ArrayD1 frac_sno,
                          const ArrayD1 frac_h2osfc,
-                         const ArrayD1 h2osno,
-                         const ArrayD1 h2osfc,
                          const ArrayD1 sabg_snow,
                          const ArrayD1 sabg_soil,
                          const ArrayD2 sabg_lyr,
-                         const ArrayD2 h2osoi_liq,
-                         const ArrayD2 h2osoi_ice,
                          const ArrayD2 watsat,
+                         const ArrayD2 sucsat,
+                         const ArrayD2 bsw,
                          const ArrayD2 tkmg,
                          const ArrayD2 tkdry,
                          const ArrayD2 csol,
                          const ArrayD2 dz,
                          const ArrayD2 zsoi,
                          const ArrayD2 zisoi,
+                         ArrayD1 h2osfc,
+                         ArrayD1 h2osno,
+                         ArrayD1 snow_depth,
+                         ArrayD1 int_snow,
                          ArrayD1 t_h2osfc,
                          ArrayD1 t_grnd,
+                         ArrayD1 xmf_h2osfc,
+                         ArrayD1 xmf,
+                         ArrayD1 qflx_h2osfc_to_ice,
+                         ArrayD1 eflx_h2osfc_to_snow,
+                         ArrayD1 qflx_snofrz,
+                         ArrayD1 qflx_snow_melt,
+                         ArrayD1 qflx_snomelt,
+                         ArrayD1 eflx_snomelt,
+                         ArrayI2 imelt,
+                         ArrayD2 h2osoi_liq,
+                         ArrayD2 h2osoi_ice,
+                         ArrayD2 qflx_snofrz_lyr,
                          ArrayD2 t_soisno,
                          ArrayD2 fact)
   {
@@ -135,7 +151,7 @@ namespace ELM::soil_temp {
     auto tk_h2osfc = create<ArrayD1>("tk_h2osfc", ncells);
     auto c_h2osfc = create<ArrayD1>("c_h2osfc", ncells);
     auto dz_h2osfc = create<ArrayD1>("dz_h2osfc", ncells);
-    auto soil_thermal_props = [=] (const int& c) {
+    auto soil_thermal_props = ELM_LAMBDA (const int& c) {
       soil_thermal::calc_soil_tk(c, ltype(c), h2osoi_liq, h2osoi_ice, t_soisno, dz, watsat, tkmg, tkdry, thk);
       soil_thermal::calc_snow_tk(c, snl(c), frac_sno(c), h2osoi_liq, h2osoi_ice, dz, thk);
       soil_thermal::calc_face_tk(c, snl(c), thk, zsoi, zisoi, tk);
@@ -161,7 +177,7 @@ namespace ELM::soil_temp {
     auto hs_top_snow = create<ArrayD1>("hs_top_snow", ncells); // [W/m2] net heat flux into snow surface layer
     auto dhsdT = create<ArrayD1>("dhsdT", ncells); // derivative of heat flux wrt temperature
     const auto& soitop = nlevsno;
-    auto surface_heat_fluxes = [=] (const int& c) {
+    auto surface_heat_fluxes = ELM_LAMBDA (const int& c) {
 
       const int snotop = nlevsno-snl(c);
 
@@ -190,7 +206,7 @@ namespace ELM::soil_temp {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     auto fn = create<ArrayD2>("fn", ncells, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
     //auto fact = create<ArrayD2>("fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix - needed outside
-    auto diffusive_heat_flux = [=] (const int& c) {
+    auto diffusive_heat_flux = ELM_LAMBDA (const int& c) {
 
       calc_diffusive_heat_flux(snl(c),
           Kokkos::subview(tk, c, Kokkos::ALL),
@@ -234,22 +250,71 @@ namespace ELM::soil_temp {
     auto B = create<ArrayD2>("B", ncells, N - 2); // B(Bi, ..., Bn-2)
     auto Z = create<ArrayD2>("Z", ncells, N); // Z(Zi, ..., Zn)
 
-    auto solver = [=] (const int& c) {
+    auto solver = ELM_LAMBDA (const int& c) {
       // rhs_vector will contain solution
       solver::PDMA(c, snl, lhs_matrix, A, B, Z, rhs_vector);
     };
     invoke_kernel(solver, std::make_tuple(snl.extent(0)), "soil_temp::solve_temp");
 
-
+    for (int i = 0; i < nlevgrnd + nlevsno; ++i) 
+      std::cout << "pre temp update:  " << i << "  "
+      << t_soisno(0, i) << "\n"; 
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     // place updated temperature into t_soisno, t_h2osfc
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-    auto update_temp = [=] (const int& c) {
+    auto update_temp = ELM_LAMBDA (const int& c) {
       detail::update_temperature(c, snl, frac_h2osfc, rhs_vector, t_h2osfc, t_soisno);
     };
     invoke_kernel(update_temp, std::make_tuple(ncells), "soil_temp::update_temperature");
+
+    std::cout << "snl:  " << snl(0) << std::endl;
+    for (int i = 0; i < nlevgrnd + nlevsno; ++i) 
+      std::cout << "post temp update:  " << i << "  "
+      << t_soisno(0, i) << "\n";
+
+
+
+
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    // phase change kernels
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    //auto fn1 = create<ArrayD2>("fn1", ncells, nlevgrnd+nlevsno);
+
+    auto phase_change = ELM_LAMBDA (const int& c) {
+
+    //  phase_change_correction(snl(c), Kokkos::subview(tk, c, Kokkos::ALL),
+    //    Kokkos::subview(t_soisno, c, Kokkos::ALL), Kokkos::subview(zsoi, c, Kokkos::ALL),
+    //    Kokkos::subview(fn1, c, Kokkos::ALL));
+
+      phase_change_h2osfc(snl(c), dtime, frac_sno(c), frac_h2osfc(c), dhsdT(c), c_h2osfc(c),
+        fact(c, nlevsno - 1), t_h2osfc(c), h2osfc(c), xmf_h2osfc(c), qflx_h2osfc_to_ice(c),
+        eflx_h2osfc_to_snow(c), h2osno(c), int_snow(c), snow_depth(c), h2osoi_ice(c, nlevsno - 1),
+        t_soisno(c, nlevsno - 1));
+
+      phase_change_soisno(snl(c), ltype(c), dtime, dhsdT(c), frac_h2osfc(c), frac_sno_eff(c),
+        Kokkos::subview(fact, c, Kokkos::ALL), Kokkos::subview(watsat, c, Kokkos::ALL),
+        Kokkos::subview(sucsat, c, Kokkos::ALL), Kokkos::subview(bsw, c, Kokkos::ALL),
+        Kokkos::subview(dz, c, Kokkos::ALL), h2osno(c), snow_depth(c), xmf(c), qflx_snofrz(c),
+        qflx_snow_melt(c), qflx_snomelt(c), eflx_snomelt(c), Kokkos::subview(imelt, c, Kokkos::ALL),
+        Kokkos::subview(qflx_snofrz_lyr, c, Kokkos::ALL), Kokkos::subview(h2osoi_ice, c, Kokkos::ALL),
+        Kokkos::subview(h2osoi_liq, c, Kokkos::ALL), Kokkos::subview(t_soisno, c, Kokkos::ALL));
+    };
+    invoke_kernel(phase_change, std::make_tuple(ncells), "soil_temp::phase_change");
+
+
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    // update t_grnd
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+    auto update_tgrnd = ELM_LAMBDA (const int& c) {
+      detail::update_t_grnd(c, snl, frac_h2osfc, frac_sno_eff, t_h2osfc, t_soisno, t_grnd);
+    };
+    invoke_kernel(update_tgrnd, std::make_tuple(ncells), "soil_temp::update_t_grnd");
   }
 
 } // namespace ELM::soil_temp
@@ -351,6 +416,35 @@ namespace ELM::soil_temp::detail {
     // surface water
     // ? first subsurface cell : surface water
     t_h2osfc(c) = (frac_h2osfc(c) == 0.) ? t_soisno(c, nlevsno) : tvector(c, nlevsno);
+  }
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void update_t_grnd(const int& c,
+                     const ArrayI1 snl,
+                     const ArrayD1 frac_h2osfc,
+                     const ArrayD1 frac_sno_eff,
+                     const ArrayD1 t_h2osfc,
+                     const ArrayD2 t_soisno,
+                     ArrayD1 t_grnd)
+  {
+    using ELMdims::nlevsno;
+
+    if (snl(c) > 0) {
+      const int top = nlevsno - snl(c);
+      if(frac_h2osfc(c) != 0.0) {
+        t_grnd(c) = frac_sno_eff(c) * t_soisno(c, top) + (1.0 - frac_sno_eff(c) - frac_h2osfc(c)) *
+          t_soisno(c, nlevsno) + frac_h2osfc(c) * t_h2osfc(c);
+      } else {
+        t_grnd(c) = frac_sno_eff(c) * t_soisno(c, top) + (1.0 - frac_sno_eff(c)) * t_soisno(c, nlevsno);
+      }
+    } else {
+      if(frac_h2osfc(c) != 0.0) {
+        t_grnd(c) = (1.0 - frac_h2osfc(c)) * t_soisno(c, nlevsno) + frac_h2osfc(c) * t_h2osfc(c);
+      } else {
+        t_grnd(c) = t_soisno(c, nlevsno);
+      }
+    }
   }
 
 } // namespace ELM::soil_temp::detail

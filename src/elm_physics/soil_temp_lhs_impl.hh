@@ -127,7 +127,7 @@ namespace ELM::soil_temp {
     auto bmatrix_soil_snow = create<ArrayD2>("bmatrix_soil_snow", snl.extent(0), nband);
     auto bmatrix_soil_ssw = create<ArrayD2>("bmatrix_soil_ssw", snl.extent(0), nband);
 
-    auto kernel = [=] (const int& c) {
+    auto kernel = ELM_LAMBDA (const int& c) {
 
       detail::get_matrix_snow(c, snl, dhsdT, z, fact, tk, bmatrix_snow);
       detail::get_matrix_snow_soil(c, snl, z, fact, tk, bmatrix_snow_soil);

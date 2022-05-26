@@ -58,7 +58,8 @@ hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qfl
                                 ArrayD1 fn);
 
 
-  template <typename ArrayD3, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  template <typename ArrayD3, typename ArrayI1,
+  typename ArrayI2, typename ArrayD1, typename ArrayD2>
   void solve_temperature(const double& dtime,
                          const ArrayI1 snl,
                          const ArrayI1 frac_veg_nosno,
@@ -78,22 +79,36 @@ hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qfl
                          const ArrayD1 frac_sno_eff,
                          const ArrayD1 frac_sno,
                          const ArrayD1 frac_h2osfc,
-                         const ArrayD1 h2osno,
-                         const ArrayD1 h2osfc,
                          const ArrayD1 sabg_snow,
                          const ArrayD1 sabg_soil,
                          const ArrayD2 sabg_lyr,
-                         const ArrayD2 h2osoi_liq,
-                         const ArrayD2 h2osoi_ice,
                          const ArrayD2 watsat,
+                         const ArrayD2 sucsat,
+                         const ArrayD2 bsw,
                          const ArrayD2 tkmg,
                          const ArrayD2 tkdry,
                          const ArrayD2 csol,
                          const ArrayD2 dz,
                          const ArrayD2 zsoi,
                          const ArrayD2 zisoi,
+                         ArrayD1 h2osfc,
+                         ArrayD1 h2osno,
+                         ArrayD1 snow_depth,
+                         ArrayD1 int_snow,
                          ArrayD1 t_h2osfc,
                          ArrayD1 t_grnd,
+                         ArrayD1 xmf_h2osfc,
+                         ArrayD1 xmf,
+                         ArrayD1 qflx_h2osfc_to_ice,
+                         ArrayD1 eflx_h2osfc_to_snow,
+                         ArrayD1 qflx_snofrz,
+                         ArrayD1 qflx_snow_melt,
+                         ArrayD1 qflx_snomelt,
+                         ArrayD1 eflx_snomelt,
+                         ArrayI2 imelt,
+                         ArrayD2 h2osoi_liq,
+                         ArrayD2 h2osoi_ice,
+                         ArrayD2 qflx_snofrz_lyr,
                          ArrayD2 t_soisno,
                          ArrayD2 fact);
 
@@ -143,6 +158,18 @@ namespace ELM::soil_temp::detail {
                           const ArrayD2 tvector,
                           ArrayD1 t_h2osfc,
                           ArrayD2 t_soisno);
+
+
+  template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
+  ACCELERATE
+  void update_t_grnd(const int& c,
+                     const ArrayI1 snl,
+                     const ArrayD1 frac_h2osfc,
+                     const ArrayD1 frac_sno_eff,
+                     const ArrayD1 t_h2osfc,
+                     const ArrayD2 t_soisno,
+                     ArrayD1 t_grnd);
+  
 
 } //namespace soil_temp::detail
 

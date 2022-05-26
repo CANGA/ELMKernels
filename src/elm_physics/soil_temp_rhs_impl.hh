@@ -53,7 +53,7 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
     auto rt_ssw = create<ArrayD1>("rt_ssw", snl.extent(0));
     auto rt_soil = create<ArrayD2>("rt_soil", snl.extent(0), nlevgrnd);
 
-    auto kernel = [=] (const int& c) {
+    auto kernel = ELM_LAMBDA (const int& c) {
       detail::get_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
           fact, fn, sabg_lyr, rt_snow);
       detail::get_rhs_ssw(c, dtime, tk_h2osfc, t_h2osfc, dz_h2osfc,
