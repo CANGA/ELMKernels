@@ -276,11 +276,8 @@ read_atm_forcing(h_ArrayD2 h_data,
     const std::array<size_t, 1> count = {2};
     ELM::Array<double, 1> arr_for_dt_measurement(2);
     IO::read_netcdf(dd.comm, fname_, "DTIME", start, count, arr_for_dt_measurement.data());
-    std::cout << "read_atm_forcing times:  " << arr_for_dt_measurement(1) << "  " << arr_for_dt_measurement(0) << std::endl;
     forc_dt_ = arr_for_dt_measurement(1) - arr_for_dt_measurement(0);
   }
-
-  std::cout << "read_atm_forcing forc_dt_:  " << forc_dt_ << std::endl;
 
   { // get scale factor and offset if available
     int err = IO::get_attribute(dd.comm, fname_, varname_, "scale_factor", scale_factor_);

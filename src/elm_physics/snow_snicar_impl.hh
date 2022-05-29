@@ -4,202 +4,6 @@
 
 namespace ELM::snow_snicar {
 
-//  subroutine SnowAge_grain(bounds, &
-//       num_snowc, filter_snowc, num_nosnowc, filter_nosnowc, &
-//       waterflux_vars, waterstate_vars, temperature_vars)
-//
-// !DESCRIPTION:
-// Updates the snow effective grain size (radius).
-// Contributions to grain size evolution are from:
-//   1. vapor redistribution (dry snow)
-//   2. liquid water redistribution (wet snow)
-//   3. re-freezing of liquid water
-//
-// Vapor redistribution: Method is to retrieve 3 best-bit parameters that
-// depend on snow temperature, temperature gradient, and density,
-// that are derived from the microphysical model described in:
-// Flanner and Zender (2006), Linking snowpack microphysics and albedo
-// evolution, J. Geophys. Res., 111, D12208, doi:10.1029/2005JD006834.
-// The parametric equation has the form:
-// dr/dt = drdt_0*(tau/(dr_fresh+tau))^(1/kappa), where:
-//   r is the effective radius,
-//   tau and kappa are best-fit parameters,
-//   drdt_0 is the initial rate of change of effective radius, and
-//   dr_fresh is the difference between the current and fresh snow states
-//  (r_current - r_fresh).
-//
-// Liquid water redistribution: Apply the grain growth function from:
-//   Brun, E. (1989), Investigation of wet-snow metamorphism in respect of
-//   liquid-water content, Annals of Glaciology, 13, 22-26.
-//   There are two parameters that describe the grain growth rate as
-//   a function of snow liquid water content (LWC). The "LWC=0" parameter
-//   is zeroed here because we are accounting for dry snowing with a
-//   different representation
-//
-// Re-freezing of liquid water: Assume that re-frozen liquid water clumps
-//   into an arbitrarily large effective grain size (snw_rds_refrz).
-//   The phenomenon is observed (Grenfell), but so far unquantified, as far as
-//   I am aware.
-// void SnowAge_grain() {
-//
-//   static constexpr double snw_rds_refrz{1000.0}; // effective radius of re-frozen snow [microns]
-//   static constexpr int idx_T_max{10};        // maxiumum temperature index used in aging lookup table [idx]
-//   static constexpr int idx_T_min{0};         // minimum temperature index used in aging lookup table [idx]
-//   static constexpr int idx_Tgrd_max{30};     // maxiumum temperature gradient index used in aging lookup table [idx]
-//   static constexpr int idx_Tgrd_min{0};      // minimum temperature gradient index used in aging lookup table [idx]
-//   static constexpr int idx_rhos_max{7};      // maxiumum snow density index used in aging lookup table [idx]
-//   static constexpr int idx_rhos_min{0};      // minimum snow density index used in aging lookup table [idx]
-//
-//   if (snl > 0) {
-//
-//     snl_btm = nlevsno - 1;
-//     snl_top = nlevsno - snl;
-//
-//     for (int i = snl_top; i <= snl_btm; ++i) { cdz(i) = frac_sno * dz(i); }
-//
-//     // loop over snow layers
-//     for (int i = snl_top; i <= snl_btm; ++i) {
-//       //
-//       //**********  1. DRY SNOW AGING  ***********
-//       //
-//       h2osno_lyr = h2osoi_liq(i) + h2osoi_ice(i);
-//
-//       // temperature gradient
-//       if (i == snl_top) {
-//         // top layer
-//         t_snotop = t_soisno(snl_top);
-//         t_snobtm = (t_soisno(i+1)*dz(i) + t_soisno(i)*dz(i+1)) / (dz(i)+dz(i+1));
-//       } else {
-//         t_snotop = (t_soisno(i-1)*dz(i) + t_soisno(i)*dz(i-1)) / (dz(i)+dz(i-1));
-//         t_snobtm = (t_soisno(i+1)*dz(i) + t_soisno(i)*dz(i+1)) / (dz(i)+dz(i+1));
-//       }
-//
-//       dTdz(i) = abs((t_snotop - t_snobtm) / cdz(i));
-//
-//       // snow density
-//       rhos = (h2osoi_liq(i) + h2osoi_ice(i)) / cdz(i);
-//
-//       // make sure rhos doesn't drop below 50 (see rhos_idx below)
-//       rhos = std::max(50.0, rhos);
-//
-//       // best-fit table indecies
-//       T_idx    = round((t_soisno(i) - 223) / 5);
-//       Tgrd_idx = round(dTdz(i) / 10);
-//       rhos_idx = round((rhos-50) / 50);
-//
-//       // boundary check:
-//       if (T_idx < idx_T_min) { T_idx = idx_T_min; }
-//       if (T_idx > idx_T_max) { T_idx = idx_T_max; }
-//       if (Tgrd_idx < idx_Tgrd_min) { Tgrd_idx = idx_Tgrd_min; }
-//       if (Tgrd_idx > idx_Tgrd_max) { Tgrd_idx = idx_Tgrd_max; }
-//       if (rhos_idx < idx_rhos_min) { rhos_idx = idx_rhos_min; }
-//       if (rhos_idx > idx_rhos_max) { rhos_idx = idx_rhos_max; }
-//
-//       // best-fit parameters
-//       bst_tau   = snowage_tau(rhos_idx, Tgrd_idx, T_idx);
-//       bst_kappa = snowage_kappa(rhos_idx, Tgrd_idx, T_idx);
-//       bst_drdt0 = snowage_drdt0(rhos_idx, Tgrd_idx, T_idx);
-//
-//
-//       // change in snow effective radius, using best-fit parameters
-//       // added checks suggested by mgf. --HW 10/15/2015
-//       dr_fresh = snw_rds(i) - snw_rds_min;
-//       if (abs(dr_fresh) < 1.0e-8) {
-//          dr_fresh = 0.0;
-//       } else if (dr_fresh < 0.0) {
-//         throw std::runtime_error("ELM ERROR: SnowAge dr_fresh < 0.0.");
-//       }
-//
-//       dr = (bst_drdt0 * pow(bst_tau / (dr_fresh+bst_tau), 1.0 / bst_kappa)) * (dtime/3600.0);
-//
-//       //
-//       //**********  2. WET SNOW AGING  ***********
-//       //
-//       // We are assuming wet and dry evolution occur simultaneously, and
-//       // the contributions from both can be summed.
-//       // This is justified by setting the linear offset constant C1_liq_Brun89 to zero [Brun, 1989]
-//
-//       // liquid water faction
-//       frc_liq = std::min(0.1, (h2osoi_liq(i) / (h2osoi_liq(i) + h2osoi_ice(i))));
-//
-//       // dr_wet = 1E6_r8*(dtime*(C1_liq_Brun89 + C2_liq_Brun89*(frc_liq**(3))) /
-//       (4*SHR_CONST_PI*(snw_rds(c_idx,i)/1E6)**(2)))
-//       // simplified, units of microns:
-//       dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * pow(frc_liq, 3.0)) / (4.0 * ELMconst::ELM_PI * pow(snw_rds, 2.0)));
-//       dr += dr_wet;
-//
-//       //
-//       //**********  3. SNOWAGE SCALING (TURNED OFF BY DEFAULT)  *************
-//       //
-//       // Multiply rate of change of effective radius by some constant, xdrdt
-//       if (flg_snoage_scl) { dr = dr*xdrdt; }
-//
-//       //
-//       //**********  4. INCREMENT EFFECTIVE RADIUS, ACCOUNTING FOR:  ***********
-//       //               DRY AGING
-//       //               WET AGING
-//       //               FRESH SNOW
-//       //               RE-FREEZING
-//       //
-//       // new snowfall [kg/m2]
-//       if (do_capsnow) {
-//         newsnow = std::max(0.0, (qflx_snwcp_ice * dtime));
-//       } else {
-//         newsnow = std::max(0.0, (qflx_snow_grnd_col * dtime));
-//       }
-//
-//       // snow that has re-frozen [kg/m2]
-//       refrzsnow = std::max(0.0, (qflx_snofrz_lyr(i) * dtime));
-//
-//       // fraction of layer mass that is re-frozen
-//       frc_refrz = refrzsnow / h2osno_lyr;
-//
-//       // fraction of layer mass that is new snow
-//       if (i == snl_top) {
-//         frc_newsnow = newsnow / h2osno_lyr;
-//       } else {
-//         frc_newsnow = 0.0;
-//       }
-//
-//       if ((frc_refrz + frc_newsnow) > 1.0) {
-//         frc_refrz = frc_refrz / (frc_refrz + frc_newsnow);
-//         frc_newsnow = 1.0 - frc_refrz;
-//         frc_oldsnow = 0.0;
-//       } else {
-//         frc_oldsnow = 1.0 - frc_refrz - frc_newsnow;
-//       }
-//
-//       // mass-weighted mean of fresh snow, old snow, and re-frozen snow effective radius
-//       snw_rds(c_idx,i) = (snw_rds(c_idx,i)+dr)*frc_oldsnow + snw_rds_min*frc_newsnow + snw_rds_refrz*frc_refrz
-//       //
-//       //**********  5. CHECK BOUNDARIES   ***********
-//       //
-//       // boundary check
-//       if (snw_rds(i) < snw_rds_min) {
-//          snw_rds(i) = snw_rds_min;
-//       }
-//
-//       if (snw_rds(i) > snw_rds_max) {
-//          snw_rds(i) = snw_rds_max;
-//       }
-//
-//       // set top layer variables for history files
-//       if (i == snl_top) {
-//         snot_top = t_soisno(i);
-//         dTdz_top = dTdz(i);
-//         snw_rds_top = snw_rds(i);
-//         sno_liq_top = h2osoi_liq(i) / (h2osoi_liq(i)+h2osoi_ice(i));
-//       }
-//     } // for i = snl_top .. snl_btm
-//   } // if snl > 0
-//
-//   // Special case: snow on ground, but not enough to have defined a snow layer:
-//   //   set snw_rds to fresh snow grain size:
-//   if (snl == 0) {
-//     if (h2osno > 0.0) { snw_rds(nlevsno-1) = snw_rds_min; }
-//   }
-// } // SnowAge_grain
-
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATE
 void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& coszen, const double& h2osno, const int& snl,
@@ -211,6 +15,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
   using ELMdims::nlevsno;
   using ELMdims::numrad;
   using ELMdims::numrad_snw;
+  using ELMconst::SNW_RDS_MIN;
 
   if (!urbpoi) {
     // Zero absorbed radiative fluxes:
@@ -239,7 +44,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
         snl_lcl = 1;
         h2osoi_ice_lcl(nlevsno - 1) = h2osno;
         h2osoi_liq_lcl(nlevsno - 1) = 0.0;
-        snw_rds_lcl(nlevsno - 1) = round(ELMconst::SNW_RDS_MIN);
+        snw_rds_lcl(nlevsno - 1) = round(SNW_RDS_MIN);
       } else {
         flg_nosnl = 0;
         snl_lcl = snl;

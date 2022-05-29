@@ -70,12 +70,29 @@ struct SnicarData {
   ArrayD3 bcenh;
 };
 
+
+template <typename ArrayD3>
+struct SnwRdsTable {
+  const int idx_T_max_{snow_snicar::detail::idx_T_max};
+  const int idx_Tgrd_max_{snow_snicar::detail::idx_Tgrd_max};
+  const int idx_rhos_max_{snow_snicar::detail::idx_rhos_max};
+  SnwRdsTable();
+  ~SnwRdsTable() = default;
+  ArrayD3 snowage_tau;
+  ArrayD3 snowage_kappa;
+  ArrayD3 snowage_drdt0;
+};
+
 // read all fields in SnicarData
 template <typename h_ArrayD1, typename h_ArrayD2, typename h_ArrayD3>
 void read_snicar_data(
   std::map<std::string, h_ArrayD1>& snicar_views_d1,
   std::map<std::string, h_ArrayD2>& snicar_views_d2,
   std::map<std::string, h_ArrayD3>& snicar_views_d3,
+  const Comm_type& comm, const std::string& filename);
+
+template <typename h_ArrayD3>
+void read_snowrds_data(std::map<std::string, h_ArrayD3>& snowage_views_d3,
   const Comm_type& comm, const std::string& filename);
 
 } // namespace ELM

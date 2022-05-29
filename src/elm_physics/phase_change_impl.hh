@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <cmath>
+
 namespace ELM::soil_temp {
 
 // h2osoi_ice_sl1, t_soisno_sl1, and fact_sl1 are all from the

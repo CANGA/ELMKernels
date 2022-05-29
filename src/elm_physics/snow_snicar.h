@@ -30,6 +30,13 @@ static constexpr int idx_bcint_icerds_max{7};  // maximum index for snow grain s
 static constexpr int idx_Mie_snw_mx{1471};     // number of effective radius indices used in Mie lookup table [idx]
 static constexpr int snw_rds_max_tbl{1500};    // maximum effective radius defined in Mie lookup table [microns]
 static constexpr int snw_rds_min_tbl{30};      // minimium effective radius defined in Mie lookup table [microns]
+
+static constexpr int idx_T_max{10};        // maxiumum temperature index used in aging lookup table [idx]
+static constexpr int idx_Tgrd_max{30};     // maxiumum temperature gradient index used in aging lookup table [idx]
+static constexpr int idx_rhos_max{7};      // maxiumum snow density index used in aging lookup table [idx]
+static constexpr int idx_T_min{0};         // minimum temperature index used in aging lookup table [idx]
+static constexpr int idx_Tgrd_min{0};      // minimum temperature gradient index used in aging lookup table [idx]
+static constexpr int idx_rhos_min{0};      // minimum snow density index used in aging lookup table [idx]
 } // namespace detail
 
 // constants used in algorithm

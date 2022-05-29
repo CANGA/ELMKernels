@@ -37,6 +37,16 @@ SnicarData()
       bcenh("bcenh", idx_bcint_icerds_max_ + 1, idx_bc_nclrds_max_ + 1, numrad_snw_)
     {}
 
+
+template <typename ArrayD3>
+ELM::SnwRdsTable<ArrayD3>::
+SnwRdsTable()
+    : snowage_tau("snowage_tau", idx_T_max_+1,idx_Tgrd_max_+1,idx_rhos_max_+1),
+      snowage_kappa("snowage_kappa", idx_T_max_+1,idx_Tgrd_max_+1,idx_rhos_max_+1),
+      snowage_drdt0("snowage_drdt0", idx_T_max_+1,idx_Tgrd_max_+1,idx_rhos_max_+1)
+    {}
+
+
 template <typename h_ArrayD1, typename h_ArrayD2, typename h_ArrayD3>
 void ELM::read_snicar_data(
   std::map<std::string, h_ArrayD1>& snicar_views_d1,
@@ -49,6 +59,7 @@ void ELM::read_snicar_data(
   using snow_snicar::detail::idx_Mie_snw_mx;
   using snow_snicar::detail::idx_bc_nclrds_max;
   using snow_snicar::detail::idx_bcint_icerds_max;
+
   // read 1D arrays of size numrad_snw
   {
     std::array<size_t, 1> start = {0};
@@ -108,9 +119,9 @@ void ELM::read_snicar_data(
   {
     std::array<size_t, 3> start = {0};
     std::array<size_t, 3> count = {idx_bcint_icerds_max + 1, idx_bc_nclrds_max + 1,
-                                   numrad_snw};
+                                  numrad_snw};
     Array<double, 3> arr_for_read(idx_bcint_icerds_max + 1, idx_bc_nclrds_max + 1,
-                                  numrad_snw);
+                                 numrad_snw);
 
     std::string varname("bcint_enh_mam");
     auto& arr = snicar_views_d3[varname];
@@ -118,6 +129,36 @@ void ELM::read_snicar_data(
   }
 }
 
+
+template <typename h_ArrayD3>
+void ELM::read_snowrds_data(std::map<std::string, h_ArrayD3>& snowage_views_d3,
+  const Comm_type& comm, const std::string& filename)
+{
+  using namespace ELM::snicar_utils;
+  using snow_snicar::detail::idx_T_max;
+  using snow_snicar::detail::idx_Tgrd_max;
+  using snow_snicar::detail::idx_rhos_max;
+
+  // read 3D arrays of size [idx_T_max+1, idx_Tgrd_max+1, idx_rhos_max+1]
+  {
+    std::array<size_t, 3> start = {0};
+    std::array<size_t, 3> count = {idx_T_max + 1, idx_Tgrd_max + 1, idx_rhos_max + 1};
+    Array<double, 3> arr_for_read(idx_T_max + 1, idx_Tgrd_max + 1, idx_rhos_max + 1);
+
+    std::vector<std::string> names =
+    {
+      "tau",
+      "kappa",
+      "drdsdt0"
+    };
+
+    for (const auto& varname : names) {
+      auto& arr = snowage_views_d3[varname];
+      read_and_fill_array(comm, filename, varname, arr_for_read, arr);
+    }
+  }
+
+}
 
 template <typename ArrayT, typename T, size_t D>
 inline void ELM::snicar_utils::

@@ -88,26 +88,19 @@ namespace ELM::soil_temp::detail {
 
 
     const int top = nlevsno - snl(c);
-    if (top > nlevsno) {
-      
-      // set inactive layers to zero
-      for (int i = 0; i < top; ++i) {
-        rt_snow(c, i) = 0.0;
-      }
 
-      // set top active layer
-      rt_snow(c, top) = t_soisno(c, top) + fact(c, top) * (hs_top_snow(c) -
-          dhsdT(c) * t_soisno(c, top) + cnfac * fn(c, top));
+    // set inactive layers to zero
+    for (int i = 0; i < top; ++i) {
+      rt_snow(c, i) = 0.0;
+    }
 
-      for (int i = top + 1; i < nlevsno; ++i) {
-        rt_snow(c, i) = t_soisno(c, i) + cnfac * fact(c, i) * (fn(c, i) - fn(c, i-1)) +
-            fact(c, i) * sabg_lyr(c, i);
-      }
-    } else {
-      // set inactive layers to zero
-      for (int i = 0; i < nlevsno; ++i) {
-        rt_snow(c, i) = 0.0;
-      }
+    // set top active layer
+    rt_snow(c, top) = t_soisno(c, top) + fact(c, top) * (hs_top_snow(c) -
+        dhsdT(c) * t_soisno(c, top) + cnfac * fn(c, top));
+
+    for (int i = top + 1; i < nlevsno; ++i) {
+      rt_snow(c, i) = t_soisno(c, i) + cnfac * fact(c, i) * (fn(c, i) - fn(c, i-1)) +
+          fact(c, i) * sabg_lyr(c, i);
     }
   }
 
