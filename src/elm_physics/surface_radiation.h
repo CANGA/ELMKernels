@@ -29,7 +29,7 @@ namespace ELM::surface_radiation {
 \param[out] fsa                 [double] solar radiation absorbed (total) (W/m**2)
 \param[out] sabg_lyr[nlevsno+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow, double& sabg, double& sabv,
                      double& fsa, ArrayD1 sabg_lyr);
@@ -59,7 +59,7 @@ void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow,
 \param[out] trd[numrad]       [double] transmitted solar radiation: direct (W/m**2)
 \param[out] tri[numrad]       [double] transmitted solar radiation: diffuse (W/m**2)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD1 ftdd, const ArrayD1 ftid,
                               const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
@@ -83,7 +83,7 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
 \param[in]  tri[numrad]          [double] transmitted solar radiation: diffuse (W/m**2)
 \param[out] sabg_lyr[nlevsno+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void layer_absorbed_radiation(const LandType& Land, const int& snl, const double& sabg, const double& sabg_snow,
                               const double& snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
@@ -99,7 +99,7 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
 \param[in]  forc_solai[numrad] [double] diffuse radiation (W/m**2)
 \param[out] fsr                [double] solar radiation reflected (W/m**2)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void reflected_radiation(const LandType& Land, const ArrayD1 albd, const ArrayD1 albi, const ArrayD1 forc_solad,
                          const ArrayD1 forc_solai, double& fsr);
@@ -131,7 +131,7 @@ This subroutine calculates and returns:
 \param[out] laisun              [double] sunlit leaf area
 \param[out] laisha              [double] shaded  leaf area
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void canopy_sunshade_fractions(const LandType& Land, const int& nrad, const double& elai, const ArrayD1 tlai_z,
                                const ArrayD1 fsun_z, const ArrayD1 forc_solad, const ArrayD1 forc_solai,

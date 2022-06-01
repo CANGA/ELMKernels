@@ -90,7 +90,7 @@ namespace ELM::canopy_fluxes {
 //  } // if (!Land.lakpoi && !Land.urbpoi && frac_veg_nosno != 0)
 //} // Irrigation
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
                      const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
@@ -180,7 +180,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
   }
 } // initialize_flux()
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void stability_iteration(
     const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
@@ -447,7 +447,7 @@ void stability_iteration(
   }   // land type
 } // stability_iteration()
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
                   const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,

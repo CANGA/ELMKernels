@@ -24,7 +24,7 @@ namespace ELM {
 \param[out] frac_veg_nosno               [int] fraction of vegetation not covered by snow (0 OR 1) [-]
 \param[out] frac_iceold                  [double] fraction of ice relative to the tot water
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void init_timestep(const bool& lakpoi, const bool& veg_active,
                    const int& frac_veg_nosno_alb, const int& snl,

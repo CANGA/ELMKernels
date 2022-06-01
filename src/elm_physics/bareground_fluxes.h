@@ -131,7 +131,7 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
 \param[out] rh_ref2m_r                 [double] Rural 2 m height surface relative humidity (%)
 \param[out] rh_ref2m                   [double] 2 m height surface relative humidity (%)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
                   const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,

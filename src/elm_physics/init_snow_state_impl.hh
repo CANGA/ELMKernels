@@ -63,7 +63,7 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
   }
 }
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi)
 {

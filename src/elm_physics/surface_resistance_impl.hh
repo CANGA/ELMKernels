@@ -4,7 +4,7 @@
 
 namespace ELM::surface_resistance {
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_soilevap_stress(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                           const ArrayD1 watsat, const ArrayD1 watfc, const ArrayD1 h2osoi_liq,

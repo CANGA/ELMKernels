@@ -70,7 +70,7 @@ altmax_lastyear_indx       [int] index corresponding to maximum active layer dep
 OUTPUTS:
 rootfr_unf[nlevgrnd]       [double] root fraction defined for unfrozen layers only
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
                                const int& altmax_lastyear_indx, double *rootfr_unf);
@@ -86,7 +86,7 @@ dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 OUTPUTS:
 eff_porosity[nlevgrnd]       [double] effective soil porosity
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por);
 
@@ -101,7 +101,7 @@ dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 OUTPUTS:
 vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq);
 
@@ -125,7 +125,7 @@ OUTPUTS:
 rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
                             const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,

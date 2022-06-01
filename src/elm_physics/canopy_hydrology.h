@@ -126,7 +126,7 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 \param[out]    frac_sno_eff                  [double] fraction of ground covered by snow (0 to 1)
 \param[out]    frac_sno                      [double] fraction of ground covered by snow (0 to 1)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow, const int& oldfflag,
                const double& forc_t, const double& t_grnd, const double& qflx_snow_grnd, const double& qflx_snow_melt,
@@ -148,7 +148,7 @@ based on surface microtopography and surface water storage.
 \param[out] frac_sno_eff                 [double] effective fraction of ground covered by snow (0 to 1)
 \param[out] frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void fraction_h2osfc(const LandType& Land, const double& micro_sigma, const double& h2osno,
 

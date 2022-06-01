@@ -85,7 +85,7 @@ bool novegsol(const LandType& Land, const double& coszen, const double& elai, co
   return false;
 }
 
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
 void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho,
                    const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3,
@@ -146,7 +146,7 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
   }
 } // init_timestep
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri)
@@ -159,7 +159,7 @@ void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_
   }
 } // ground_albedo
 
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
 void flux_absorption_factor(const LandType& Land, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                             const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
@@ -199,7 +199,7 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
   }       // if !Land.urbpoi && coszen > 0.0
 } // flux_absorption_factor
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
@@ -304,7 +304,7 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
   } // if !urbpoi
 } // canopy_layer_lai
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
@@ -669,7 +669,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
   }
 } // two_stream_solver
 
-template <class ArrayD1>
+template <typename ArrayD1>
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi)
 {

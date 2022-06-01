@@ -93,7 +93,7 @@ flx_absin[nlevsno]                       [double] diffuse flux absorption factor
 mss_cnc_aer_in_fdb[nlevsno][sno_nbr_aer] [double] mass concentration of all aerosol species for feedback calculation [kg
 kg-1]
 */
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
 void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc_bcphi, const ArrayD1 mss_cnc_bcpho,
                    const ArrayD1 mss_cnc_dst1, const ArrayD1 mss_cnc_dst2, const ArrayD1 mss_cnc_dst3,
@@ -119,7 +119,7 @@ outputs:
 albgrd[numrad]  [double] direct-beam ground albedo [frc]
 albgri[numrad]  [double] diffuse ground albedo [frc]
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri);
@@ -144,7 +144,7 @@ flx_absdn[nlevsno]                       [double] direct flux absorption factor 
 flx_absiv[nlevsno]                       [double] diffuse flux absorption factor : VIS [frc]
 flx_absin[nlevsno]                       [double] diffuse flux absorption factor : NIR [frc]
 */
-template <class ArrayD1, class ArrayD2>
+template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
 void flux_absorption_factor(const LandType& Land, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                             const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni,
@@ -185,7 +185,7 @@ fabd_sha_z[nlevcan]  [double] absorbed shaded leaf direct  PAR (per unit lai+sai
 fabi_sun_z[nlevcan]  [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
 fabi_sha_z[nlevcan]  [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
@@ -258,7 +258,7 @@ fabd_sha_z[nlevcan]      [double] absorbed shaded leaf direct  PAR (per unit lai
 fabi_sun_z[nlevcan]      [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
 fabi_sha_z[nlevcan]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void two_stream_solver(const LandType& Land, const int& nrad, const double& coszen, const double& t_veg,
                        const double& fwet, const double& elai, const double& esai, const ArrayD1 tlai_z,
@@ -287,7 +287,7 @@ outputs:
 albsod[numrad]             [double]   direct-beam soil albedo [frc]
 albsoi[numrad]             [double]   diffuse soil albedo [frc]
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi);

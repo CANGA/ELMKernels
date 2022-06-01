@@ -29,7 +29,7 @@ namespace ELM::canopy_temperature {
 \param[out] t_h2osfc_bef               [double] saved surface water temperature
 \param[out] tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno, double& t_h2osfc_bef,
                      ArrayD1 tssbef);
@@ -44,7 +44,7 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
 \param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
 \param[out] t_grnd                     [double] ground temperature (Kelvin)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
                  const double& t_h2osfc, const ArrayD1 t_soisno, double& t_grnd);
@@ -71,7 +71,7 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[out] soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
 \param[out] soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
@@ -91,7 +91,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 \param[in]  dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
 \param[out] soilbeta                     [double] factor that reduces ground evaporation
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
                    const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
@@ -118,7 +118,7 @@ Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
 \param[out] qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
 \param[out] dqgdT                      [double] d(qg)/dT
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
                 const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,

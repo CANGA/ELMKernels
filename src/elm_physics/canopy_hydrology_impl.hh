@@ -143,7 +143,7 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
   }
 } // fraction_wet
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow,
                const int& oldfflag, const double& forc_t, const double& t_grnd,
@@ -306,7 +306,7 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
   }
 } // snow_init
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void fraction_h2osfc(const LandType& Land, const double& micro_sigma,
                      const double& h2osno, double& h2osfc, ArrayD1 h2osoi_liq,

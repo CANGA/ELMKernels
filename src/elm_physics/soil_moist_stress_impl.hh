@@ -25,7 +25,7 @@ double soil_suction(const double& smpsat, const double& s, const double& bsw) { 
 ACCELERATE
 double dsuction_dsat(const double& bsw, const double& smp, const double& s) { return -bsw * smp / s; }
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
                                const int& altmax_lastyear_indx, double *rootfr_unf)
@@ -54,7 +54,7 @@ void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, con
   array_normalization(rootfr_unf); // normalize the root fraction
 }
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice, const ArrayD1 dz, ArrayD1 eff_por)
 {
@@ -69,7 +69,7 @@ void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice,
   }
 }
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, const ArrayD1 dz, double *vol_liq)
 {
@@ -81,7 +81,7 @@ void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, con
   }
 }
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, const ArrayD1 t_soisno,
                             const double& tc_stress, const ArrayD1 sucsat, const ArrayD1 watsat, const ArrayD1 bsw,

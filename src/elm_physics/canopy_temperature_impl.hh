@@ -4,7 +4,7 @@
 
 namespace ELM::canopy_temperature {
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno,
                      double& t_h2osfc_bef, ArrayD1 tssbef)
@@ -23,7 +23,7 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
   }
 } // old_ground_temp
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_eff,
                  const double& frac_h2osfc, const double& t_h2osfc,
@@ -40,7 +40,7 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
   }
 } // ground_temp
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
@@ -113,7 +113,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
   }
 } // calc_soilalpha
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& frac_h2osfc, const ArrayD1 watsat,
                    const ArrayD1 watfc, const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz,
@@ -123,7 +123,7 @@ void calc_soilbeta(const LandType& Land, const double& frac_sno, const double& f
                                            soilbeta);
 } // calc_soilbeta()
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void humidities(const LandType& Land, const int& snl, const double& forc_q, const double& forc_pbot,
                 const double& t_h2osfc, const double& t_grnd, const double& frac_sno, const double& frac_sno_eff,

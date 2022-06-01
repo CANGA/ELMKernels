@@ -136,7 +136,7 @@ void hybrid(
     const double& mbb);     //  Ball-Berry slope of conductance-photosynthesis relationship
 
 /*! Compute photosynthesis with iterative solution for vegetation in both sun and shade. (internal) */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void photosynthesis(const PFTDataPSN& psn_pft, const int& nrad, const double& forc_pbot, const double& t_veg,
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,

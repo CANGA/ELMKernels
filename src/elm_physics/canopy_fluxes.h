@@ -85,7 +85,7 @@ namespace ELM::canopy_fluxes {
 \param[out] delq                            [double] temporary
 \param[out] t_veg                           [double]  vegetation temperature (Kelvin)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
                      const double& forc_hgt_u_patch, const double& thm, const double& thv, const double& max_dayl,
@@ -188,7 +188,7 @@ photosynthesis for both sun & shade.
 \param[out] wtlq0                      [double] normalized latent heat conductance for leaf [-]
 \param[out] wtaq0                      [double] normalized latent heat conductance for air [-]
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void stability_iteration(
     const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno, const double& frac_sno,
@@ -277,7 +277,7 @@ void stability_iteration(
 \param[out] rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
 \param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void compute_flux(const LandType& Land, const double& dtime, const int& snl, const int& frac_veg_nosno,
                   const double& frac_sno, const ArrayD1 t_soisno, const double& frac_h2osfc, const double& t_h2osfc,

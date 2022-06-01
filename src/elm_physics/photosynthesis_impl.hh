@@ -4,7 +4,7 @@
 
 namespace ELM::photosynthesis {
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& forc_pbot, const double& t_veg,
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,

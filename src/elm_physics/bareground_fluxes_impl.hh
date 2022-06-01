@@ -77,7 +77,7 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
   }
 } // stability_iteration()
 
-template <class ArrayD1>
+template <typename ArrayD1>
 ACCELERATE
 void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& snl, const double& forc_rho,
                   const double& soilbeta, const double& dqgdT, const double& htvp, const double& t_h2osfc,
