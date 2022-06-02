@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
     const int myrank = 0;
     const double dtime = 1800.0;
     const double dtime_d = 1800.0 / 86400.0;
-    const auto start = ELM::Utils::Date(2014, 1, 1);
+    const auto start = ELM::Utils::Date(2014, 6, 1);
 
     auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
     auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,
@@ -795,7 +795,7 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
     // need to modify !!
-    int atm_nsteps = ntimes + 1;
+    int atm_nsteps = 101;
     const auto fstart = ELM::Utils::Date(1985, 1, 1);
     auto forc_TBOT = create_forc_util<AtmForcType::TBOT>(fname_forc, fstart, atm_nsteps, ncells);
     auto forc_PBOT = create_forc_util<AtmForcType::PBOT>(fname_forc, fstart, atm_nsteps, ncells);
@@ -1042,17 +1042,6 @@ int main(int argc, char **argv) {
     /*                          TIME LOOP                                                                  */
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-    // these calls should be inside time loop
-    // leave here for now - only run kernels (atm_nsteps - 1) times
-    read_atm_data(forc_TBOT, dd, start, atm_nsteps);
-    read_atm_data(forc_PBOT, dd, start, atm_nsteps);
-    read_atm_data(forc_QBOT, dd, start, atm_nsteps);
-    read_atm_data(forc_FLDS, dd, start, atm_nsteps);
-    read_atm_data(forc_FSDS, dd, start, atm_nsteps);
-    read_atm_data(forc_PREC, dd, start, atm_nsteps);
-    read_atm_data(forc_WIND, dd, start, atm_nsteps);
-    read_atm_data(forc_ZBOT, dd, start, atm_nsteps);
-
     auto coszen = create<ViewD1>("coszen", ncells);
 
     ELM::Utils::Date current(start);
@@ -1148,8 +1137,19 @@ int main(int argc, char **argv) {
                            frac_veg_nosno_alb);
       }
 
+      // read forcing data if needed
+      {
+        read_atm_data(forc_TBOT, dd, current, atm_nsteps);
+        read_atm_data(forc_PBOT, dd, current, atm_nsteps);
+        read_atm_data(forc_QBOT, dd, current, atm_nsteps);
+        read_atm_data(forc_FLDS, dd, current, atm_nsteps);
+        read_atm_data(forc_FSDS, dd, current, atm_nsteps);
+        read_atm_data(forc_PREC, dd, current, atm_nsteps);
+        read_atm_data(forc_WIND, dd, current, atm_nsteps);
+        read_atm_data(forc_ZBOT, dd, current, atm_nsteps);
+      }
 
-      // get forcing data and process in parallel
+      // process forcing data in parallel
       {
         forc_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_tbot, forc_thbot);
         forc_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, forc_pbot);
@@ -2551,6 +2551,13 @@ int main(int argc, char **argv) {
          "  dz:  " << dz(0, i) <<
          "  zsoi:  " << zsoi(0, i) <<
          "  zisoi:  " << zisoi(0, i) << std::endl;
+         std::cout << "last   zisoi:  " << zisoi(0, nlevsno+nlevgrnd) << std::endl;
+
+
+
+
+         for (int i = 0; i < nlevgrnd; ++i)
+         std::cout << i <<"  qflx_rootsoi:  " << qflx_rootsoi(0, i) << "\n";
 
 
       for (int i = 0; i < ncells; ++i) {
@@ -2559,6 +2566,7 @@ int main(int argc, char **argv) {
         std::cout << "snow_depth: " << snow_depth(i) << std::endl;
         std::cout << "frac_sno: " << frac_sno(i) << std::endl;
         std::cout << "frac_sno_eff: " << frac_sno_eff(i) << std::endl;
+        std::cout << "qflx_tran_veg: " << qflx_tran_veg(i) << std::endl;
         std::cout << "frac_veg_nosno_alb: " << frac_veg_nosno_alb(i) << std::endl;
       }
 

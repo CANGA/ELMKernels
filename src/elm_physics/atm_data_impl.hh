@@ -75,9 +75,12 @@ AtmDataManager(const std::string& filename,
                const Utils::Date& file_start_time,
                const size_t& ntimes, const size_t& ncells)
     : data(atm_utils::get_varname<ftype>(), ntimes, ncells),
-      varname_{atm_utils::get_varname<ftype>()}, fname_{filename},
-      file_start_time_{file_start_time}, ntimes_{ntimes},
-      ncells_{ncells}, data_start_time_{}, forc_dt_{0.0}
+      varname_{atm_utils::get_varname<ftype>()},
+      fname_{filename},
+      file_start_time_{file_start_time},
+      ntimes_{ntimes},
+      ncells_{ncells},
+      data_start_time_{}
     {}
 
 // interface to update forcing file info
@@ -263,65 +266,69 @@ read_atm_forcing(h_ArrayD2 h_data,
                  const Utils::Date& model_time,
                  const size_t& ntimes)
 {
-  // resize if ntimes has changed - assume ncells_ doesn't change
-  if (ntimes != static_cast<size_t>(h_data.extent(0))) {
-    ntimes_ = ntimes;
-    NS::resize(h_data, ntimes, ncells_);
-  }
-
-  { // get forc_dt_ by differencing the first and second timestep
-    // need to do this to init/update forc_dt_ before forc_t_idx() is called
-    // assume forc_dt doesn't change until next read
-    const std::array<size_t, 1> start = {0};
-    const std::array<size_t, 1> count = {2};
-    ELM::Array<double, 1> arr_for_dt_measurement(2);
-    IO::read_netcdf(dd.comm, fname_, "DTIME", start, count, arr_for_dt_measurement.data());
-    forc_dt_ = arr_for_dt_measurement(1) - arr_for_dt_measurement(0);
-  }
-
-  { // get scale factor and offset if available
-    int err = IO::get_attribute(dd.comm, fname_, varname_, "scale_factor", scale_factor_);
-    if (err < 0) {
-      scale_factor_ = 1.0;
+  if (need_new_data_) {
+    printf("reading new data\n");
+    // resize if ntimes has changed - assume ncells_ doesn't change
+    if (ntimes != static_cast<size_t>(h_data.extent(0))) {
+      ntimes_ = ntimes;
+      NS::resize(h_data, ntimes, ncells_);
     }
-    err = IO::get_attribute(dd.comm, fname_, varname_, "add_offset", add_offset_);
-    if (err < 0) {
-      add_offset_ = 0.0;
+
+    { // get forc_dt_ by differencing the first and second timestep
+      // need to do this to init/update forc_dt_ before forc_t_idx() is called
+      // assume forc_dt doesn't change until next read
+      const std::array<size_t, 1> start = {0};
+      const std::array<size_t, 1> count = {2};
+      ELM::Array<double, 1> arr_for_dt_measurement(2);
+      IO::read_netcdf(dd.comm, fname_, "DTIME", start, count, arr_for_dt_measurement.data());
+      forc_dt_ = arr_for_dt_measurement(1) - arr_for_dt_measurement(0);
     }
-  }
 
-  // get forcing time series time index (from file start time) immediately prior to model_time
-  const auto file_t_idx = forc_t_idx(model_time, file_start_time_);
-  update_data_start_time(file_t_idx);
-  // check data extents
-  assert(static_cast<size_t>(h_data.extent(0)) == ntimes);
-  assert(static_cast<size_t>(h_data.extent(1)) == dd.n_local[0] * dd.n_local[1]);
-
-  // maps h_data(ntimes, ncells) = arr_for_read(ii, jj, kk)
-  // where (ii, jj, kk) are references to some arbitrary permutation of {ntimes, nlongitude, nlatitude}
-  // get references to file array start indices
-  const auto [si, sj, sk] = order_inputs(dd.comm, file_t_idx, dd.start[0], dd.start[1]);
-  std::array<size_t, 3> start = {si, sj, sk};
-
-  // get references to file array size
-  const auto [ci, cj, ck] = order_inputs(dd.comm, ntimes, dd.n_local[0], dd.n_local[1]);
-  std::array<size_t, 3> count = {ci, cj, ck};
-
-  // read data from file
-  ELM::Array<double, 3> arr_for_read(ci, cj, ck);
-  IO::read_netcdf(dd.comm, fname_, varname_, start, count, arr_for_read.data());
-
-  // get references to loop indices
-  size_t i, j, k;
-  const auto [ii, jj, kk] = order_inputs(dd.comm, i, j, k);
-  // copy file data into model host array
-  for (i = 0; i != ntimes; ++i) {
-    for (j = 0; j != dd.n_local[0]; ++j) {
-      for (k = 0; k != dd.n_local[1]; ++k) {
-        h_data(i, j * dd.n_local[1] + k) = arr_for_read(ii, jj, kk) * scale_factor_ + add_offset_;
+    { // get scale factor and offset if available
+      int err = IO::get_attribute(dd.comm, fname_, varname_, "scale_factor", scale_factor_);
+      if (err < 0) {
+        scale_factor_ = 1.0;
+      }
+      err = IO::get_attribute(dd.comm, fname_, varname_, "add_offset", add_offset_);
+      if (err < 0) {
+        add_offset_ = 0.0;
       }
     }
-  }
+
+    // get forcing time series time index (from file start time) immediately prior to model_time
+    const auto file_t_idx = forc_t_idx(model_time, file_start_time_);
+    update_data_start_time(file_t_idx);
+    // check data extents
+    assert(static_cast<size_t>(h_data.extent(0)) == ntimes);
+    assert(static_cast<size_t>(h_data.extent(1)) == dd.n_local[0] * dd.n_local[1]);
+
+    // maps h_data(ntimes, ncells) = arr_for_read(ii, jj, kk)
+    // where (ii, jj, kk) are references to some arbitrary permutation of {ntimes, nlongitude, nlatitude}
+    // get references to file array start indices
+    const auto [si, sj, sk] = order_inputs(dd.comm, file_t_idx, dd.start[0], dd.start[1]);
+    std::array<size_t, 3> start = {si, sj, sk};
+
+    // get references to file array size
+    const auto [ci, cj, ck] = order_inputs(dd.comm, ntimes, dd.n_local[0], dd.n_local[1]);
+    std::array<size_t, 3> count = {ci, cj, ck};
+
+    // read data from file
+    ELM::Array<double, 3> arr_for_read(ci, cj, ck);
+    IO::read_netcdf(dd.comm, fname_, varname_, start, count, arr_for_read.data());
+
+    // get references to loop indices
+    size_t i, j, k;
+    const auto [ii, jj, kk] = order_inputs(dd.comm, i, j, k);
+    // copy file data into model host array
+    for (i = 0; i != ntimes; ++i) {
+      for (j = 0; j != dd.n_local[0]; ++j) {
+        for (k = 0; k != dd.n_local[1]; ++k) {
+          h_data(i, j * dd.n_local[1] + k) = arr_for_read(ii, jj, kk) * scale_factor_ + add_offset_;
+        }
+      }
+    }
+    need_new_data_ = false;
+  } // if (need_new_data_)
 }
 
 // read forcing data from a file - update file info and call main read_atm method
@@ -350,9 +357,8 @@ get_atm_forcing(const double& model_dt,
                 const Utils::Date& model_time,
                 Args&&...args)
 {
-  const size_t t_idx = forc_t_idx_check_bounds(model_dt, model_time, data_start_time_);
-  const auto [wt1, wt2] = forcing_time_weights(t_idx, model_time);
-  const auto physics_object = [this, t_idx, &wt1, &wt2, &args...] {
+  const auto physics_object = [=, &args...] (const size_t& t_idx, const Utils::Date& model_time) {
+    const auto [wt1, wt2] = forcing_time_weights(t_idx, model_time);
     if constexpr (ftype == AtmForcType::TBOT) {
       return atm_forcing_physics::
         ProcessTBOT(t_idx, wt1, wt2, data, std::forward<Args>(args)...);
@@ -378,9 +384,14 @@ get_atm_forcing(const double& model_dt,
       return atm_forcing_physics::
         ProcessZBOT(std::forward<Args>(args)...);
     }
-  }();
+  };
 
-  invoke_kernel(physics_object, std::make_tuple(static_cast<int>(ncells_)), "ComputeAtmForcing_"+atm_utils::get_varname<ftype>());
+  const size_t t_idx = forc_t_idx_check_bounds(model_dt, model_time, data_start_time_);
+  const auto forcing = physics_object(t_idx, model_time);
+  invoke_kernel(forcing, std::make_tuple(static_cast<int>(ncells_)), "ComputeAtmForcing_"+atm_utils::get_varname<ftype>());
+
+  if (t_idx == ntimes_ - 2) // last possible calculation
+    need_new_data_ = true;
 }
 
 } // namespace ELM

@@ -182,6 +182,7 @@ private:
   // format and then scaled and potentially added to
   double scale_factor_{1.0}; // factor for scaling input data - maybe needed when using some ELM input data
   double add_offset_{0.0};   // offset to add to input data - maybe needed when using some ELM input data
+  bool need_new_data_{true};
 };
 
 } // namespace ELM
