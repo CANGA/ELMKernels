@@ -66,7 +66,7 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
                               const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
                               const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
                               const ArrayD1 albgri, double& sabv, double& fsa, double& sabg, double& sabg_soil,
-                              double& sabg_snow, double trd[numrad], double tri[numrad]);
+                              double& sabg_snow, double trd[ELMdims::numrad], double tri[ELMdims::numrad]);
 
 /*! Compute absorbed flux in each snow layer and top soil layer.
 
@@ -87,8 +87,8 @@ template <typename ArrayD1>
 ACCELERATE
 void layer_absorbed_radiation(const LandType& Land, const int& snl, const double& sabg, const double& sabg_snow,
                               const double& snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
-                              const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[numrad],
-                              const double tri[numrad], ArrayD1 sabg_lyr);
+                              const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[ELMdims::numrad],
+                              const double tri[ELMdims::numrad], ArrayD1 sabg_lyr);
 
 /*! Calculate reflected solar radiation.
 

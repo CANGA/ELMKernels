@@ -95,6 +95,10 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
                    ArrayD1 ftid, ArrayD1 ftii, ArrayD1 flx_absdv, ArrayD1 flx_absdn, ArrayD1 flx_absiv,
                    ArrayD1 flx_absin, ArrayD2 mss_cnc_aer_in_fdb)
 {
+  using ELMdims::nlevsno;
+  using ELMdims::numrad;
+  using ELMdims::nlevcan;
+
   // Initialize output because solar radiation only done if coszen > 0
   if (!urbpoi) {
     for (int ib = 0; ib < numrad; ++ib) {
@@ -151,6 +155,9 @@ ACCELERATE
 void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_sno, const ArrayD1 albsod,
                    const ArrayD1 albsoi, const ArrayD1 albsnd, const ArrayD1 albsni, ArrayD1 albgrd, ArrayD1 albgri)
 {
+  using ELMdims::numrad;
+  using ELMdims::nlevcan;
+
   if (!urbpoi && coszen > 0.0) {
     for (int ib = 0; ib < numrad; ++ib) {
       albgrd(ib) = albsod(ib) * (1.0 - frac_sno) + albsnd(ib) * frac_sno;
@@ -166,6 +173,10 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
                             const ArrayD2 flx_absd_snw, const ArrayD2 flx_absi_snw, ArrayD1 flx_absdv,
                             ArrayD1 flx_absdn, ArrayD1 flx_absiv, ArrayD1 flx_absin)
 {
+  using ELMconfig::subgridflag;
+  using ELMdims::nlevsno;
+  using ELMdims::numrad;
+
   // ground albedos and snow-fraction weighting of snow absorption factors
   if (!Land.urbpoi && coszen > 0.0) {
     for (int i = 0; i <= nlevsno; ++i) {
@@ -205,6 +216,8 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
                       int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
                       ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z)
 {
+  using ELMdims::nlevcan;
+
   static constexpr double dincmax = 0.25; // maximum lai+sai increment for canopy layer
 
   if (!urbpoi) {
@@ -314,6 +327,9 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
                        ArrayD1 fabi_sun, ArrayD1 fabi_sha, ArrayD1 fsun_z, ArrayD1 fabd_sun_z, ArrayD1 fabd_sha_z,
                        ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z)
 {
+  using ELMdims::numrad;
+  using ELMdims::nlevcan;
+
   static constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
   static constexpr double betads{0.5};                // two-stream parameter betad for snow
   static constexpr double betais{0.5};                // two-stream parameter betai for snow
@@ -673,6 +689,8 @@ template <typename ArrayD1>
 void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, const double& coszen,
                  const ArrayD1 h2osoi_vol, const ArrayD1 albsat, const ArrayD1 albdry, ArrayD1 albsod, ArrayD1 albsoi)
 {
+  using ELMdims::numrad;
+
   // parameters from D. Mironov (2010)
   static constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
   static constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)

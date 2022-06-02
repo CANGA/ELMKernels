@@ -90,6 +90,8 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
                   double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& t_ref2m_r, double& q_ref2m,
                   double& rh_ref2m, double& rh_ref2m_r)
 {
+  using ELMdims::nlevsno;
+  
   if (!Land.lakpoi) {
     // Initial set for calculation
     cgrnd = 0.0;

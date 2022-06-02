@@ -10,7 +10,7 @@
 namespace ELM::surface_fluxes {
 
 // calculate previous t_grnd for flux correction
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 double prev_tgrnd(const int& snl, const double& frac_sno_eff, const double& frac_h2osfc, const double& t_h2osfc_bef,
@@ -23,8 +23,8 @@ double delta_t(const double& t_grnd, const double& t_grnd0);
 // get the ratio of evaporative demand to h2o availability
 // if demand is greater than availability, or 1.0 otherwise.
 // !!!! ATTENTION: call AFTER qflx_evap_soi is updated by initial_flux_calc()
-// h2osoi_ice_snotop = (ELM::nlevsno-snl)
-// h2osoi_liq_snotop = (ELM::nlevsno-snl)
+// h2osoi_ice_snotop = (nlevsno-snl)
+// h2osoi_liq_snotop = (nlevsno-snl)
 ACCELERATE
 double evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop, const double& dtime,
                   const double& qflx_evap_soi);
@@ -52,7 +52,7 @@ qflx_ev_h2osfc
 */
 // corrct fluxes for changing temperature during timestep
 // must CALL BEFORE any other surface flux functions
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff, const double& frac_h2osfc,
@@ -105,9 +105,9 @@ qflx_snwcp_ice
 
 */
 // calculate new surface fluxes for current timestep
-// h2osoi_ice_snotop = (ELM::nlevsno-snl)
-// h2osoi_liq_snotop = (ELM::nlevsno-snl)
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// h2osoi_ice_snotop = (nlevsno-snl)
+// h2osoi_liq_snotop = (nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime,
@@ -136,7 +136,7 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
 // For urban patches, ulrad=0 and (1-fracveg_nosno)=1, and eflx_lwrad_out and eflx_lwrad_net
 // are calculated in UrbanRadiation. The increase of ground longwave is added directly
 // to the outgoing longwave and the net longwave.
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad,

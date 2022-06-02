@@ -30,8 +30,11 @@ ACCELERATE
 void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, const int& altmax_indx,
                                const int& altmax_lastyear_indx, double *rootfr_unf)
 {
+  using ELMconfig::perchroot;
+  using ELMconfig::perchroot_alt;
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
+
   if (perchroot || perchroot_alt) { // Define rootfraction for unfrozen soil only
     if (perchroot_alt) {            // use total active layer (defined as max thaw depth for current and prior year)
       for (int i = 0; i < nlevgrnd; i++) {
@@ -88,6 +91,8 @@ void calc_root_moist_stress(const double *h2osoi_liqvol, const ArrayD1 rootfr, c
                             const double& smpso, const double& smpsc, const ArrayD1 eff_porosity,
                             const int& altmax_indx, const int& altmax_lastyear_indx, ArrayD1 rootr, double& btran)
 {
+  using ELMconfig::perchroot;
+  using ELMconfig::perchroot_alt;
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
 

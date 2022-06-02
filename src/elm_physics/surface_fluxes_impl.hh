@@ -4,7 +4,7 @@
 namespace ELM::surface_fluxes {
 
 // calculate previous t_grnd for flux correction
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 double prev_tgrnd(const int& snl, const double& frac_sno_eff,
@@ -26,8 +26,8 @@ double delta_t(const double& t_grnd, const double& t_grnd0) { return t_grnd - t_
 // get the ratio of evaporative demand to h2o availability
 // if demand is greater than availability, or 1.0 otherwise.
 // !!!! ATTENTION: call AFTER qflx_evap_soi is updated by initial_flux_calc()
-// h2osoi_ice_snotop = (ELM::nlevsno-snl)
-// h2osoi_liq_snotop = (ELM::nlevsno-snl)
+// h2osoi_ice_snotop = (nlevsno-snl)
+// h2osoi_liq_snotop = (nlevsno-snl)
 ACCELERATE
 double evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop,
                   const double& dtime, const double& qflx_evap_soi)
@@ -68,7 +68,7 @@ qflx_ev_h2osfc
 */
 // corrct fluxes for changing temperature during timestep
 // must CALL BEFORE any other surface flux functions
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff,
@@ -139,9 +139,9 @@ qflx_snwcp_ice
 
 */
 // calculate new surface fluxes for current timestep
-// h2osoi_ice_snotop = (ELM::nlevsno-snl)
-// h2osoi_liq_snotop = (ELM::nlevsno-snl)
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// h2osoi_ice_snotop = (nlevsno-snl)
+// h2osoi_liq_snotop = (nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime,
@@ -234,7 +234,7 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
 // For urban patches, ulrad=0 and (1-fracveg_nosno)=1, and eflx_lwrad_out and eflx_lwrad_net
 // are calculated in UrbanRadiation. The increase of ground longwave is added directly
 // to the outgoing longwave and the net longwave.
-// tssbef_snotop = tssbef(ELM::nlevsno-snl)
+// tssbef_snotop = tssbef(nlevsno-snl)
 // tssbef_soitop = tssbef(EML::nlevsno)
 ACCELERATE
 void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad,
@@ -265,7 +265,11 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
                            const double& xmf_h2osfc, const double& frac_h2osfc, const double& t_h2osfc,
                            const double& t_h2osfc_bef, const double& dtime, const double& eflx_h2osfc_to_snow,
                            const double& eflx_building_heat, const double& frac_sno_eff, const ArrayD1 t_soisno,
-                           const ArrayD1 tssbef, const ArrayD1 fact) {
+                           const ArrayD1 tssbef, const ArrayD1 fact)
+{
+  using ELMdims::nlevsno;
+  using ELMdims::nlevgrnd;
+  using ELMdims::nlevurb;
 
   double errsoi = eflx_soil_grnd - xmf - xmf_h2osfc - frac_h2osfc * (t_h2osfc - t_h2osfc_bef) * (t_h2osfc / dtime);
   errsoi += eflx_h2osfc_to_snow;
@@ -274,13 +278,13 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
   if (ctype == LND::icol_sunwall || ctype == LND::icol_shadewall || ctype == LND::icol_roof) {
     errsoi += eflx_building_heat;
   }
-  for (int j = 0; j < ELM::nlevgrnd + ELM::nlevsno; ++j) {
-    if ((ctype != LND::icol_sunwall && ctype != LND::icol_shadewall && ctype != LND::icol_roof) || (j < ELM::nlevurb)) {
+  for (int j = 0; j < nlevgrnd + nlevsno; ++j) {
+    if ((ctype != LND::icol_sunwall && ctype != LND::icol_shadewall && ctype != LND::icol_roof) || (j < nlevurb)) {
       // area weight heat absorbed by snow layers
-      if (j >= ELM::nlevsno - snl && j < ELM::nlevsno) {
+      if (j >= nlevsno - snl && j < nlevsno) {
         errsoi -= frac_sno_eff * (t_soisno(j) - tssbef(j)) / fact(j);
       }
-      if (j >= ELM::nlevsno) {
+      if (j >= nlevsno) {
         errsoi -= (t_soisno(j) - tssbef(j)) / fact(j);
       }
     }

@@ -20,13 +20,14 @@ template <typename ArrayD2>
 constexpr void get_albdry(int& mxsoil_color, ArrayD2 albdry);
 
 // serial I/O function
-template <typename ArrayI1, typename ArrayD2>
-void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayI1 isoicol,
-                      ArrayD2 albsat, ArrayD2 albdry);
+template <typename h_ArrayI1, typename h_ArrayD2>
+void read_soil_colors(const Utils::DomainDecomposition<2>& dd, const std::string& filename, h_ArrayI1 isoicol,
+                      h_ArrayD2 albsat, h_ArrayD2 albdry);
 
-template <typename ArrayD2>
-void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayD2 pct_sand,
-                       ArrayD2 pct_clay, ArrayD2 organic);
+template <typename h_ArrayD1, typename h_ArrayD2>
+void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& fname_surfdata,
+                       const std::string& fname_param, h_ArrayD1 organic_max, h_ArrayD2 pct_sand,
+                       h_ArrayD2 pct_clay, h_ArrayD2 organic);
 
 } // namespace ELM::read_soil
 

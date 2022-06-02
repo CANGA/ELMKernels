@@ -318,6 +318,7 @@ namespace ELM::soil_temp::detail {
                       const ArrayD2 z,
                       ArrayD2 bmatrix_ssw)
   {
+    using ELMdims::nlevsno;
     using detail::cnfac;
 
     for (int i = 0; i < bmatrix_ssw.extent(1); ++i) {
@@ -339,6 +340,7 @@ namespace ELM::soil_temp::detail {
                            const ArrayD2 z,
                            ArrayD2 bmatrix_ssw_soil)
   {
+    using ELMdims::nlevsno;
     using detail::cnfac;
 
     for (int i = 0; i < bmatrix_ssw_soil.extent(1); ++i) {
@@ -361,6 +363,7 @@ namespace ELM::soil_temp::detail {
                            const ArrayD2 z,
                            ArrayD2 bmatrix_soil_ssw)
   {
+    using ELMdims::nlevsno;
     using detail::cnfac;
 
     for (int i = 0; i < bmatrix_soil_ssw.extent(1); ++i) {

@@ -70,15 +70,16 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 wats
   using ELMdims::nlevsoi;
   using ELMdims::nlevbed;
   using ELMdims::nlevurb;
+  using ELMconst::SPVAL;
 
   for (int i = 0; i < nlevgrnd; ++i) {
-    h2osoi_vol(i) = spval;
+    h2osoi_vol(i) = SPVAL;
   }
   for (int i = 0; i < nlevgrnd + nlevsno; ++i) {
-    h2osoi_liq(i) = spval;
+    h2osoi_liq(i) = SPVAL;
   }
   for (int i = 0; i < nlevgrnd + nlevsno; ++i) {
-    h2osoi_ice(i) = spval;
+    h2osoi_ice(i) = SPVAL;
   }
 
   int nlevs = nlevgrnd;
@@ -159,8 +160,8 @@ void init_soilh2o_state(const LandType& Land, const int& snl, const ArrayD1 wats
       const int snw_offset{i + nlevsno};
       if (i < nlevsoi) { // soil
         h2osoi_vol(i) = watsat(i);
-        h2osoi_liq(snw_offset) = spval;
-        h2osoi_ice(snw_offset) = spval;
+        h2osoi_liq(snw_offset) = SPVAL;
+        h2osoi_ice(snw_offset) = SPVAL;
       } else { // bedrock
         h2osoi_vol(i) = 0.0;
       }

@@ -46,6 +46,7 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
                ArrayD2 rhs_vec)
   {
     using ELMdims::nlevsno;
+    using ELMdims::nlevgrnd;
     using Utils::create;
 
     auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", snl.extent(0));

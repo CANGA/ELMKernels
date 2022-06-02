@@ -378,6 +378,8 @@ namespace ELM::soil_temp::detail {
                    const ArrayD2 t_soisno,
                    ArrayD2 tvector)
   {
+    using ELMdims::nlevsno;
+    using ELMdims::nlevgrnd;
     const int top = nlevsno - snl(c);
     
     // zero inactive layers
@@ -406,6 +408,8 @@ namespace ELM::soil_temp::detail {
                           ArrayD1 t_h2osfc,
                           ArrayD2 t_soisno)
   {
+    using ELMdims::nlevsno;
+    using ELMdims::nlevgrnd;
     const int top = nlevsno - snl(c);
 
     // snow layers

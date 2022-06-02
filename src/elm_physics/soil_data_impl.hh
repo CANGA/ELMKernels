@@ -136,11 +136,12 @@ constexpr void get_albdry(int& mxsoil_color, ArrayD2 albdry)
 }
 
 // serial I/O function
-template <typename ArrayI1, typename ArrayD2>
+template <typename h_ArrayI1, typename h_ArrayD2>
 void read_soil_colors(const Utils::DomainDecomposition<2>& dd,
-                      const std::string& filename, ArrayI1 isoicol,
-                      ArrayD2 albsat, ArrayD2 albdry)
+                      const std::string& filename, h_ArrayI1 isoicol,
+                      h_ArrayD2 albsat, h_ArrayD2 albdry)
 {
+  using ELMdims::numrad;
   // get soil color
   {
     // get file start idx and size to read
@@ -181,48 +182,60 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd,
   get_albdry(mxsoil_color, albdry);
 }
 
-template <typename ArrayD2>
-void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& filename, ArrayD2 pct_sand,
-                       ArrayD2 pct_clay, ArrayD2 organic) {
-  // get pct_sand and pct_clay
+template <typename h_ArrayD1, typename h_ArrayD2>
+void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::string& fname_surfdata,
+                       const std::string& fname_param, h_ArrayD1 organic_max, h_ArrayD2 pct_sand,
+                       h_ArrayD2 pct_clay, h_ArrayD2 organic)
+{
+  using ELMdims::nlevsoi;
+  // get pct_sand, pct_clay, and organic
   // get file start idx and size to read
-  std::array<size_t, 3> start = {0, dd.start[0], dd.start[1]};
-  std::array<size_t, 3> count = {ELM::nlevsoi, dd.n_local[0], dd.n_local[1]};
+  {
+    std::array<size_t, 3> start = {0, dd.start[0], dd.start[1]};
+    std::array<size_t, 3> count = {nlevsoi, dd.n_local[0], dd.n_local[1]};
 
-  // read pct_sand
-  Array<double, 3> arr_for_read(ELM::nlevsoi, dd.n_local[0], dd.n_local[1]);
-  IO::read_netcdf(dd.comm, filename, "PCT_SAND", start, count, arr_for_read.data());
+    // read pct_sand
+    Array<double, 3> arr_for_read(nlevsoi, dd.n_local[0], dd.n_local[1]);
+    IO::read_netcdf(dd.comm, fname_surfdata, "PCT_SAND", start, count, arr_for_read.data());
 
-  // place data into [ncells, nlevsoi] order
-  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
-    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-      for (int k = 0; k != ELM::nlevsoi; ++k) {
-        pct_sand(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+    // place data into [ncells, nlevsoi] order
+    for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+      for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+        for (int k = 0; k != nlevsoi; ++k) {
+          pct_sand(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+        }
       }
     }
-  }
 
-  // read pct_clay
-  IO::read_netcdf(dd.comm, filename, "PCT_CLAY", start, count, arr_for_read.data());
-  // place data into [ncells, nlevsoi] order
-  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
-    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-      for (int k = 0; k != ELM::nlevsoi; ++k) {
-        pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+    // read pct_clay
+    IO::read_netcdf(dd.comm, fname_surfdata, "PCT_CLAY", start, count, arr_for_read.data());
+    // place data into [ncells, nlevsoi] order
+    for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+      for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+        for (int k = 0; k != nlevsoi; ++k) {
+          pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+        }
       }
     }
-  }
 
-  // read organic
-  IO::read_netcdf(dd.comm, filename, "ORGANIC", start, count, arr_for_read.data());
-  // place data into [ncells, nlevsoi] order
-  for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
-    for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-      for (int k = 0; k != ELM::nlevsoi; ++k) {
-        organic(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+    // read organic
+    IO::read_netcdf(dd.comm, fname_surfdata, "ORGANIC", start, count, arr_for_read.data());
+    // place data into [ncells, nlevsoi] order
+    for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
+      for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
+        for (int k = 0; k != nlevsoi; ++k) {
+          organic(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
+        }
       }
     }
-  }
+  } // enclosing scope
+
+  // read organic_max -- single value
+  double org_max;
+  std::array<size_t, 1> start = {0};
+  std::array<size_t, 1> count = {1};
+  IO::read_netcdf(dd.comm, fname_param, "organic_max", start, count, &org_max);
+  organic_max(0) = org_max;
 }
 
 } // namespace ELM::read_soil

@@ -21,9 +21,12 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay, const
 
 template <typename ArrayD1>
 ACCELERATE
-void init_soil_hydraulics(const ArrayD1 pct_sand, const ArrayD1 pct_clay, const ArrayD1 organic, const ArrayD1 zsoi,
-                          ArrayD1 watsat, ArrayD1 bsw, ArrayD1 sucsat, ArrayD1 watdry, ArrayD1 watopt, ArrayD1 watfc,
-                          ArrayD1 tkmg, ArrayD1 tkdry, ArrayD1 csol);
+void init_soil_hydraulics(const double& organic_max, const ArrayD1 pct_sand,
+                          const ArrayD1 pct_clay, const ArrayD1 organic,
+                          const ArrayD1 zsoi, ArrayD1 watsat, ArrayD1 bsw,
+                          ArrayD1 sucsat, ArrayD1 watdry, ArrayD1 watopt,
+                          ArrayD1 watfc, ArrayD1 tkmg, ArrayD1 tkdry,
+                          ArrayD1 csol);
 
 } // namespace ELM
 

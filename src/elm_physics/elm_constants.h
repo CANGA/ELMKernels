@@ -4,25 +4,15 @@
 namespace ELM {
   // enum for using forcing data utility
   enum class AtmForcType { TBOT, PBOT, QBOT, RH, FLDS, FSDS, PREC, WIND, ZBOT };
-  // variables that are in the process of being moved to namespace ELMdims
-  static constexpr int nlevsno{5};   // this should be set by driver
-  static constexpr int nlevgrnd{15}; // number of total layers in the subsurface
-  static constexpr int nlevurb{5};   // number of urban layers
-  static constexpr int numrad{2};    // number of solar radiation bands: vis, nir
-  static constexpr int nlevcan{1};   // number of leaf layers in canopy layer
-  static constexpr int nlevsoi{10};  // number of soil layers (hydrologically active)
-  static constexpr int nlevbed{15};  // number of layers to bedrock (hydrologically inactive below)
-  // configuration options 
+} // namespace ELM
+
+// configuration options
+namespace ELM::ELMconfig {
   static constexpr int subgridflag{1};        
   static constexpr bool use_crop{false};      // perform crop calculations
   static constexpr bool perchroot{false};     // calculate root function only in unfrozen soil, based on instantaneous temp
   static constexpr bool perchroot_alt{false}; // calculate root function only in active layer - estimated from past 2 years
-  static constexpr double spval{1.0e36};      // special value for real data
-  static constexpr int ispval{-9999};         // special value for int data
-  // !!!!!!!!!!!!!!!!!!!!!! -- read from netcdf !!
-  // should be read from file - hardwired for now
-  static constexpr double organic_max{130.0}; // Organic matter content where soil is assumed to act like peat for diffusion ~ kg/m3
-} // namespace ELM
+} // namespace ELM::ELMconfig
 
 // physical constants
 namespace ELM::ELMconst {
@@ -57,6 +47,8 @@ namespace ELM::ELMconst {
   static constexpr double H2OSNO_MAX{1000.0};             // max allowed snow thickness (mm H2O)
   static constexpr double BDSNO{250.0};                   // bulk density snow (kg/m**3)
   static constexpr double SECSPDAY{86400.0};              // seconds per day
+  static constexpr double SPVAL{1.0e36};                  // special value for real data
+  static constexpr int ISPVAL{-9999};                     // special value for int data
 } // namespace ELM::ELMconst
 
 // pft type data
@@ -99,7 +91,7 @@ namespace ELM::ELMdims {
   static constexpr int nlevbed{15};    // number of layers to bedrock (hydrologically inactive below)
   static constexpr int mxpft{25};      // maximum number of PFT's for any mode
   static constexpr int numveg{17};     // number of veg types (without specific crop)
-  static constexpr int numpft{(ELM::use_crop) ? mxpft : numveg}; // number of pfts - (use_crop ? 25 : 17)
+  static constexpr int numpft{(ELMconfig::use_crop) ? mxpft : numveg}; // number of pfts - (use_crop ? 25 : 17)
   static constexpr int sno_nbr_aer{8}; // number of aerosol species in snowpack
   static constexpr int numrad_snw{5};  // number of spectral bands used in snow model [nbr]
   static constexpr int nband{5};       // number of bands of the tridigonal matrix

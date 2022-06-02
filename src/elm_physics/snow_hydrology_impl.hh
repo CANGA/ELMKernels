@@ -8,9 +8,6 @@
 namespace ELM::snow {
 
 
-//  subroutine SnowAge_grain(bounds, &
-//       num_snowc, filter_snowc, num_nosnowc, filter_nosnowc, &
-//       waterflux_vars, waterstate_vars, temperature_vars)
 //
 // !DESCRIPTION:
 // Updates the snow effective grain size (radius).
@@ -44,6 +41,11 @@ namespace ELM::snow {
 //   into an arbitrarily large effective grain size (snw_rds_refrz).
 //   The phenomenon is observed (Grenfell), but so far unquantified, as far as
 //   I am aware.
+
+/*
+
+*/
+
   template <typename ArrayD1, typename ArrayD3>
   ACCELERATE
   void snow_aging(const bool& do_capsnow,
@@ -115,7 +117,7 @@ namespace ELM::snow {
         // make sure rhos doesn't drop below 50 (see rhos_idx below)
         rhos = std::max(50.0, rhos);
 
-        // best-fit table indecies
+        // best-fit table indices
         int T_idx = static_cast<int>(std::round((t_soisno(i) - 223) / 5)); // snow aging lookup table temperature index [idx]
         int Tgrd_idx = static_cast<int>(std::round(dTdz / 10)); // snow aging lookup table temperature gradient index [idx]
         int rhos_idx = static_cast<int>(std::round((rhos-50) / 50)); // snow aging lookup table snow density index [idx]
@@ -287,6 +289,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
                   ArrayD1 mss_dst4,
                   ArrayD1 dz)
   {
+    using ELMdims::nlevsno;
     using ELMconst::DENICE;
     using ELMconst::DENH2O;
 
@@ -545,7 +548,6 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
   template <typename ArrayI1, typename ArrayD1>
   ACCELERATE
   void snow_compaction(const int& snl,
-                       const int& subgridflag,
                        const int& ltype,
                        const double& dtime,
                        const double& int_snow,
@@ -559,6 +561,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
                        const ArrayD1 frac_iceold,
                        ArrayD1 dz)
   {
+    using ELMconfig::subgridflag;
     using ELMdims::nlevsno;
     using ELMconst::DENH2O;
     using ELMconst::DENICE;
@@ -672,6 +675,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
                       ArrayD1 z,
                       ArrayD1 zi)
   {
+    using ELMdims::nlevsno;
     using LND::istsoil;
     using LND::istcrop;
     using LND::istwet;
@@ -1298,7 +1302,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
 // dz     nodal thickness of absorbing element [m]
 // wliq   liquid water of element 1
 // wice   ice of element 1 [kg/m2]
-// t      nodel temperature of elment 1 [K]
+// t      nodal temperature of element 1 [K]
   ACCELERATE
   void combine(const double& dz2,
                const double& wliq2,
@@ -1335,14 +1339,16 @@ clm\_combo.f90 then executes the combination of mass and energy.
                          ArrayD1 z,
                          ArrayD1 zi)
   {
+    using ELMdims::nlevsno;
+
     const int top = nlevsno - snl;
     for (int i = 0; i < top; ++i) {
       h2osoi_ice(i) = 0.0;
       h2osoi_liq(i) = 0.0;
-      t_soisno(i)  = 0.0;
-      dz(i)    = 0.0;
-      z(i)     = 0.0;
-      zi(i)  = 0.0;
+      t_soisno(i) = 0.0;
+      dz(i) = 0.0;
+      z(i) = 0.0;
+      zi(i) = 0.0;
     }
   }
 

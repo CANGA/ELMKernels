@@ -106,6 +106,8 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
                      double& qsatl, double& qsatldT, double& taf, double& qaf, double& um, double& ur, double& obu,
                      double& zldis, double& delq, double& t_veg)
 {
+  using ELMdims::nlevsno;
+  using ELMdims::nlevgrnd;
   // -----------------------------------------------------------------
   // Time step initialization of photosynthesis variables
   // -----------------------------------------------------------------
@@ -199,6 +201,8 @@ void stability_iteration(
     double& dqh, double& obu, double& temp1, double& temp2, double& temp12m, double& temp22m, double& tlbef,
     double& delq, double& dt_veg, double& t_veg, double& wtgq, double& wtalq, double& wtlq0, double& wtaq0)
 {
+  using ELMdims::nlevsno;
+  using ELMdims::nlevcan;
   using ELMconst::VKC;
   using ELMconst::CSOILC;
 
@@ -465,6 +469,7 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
                   double& qflx_ev_h2osfc, double& dlrad, double& ulrad, double& cgrnds, double& cgrndl, double& cgrnd,
                   double& t_ref2m, double& t_ref2m_r, double& q_ref2m, double& rh_ref2m, double& rh_ref2m_r)
 {
+  using ELMdims::nlevsno;
   using ELMconst::CPAIR;
 
   if (!Land.lakpoi) {

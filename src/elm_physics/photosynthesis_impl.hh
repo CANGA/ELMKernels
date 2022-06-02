@@ -10,7 +10,9 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,
                     const double& cair, const double& rb, const double& btran, const double& dayl_factor,
                     const double& thm, const ArrayD1 tlai_z, const double& vcmaxcint, const ArrayD1 par_z,
-                    const ArrayD1 lai_z, double ci_z[nlevcan], double& rs) {
+                    const ArrayD1 lai_z, double ci_z[ELMdims::nlevcan], double& rs)
+{
+  using ELMdims::nlevcan;
 
   // photosynthesis and stomatal conductance parameters, from: Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
   static constexpr double fnps{0.15};      // fraction of light absorbed by non-photosynthetic pigments

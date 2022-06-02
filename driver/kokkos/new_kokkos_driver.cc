@@ -369,7 +369,7 @@ int main(int argc, char **argv) {
       "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_mam_c160322.nc");
     std::string fname_forc(
       "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/datm7/1x1pt_US-Brw/cpl_bypass_full/all_hourly.nc");
-    std::string fname_pft(
+    std::string fname_param(
       "/Users/80x/Software/kernel_test_E3SM/E3SM/components/elm/test_submodules/inputdata/lnd/clm2/paramdata/clm_params_c180524.nc");
     std::string fname_aerosol(
       "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/cam/chem/trop_mozart_aero/aero/aerosoldep_monthly_2000_mean_1.9x2.5_c090421.nc");
@@ -469,6 +469,7 @@ int main(int argc, char **argv) {
     auto pct_sand = create<ViewD2>("pct_sand", ncells, nlevgrnd);
     auto pct_clay = create<ViewD2>("pct_clay", ncells, nlevgrnd);
     auto organic = create<ViewD2>("organic", ncells, nlevgrnd);
+    auto organic_max = create<ViewD1>("organic_max", 1);
 
     // soil thermal constants
     auto tkmg = create<ViewD2>("tkmg", ncells, nlevgrnd);
@@ -830,10 +831,12 @@ int main(int argc, char **argv) {
       auto h_pct_sand = Kokkos::create_mirror_view(pct_sand);
       auto h_pct_clay = Kokkos::create_mirror_view(pct_clay);
       auto h_organic = Kokkos::create_mirror_view(organic);
-      ELM::read_soil::read_soil_texture(dd, fname_surfdata, h_pct_sand, h_pct_clay, h_organic);
+      auto h_organic_max = Kokkos::create_mirror_view(organic_max);
+      ELM::read_soil::read_soil_texture(dd, fname_surfdata, fname_param, h_organic_max, h_pct_sand, h_pct_clay, h_organic);
       Kokkos::deep_copy(pct_sand, h_pct_sand);
       Kokkos::deep_copy(pct_clay, h_pct_clay);
       Kokkos::deep_copy(organic, h_organic);
+      Kokkos::deep_copy(organic_max, h_organic_max);
     }
 
     // snicar radiation parameters
@@ -866,7 +869,7 @@ int main(int argc, char **argv) {
     ELM::PFTData<ViewD1, ViewD2> pft_data;
     {
       auto host_pft_views = get_pft_host_views(pft_data);
-      ELM::read_pft_data(host_pft_views, dd.comm, fname_pft);
+      ELM::read_pft_data(host_pft_views, dd.comm, fname_param);
       copy_pft_host_views(host_pft_views, pft_data);
     }
     // Kokkos view of struct PSNVegData
@@ -919,7 +922,7 @@ int main(int argc, char **argv) {
                             Kokkos::subview(zsoi, idx, Kokkos::ALL),
                             Kokkos::subview(zisoi, idx, Kokkos::ALL));
 
-      ELM::init_soil_hydraulics(
+      ELM::init_soil_hydraulics(organic_max(0),
                               Kokkos::subview(pct_sand, idx, Kokkos::ALL),
                               Kokkos::subview(pct_clay, idx, Kokkos::ALL),
                               Kokkos::subview(organic, idx, Kokkos::ALL),
@@ -2337,7 +2340,6 @@ int main(int argc, char **argv) {
               Kokkos::subview(qflx_rootsoi, idx, Kokkos::ALL));
 
           ELM::snow::snow_compaction(snl(idx),
-              ELM::subgridflag,
               Land.ltype,
               dtime,
               int_snow(idx),

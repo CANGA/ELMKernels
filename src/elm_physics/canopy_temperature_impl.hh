@@ -9,11 +9,15 @@ ACCELERATE
 void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1 t_soisno,
                      double& t_h2osfc_bef, ArrayD1 tssbef)
 {
-
+  using ELMdims::nlevsno;
+  using ELMdims::nlevgrnd;
+  using ELMdims::nlevurb;
+  using ELMconst::SPVAL;
+  
   if (!Land.lakpoi) {
     for (int i = 0; i < nlevgrnd + nlevsno; i++) {
       if ((Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall || Land.ctype == LND::icol_roof) && i > nlevurb) {
-        tssbef(i) = spval;
+        tssbef(i) = SPVAL;
       } else {
         tssbef(i) = t_soisno(i);
       }
@@ -29,6 +33,8 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
                  const double& frac_h2osfc, const double& t_h2osfc,
                  const ArrayD1 t_soisno, double& t_grnd)
 {
+  using ELMdims::nlevsno;
+
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
   if (!Land.lakpoi) {
     if (snl > 0) {
@@ -48,6 +54,11 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
                     const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
                     double& hr, double& soilalpha, double& soilalpha_u)
 {
+  using ELMdims::nlevsno;
+  using ELMdims::nlevbed;
+  using ELMdims::nlevsoi;
+  using ELMconst::SPVAL;
+
   static constexpr double smpmin{-1.e8}; // restriction for min of soil potential (mm)
   
   qred = 1.0; // soil surface relative humidity
@@ -102,13 +113,13 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
         soilalpha_u = qred;
       } else if (Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall) {
         qred = 0.0;
-        soilalpha_u = spval;
+        soilalpha_u = SPVAL;
       } else if (Land.ctype == LND::icol_roof || Land.ctype == LND::icol_road_imperv) {
         qred = 1.0;
-        soilalpha_u = spval;
+        soilalpha_u = SPVAL;
       }
     } else {
-      soilalpha = spval;
+      soilalpha = SPVAL;
     }
   }
 } // calc_soilalpha
@@ -130,6 +141,8 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
                 const double& frac_h2osfc, const double& qred, const double& hr, const ArrayD1 t_soisno,
                 double& qg_snow, double& qg_soil, double& qg, double& qg_h2osfc, double& dqgdT)
 {
+  using ELMdims::nlevsno;
+
   if (!Land.lakpoi) {
 
     double eg;      // water vapor pressure at temperature T [pa]
@@ -191,6 +204,8 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
                        double& emg, double& emv, double& htvp, double& z0mg, double& z0hg, double& z0qg, double& z0mv,
                        double& z0hv, double& z0qv, double& thv, double& z0m, double& displa)
 {
+  using ELMdims::nlevsno;
+
   if (!Land.lakpoi) {
     double avmuir; // ir inverse optical depth per unit leaf area
 

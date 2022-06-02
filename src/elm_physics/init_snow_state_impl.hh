@@ -68,11 +68,12 @@ ACCELERATE
 void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi)
 {
   using ELMdims::nlevsno;
+  using ELMconst::SPVAL;
 
   for (int i = 0; i < nlevsno; i++) {
-    dz[i] = spval;
-    z[i] = spval;
-    zi[i] = spval;
+    dz[i] = SPVAL;
+    z[i] = SPVAL;
+    zi[i] = SPVAL;
   }
 
   if (!lakpoi) {

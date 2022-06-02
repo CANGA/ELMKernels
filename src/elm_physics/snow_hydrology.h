@@ -72,7 +72,6 @@ namespace ELM::snow {
   template <typename ArrayI1, typename ArrayD1>
   ACCELERATE
   void snow_compaction(const int& snl,
-                       const int& subgridflag,
                        const int& ltype,
                        const double& dtime,
                        const double& int_snow,

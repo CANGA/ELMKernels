@@ -154,6 +154,9 @@ void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow
                int& snl, ArrayD1 dz, ArrayD1 z, ArrayD1 zi, ArrayD1 snw_rds,
                double& frac_sno_eff, double& frac_sno)
 {
+  using ELMconfig::subgridflag;
+  using ELMdims::nlevsno;
+
   static constexpr double accum_factor{0.1}; // shape factor for accumulation of snow
   if (!Land.lakpoi) {
     using ELMconst::ELM_PI;
@@ -312,6 +315,8 @@ void fraction_h2osfc(const LandType& Land, const double& micro_sigma,
                      const double& h2osno, double& h2osfc, ArrayD1 h2osoi_liq,
                      double& frac_sno, double& frac_sno_eff, double& frac_h2osfc)
 {
+  using ELMdims::nlevsno;
+  
   if (!Land.lakpoi) {
     double d, fd, dfdd, sigma;
     static constexpr double min_h2osfc{1.e-8}; // arbitrary lower limit on h2osfc for safer numerics...

@@ -32,6 +32,7 @@ void calc_soil_tk(const int& c,
 {
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
+  using ELMdims::nlevbed;
 
   using detail::TKICE;
   using detail::TKWAT;
@@ -102,6 +103,7 @@ void calc_snow_tk(const int& c,
   using ELMconst::TFRZ;
   using ELMdims::nlevgrnd;
   using ELMdims::nlevsno;
+  using ELMdims::nlevbed;
 
   // zero out inactive layers
   const int top = nlevsno - snl;
@@ -168,6 +170,7 @@ void calc_soil_heat_capacity(const int& c,
 {
   using ELMdims::nlevsno;
   using ELMdims::nlevgrnd;
+  using ELMdims::nlevbed;
 
   using ELMconst::CPICE;
   using ELMconst::CPWAT;
