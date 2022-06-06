@@ -15,6 +15,7 @@
 #include <cmath>
 #include <functional>
 #include <tuple>
+#include <unordered_map>
 
 #include "kokkos_includes.hh"
 #include "invoke_kernel.hh"
@@ -105,7 +106,7 @@ public:
 
 // read 12 months of values at closest point to lon_d and lat_d
 template <typename h_ArrayD1>
-void read_aerosol_data(std::map<std::string, h_ArrayD1>& aerosol_views, const Comm_type& comm,
+void read_aerosol_data(std::unordered_map<std::string, h_ArrayD1>& aerosol_views, const Comm_type& comm,
   const std::string& filename, const double& lon_d, const double& lat_d);
 
 

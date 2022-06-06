@@ -11,7 +11,7 @@
 #include "read_input.hh"
 
 #include <array>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 #include "kokkos_includes.hh"
@@ -36,7 +36,7 @@ public:
   // read data from file
   // either all three months of data, or new single month
   template <typename ArrayI1, typename h_ArrayD2>
-  bool read_data(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename, const Utils::Date& model_time,
+  bool read_data(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std::string& filename, const Utils::Date& model_time,
                  const ArrayI1 vtype);
 
   // get phenology data - call parallel physics kernel - return phenology data for this timestep
@@ -58,12 +58,12 @@ private:
 
   // read 3 months of data into member arrays
   template <typename ArrayI1, typename h_ArrayD2>
-  void read_initial(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename, const Utils::Date& model_time,
+  void read_initial(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std::string& filename, const Utils::Date& model_time,
                     const ArrayI1 vtype);
 
   // advance index - move member data at month idx  1 & 2 to month 0 & 1 and then read new data into month idx 2
   template <typename ArrayI1, typename h_ArrayD2>
-  void read_new_month(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
+  void read_new_month(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
                       const Utils::Date& model_time, const ArrayI1 vtype);
 
   const Utils::DomainDecomposition<2> dd_;

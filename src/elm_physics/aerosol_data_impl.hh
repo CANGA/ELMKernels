@@ -44,7 +44,7 @@ get_aerosol_source(const Utils::Date& model_time, const double& dtime) const
 }
 
 template <typename h_ArrayD1>
-void ELM::read_aerosol_data(std::map<std::string, h_ArrayD1>& aerosol_views, 
+void ELM::read_aerosol_data(std::unordered_map<std::string, h_ArrayD1>& aerosol_views, 
   const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d)
 {
   const auto [lon_idx, lat_idx] = aerosol_utils::get_nearest_indices(comm, filename, lon_d, lat_d);

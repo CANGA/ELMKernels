@@ -86,7 +86,7 @@ get_pft_alb(const int pft) const
 
 
 template <typename h_ArrayD1>
-void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
+void read_pft_data(std::unordered_map<std::string, h_ArrayD1>& pft_views,
                    const Comm_type& comm, const std::string& fname_pft)
 {
   using ELMdims::mxpft;

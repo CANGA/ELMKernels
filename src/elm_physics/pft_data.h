@@ -9,7 +9,7 @@
 #include "utils.hh"
 
 #include <cassert>
-#include <map>
+#include <unordered_map>
 #include <string>
 
 #include "kokkos_includes.hh"
@@ -91,7 +91,7 @@ struct PFTData {
 
 // Read pft time-invariant file data into member variables
 template <typename h_ArrayD1>
-void read_pft_data(std::map<std::string, h_ArrayD1>& pft_views,
+void read_pft_data(std::unordered_map<std::string, h_ArrayD1>& pft_views,
                    const Comm_type& comm, const std::string& fname_pft);
 
 } // namespace ELM

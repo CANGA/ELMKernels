@@ -49,9 +49,9 @@ SnwRdsTable()
 
 template <typename h_ArrayD1, typename h_ArrayD2, typename h_ArrayD3>
 void ELM::read_snicar_data(
-  std::map<std::string, h_ArrayD1>& snicar_views_d1,
-  std::map<std::string, h_ArrayD2>& snicar_views_d2,
-  std::map<std::string, h_ArrayD3>& snicar_views_d3,
+  std::unordered_map<std::string, h_ArrayD1>& snicar_views_d1,
+  std::unordered_map<std::string, h_ArrayD2>& snicar_views_d2,
+  std::unordered_map<std::string, h_ArrayD3>& snicar_views_d3,
   const Comm_type& comm, const std::string& filename)
 {
   using namespace ELM::snicar_utils;
@@ -131,7 +131,7 @@ void ELM::read_snicar_data(
 
 
 template <typename h_ArrayD3>
-void ELM::read_snowrds_data(std::map<std::string, h_ArrayD3>& snowage_views_d3,
+void ELM::read_snowrds_data(std::unordered_map<std::string, h_ArrayD3>& snowage_views_d3,
   const Comm_type& comm, const std::string& filename)
 {
   using namespace ELM::snicar_utils;

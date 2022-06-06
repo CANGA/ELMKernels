@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 // utilities
 #include "array.hh"
@@ -82,9 +83,9 @@ atm_forc_util<ftype> create_forc_util(const std::string& filename,
 { return atm_forc_util<ftype>(filename, file_start_time, ntimes, ncells); }
 
 
-std::map<std::string, h_ViewD2> get_phen_host_views(const ELM::PhenologyDataManager<ViewD2>& phen_data)
+std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::PhenologyDataManager<ViewD2>& phen_data)
 {
-  std::map<std::string, h_ViewD2> phen_host_views;
+  std::unordered_map<std::string, h_ViewD2> phen_host_views;
   phen_host_views["MONTHLY_LAI"] = Kokkos::create_mirror_view(phen_data.mlai);
   phen_host_views["MONTHLY_SAI"] = Kokkos::create_mirror_view(phen_data.msai);
   phen_host_views["MONTHLY_HEIGHT_TOP"] = Kokkos::create_mirror_view(phen_data.mhtop);
@@ -92,9 +93,9 @@ std::map<std::string, h_ViewD2> get_phen_host_views(const ELM::PhenologyDataMana
   return phen_host_views;
 }
 
-std::map<std::string, h_ViewD1> get_aero_host_views(const ELM::AerosolDataManager<ViewD1>& aero_data)
+std::unordered_map<std::string, h_ViewD1> get_aero_host_views(const ELM::AerosolDataManager<ViewD1>& aero_data)
 {
-  std::map<std::string, h_ViewD1> aero_host_views;
+  std::unordered_map<std::string, h_ViewD1> aero_host_views;
   aero_host_views["BCDEPWET"] = Kokkos::create_mirror_view(aero_data.bcdep);
   aero_host_views["BCPHODRY"] = Kokkos::create_mirror_view(aero_data.bcpho);
   aero_host_views["BCPHIDRY"] = Kokkos::create_mirror_view(aero_data.bcphi);
@@ -109,7 +110,7 @@ std::map<std::string, h_ViewD1> get_aero_host_views(const ELM::AerosolDataManage
   return aero_host_views;
 }
 
-void copy_aero_host_views(std::map<std::string, h_ViewD1>& aero_host_views, ELM::AerosolDataManager<ViewD1>& aero_data)
+void copy_aero_host_views(std::unordered_map<std::string, h_ViewD1>& aero_host_views, ELM::AerosolDataManager<ViewD1>& aero_data)
 {
   Kokkos::deep_copy(aero_data.bcdep, aero_host_views["BCDEPWET"]);
   Kokkos::deep_copy(aero_data.bcpho, aero_host_views["BCPHODRY"]);
@@ -124,9 +125,9 @@ void copy_aero_host_views(std::map<std::string, h_ViewD1>& aero_host_views, ELM:
   Kokkos::deep_copy(aero_data.dst4_2, aero_host_views["DSTX04WD"]);
 }
 
-std::map<std::string, h_ViewD1> get_snicar_host_views_d1(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
+std::unordered_map<std::string, h_ViewD1> get_snicar_host_views_d1(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
-  std::map<std::string, h_ViewD1> snicar_host_views_d1;
+  std::unordered_map<std::string, h_ViewD1> snicar_host_views_d1;
   snicar_host_views_d1["ss_alb_ocphil"] = Kokkos::create_mirror_view(snicar_data.ss_alb_oc1);
   snicar_host_views_d1["asm_prm_ocphil"] = Kokkos::create_mirror_view(snicar_data.asm_prm_oc1);
   snicar_host_views_d1["ext_cff_mss_ocphil"] = Kokkos::create_mirror_view(snicar_data.ext_cff_mss_oc1);
@@ -148,9 +149,9 @@ std::map<std::string, h_ViewD1> get_snicar_host_views_d1(const ELM::SnicarData<V
   return snicar_host_views_d1;
 }
 
-std::map<std::string, h_ViewD2> get_snicar_host_views_d2(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
+std::unordered_map<std::string, h_ViewD2> get_snicar_host_views_d2(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
-  std::map<std::string, h_ViewD2> snicar_host_views_d2;
+  std::unordered_map<std::string, h_ViewD2> snicar_host_views_d2;
   snicar_host_views_d2["ss_alb_ice_drc"] = Kokkos::create_mirror_view(snicar_data.ss_alb_snw_drc);
   snicar_host_views_d2["asm_prm_ice_drc"] = Kokkos::create_mirror_view(snicar_data.asm_prm_snw_drc);
   snicar_host_views_d2["ext_cff_mss_ice_drc"] = Kokkos::create_mirror_view(snicar_data.ext_cff_mss_snw_drc);
@@ -166,16 +167,16 @@ std::map<std::string, h_ViewD2> get_snicar_host_views_d2(const ELM::SnicarData<V
   return snicar_host_views_d2;
 }
 
-std::map<std::string, h_ViewD3> get_snicar_host_views_d3(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
+std::unordered_map<std::string, h_ViewD3> get_snicar_host_views_d3(const ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
-  std::map<std::string, h_ViewD3> snicar_host_views_d3;
+  std::unordered_map<std::string, h_ViewD3> snicar_host_views_d3;
   snicar_host_views_d3["bcint_enh_mam"] = Kokkos::create_mirror_view(snicar_data.bcenh);
   return snicar_host_views_d3;
 }
 
-std::map<std::string, h_ViewD3> get_snowage_host_views_d3(const ELM::SnwRdsTable<ViewD3>& snw_table)
+std::unordered_map<std::string, h_ViewD3> get_snowage_host_views_d3(const ELM::SnwRdsTable<ViewD3>& snw_table)
 {
-  std::map<std::string, h_ViewD3> snowage_host_views_d3;
+  std::unordered_map<std::string, h_ViewD3> snowage_host_views_d3;
   snowage_host_views_d3["tau"] = Kokkos::create_mirror_view(snw_table.snowage_tau);
   snowage_host_views_d3["kappa"] = Kokkos::create_mirror_view(snw_table.snowage_kappa);
   snowage_host_views_d3["drdsdt0"] = Kokkos::create_mirror_view(snw_table.snowage_drdt0);
@@ -186,7 +187,7 @@ std::map<std::string, h_ViewD3> get_snowage_host_views_d3(const ELM::SnwRdsTable
 
 
 
-void copy_snicar_host_views_d1(std::map<std::string, h_ViewD1>& snicar_host_views_d1, ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
+void copy_snicar_host_views_d1(std::unordered_map<std::string, h_ViewD1>& snicar_host_views_d1, ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
   Kokkos::deep_copy(snicar_data.ss_alb_oc1, snicar_host_views_d1["ss_alb_ocphil"]);
   Kokkos::deep_copy(snicar_data.asm_prm_oc1, snicar_host_views_d1["asm_prm_ocphil"]);
@@ -209,7 +210,7 @@ void copy_snicar_host_views_d1(std::map<std::string, h_ViewD1>& snicar_host_view
 }
 
 
-void copy_snicar_host_views_d2(std::map<std::string, h_ViewD2>& snicar_host_views_d2,
+void copy_snicar_host_views_d2(std::unordered_map<std::string, h_ViewD2>& snicar_host_views_d2,
   ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
   Kokkos::deep_copy(snicar_data.ss_alb_snw_drc, snicar_host_views_d2["ss_alb_ice_drc"]);
@@ -227,13 +228,13 @@ void copy_snicar_host_views_d2(std::map<std::string, h_ViewD2>& snicar_host_view
 }
 
 
-void copy_snicar_host_views_d3(std::map<std::string, h_ViewD3>& snicar_host_views_d3,
+void copy_snicar_host_views_d3(std::unordered_map<std::string, h_ViewD3>& snicar_host_views_d3,
   ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data)
 {
   Kokkos::deep_copy(snicar_data.bcenh, snicar_host_views_d3["bcint_enh_mam"]);
 }
 
-void copy_snowage_host_views_d3(std::map<std::string, h_ViewD3>& snowage_host_views_d3,
+void copy_snowage_host_views_d3(std::unordered_map<std::string, h_ViewD3>& snowage_host_views_d3,
   ELM::SnwRdsTable<ViewD3>& snw_table)
 {
   Kokkos::deep_copy(snw_table.snowage_tau, snowage_host_views_d3["tau"]);
@@ -245,9 +246,9 @@ void copy_snowage_host_views_d3(std::map<std::string, h_ViewD3>& snowage_host_vi
 
 
 
-std::map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<ViewD1, ViewD2>& pft_data)
+std::unordered_map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<ViewD1, ViewD2>& pft_data)
 {
-  std::map<std::string, h_ViewD1> pft_host_views;
+  std::unordered_map<std::string, h_ViewD1> pft_host_views;
   pft_host_views["fnr"] = Kokkos::create_mirror_view(pft_data.fnr);
   pft_host_views["act25"] = Kokkos::create_mirror_view(pft_data.act25);
   pft_host_views["kcha"] = Kokkos::create_mirror_view(pft_data.kcha);
@@ -292,7 +293,7 @@ std::map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<ViewD1, Vi
 }
 
 
-void copy_pft_host_views(std::map<std::string, h_ViewD1>& pft_host_views, ELM::PFTData<ViewD1, ViewD2>& pft_data)
+void copy_pft_host_views(std::unordered_map<std::string, h_ViewD1>& pft_host_views, ELM::PFTData<ViewD1, ViewD2>& pft_data)
 {
   Kokkos::deep_copy(pft_data.fnr, pft_host_views["fnr"]);
   Kokkos::deep_copy(pft_data.act25, pft_host_views["act25"]);
@@ -383,7 +384,7 @@ int main(int argc, char **argv) {
     const int myrank = 0;
     const double dtime = 1800.0;
     const double dtime_d = 1800.0 / 86400.0;
-    const auto start = ELM::Utils::Date(2014, 6, 1);
+    const auto start = ELM::Utils::Date(2014, 1, 1);
 
     auto proc_decomp = ELM::Utils::square_numprocs(n_procs);
     auto dd = ELM::Utils::create_domain_decomposition_2D(proc_decomp,

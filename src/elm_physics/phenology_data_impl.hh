@@ -20,7 +20,7 @@ PhenologyDataManager(const Utils::DomainDecomposition<2>& dd,
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
 bool PhenologyDataManager<ArrayD2>::
-read_data(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
+read_data(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
           const Utils::Date& model_time, const ArrayI1 vtype)
 {
   if (!initialized_) {
@@ -88,12 +88,12 @@ read_month(const std::string& filename, const std::string& varname,
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
 void PhenologyDataManager<ArrayD2>::
-read_initial(std::map<std::string, h_ArrayD2>& phenology_views,
+read_initial(std::unordered_map<std::string, h_ArrayD2>& phenology_views,
              const std::string& filename, const Utils::Date& model_time,
              const ArrayI1 vtype)
 {
   const auto [m1, m2, m3] = monthly_data::triple_month_indices(model_time);
-  std::map<int, int> months = {{0, m1}, {1, m2}, {2, m3}};
+  std::unordered_map<int, int> months = {{0, m1}, {1, m2}, {2, m3}};
   for (auto [idx, mon] : months) {
     for (auto& [varname, arr] : phenology_views) {
       read_month(filename, varname, mon, vtype, idx, arr);
@@ -103,7 +103,7 @@ read_initial(std::map<std::string, h_ArrayD2>& phenology_views,
 
 template <typename ArrayD2>
 template <typename ArrayI1, typename h_ArrayD2>
-void PhenologyDataManager<ArrayD2>::read_new_month(std::map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
+void PhenologyDataManager<ArrayD2>::read_new_month(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std::string& filename,
                                                const Utils::Date& model_time, const ArrayI1 vtype) {
 
   auto advance_month_idx = [] (h_ArrayD2& arr) {
