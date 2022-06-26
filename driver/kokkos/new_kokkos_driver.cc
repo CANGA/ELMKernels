@@ -78,8 +78,8 @@ using atm_forc_util = ELM::AtmDataManager<ViewD1, ViewD2, ftype>;
 
 template <AtmForcType ftype>
 atm_forc_util<ftype> create_forc_util(const std::string& filename,
-  const ELM::Utils::Date &file_start_time, const int ntimes,
-  const int ncells)
+                                      const ELM::Utils::Date &file_start_time,
+                                      const int ntimes, const int ncells)
 { return atm_forc_util<ftype>(filename, file_start_time, ntimes, ncells); }
 
 
@@ -467,10 +467,10 @@ int main(int argc, char **argv) {
     auto isoicol = create<ViewI1>("isoicol", ncells);
     auto albsat = create<ViewD2>("albsat", max_soil_color, 2);
     auto albdry = create<ViewD2>("albdry", max_soil_color, 2);
-    auto pct_sand = create<ViewD2>("pct_sand", ncells, nlevgrnd);
-    auto pct_clay = create<ViewD2>("pct_clay", ncells, nlevgrnd);
-    auto organic = create<ViewD2>("organic", ncells, nlevgrnd);
-    auto organic_max = create<ViewD1>("organic_max", 1);
+    auto pct_sand = create<ViewD2>("pct_sand", ncells, nlevgrnd); // only used in init_soil_hydraulics()
+    auto pct_clay = create<ViewD2>("pct_clay", ncells, nlevgrnd); // only used in init_soil_hydraulics()
+    auto organic = create<ViewD2>("organic", ncells, nlevgrnd); // only used in init_soil_hydraulics()
+    auto organic_max = create<ViewD1>("organic_max", 1); // only used in init_soil_hydraulics()
 
     // soil thermal constants
     auto tkmg = create<ViewD2>("tkmg", ncells, nlevgrnd);
@@ -502,7 +502,6 @@ int main(int argc, char **argv) {
 
 
     // for Canopy hydrology
-    auto qflx_prec_grnd = create<ViewD1>("qflx_prec_grnd", ncells);
     auto qflx_snwcp_liq = create<ViewD1>("qflx_snwcp_liq", ncells);
     auto qflx_snwcp_ice = create<ViewD1>("qflx_snwcp_ice", ncells);
     assign(qflx_snwcp_ice, 0.0);
@@ -1589,7 +1588,6 @@ int main(int argc, char **argv) {
               qflx_through_rain,
               fracsnow,
               fracrain,
-              qflx_prec_grnd(idx),
               qflx_snwcp_liq(idx),
               qflx_snwcp_ice(idx),
               qflx_snow_grnd(idx),

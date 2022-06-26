@@ -66,7 +66,6 @@ canopy storage losses.
 \param[in]  qflx_through_rain [double]   direct rain throughfall [mm/s]
 \param[in]  fracsnow          [double]   frac of precipitation that is snow [-]
 \param[in]  fracrain          [double]   frac of precipitation that is rain [-]
-\param[out] qflx_prec_grnd    [double]   water onto ground including canopy runoff [kg/(m2 s)]
 \param[out] qflx_snwcp_liq    [double]   excess rainfall due to snow capping (mm H2O /s) [+]
 \param[out] qflx_snwcp_ice    [double]   excess snowfall due to snow capping (mm H2O /s) [+]
 \param[out] qflx_snow_grnd    [double]   snow on ground after interception (mm H2O/s) [+]
@@ -76,7 +75,7 @@ ACCELERATE
 void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
                  const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
                  const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
-                 const double& fracrain, double& qflx_prec_grnd, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
+                 const double& fracrain, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
                  double& qflx_snow_grnd, double& qflx_rain_grnd);
 
 /*! Determine fraction of vegetated surfaces which are wet and

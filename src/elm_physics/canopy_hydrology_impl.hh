@@ -83,7 +83,7 @@ ACCELERATE
 void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
                      const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
                      const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
-                     const double& fracrain, double& qflx_prec_grnd, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
+                     const double& fracrain, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
                      double& qflx_snow_grnd, double& qflx_rain_grnd)
 {
   if (!Land.lakpoi) {
@@ -104,8 +104,6 @@ void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_v
     }
     // Add irrigation water directly onto ground (bypassing canopy interception)
     qflx_prec_grnd_rain = qflx_prec_grnd_rain + qflx_irrig;
-    // Total water onto ground
-    qflx_prec_grnd = qflx_prec_grnd_snow + qflx_prec_grnd_rain;
 
     if (do_capsnow) {
       qflx_snwcp_liq = qflx_prec_grnd_rain;
