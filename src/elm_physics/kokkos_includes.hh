@@ -14,4 +14,4 @@ constexpr bool KOKKOS_ENABLED = true;
 namespace NS = Kokkos;
 #endif
 
-#include "kokkos_types.hh"
+//#include "kokkos_types.hh"

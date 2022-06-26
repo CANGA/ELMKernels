@@ -54,8 +54,15 @@
 // conditional compilation options
 #include "invoke_kernel.hh"
 #include "kokkos_includes.hh"
+#include "kokkos_types.hh"
 
-#include "Kokkos_Core.hpp"
+//#include "Kokkos_Core.hpp"
+
+
+// elm state struct
+#include "elm_state.hh"
+// kokkos specific init
+#include "kokkos_elm_initialize.hh"
 
 
 using ViewB1 =  Kokkos::View<bool *>;
@@ -67,6 +74,9 @@ using ViewD3 =  Kokkos::View<double ***>;
 using h_ViewD1 = ViewD1::HostMirror;
 using h_ViewD2 = ViewD2::HostMirror;
 using h_ViewD3 = ViewD3::HostMirror;
+
+
+//typedef Kokkos::View<ELM::PFTDataPSN *> ViewPSN1;
 
 using ELM::Utils::create;
 using ELM::Utils::assign;
@@ -734,6 +744,15 @@ int main(int argc, char **argv) {
     auto zsoi = create<ViewD2>("zsoi", ncells, nlevsno + nlevgrnd);
     auto zisoi = create<ViewD2>("zisoi", ncells, nlevsno + nlevgrnd + 1);
 
+
+
+
+    // ELM State
+    auto S = std::make_shared<ELM::ELMState<ViewI1, ViewD1, ViewD2, ViewPSN1>>(ncells);
+    S->Land.ltype = 1;
+    S->Land.ctype = 1;
+    S->Land.vtype = 12;
+
     // hardwired grid info
     // this comes from ELM, but is wrong?
     // doesn't matter for now, but definitely wrong
@@ -746,13 +765,13 @@ int main(int argc, char **argv) {
       0.5539384053686849, 0.9132900315890611, 1.5057607013992766,
       2.482579696981332, 4.0930819526214, 6.7483512780057175,
       11.12615029420442, 13.851152141963599 };
-      auto h_dz = Kokkos::create_mirror_view(dz);
+      auto h_dz = Kokkos::create_mirror_view(S->dz);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_dz(n, i) = dz_hardwire[i];
         }
       }
-      Kokkos::deep_copy(dz, h_dz);
+      Kokkos::deep_copy(S->dz, h_dz);
 
       double zsoi_hardwire[] = {
       0.0, 0.0, 0.0,
@@ -762,13 +781,13 @@ int main(int argc, char **argv) {
       1.0380270500015696, 1.7276353086671965, 2.8646071131796917,
       4.73915671146575, 7.829766507142356, 12.92532061670855,
       21.32646906315379, 35.17762120511739 };
-      auto h_zsoi = Kokkos::create_mirror_view(zsoi);
+      auto h_zsoi = Kokkos::create_mirror_view(S->zsoi);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_zsoi(n, i) = zsoi_hardwire[i];
         }
       }
-      Kokkos::deep_copy(zsoi, h_zsoi);
+      Kokkos::deep_copy(S->zsoi, h_zsoi);
 
       double zisoi_hardwire[] = {
       0.0, 0.0, 0.0,
@@ -778,13 +797,13 @@ int main(int argc, char **argv) {
       0.8288927739656982, 1.382831179334383, 2.2961212109234443,
       3.8018819123227208, 6.284461609304053, 10.377543561925453,
       17.12589483993117, 28.252045134135592, 42.10319727609919 };
-      auto h_zisoi = Kokkos::create_mirror_view(zisoi);
+      auto h_zisoi = Kokkos::create_mirror_view(S->zisoi);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd + 1; ++i) {
           h_zisoi(n, i) = zisoi_hardwire[i];
         }
       }
-      Kokkos::deep_copy(zisoi, h_zisoi);
+      Kokkos::deep_copy(S->zisoi, h_zisoi);
     }
 
 
@@ -794,6 +813,27 @@ int main(int argc, char **argv) {
     // these call only need to occur once @ beginning of simulation
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+
+    auto snicar_data = std::make_shared<ELM::SnicarData<ViewD1, ViewD2, ViewD3>>();
+    auto snw_rds_table = std::make_shared<ELM::SnwRdsTable<ViewD3>>();
+    auto pft_data = std::make_shared<ELM::PFTData<ViewD1, ViewD2>>();
+    auto aerosol_data = std::make_shared<ELM::AerosolDataManager<ViewD1>>();
+    S->lat = lat;
+    S->lon = lon;
+    assign(S->vtype, 12);
+
+    ELM::initialize_with_kokkos(
+      S,
+snicar_data,
+snw_rds_table,
+pft_data,
+aerosol_data,
+dd,
+fname_surfdata,
+fname_param,
+fname_snicar,
+fname_snowage,
+fname_aerosol);
 
     // need to modify !!
     int atm_nsteps = 101;
@@ -807,85 +847,81 @@ int main(int argc, char **argv) {
     auto forc_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, fstart, atm_nsteps, ncells);
     auto forc_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, fstart, atm_nsteps, ncells);
     
-    {
-      // soil color constants
-      auto h_isoicol = Kokkos::create_mirror_view(isoicol);
-      auto h_albsat = Kokkos::create_mirror_view(albsat);
-      auto h_albdry = Kokkos::create_mirror_view(albdry);
-      ELM::read_soil::read_soil_colors(dd, fname_surfdata, h_isoicol, h_albsat, h_albdry);
-      if (albsat.extent(0) != h_albsat.extent(0) || albsat.extent(1) != h_albsat.extent(1))
-      {
-        NS::resize(albsat, h_albsat.extent(0), h_albsat.extent(1));
-      }
-      if (albdry.extent(0) != h_albdry.extent(0) || albdry.extent(1) != h_albdry.extent(1))
-      {
-        NS::resize(albdry, h_albdry.extent(0), h_albdry.extent(1));
-      }
-      Kokkos::deep_copy(isoicol, h_isoicol);
-      Kokkos::deep_copy(albsat, h_albsat);
-      Kokkos::deep_copy(albdry, h_albdry);
-    }
+   // {
+   //   // soil color constants
+   //   auto h_isoicol = Kokkos::create_mirror_view(isoicol);
+   //   auto h_albsat = Kokkos::create_mirror_view(albsat);
+   //   auto h_albdry = Kokkos::create_mirror_view(albdry);
+   //   ELM::read_soil::read_soil_colors(dd, fname_surfdata, h_isoicol, h_albsat, h_albdry);
+   //   if (albsat.extent(0) != h_albsat.extent(0) || albsat.extent(1) != h_albsat.extent(1))
+   //   {
+   //     NS::resize(albsat, h_albsat.extent(0), h_albsat.extent(1));
+   //   }
+   //   if (albdry.extent(0) != h_albdry.extent(0) || albdry.extent(1) != h_albdry.extent(1))
+   //   {
+   //     NS::resize(albdry, h_albdry.extent(0), h_albdry.extent(1));
+   //   }
+   //   Kokkos::deep_copy(isoicol, h_isoicol);
+   //   Kokkos::deep_copy(albsat, h_albsat);
+   //   Kokkos::deep_copy(albdry, h_albdry);
+   // }
 
-    {
-      // soil texture constants
-      auto h_pct_sand = Kokkos::create_mirror_view(pct_sand);
-      auto h_pct_clay = Kokkos::create_mirror_view(pct_clay);
-      auto h_organic = Kokkos::create_mirror_view(organic);
-      auto h_organic_max = Kokkos::create_mirror_view(organic_max);
-      ELM::read_soil::read_soil_texture(dd, fname_surfdata, fname_param, h_organic_max, h_pct_sand, h_pct_clay, h_organic);
-      Kokkos::deep_copy(pct_sand, h_pct_sand);
-      Kokkos::deep_copy(pct_clay, h_pct_clay);
-      Kokkos::deep_copy(organic, h_organic);
-      Kokkos::deep_copy(organic_max, h_organic_max);
-    }
+   // {
+   //   // soil texture constants
+   //   auto h_pct_sand = Kokkos::create_mirror_view(pct_sand);
+   //   auto h_pct_clay = Kokkos::create_mirror_view(pct_clay);
+   //   auto h_organic = Kokkos::create_mirror_view(organic);
+   //   auto h_organic_max = Kokkos::create_mirror_view(organic_max);
+   //   //ELM::read_soil::read_soil_texture(dd, fname_surfdata, fname_param, h_organic_max, h_pct_sand, h_pct_clay, h_organic);
+   //   Kokkos::deep_copy(pct_sand, h_pct_sand);
+   //   Kokkos::deep_copy(pct_clay, h_pct_clay);
+   //   Kokkos::deep_copy(organic, h_organic);
+   //   Kokkos::deep_copy(organic_max, h_organic_max);
+   // }
 
-    // snicar radiation parameters
-    ELM::SnicarData<ViewD1, ViewD2, ViewD3> snicar_data;
-    {
-      auto host_snicar_d1 = get_snicar_host_views_d1(snicar_data);
-      auto host_snicar_d2 = get_snicar_host_views_d2(snicar_data);
-      auto host_snicar_d3 = get_snicar_host_views_d3(snicar_data);
-      ELM::read_snicar_data(host_snicar_d1, host_snicar_d2,
-                            host_snicar_d3, dd.comm, fname_snicar);
-      copy_snicar_host_views_d1(host_snicar_d1, snicar_data);
-      copy_snicar_host_views_d2(host_snicar_d2, snicar_data);
-      copy_snicar_host_views_d3(host_snicar_d3, snicar_data);
-    }
+   // // snicar radiation parameters
+   // {
+   //   auto host_snicar_d1 = get_snicar_host_views_d1(snicar_data);
+   //   auto host_snicar_d2 = get_snicar_host_views_d2(snicar_data);
+   //   auto host_snicar_d3 = get_snicar_host_views_d3(snicar_data);
+   //   ELM::read_snicar_data(host_snicar_d1, host_snicar_d2,
+   //                         host_snicar_d3, dd.comm, fname_snicar);
+   //   copy_snicar_host_views_d1(host_snicar_d1, snicar_data);
+   //   copy_snicar_host_views_d2(host_snicar_d2, snicar_data);
+   //   copy_snicar_host_views_d3(host_snicar_d3, snicar_data);
+   // }
 
-    // snow aging parameters
-    // this is a large lookup table
-    // need to figure out appropriate method to handle 
-    // this table and Mie aerosol model lookup table
-    ELM::SnwRdsTable<ViewD3> snw_rds_table;
-    {
-      auto host_snowage_d3 = get_snowage_host_views_d3(snw_rds_table);
-      ELM::read_snowrds_data(host_snowage_d3, dd.comm, fname_snowage);
-      copy_snowage_host_views_d3(host_snowage_d3, snw_rds_table);
-    }
+   // // snow aging parameters
+   // // this is a large lookup table
+   // // need to figure out appropriate method to handle 
+   // // this table and Mie aerosol model lookup table
+   // {
+   //   auto host_snowage_d3 = get_snowage_host_views_d3(snw_rds_table);
+   //   ELM::read_snowrds_data(host_snowage_d3, dd.comm, fname_snowage);
+   //   copy_snowage_host_views_d3(host_snowage_d3, snw_rds_table);
+   // }
 
 
 
     // pft data constants
-    ELM::PFTData<ViewD1, ViewD2> pft_data;
-    {
-      auto host_pft_views = get_pft_host_views(pft_data);
-      ELM::read_pft_data(host_pft_views, dd.comm, fname_param);
-      copy_pft_host_views(host_pft_views, pft_data);
-    }
-    // Kokkos view of struct PSNVegData
-    auto psn_pft = create<Kokkos::View<ELM::PFTDataPSN *>>("psn_pft", ncells);
-    Kokkos::parallel_for("pft_psn_init", ncells, KOKKOS_LAMBDA (const int i) {
-      psn_pft(i) = pft_data.get_pft_psn(vtype(i));
-    });
+   // {
+   //   auto host_pft_views = get_pft_host_views(pft_data);
+   //   ELM::read_pft_data(host_pft_views, dd.comm, fname_param);
+   //   copy_pft_host_views(host_pft_views, pft_data);
+   // }
+   // // Kokkos view of struct PSNVegData
+   // auto psn_pft = create<Kokkos::View<ELM::PFTDataPSN *>>("psn_pft", ncells);
+   // Kokkos::parallel_for("pft_psn_init", ncells, KOKKOS_LAMBDA (const int i) {
+   //   psn_pft(i) = pft_data.get_pft_psn(vtype(i));
+   // });
 
 
-    // aerosol deposition data manager
-    ELM::AerosolDataManager<ViewD1> aerosol_data;
-    {
-      auto host_aero_views = get_aero_host_views(aerosol_data);
-      ELM::read_aerosol_data(host_aero_views, dd.comm, fname_aerosol, lon, lat);
-      copy_aero_host_views(host_aero_views, aerosol_data);
-    }
+   // // aerosol deposition data manager
+   // {
+   //   auto host_aero_views = get_aero_host_views(aerosol_data);
+   //   ELM::read_aerosol_data(host_aero_views, dd.comm, fname_aerosol, lon, lat);
+   //   copy_aero_host_views(host_aero_views, aerosol_data);
+   // }
 
     // phenology data manager
     // make host mirrors - need to be persistent
@@ -907,63 +943,63 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
-    Kokkos::parallel_for("init_functions", ncells, KOKKOS_LAMBDA (const int idx) {
-    
-      ELM::init_topo_slope(topo_slope(idx));
+    //Kokkos::parallel_for("init_functions", ncells, KOKKOS_LAMBDA (const int idx) {
+    //
+    //  ELM::init_topo_slope(topo_slope(idx));
 
-      ELM::init_micro_topo(
-                          Land.ltype, topo_slope(idx),
-                          topo_std(idx), n_melt(idx),
-                          micro_sigma(idx));
+    //  ELM::init_micro_topo(
+    //                      Land.ltype, topo_slope(idx),
+    //                      topo_std(idx), n_melt(idx),
+    //                      micro_sigma(idx));
 
-      ELM::init_snow_layers(
-                            snow_depth(idx), lakpoi, snl(idx),
-                            Kokkos::subview(dz, idx, Kokkos::ALL),
-                            Kokkos::subview(zsoi, idx, Kokkos::ALL),
-                            Kokkos::subview(zisoi, idx, Kokkos::ALL));
+    //  ELM::init_snow_layers(
+    //                        snow_depth(idx), lakpoi, snl(idx),
+    //                        Kokkos::subview(dz, idx, Kokkos::ALL),
+    //                        Kokkos::subview(zsoi, idx, Kokkos::ALL),
+    //                        Kokkos::subview(zisoi, idx, Kokkos::ALL));
 
-      ELM::init_soil_hydraulics(organic_max(0),
-                              Kokkos::subview(pct_sand, idx, Kokkos::ALL),
-                              Kokkos::subview(pct_clay, idx, Kokkos::ALL),
-                              Kokkos::subview(organic, idx, Kokkos::ALL),
-                              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-                              Kokkos::subview(watsat, idx, Kokkos::ALL),
-                              Kokkos::subview(bsw, idx, Kokkos::ALL),
-                              Kokkos::subview(sucsat, idx, Kokkos::ALL),
-                              Kokkos::subview(watdry, idx, Kokkos::ALL),
-                              Kokkos::subview(watopt, idx, Kokkos::ALL),
-                              Kokkos::subview(watfc, idx, Kokkos::ALL),
-                              Kokkos::subview(tkmg, idx, Kokkos::ALL),
-                              Kokkos::subview(tkdry, idx, Kokkos::ALL),
-                              Kokkos::subview(csol, idx, Kokkos::ALL));
+    //  ELM::init_soil_hydraulics(organic_max(0),
+    //                          Kokkos::subview(pct_sand, idx, Kokkos::ALL),
+    //                          Kokkos::subview(pct_clay, idx, Kokkos::ALL),
+    //                          Kokkos::subview(organic, idx, Kokkos::ALL),
+    //                          Kokkos::subview(zsoi, idx, Kokkos::ALL),
+    //                          Kokkos::subview(watsat, idx, Kokkos::ALL),
+    //                          Kokkos::subview(bsw, idx, Kokkos::ALL),
+    //                          Kokkos::subview(sucsat, idx, Kokkos::ALL),
+    //                          Kokkos::subview(watdry, idx, Kokkos::ALL),
+    //                          Kokkos::subview(watopt, idx, Kokkos::ALL),
+    //                          Kokkos::subview(watfc, idx, Kokkos::ALL),
+    //                          Kokkos::subview(tkmg, idx, Kokkos::ALL),
+    //                          Kokkos::subview(tkdry, idx, Kokkos::ALL),
+    //                          Kokkos::subview(csol, idx, Kokkos::ALL));
 
 
-      ELM::init_vegrootfr(
-                          vtype(idx), pft_data.roota_par(vtype(idx)),
-                          pft_data.rootb_par(vtype(idx)),
-                          Kokkos::subview(zisoi, idx, Kokkos::ALL),
-                          Kokkos::subview(rootfr, idx, Kokkos::ALL));
+    //  ELM::init_vegrootfr(
+    //                      vtype(idx), pft_data.roota_par(vtype(idx)),
+    //                      pft_data.rootb_par(vtype(idx)),
+    //                      Kokkos::subview(zisoi, idx, Kokkos::ALL),
+    //                      Kokkos::subview(rootfr, idx, Kokkos::ALL));
 
-      ELM::init_soil_temp(
-                          Land, snl(idx),
-                          Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-                          t_grnd(idx));
+    //  ELM::init_soil_temp(
+    //                      Land, snl(idx),
+    //                      Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+    //                      t_grnd(idx));
 
-      ELM::init_snow_state(
-                          Land.urbpoi, snl(idx), h2osno(idx), int_snow(idx),
-                          snow_depth(idx), h2osfc(idx), h2ocan(idx), frac_h2osfc(idx),
-                          fwet(idx), fdry(idx), frac_sno(idx),
-                          Kokkos::subview(snw_rds, idx, Kokkos::ALL));
+    //  ELM::init_snow_state(
+    //                      Land.urbpoi, snl(idx), h2osno(idx), int_snow(idx),
+    //                      snow_depth(idx), h2osfc(idx), h2ocan(idx), frac_h2osfc(idx),
+    //                      fwet(idx), fdry(idx), frac_sno(idx),
+    //                      Kokkos::subview(snw_rds, idx, Kokkos::ALL));
 
-      ELM::init_soilh2o_state(
-                              Land, snl(idx),
-                              Kokkos::subview(watsat, idx, Kokkos::ALL),
-                              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-                              Kokkos::subview(dz, idx, Kokkos::ALL),
-                              Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
-                              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-                              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL));
-    });
+    //  ELM::init_soilh2o_state(
+    //                          Land, snl(idx),
+    //                          Kokkos::subview(watsat, idx, Kokkos::ALL),
+    //                          Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+    //                          Kokkos::subview(dz, idx, Kokkos::ALL),
+    //                          Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
+    //                          Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+    //                          Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL));
+    //});
 
 
     // hardwired soil/snow water state
@@ -986,16 +1022,16 @@ int main(int argc, char **argv) {
         0.01, 0.01, 0.01,
         0.01, 0.01 };
 
-      auto h_soi_ice = Kokkos::create_mirror_view(h2osoi_ice);
-      auto h_soi_liq = Kokkos::create_mirror_view(h2osoi_liq);
+      auto h_soi_ice = Kokkos::create_mirror_view(S->h2osoi_ice);
+      auto h_soi_liq = Kokkos::create_mirror_view(S->h2osoi_liq);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_soi_ice(n, i) = h2osoi_ice_hardwire[i];
           h_soi_liq(n, i) = h2osoi_liq_hardwire[i];
         }
       }
-      Kokkos::deep_copy(h2osoi_ice, h_soi_ice);
-      Kokkos::deep_copy(h2osoi_liq, h_soi_liq);
+      Kokkos::deep_copy(S->h2osoi_ice, h_soi_ice);
+      Kokkos::deep_copy(S->h2osoi_liq, h_soi_liq);
 
 
       double h2osoi_vol_hardwire[] = {
@@ -1004,13 +1040,13 @@ int main(int argc, char **argv) {
         0.6621235242027332, 0.1535948180493002, 0.15947477948341815,
         0.15954052527228618, 8.420726808634413e-06, 5.107428986500891e-06,
         3.0978122726178113e-06, 1.8789181213767733e-06, 1.5092697845407248e-06 };
-      auto h_soi_vol = Kokkos::create_mirror_view(h2osoi_vol);
+      auto h_soi_vol = Kokkos::create_mirror_view(S->h2osoi_vol);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevgrnd; ++i) {
           h_soi_vol(n, i) = h2osoi_vol_hardwire[i];
         }
       }
-      Kokkos::deep_copy(h2osoi_vol, h_soi_vol);
+      Kokkos::deep_copy(S->h2osoi_vol, h_soi_vol);
 
     }
 
@@ -1025,16 +1061,16 @@ int main(int argc, char **argv) {
       270.65049816473027, 267.8224112387398, 265.7450135695632,
       264.49481140089864, 264.14163363048056, 264.3351872934207,
       264.1163763444719, 263.88852987294865 };
-      auto h_tsoi = Kokkos::create_mirror_view(t_soisno);
+      auto h_tsoi = Kokkos::create_mirror_view(S->t_soisno);
       for (int n = 0; n < ncells; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_tsoi(n, i) = tsoi_hardwire[i];
         }
       }
-      auto h_tgrnd = Kokkos::create_mirror_view(t_grnd);
-      h_tgrnd(idx) = h_tsoi(idx, nlevsno - snl(idx));
-      Kokkos::deep_copy(t_soisno, h_tsoi);
-      Kokkos::deep_copy(t_grnd, h_tgrnd);
+      auto h_tgrnd = Kokkos::create_mirror_view(S->t_grnd);
+      h_tgrnd(idx) = h_tsoi(idx, nlevsno - S->snl(idx));
+      Kokkos::deep_copy(S->t_soisno, h_tsoi);
+      Kokkos::deep_copy(S->t_grnd, h_tgrnd);
     }
 
 
@@ -1124,7 +1160,7 @@ int main(int argc, char **argv) {
         }
         // reads three months of data on first call
         // after first call, read new data if phen_data.need_new_data_ == true
-        auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, vtype); // if needed
+        auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, S->vtype); // if needed
         // copy host views to device
         // could be made more efficient, see above
         if (phen_updated) {
@@ -1134,10 +1170,10 @@ int main(int argc, char **argv) {
           Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
         }
         // run parallel kernel to process phenology data
-        phen_data.get_data(current, snow_depth,
-                           frac_sno, vtype, elai, esai,
-                           htop, hbot, tlai, tsai,
-                           frac_veg_nosno_alb);
+        phen_data.get_data(current, S->snow_depth,
+                           S->frac_sno, S->vtype, S->elai, S->esai,
+                           S->htop, S->hbot, S->tlai, S->tsai,
+                           S->frac_veg_nosno_alb);
       }
 
       // read forcing data if needed
@@ -1178,9 +1214,9 @@ int main(int argc, char **argv) {
 
       // get aerosol mss and cnc
       {
-        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_data, aerosol_masses);
-        ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, do_capsnow, snl, h2osoi_liq,
-        h2osoi_ice, snw_rds, qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
+        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, aerosol_masses);
+        ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, do_capsnow, S->snl, S->h2osoi_liq,
+        S->h2osoi_ice, S->snw_rds, S->qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
       }
 
 
@@ -1189,13 +1225,13 @@ int main(int argc, char **argv) {
         Kokkos::parallel_for("init_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
           ELM::init_timestep(lakpoi, veg_active(idx),
-                             frac_veg_nosno_alb(idx),
-                             snl(idx), h2osno(idx),
-                             Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-                             Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+                             S->frac_veg_nosno_alb(idx),
+                             S->snl(idx), S->h2osno(idx),
+                             Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+                             Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
                              do_capsnow(idx),
-                             frac_veg_nosno(idx),
-                             Kokkos::subview(frac_iceold, idx, Kokkos::ALL));
+                             S->frac_veg_nosno(idx),
+                             Kokkos::subview(S->frac_iceold, idx, Kokkos::ALL));
         });
       }
 
@@ -1218,11 +1254,11 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
           // parse pft data for Land.vtype
-          ELM::PFTDataAlb alb_pft = pft_data.get_pft_alb(vtype(idx));
+          ELM::PFTDataAlb alb_pft = pft_data->get_pft_alb(S->vtype(idx));
 
           ELM::surface_albedo::init_timestep(
               Land.urbpoi,
-              elai(idx),
+              S->elai(idx),
               Kokkos::subview(aerosol_concentrations.mss_cnc_bcphi, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_concentrations.mss_cnc_bcpho, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_concentrations.mss_cnc_dst1, idx, Kokkos::ALL),
@@ -1254,12 +1290,12 @@ int main(int argc, char **argv) {
 
           ELM::surface_albedo::soil_albedo(
               Land,
-              snl(idx),
-              t_grnd(idx),
+              S->snl(idx),
+              S->t_grnd(idx),
               coszen(idx),
-              Kokkos::subview(h2osoi_vol, idx, Kokkos::ALL),
-              Kokkos::subview(albsat, isoicol(idx), Kokkos::ALL),
-              Kokkos::subview(albdry, isoicol(idx), Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_vol, idx, Kokkos::ALL),
+              Kokkos::subview(S->albsat, S->isoicol(idx), Kokkos::ALL),
+              Kokkos::subview(S->albdry, S->isoicol(idx), Kokkos::ALL),
               Kokkos::subview(albsod, idx, Kokkos::ALL),
               Kokkos::subview(albsoi, idx, Kokkos::ALL));
 
@@ -1270,11 +1306,11 @@ int main(int argc, char **argv) {
                 Land.urbpoi,
                 flg_slr_in,
                 coszen(idx),
-                h2osno(idx),
-                snl(idx),
-                Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-                Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-                Kokkos::subview(snw_rds, idx, Kokkos::ALL),
+                S->h2osno(idx),
+                S->snl(idx),
+                Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+                Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+                Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
                 snl_top(idx),
                 snl_btm(idx),
                 Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
@@ -1293,41 +1329,41 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 snl_btm(idx),
                 coszen(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
-                snicar_data.ss_alb_oc1,
-                snicar_data.asm_prm_oc1,
-                snicar_data.ext_cff_mss_oc1,
-                snicar_data.ss_alb_oc2,
-                snicar_data.asm_prm_oc2,
-                snicar_data.ext_cff_mss_oc2,
-                snicar_data.ss_alb_dst1,
-                snicar_data.asm_prm_dst1,
-                snicar_data.ext_cff_mss_dst1,
-                snicar_data.ss_alb_dst2,
-                snicar_data.asm_prm_dst2,
-                snicar_data.ext_cff_mss_dst2,
-                snicar_data.ss_alb_dst3,
-                snicar_data.asm_prm_dst3,
-                snicar_data.ext_cff_mss_dst3,
-                snicar_data.ss_alb_dst4,
-                snicar_data.asm_prm_dst4,
-                snicar_data.ext_cff_mss_dst4,
-                snicar_data.ss_alb_snw_drc,
-                snicar_data.asm_prm_snw_drc,
-                snicar_data.ext_cff_mss_snw_drc,
-                snicar_data.ss_alb_snw_dfs,
-                snicar_data.asm_prm_snw_dfs,
-                snicar_data.ext_cff_mss_snw_dfs,
-                snicar_data.ss_alb_bc1,
-                snicar_data.asm_prm_bc1,
-                snicar_data.ext_cff_mss_bc1,
-                snicar_data.ss_alb_bc2,
-                snicar_data.asm_prm_bc2,
-                snicar_data.ext_cff_mss_bc2,
-                snicar_data.bcenh,
+                snicar_data->ss_alb_oc1,
+                snicar_data->asm_prm_oc1,
+                snicar_data->ext_cff_mss_oc1,
+                snicar_data->ss_alb_oc2,
+                snicar_data->asm_prm_oc2,
+                snicar_data->ext_cff_mss_oc2,
+                snicar_data->ss_alb_dst1,
+                snicar_data->asm_prm_dst1,
+                snicar_data->ext_cff_mss_dst1,
+                snicar_data->ss_alb_dst2,
+                snicar_data->asm_prm_dst2,
+                snicar_data->ext_cff_mss_dst2,
+                snicar_data->ss_alb_dst3,
+                snicar_data->asm_prm_dst3,
+                snicar_data->ext_cff_mss_dst3,
+                snicar_data->ss_alb_dst4,
+                snicar_data->asm_prm_dst4,
+                snicar_data->ext_cff_mss_dst4,
+                snicar_data->ss_alb_snw_drc,
+                snicar_data->asm_prm_snw_drc,
+                snicar_data->ext_cff_mss_snw_drc,
+                snicar_data->ss_alb_snw_dfs,
+                snicar_data->asm_prm_snw_dfs,
+                snicar_data->ext_cff_mss_snw_dfs,
+                snicar_data->ss_alb_bc1,
+                snicar_data->asm_prm_bc1,
+                snicar_data->ext_cff_mss_bc1,
+                snicar_data->ss_alb_bc2,
+                snicar_data->asm_prm_bc2,
+                snicar_data->ext_cff_mss_bc2,
+                snicar_data->bcenh,
                 Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
                 Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
                 Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
@@ -1340,7 +1376,7 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 snl_btm(idx),
                 coszen(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 mu_not(idx),
                 Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL),
@@ -1357,7 +1393,7 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 coszen(idx),
                 mu_not(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(albsoi, idx, Kokkos::ALL),
                 Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
@@ -1374,11 +1410,11 @@ int main(int argc, char **argv) {
                 Land.urbpoi,
                 flg_slr_in,
                 coszen(idx),
-                h2osno(idx),
-                snl(idx),
-                Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-                Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-                Kokkos::subview(snw_rds, idx, Kokkos::ALL),
+                S->h2osno(idx),
+                S->snl(idx),
+                Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+                Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+                Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
                 snl_top(idx),
                 snl_btm(idx),
                 Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
@@ -1397,41 +1433,41 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 snl_btm(idx),
                 coszen(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
-                snicar_data.ss_alb_oc1,
-                snicar_data.asm_prm_oc1,
-                snicar_data.ext_cff_mss_oc1,
-                snicar_data.ss_alb_oc2,
-                snicar_data.asm_prm_oc2,
-                snicar_data.ext_cff_mss_oc2,
-                snicar_data.ss_alb_dst1,
-                snicar_data.asm_prm_dst1,
-                snicar_data.ext_cff_mss_dst1,
-                snicar_data.ss_alb_dst2,
-                snicar_data.asm_prm_dst2,
-                snicar_data.ext_cff_mss_dst2,
-                snicar_data.ss_alb_dst3,
-                snicar_data.asm_prm_dst3,
-                snicar_data.ext_cff_mss_dst3,
-                snicar_data.ss_alb_dst4,
-                snicar_data.asm_prm_dst4,
-                snicar_data.ext_cff_mss_dst4,
-                snicar_data.ss_alb_snw_drc,
-                snicar_data.asm_prm_snw_drc,
-                snicar_data.ext_cff_mss_snw_drc,
-                snicar_data.ss_alb_snw_dfs,
-                snicar_data.asm_prm_snw_dfs,
-                snicar_data.ext_cff_mss_snw_dfs,
-                snicar_data.ss_alb_bc1,
-                snicar_data.asm_prm_bc1,
-                snicar_data.ext_cff_mss_bc1,
-                snicar_data.ss_alb_bc2,
-                snicar_data.asm_prm_bc2,
-                snicar_data.ext_cff_mss_bc2,
-                snicar_data.bcenh,
+                snicar_data->ss_alb_oc1,
+                snicar_data->asm_prm_oc1,
+                snicar_data->ext_cff_mss_oc1,
+                snicar_data->ss_alb_oc2,
+                snicar_data->asm_prm_oc2,
+                snicar_data->ext_cff_mss_oc2,
+                snicar_data->ss_alb_dst1,
+                snicar_data->asm_prm_dst1,
+                snicar_data->ext_cff_mss_dst1,
+                snicar_data->ss_alb_dst2,
+                snicar_data->asm_prm_dst2,
+                snicar_data->ext_cff_mss_dst2,
+                snicar_data->ss_alb_dst3,
+                snicar_data->asm_prm_dst3,
+                snicar_data->ext_cff_mss_dst3,
+                snicar_data->ss_alb_dst4,
+                snicar_data->asm_prm_dst4,
+                snicar_data->ext_cff_mss_dst4,
+                snicar_data->ss_alb_snw_drc,
+                snicar_data->asm_prm_snw_drc,
+                snicar_data->ext_cff_mss_snw_drc,
+                snicar_data->ss_alb_snw_dfs,
+                snicar_data->asm_prm_snw_dfs,
+                snicar_data->ext_cff_mss_snw_dfs,
+                snicar_data->ss_alb_bc1,
+                snicar_data->asm_prm_bc1,
+                snicar_data->ext_cff_mss_bc1,
+                snicar_data->ss_alb_bc2,
+                snicar_data->asm_prm_bc2,
+                snicar_data->ext_cff_mss_bc2,
+                snicar_data->bcenh,
                 Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
                 Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
                 Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
@@ -1444,7 +1480,7 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 snl_btm(idx),
                 coszen(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 mu_not(idx),
                 Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL),
@@ -1461,7 +1497,7 @@ int main(int argc, char **argv) {
                 snl_top(idx),
                 coszen(idx),
                 mu_not(idx),
-                h2osno(idx),
+                S->h2osno(idx),
                 Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(albsoi, idx, Kokkos::ALL),
                 Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
@@ -1473,7 +1509,7 @@ int main(int argc, char **argv) {
           ELM::surface_albedo::ground_albedo(
               Land.urbpoi,
               coszen(idx),
-              frac_sno(idx),
+              S->frac_sno(idx),
               Kokkos::subview(albsod, idx, Kokkos::ALL),
               Kokkos::subview(albsoi, idx, Kokkos::ALL),
               Kokkos::subview(albsnd, idx, Kokkos::ALL),
@@ -1484,7 +1520,7 @@ int main(int argc, char **argv) {
           ELM::surface_albedo::flux_absorption_factor(
               Land,
               coszen(idx),
-              frac_sno(idx),
+              S->frac_sno(idx),
               Kokkos::subview(albsod, idx, Kokkos::ALL),
               Kokkos::subview(albsoi, idx, Kokkos::ALL),
               Kokkos::subview(albsnd, idx, Kokkos::ALL),
@@ -1498,10 +1534,10 @@ int main(int argc, char **argv) {
 
           ELM::surface_albedo::canopy_layer_lai(
               Land.urbpoi,
-              elai(idx),
-              esai(idx),
-              tlai(idx),
-              tsai(idx),
+              S->elai(idx),
+              S->esai(idx),
+              S->tlai(idx),
+              S->tsai(idx),
               nrad(idx),
               ncan(idx),
               Kokkos::subview(tlai_z, idx, Kokkos::ALL),
@@ -1517,9 +1553,9 @@ int main(int argc, char **argv) {
               nrad(idx),
               coszen(idx),
               t_veg(idx),
-              fwet(idx),
-              elai(idx),
-              esai(idx),
+              S->fwet(idx),
+              S->elai(idx),
+              S->esai(idx),
               Kokkos::subview(tlai_z, idx, Kokkos::ALL),
               Kokkos::subview(tsai_z, idx, Kokkos::ALL),
               Kokkos::subview(albgrd, idx, Kokkos::ALL),
@@ -1562,14 +1598,14 @@ int main(int argc, char **argv) {
 
           ELM::canopy_hydrology::interception(
               Land,
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               forc_rain(idx),
               forc_snow(idx),
               dewmx,
-              elai(idx),
-              esai(idx),
+              S->elai(idx),
+              S->esai(idx),
               dtime,
-              h2ocan(idx),
+              S->h2ocan(idx),
               qflx_candrip,
               qflx_through_snow,
               qflx_through_rain,
@@ -1579,7 +1615,7 @@ int main(int argc, char **argv) {
           ELM::canopy_hydrology::ground_flux(
               Land,
               do_capsnow(idx),
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               forc_rain(idx),
               forc_snow(idx),
               qflx_irrig,
@@ -1588,20 +1624,20 @@ int main(int argc, char **argv) {
               qflx_through_rain,
               fracsnow,
               fracrain,
-              qflx_snwcp_liq(idx),
-              qflx_snwcp_ice(idx),
-              qflx_snow_grnd(idx),
-              qflx_rain_grnd(idx));
+              S->qflx_snwcp_liq(idx),
+              S->qflx_snwcp_ice(idx),
+              S->qflx_snow_grnd(idx),
+              S->qflx_rain_grnd(idx));
 
           ELM::canopy_hydrology::fraction_wet(
               Land,
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               dewmx,
-              elai(idx),
-              esai(idx),
-              h2ocan(idx),
-              fwet(idx),
-              fdry(idx));
+              S->elai(idx),
+              S->esai(idx),
+              S->h2ocan(idx),
+              S->fwet(idx),
+              S->fdry(idx));
 
           ELM::canopy_hydrology::snow_init(
               Land,
@@ -1609,35 +1645,35 @@ int main(int argc, char **argv) {
               do_capsnow(idx),
               oldfflag,
               forc_tbot(idx),
-              t_grnd(idx),
-              qflx_snow_grnd(idx),
-              qflx_snow_melt(idx),
-              n_melt(idx),
-              snow_depth(idx),
-              h2osno(idx),
-              int_snow(idx),
-              Kokkos::subview(swe_old, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(frac_iceold, idx, Kokkos::ALL),
-              snl(idx),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL),
-              Kokkos::subview(snw_rds, idx, Kokkos::ALL),
-              frac_sno_eff(idx),
-              frac_sno(idx));
+              S->t_grnd(idx),
+              S->qflx_snow_grnd(idx),
+              S->qflx_snow_melt(idx),
+              S->n_melt(idx),
+              S->snow_depth(idx),
+              S->h2osno(idx),
+              S->int_snow(idx),
+              Kokkos::subview(S->swe_old, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->frac_iceold, idx, Kokkos::ALL),
+              S->snl(idx),
+              Kokkos::subview(S->dz, idx, Kokkos::ALL),
+              Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
+              Kokkos::subview(S->zisoi, idx, Kokkos::ALL),
+              Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
+              S->frac_sno_eff(idx),
+              S->frac_sno(idx));
 
           ELM::canopy_hydrology::fraction_h2osfc(
               Land,
-              micro_sigma(idx),
-              h2osno(idx),
-              h2osfc(idx),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              frac_sno(idx),
-              frac_sno_eff(idx),
-              frac_h2osfc(idx));
+              S->micro_sigma(idx),
+              S->h2osno(idx),
+              S->h2osfc(idx),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              S->frac_sno(idx),
+              S->frac_sno_eff(idx),
+              S->frac_h2osfc(idx));
         }
 
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -1654,7 +1690,7 @@ int main(int argc, char **argv) {
           ELM::surface_radiation::canopy_sunshade_fractions(
               Land,
               nrad(idx),
-              elai(idx),
+              S->elai(idx),
               Kokkos::subview(tlai_z, idx, Kokkos::ALL),
               Kokkos::subview(fsun_z, idx, Kokkos::ALL),
               Kokkos::subview(forc_solad, idx, Kokkos::ALL),
@@ -1681,7 +1717,7 @@ int main(int argc, char **argv) {
 
           ELM::surface_radiation::total_absorbed_radiation(
               Land,
-              snl(idx),
+              S->snl(idx),
               Kokkos::subview(ftdd, idx, Kokkos::ALL),
               Kokkos::subview(ftid, idx, Kokkos::ALL),
               Kokkos::subview(ftii, idx, Kokkos::ALL),
@@ -1705,10 +1741,10 @@ int main(int argc, char **argv) {
 
           ELM::surface_radiation::layer_absorbed_radiation(
               Land,
-              snl(idx),
+              S->snl(idx),
               sabg(idx),
               sabg_snow(idx),
-              snow_depth(idx),
+              S->snow_depth(idx),
               Kokkos::subview(flx_absdv, idx, Kokkos::ALL),
               Kokkos::subview(flx_absdn, idx, Kokkos::ALL),
               Kokkos::subview(flx_absiv, idx, Kokkos::ALL),
@@ -1737,32 +1773,32 @@ int main(int argc, char **argv) {
           ELM::canopy_temperature::old_ground_temp(
               Land,
               t_h2osfc(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               t_h2osfc_bef(idx),
               Kokkos::subview(tssbef, idx, Kokkos::ALL));
 
           ELM::canopy_temperature::ground_temp(
               Land,
-              snl(idx),
-              frac_sno_eff(idx),
-              frac_h2osfc(idx),
+              S->snl(idx),
+              S->frac_sno_eff(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              t_grnd(idx));
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              S->t_grnd(idx));
 
           ELM::canopy_temperature::calc_soilalpha(
               Land,
-              frac_sno(idx),
-              frac_h2osfc(idx),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              S->frac_sno(idx),
+              S->frac_h2osfc(idx),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(watsat, idx, Kokkos::ALL),
-              Kokkos::subview(sucsat, idx, Kokkos::ALL),
-              Kokkos::subview(bsw, idx, Kokkos::ALL),
-              Kokkos::subview(watdry, idx, Kokkos::ALL),
-              Kokkos::subview(watopt, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->watsat, idx, Kokkos::ALL),
+              Kokkos::subview(S->sucsat, idx, Kokkos::ALL),
+              Kokkos::subview(S->bsw, idx, Kokkos::ALL),
+              Kokkos::subview(S->watdry, idx, Kokkos::ALL),
+              Kokkos::subview(S->watopt, idx, Kokkos::ALL),
               Kokkos::subview(rootfr_road_perv, idx, Kokkos::ALL),
               Kokkos::subview(rootr_road_perv, idx, Kokkos::ALL),
               qred, hr,
@@ -1771,28 +1807,28 @@ int main(int argc, char **argv) {
 
           ELM::canopy_temperature::calc_soilbeta(
               Land,
-              frac_sno(idx),
-              frac_h2osfc(idx),
-              Kokkos::subview(watsat, idx, Kokkos::ALL),
-              Kokkos::subview(watfc, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              S->frac_sno(idx),
+              S->frac_h2osfc(idx),
+              Kokkos::subview(S->watsat, idx, Kokkos::ALL),
+              Kokkos::subview(S->watfc, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               Kokkos::subview(dz, idx, Kokkos::ALL),
               soilbeta(idx));
 
           ELM::canopy_temperature::humidities(
               Land,
-              snl(idx),
+              S->snl(idx),
               forc_qbot(idx),
               forc_pbot(idx),
               t_h2osfc(idx),
-              t_grnd(idx),
-              frac_sno(idx),
-              frac_sno_eff(idx),
-              frac_h2osfc(idx),
+              S->t_grnd(idx),
+              S->frac_sno(idx),
+              S->frac_sno_eff(idx),
+              S->frac_h2osfc(idx),
               qred,
               hr,
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               qg_snow(idx),
               qg_soil(idx),
               qg(idx),
@@ -1801,17 +1837,17 @@ int main(int argc, char **argv) {
 
           ELM::canopy_temperature::ground_properties(
               Land,
-              snl(idx),
-              frac_sno(idx),
+              S->snl(idx),
+              S->frac_sno(idx),
               forc_thbot(idx),
               forc_qbot(idx),
-              elai(idx),
-              esai(idx),
-              htop(idx),
-              pft_data.displar,
-              pft_data.z0mr,
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              S->elai(idx),
+              S->esai(idx),
+              S->htop(idx),
+              pft_data->displar,
+              pft_data->z0mr,
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               emg(idx),
               emv(idx),
               htvp(idx),
@@ -1828,7 +1864,7 @@ int main(int argc, char **argv) {
           ELM::canopy_temperature::forcing_height(
               Land,
               veg_active(idx),
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               forc_hgt_u(idx),
               forc_hgt_t(idx),
               forc_hgt_q(idx),
@@ -1879,7 +1915,7 @@ int main(int argc, char **argv) {
 
           ELM::bareground_fluxes::initialize_flux(
               Land,
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               forc_u(idx),
               forc_v(idx),
               forc_qbot(idx),
@@ -1887,7 +1923,7 @@ int main(int argc, char **argv) {
               forc_hgt_u_patch(idx),
               thm(idx),
               thv(idx),
-              t_grnd(idx),
+              S->t_grnd(idx),
               qg(idx),
               z0mg(idx),
               dlrad(idx),
@@ -1902,7 +1938,7 @@ int main(int argc, char **argv) {
 
           ELM::bareground_fluxes::stability_iteration(
               Land,
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               forc_hgt_t_patch(idx),
               forc_hgt_u_patch(idx),
               forc_hgt_q_patch(idx),
@@ -1927,8 +1963,8 @@ int main(int argc, char **argv) {
 
           ELM::bareground_fluxes::compute_flux(
               Land,
-              frac_veg_nosno(idx),
-              snl(idx),
+              S->frac_veg_nosno(idx),
+              S->snl(idx),
               forc_rho(idx),
               soilbeta(idx),
               dqgdT(idx),
@@ -1937,7 +1973,7 @@ int main(int argc, char **argv) {
               qg_snow(idx),
               qg_soil(idx),
               qg_h2osfc(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               forc_pbot(idx),
               dth,
               dqh,
@@ -2008,9 +2044,9 @@ int main(int argc, char **argv) {
 
           ELM::canopy_fluxes::initialize_flux(
               Land,
-              snl(idx),
-              frac_veg_nosno(idx),
-              frac_sno(idx),
+              S->snl(idx),
+              S->frac_veg_nosno(idx),
+              S->frac_sno(idx),
               forc_hgt_u_patch(idx),
               thm(idx),
               thv(idx),
@@ -2018,23 +2054,23 @@ int main(int argc, char **argv) {
               dayl,
               altmax_indx(idx),
               altmax_lastyear_indx(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(rootfr, idx, Kokkos::ALL),
-              psn_pft(idx).tc_stress,
-              Kokkos::subview(sucsat, idx, Kokkos::ALL),
-              Kokkos::subview(watsat, idx, Kokkos::ALL),
-              Kokkos::subview(bsw, idx, Kokkos::ALL),
-              psn_pft(idx).smpso,
-              psn_pft(idx).smpsc,
-              elai(idx),
-              esai(idx),
+              Kokkos::subview(S->rootfr, idx, Kokkos::ALL),
+              S->psn_pft(idx).tc_stress,
+              Kokkos::subview(S->sucsat, idx, Kokkos::ALL),
+              Kokkos::subview(S->watsat, idx, Kokkos::ALL),
+              Kokkos::subview(S->bsw, idx, Kokkos::ALL),
+              S->psn_pft(idx).smpso,
+              S->psn_pft(idx).smpsc,
+              S->elai(idx),
+              S->esai(idx),
               emv(idx),
               emg(idx),
               qg(idx),
-              t_grnd(idx),
+              S->t_grnd(idx),
               forc_tbot(idx),
               forc_pbot(idx),
               forc_lwrad(idx),
@@ -2069,34 +2105,34 @@ int main(int argc, char **argv) {
           ELM::canopy_fluxes::stability_iteration(
               Land,
               dtime,
-              snl(idx),
-              frac_veg_nosno(idx),
-              frac_sno(idx),
+              S->snl(idx),
+              S->frac_veg_nosno(idx),
+              S->frac_sno(idx),
               forc_hgt_u_patch(idx),
               forc_hgt_t_patch(idx),
               forc_hgt_q_patch(idx),
-              fwet(idx),
-              fdry(idx),
+              S->fwet(idx),
+              S->fdry(idx),
               laisun(idx),
               laisha(idx),
               forc_rho(idx),
-              snow_depth(idx),
+              S->snow_depth(idx),
               soilbeta(idx),
-              frac_h2osfc(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc(idx),
               sabv(idx),
-              h2ocan(idx),
-              htop(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              S->h2ocan(idx),
+              S->htop(idx),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               air,
               bir,
               cir,
               ur,
               zldis,
               displa(idx),
-              elai(idx),
-              esai(idx),
-              t_grnd(idx),
+              S->elai(idx),
+              S->esai(idx),
+              S->t_grnd(idx),
               forc_pbot(idx),
               forc_qbot(idx),
               forc_thbot(idx),
@@ -2107,7 +2143,7 @@ int main(int argc, char **argv) {
               thm(idx),
               thv(idx),
               qg(idx),
-              psn_pft(idx),
+              S->psn_pft(idx),
               nrad(idx),
               t10(idx),
               Kokkos::subview(tlai_z, idx, Kokkos::ALL),
@@ -2153,11 +2189,11 @@ int main(int argc, char **argv) {
           ELM::canopy_fluxes::compute_flux(
               Land,
               dtime,
-              snl(idx),
-              frac_veg_nosno(idx),
-              frac_sno(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              frac_h2osfc(idx),
+              S->snl(idx),
+              S->frac_veg_nosno(idx),
+              S->frac_sno(idx),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              S->frac_h2osfc(idx),
               t_h2osfc(idx),
               sabv(idx),
               qg_snow(idx),
@@ -2184,7 +2220,7 @@ int main(int argc, char **argv) {
               delq,
               dt_veg,
               t_veg(idx),
-              t_grnd(idx),
+              S->t_grnd(idx),
               forc_pbot(idx),
               qflx_tran_veg(idx),
               qflx_evap_veg(idx),
@@ -2199,7 +2235,7 @@ int main(int argc, char **argv) {
               wtalq,
               wtlq0,
               wtaq0,
-              h2ocan(idx),
+              S->h2ocan(idx),
               eflx_sh_grnd(idx),
               eflx_sh_snow(idx),
               eflx_sh_soil(idx),
@@ -2226,8 +2262,8 @@ int main(int argc, char **argv) {
 
       ELM::soil_temp::solve_temperature<ViewD3>(
           dtime,
-          snl,
-          frac_veg_nosno,
+          S->snl,
+          S->frac_veg_nosno,
           dlrad,
           emg,
           forc_lwrad,
@@ -2241,40 +2277,40 @@ int main(int argc, char **argv) {
           qflx_evap_soi,
           eflx_sh_snow,
           qflx_ev_snow,
-          frac_sno_eff,
-          frac_sno,
-          frac_h2osfc,
+          S->frac_sno_eff,
+          S->frac_sno,
+          S->frac_h2osfc,
           sabg_snow,
           sabg_soil,
           sabg_lyr,
-          watsat,
-          sucsat,
-          bsw,
-          tkmg,
-          tkdry,
-          csol,
-          dz,
-          zsoi,
-          zisoi,
-          h2osfc,
-          h2osno,
-          snow_depth,
-          int_snow,
+          S->watsat,
+          S->sucsat,
+          S->bsw,
+          S->tkmg,
+          S->tkdry,
+          S->csol,
+          S->dz,
+          S->zsoi,
+          S->zisoi,
+          S->h2osfc,
+          S->h2osno,
+          S->snow_depth,
+          S->int_snow,
           t_h2osfc,
-          t_grnd,
+          S->t_grnd,
           xmf_h2osfc_dummy,
           xmf_dummy,
           qflx_h2osfc_to_ice_dummy,
           eflx_h2osfc_to_snow_dummy,
           qflx_snofrz,
-          qflx_snow_melt,
+          S->qflx_snow_melt,
           qflx_snomelt,
           eflx_snomelt,
           imelt,
-          h2osoi_liq,
-          h2osoi_ice,
+          S->h2osoi_liq,
+          S->h2osoi_ice,
           qflx_snofrz_lyr,
-          t_soisno,
+          S->t_soisno,
           fact);
 
       Kokkos::parallel_for("second_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
@@ -2288,48 +2324,48 @@ int main(int argc, char **argv) {
 
           ELM::snow::snow_water(
               do_capsnow(idx),
-              snl(idx),
+              S->snl(idx),
               dtime,
-              frac_sno_eff(idx),
-              h2osno(idx),
+              S->frac_sno_eff(idx),
+              S->h2osno(idx),
               qflx_sub_snow(idx),
               qflx_evap_grnd(idx),
               qflx_dew_snow(idx),
               qflx_dew_grnd(idx),
-              qflx_rain_grnd(idx),
+              S->qflx_rain_grnd(idx),
               qflx_snomelt(idx),
-              qflx_snow_melt(idx),
+              S->qflx_snow_melt(idx),
               qflx_top_soil(idx),
-              int_snow(idx),
-              frac_sno(idx),
+              S->int_snow(idx),
+              S->frac_sno(idx),
               mflx_neg_snow(idx),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL));
+              Kokkos::subview(S->dz, idx, Kokkos::ALL));
         }
 
       });
 
       // aerosol deposition must be called between these two snow hydrology functions
       // look at combining aerosol_phase_change and aerosol deposition
-      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, snl, aerosol_data, aerosol_masses);
+      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, aerosol_masses);
 
       Kokkos::parallel_for("third_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
         {
 
           ELM::snow::aerosol_phase_change(
-              snl(idx),
+              S->snl(idx),
               dtime,
               qflx_sub_snow(idx),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL));
 
@@ -2338,96 +2374,96 @@ int main(int argc, char **argv) {
               Kokkos::subview(rootr, idx, Kokkos::ALL),
               Kokkos::subview(qflx_rootsoi, idx, Kokkos::ALL));
 
-          ELM::snow::snow_compaction(snl(idx),
+          ELM::snow::snow_compaction(S->snl(idx),
               Land.ltype,
               dtime,
-              int_snow(idx),
-              n_melt(idx),
-              frac_sno(idx),
+              S->int_snow(idx),
+              S->n_melt(idx),
+              S->frac_sno(idx),
               Kokkos::subview(imelt, idx, Kokkos::ALL),
-              Kokkos::subview(swe_old, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(frac_iceold, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL));
+              Kokkos::subview(S->swe_old, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->frac_iceold, idx, Kokkos::ALL),
+              Kokkos::subview(S->dz, idx, Kokkos::ALL));
 
 
           ELM::snow::combine_layers(
               Land.urbpoi,
               Land.ltype,
               dtime,
-              snl(idx),
-              h2osno(idx),
-              snow_depth(idx),
-              frac_sno_eff(idx),
-              frac_sno(idx),
-              int_snow(idx),
+              S->snl(idx),
+              S->h2osno(idx),
+              S->snow_depth(idx),
+              S->frac_sno_eff(idx),
+              S->frac_sno(idx),
+              S->int_snow(idx),
               qflx_sl_top_soil(idx),
               qflx_snow2topsoi(idx),
               mflx_snowlyr_col(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(snw_rds, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL));
+              Kokkos::subview(S->dz, idx, Kokkos::ALL),
+              Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
+              Kokkos::subview(S->zisoi, idx, Kokkos::ALL));
 
 
           ELM::snow::divide_layers(
-              frac_sno(idx),
-              snl(idx),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(snw_rds, idx, Kokkos::ALL),
+              S->frac_sno(idx),
+              S->snl(idx),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
               Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL));
+              Kokkos::subview(S->dz, idx, Kokkos::ALL),
+              Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
+              Kokkos::subview(S->zisoi, idx, Kokkos::ALL));
 
 
           ELM::snow::prune_snow_layers(
-              snl(idx),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(zsoi, idx, Kokkos::ALL),
-              Kokkos::subview(zisoi, idx, Kokkos::ALL));
+              S->snl(idx),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
+              Kokkos::subview(S->dz, idx, Kokkos::ALL),
+              Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
+              Kokkos::subview(S->zisoi, idx, Kokkos::ALL));
 
 
           ELM::snow::snow_aging(
               do_capsnow(idx),
-              snl(idx),
-              frac_sno(idx),
+              S->snl(idx),
+              S->frac_sno(idx),
               dtime,
-              qflx_snwcp_ice(idx),
-              qflx_snow_grnd(idx),
-              h2osno(idx),
-              Kokkos::subview(dz, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_liq, idx, Kokkos::ALL),
-              Kokkos::subview(h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              S->qflx_snwcp_ice(idx),
+              S->qflx_snow_grnd(idx),
+              S->h2osno(idx),
+              Kokkos::subview(S->dz, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
+              Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(qflx_snofrz_lyr, idx, Kokkos::ALL),
-              snw_rds_table,
+              *snw_rds_table,
               snot_top(idx),
               dTdz_top(idx),
               snw_rds_top(idx),
               sno_liq_top(idx),
-              Kokkos::subview(snw_rds, idx, Kokkos::ALL));
+              Kokkos::subview(S->snw_rds, idx, Kokkos::ALL));
 
         }
 
@@ -2438,17 +2474,17 @@ int main(int argc, char **argv) {
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
         {
-          const auto snotop = nlevsno-snl(idx);
+          const auto snotop = nlevsno-S->snl(idx);
           const auto& soitop = nlevsno;
           ELM::surface_fluxes::initial_flux_calc(
               Land.urbpoi,
-              snl(idx),
-              frac_sno_eff(idx),
-              frac_h2osfc(idx),
+              S->snl(idx),
+              S->frac_sno_eff(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc_bef(idx),
               tssbef(idx, snotop),
               tssbef(idx, soitop),
-              t_grnd(idx),
+              S->t_grnd(idx),
               cgrnds(idx),
               cgrndl(idx),
               eflx_sh_grnd(idx),
@@ -2460,23 +2496,23 @@ int main(int argc, char **argv) {
           ELM::surface_fluxes::update_surface_fluxes(
               Land.urbpoi,
               do_capsnow(idx),
-              snl(idx),
+              S->snl(idx),
               dtime,
-              t_grnd(idx),
+              S->t_grnd(idx),
               htvp(idx),
-              frac_sno_eff(idx),
-              frac_h2osfc(idx),
+              S->frac_sno_eff(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc_bef(idx),
               sabg_soil(idx),
               sabg_snow(idx),
               dlrad(idx),
-              frac_veg_nosno(idx),
+              S->frac_veg_nosno(idx),
               emg(idx),
               forc_lwrad(idx),
               tssbef(idx, snotop),
               tssbef(idx, soitop),
-              h2osoi_ice(idx, snotop),
-              h2osoi_liq(idx, soitop),
+              S->h2osoi_ice(idx, snotop),
+              S->h2osoi_liq(idx, soitop),
               eflx_sh_veg(idx),
               qflx_evap_veg(idx),
               qflx_evap_soi(idx),
@@ -2492,20 +2528,20 @@ int main(int argc, char **argv) {
               qflx_sub_snow(idx),
               qflx_dew_snow(idx),
               qflx_dew_grnd(idx),
-              qflx_snwcp_liq(idx),
-              qflx_snwcp_ice(idx));
+              S->qflx_snwcp_liq(idx),
+              S->qflx_snwcp_ice(idx));
 
           ELM::surface_fluxes::lwrad_outgoing(
               Land.urbpoi,
-              snl(idx),
-              frac_veg_nosno(idx),
+              S->snl(idx),
+              S->frac_veg_nosno(idx),
               forc_lwrad(idx),
-              frac_sno_eff(idx),
+              S->frac_sno_eff(idx),
               tssbef(idx, snotop),
               tssbef(idx, soitop),
-              frac_h2osfc(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc_bef(idx),
-              t_grnd(idx),
+              S->t_grnd(idx),
               ulrad(idx),
               emg(idx),
               eflx_lwrad_out(idx),
@@ -2513,18 +2549,18 @@ int main(int argc, char **argv) {
 
           soil_e_balance(idx) = ELM::surface_fluxes::soil_energy_balance(
               Land.ctype,
-              snl(idx),
+              S->snl(idx),
               eflx_soil_grnd(idx),
               xmf_dummy(idx),
               xmf_h2osfc_dummy(idx),
-              frac_h2osfc(idx),
+              S->frac_h2osfc(idx),
               t_h2osfc(idx),
               t_h2osfc_bef(idx),
               dtime,
               eflx_h2osfc_to_snow_dummy(idx),
               eflx_building_heat_dummy(idx),
-              frac_sno_eff(idx),
-              Kokkos::subview(t_soisno, idx, Kokkos::ALL),
+              S->frac_sno_eff(idx),
+              Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(tssbef, idx, Kokkos::ALL),
               Kokkos::subview(fact, idx, Kokkos::ALL));
         }
@@ -2546,13 +2582,13 @@ int main(int argc, char **argv) {
 
       for (int i = 0; i < nlevsno + nlevgrnd; ++i)
         std::cout << "column vars:  " << i <<
-         "  t_soisno:  " << t_soisno(0, i) <<
-         "  h2osoi_ice:  " << h2osoi_ice(0, i) <<
-         "  h2osoi_liq:  " << h2osoi_liq(0, i) <<
-         "  dz:  " << dz(0, i) <<
-         "  zsoi:  " << zsoi(0, i) <<
-         "  zisoi:  " << zisoi(0, i) << std::endl;
-         std::cout << "last   zisoi:  " << zisoi(0, nlevsno+nlevgrnd) << std::endl;
+         "  t_soisno:  " << S->t_soisno(0, i) <<
+         "  h2osoi_ice:  " << S->h2osoi_ice(0, i) <<
+         "  h2osoi_liq:  " << S->h2osoi_liq(0, i) <<
+         "  dz:  " << S->dz(0, i) <<
+         "  zsoi:  " << S->zsoi(0, i) <<
+         "  zisoi:  " << S->zisoi(0, i) << std::endl;
+         std::cout << "last   zisoi:  " << S->zisoi(0, nlevsno+nlevgrnd) << std::endl;
 
 
 
@@ -2562,13 +2598,13 @@ int main(int argc, char **argv) {
 
 
       for (int i = 0; i < ncells; ++i) {
-        std::cout << "h2osno: " << h2osno(i) << std::endl;
-        std::cout << "t_grnd: " << t_grnd(i) << std::endl;
-        std::cout << "snow_depth: " << snow_depth(i) << std::endl;
-        std::cout << "frac_sno: " << frac_sno(i) << std::endl;
-        std::cout << "frac_sno_eff: " << frac_sno_eff(i) << std::endl;
+        std::cout << "h2osno: " << S->h2osno(i) << std::endl;
+        std::cout << "t_grnd: " << S->t_grnd(i) << std::endl;
+        std::cout << "snow_depth: " << S->snow_depth(i) << std::endl;
+        std::cout << "frac_sno: " << S->frac_sno(i) << std::endl;
+        std::cout << "frac_sno_eff: " << S->frac_sno_eff(i) << std::endl;
         std::cout << "qflx_tran_veg: " << qflx_tran_veg(i) << std::endl;
-        std::cout << "frac_veg_nosno_alb: " << frac_veg_nosno_alb(i) << std::endl;
+        std::cout << "frac_veg_nosno_alb: " << S->frac_veg_nosno_alb(i) << std::endl;
       }
 
       current.increment_seconds(dtime);
