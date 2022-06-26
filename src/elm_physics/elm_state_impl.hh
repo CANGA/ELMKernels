@@ -228,6 +228,7 @@ namespace ELM {
         flg_nosnl("flg_nosnl", ncells),
         snw_rds_lcl("snw_rds_lcl", ncells, ELMdims::nlevsno),
         mu_not("mu_not", ncells), // only called in snicar
+        coszen("coszen", ncells),
         fabd_sun("fabd_sun", ncells, ELMdims::numrad),
         fabd_sha("fabd_sha", ncells, ELMdims::numrad),
         fabi_sun("fabi_sun", ncells, ELMdims::numrad),

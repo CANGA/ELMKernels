@@ -16,7 +16,6 @@
 // input data readers and structs
 #include "land_data.h"
 #include "pft_data.h"
-#include "atm_data.h"
 #include "soil_data.h"
 #include "snicar_data.h"
 #include "aerosol_data.h"
@@ -55,21 +54,12 @@
 #include "elm_state.hh"
 // kokkos specific init
 #include "kokkos_elm_initialize.hh"
+#include "atm_helpers.hh"
 
 using ELM::Utils::create;
 using ELM::Utils::assign;
 
 using AtmForcType = ELM::AtmForcType;
-
-template<AtmForcType ftype>
-using atm_forc_util = ELM::AtmDataManager<ViewD1, ViewD2, ftype>;
-
-template <AtmForcType ftype>
-atm_forc_util<ftype> create_forc_util(const std::string& filename,
-                                      const ELM::Utils::Date &file_start_time,
-                                      const int ntimes, const int ncells)
-{ return atm_forc_util<ftype>(filename, file_start_time, ntimes, ncells); }
-
 
 std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::PhenologyDataManager<ViewD2>& phen_data)
 {
@@ -79,19 +69,6 @@ std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::Phenolo
   phen_host_views["MONTHLY_HEIGHT_TOP"] = Kokkos::create_mirror_view(phen_data.mhtop);
   phen_host_views["MONTHLY_HEIGHT_BOT"] = Kokkos::create_mirror_view(phen_data.mhbot);
   return phen_host_views;
-}
-
-template <AtmForcType ftype>
-void read_atm_data(ELM::AtmDataManager<ViewD1, ViewD2, ftype>& atm_data,
-                   const ELM::Utils::DomainDecomposition<2>& dd,
-                   const ELM::Utils::Date& model_time,
-                   const size_t& ntimes)
-{
-  auto h_data = Kokkos::create_mirror_view(atm_data.data);
-  atm_data.read_atm_forcing(h_data, dd, model_time, ntimes);
-  if (atm_data.data.extent(0) != h_data.extent(0) || atm_data.data.extent(1) != h_data.extent(1))
-    NS::resize(atm_data.data, h_data.extent(0), h_data.extent(1));
-  Kokkos::deep_copy(atm_data.data, h_data);
 }
 
 
@@ -117,7 +94,7 @@ int main(int argc, char **argv) {
       "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/atm/cam/chem/trop_mozart_aero/aero/aerosoldep_monthly_2000_mean_1.9x2.5_c090421.nc");
     std::string fname_snowage(
       "/Users/80x/Software/kernel_test_E3SM/pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc");
-    int MPI_COMM_WORLD;
+
     const int n_procs = 1;
     const int ncells = 1;
     int idx = 0; // hardwire for ncells = 1
@@ -255,17 +232,9 @@ int main(int argc, char **argv) {
                                 aerosol_data, dd, fname_surfdata, fname_param,
                                 fname_snicar, fname_snowage, fname_aerosol);
 
-    // need to modify !!
     int atm_nsteps = 101;
     const auto fstart = ELM::Utils::Date(1985, 1, 1);
-    auto forc_TBOT = create_forc_util<AtmForcType::TBOT>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_PBOT = create_forc_util<AtmForcType::PBOT>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_QBOT = create_forc_util<AtmForcType::RH>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_FLDS = create_forc_util<AtmForcType::FLDS>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_FSDS = create_forc_util<AtmForcType::FSDS>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_PREC = create_forc_util<AtmForcType::PREC>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_WIND = create_forc_util<AtmForcType::WIND>(fname_forc, fstart, atm_nsteps, ncells);
-    auto forc_ZBOT = create_forc_util<AtmForcType::ZBOT>(fname_forc, fstart, atm_nsteps, ncells);
+    auto atm_forcing = std::make_shared<ELM::AtmForcObjects>(fname_forc, fstart, atm_nsteps, ncells);
 
     // phenology data manager
     // make host mirrors - need to be persistent
@@ -273,8 +242,8 @@ int main(int argc, char **argv) {
     auto host_phen_views = get_phen_host_views(phen_data);
 
     // containers for aerosol deposition and concentration within snowpack layers
-    ELM::AerosolMasses<ViewD2> aerosol_masses(ncells);
-    ELM::AerosolConcentrations<ViewD2> aerosol_concentrations(ncells);
+    auto aerosol_masses = std::make_shared<ELM::AerosolMasses<ViewD2>>(ncells);
+    auto aerosol_concentrations = std::make_shared<ELM::AerosolConcentrations<ViewD2>>(ncells);
 
     // hardwired soil/snow water state
     {
@@ -355,8 +324,6 @@ int main(int argc, char **argv) {
     /*                          TIME LOOP                                                                  */
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-    auto coszen = create<ViewD1>("coszen", ncells);
-
     ELM::Utils::Date current(start);
 
     for (int t = 0; t < ntimes; ++t) {
@@ -382,7 +349,7 @@ int main(int argc, char **argv) {
 
         // first method - average cosz for dt_start to dt_end
         auto decday = ELM::Utils::decimal_doy(current) + 1.0;
-        assign(coszen, ELM::incident_shortwave::average_cosz(lat_r, lon_r, dtime, decday));
+        assign(S->coszen, ELM::incident_shortwave::average_cosz(lat_r, lon_r, dtime, decday));
 
         // second method - point cosz at dt_start + dt/2
         //auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
@@ -450,29 +417,9 @@ int main(int argc, char **argv) {
                            S->frac_veg_nosno_alb);
       }
 
-      // read forcing data if needed
-      {
-        read_atm_data(forc_TBOT, dd, current, atm_nsteps);
-        read_atm_data(forc_PBOT, dd, current, atm_nsteps);
-        read_atm_data(forc_QBOT, dd, current, atm_nsteps);
-        read_atm_data(forc_FLDS, dd, current, atm_nsteps);
-        read_atm_data(forc_FSDS, dd, current, atm_nsteps);
-        read_atm_data(forc_PREC, dd, current, atm_nsteps);
-        read_atm_data(forc_WIND, dd, current, atm_nsteps);
-        read_atm_data(forc_ZBOT, dd, current, atm_nsteps);
-      }
 
-      // process forcing data in parallel
-      {
-        forc_TBOT.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_tbot, S->forc_thbot);
-        forc_PBOT.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_pbot);
-        forc_QBOT.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_tbot, S->forc_pbot, S->forc_qbot, S->forc_rh);
-        forc_FLDS.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_pbot, S->forc_qbot, S->forc_tbot, S->forc_lwrad);
-        forc_FSDS.get_atm_forcing(dtime_d, time_plus_half_dt, coszen, S->forc_solai, S->forc_solad);
-        forc_PREC.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_tbot, S->forc_rain, S->forc_snow);
-        forc_WIND.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_u, S->forc_v);
-        forc_ZBOT.get_atm_forcing(dtime_d, time_plus_half_dt, S->forc_hgt, S->forc_hgt_u, S->forc_hgt_t,  S->forc_hgt_q);
-      }
+      ELM::read_forcing(atm_forcing, dd, current, atm_nsteps);
+      ELM::get_forcing(atm_forcing, S, dtime_d, time_plus_half_dt);
 
       // calculate constitutive air properties
       {
@@ -488,9 +435,9 @@ int main(int argc, char **argv) {
 
       // get aerosol mss and cnc
       {
-        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, aerosol_masses);
+        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, *aerosol_masses);
         ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, do_capsnow, S->snl, S->h2osoi_liq,
-        S->h2osoi_ice, S->snw_rds, S->qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
+        S->h2osoi_ice, S->snw_rds, S->qflx_snwcp_ice, *aerosol_masses, *aerosol_concentrations);
       }
 
 
@@ -533,12 +480,12 @@ int main(int argc, char **argv) {
           ELM::surface_albedo::init_timestep(
               S->Land.urbpoi,
               S->elai(idx),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_bcphi, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_bcpho, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_dst1, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_dst2, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_dst3, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_concentrations.mss_cnc_dst4, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_bcpho, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_dst1, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_dst2, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_dst3, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_concentrations->mss_cnc_dst4, idx, Kokkos::ALL),
               S->vcmaxcintsun(idx),
               S->vcmaxcintsha(idx),
               Kokkos::subview(S->albsod, idx, Kokkos::ALL),
@@ -566,7 +513,7 @@ int main(int argc, char **argv) {
               S->Land,
               S->snl(idx),
               S->t_grnd(idx),
-              coszen(idx),
+              S->coszen(idx),
               Kokkos::subview(S->h2osoi_vol, idx, Kokkos::ALL),
               Kokkos::subview(S->albsat, S->isoicol(idx), Kokkos::ALL),
               Kokkos::subview(S->albdry, S->isoicol(idx), Kokkos::ALL),
@@ -579,7 +526,7 @@ int main(int argc, char **argv) {
             ELM::snow_snicar::init_timestep (
                 S->Land.urbpoi,
                 flg_slr_in,
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 S->snl(idx),
                 Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
@@ -602,7 +549,7 @@ int main(int argc, char **argv) {
                 flg_slr_in,
                 S->snl_top(idx),
                 S->snl_btm(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 Kokkos::subview(S->snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(S->h2osoi_ice_lcl, idx, Kokkos::ALL),
@@ -649,7 +596,7 @@ int main(int argc, char **argv) {
                 S->flg_nosnl(idx),
                 S->snl_top(idx),
                 S->snl_btm(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 S->mu_not(idx),
                 Kokkos::subview(S->flx_slrd_lcl, idx, Kokkos::ALL),
@@ -665,7 +612,7 @@ int main(int argc, char **argv) {
                 S->Land.urbpoi,
                 flg_slr_in,
                 S->snl_top(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->mu_not(idx),
                 S->h2osno(idx),
                 Kokkos::subview(S->snw_rds_lcl, idx, Kokkos::ALL),
@@ -683,7 +630,7 @@ int main(int argc, char **argv) {
             ELM::snow_snicar::init_timestep (
                 S->Land.urbpoi,
                 flg_slr_in,
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 S->snl(idx),
                 Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
@@ -706,7 +653,7 @@ int main(int argc, char **argv) {
                 flg_slr_in,
                 S->snl_top(idx),
                 S->snl_btm(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 Kokkos::subview(S->snw_rds_lcl, idx, Kokkos::ALL),
                 Kokkos::subview(S->h2osoi_ice_lcl, idx, Kokkos::ALL),
@@ -753,7 +700,7 @@ int main(int argc, char **argv) {
                 S->flg_nosnl(idx),
                 S->snl_top(idx),
                 S->snl_btm(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->h2osno(idx),
                 S->mu_not(idx),
                 Kokkos::subview(S->flx_slrd_lcl, idx, Kokkos::ALL),
@@ -769,7 +716,7 @@ int main(int argc, char **argv) {
                 S->Land.urbpoi,
                 flg_slr_in,
                 S->snl_top(idx),
-                coszen(idx),
+                S->coszen(idx),
                 S->mu_not(idx),
                 S->h2osno(idx),
                 Kokkos::subview(S->snw_rds_lcl, idx, Kokkos::ALL),
@@ -782,7 +729,7 @@ int main(int argc, char **argv) {
 
           ELM::surface_albedo::ground_albedo(
               S->Land.urbpoi,
-              coszen(idx),
+              S->coszen(idx),
               S->frac_sno(idx),
               Kokkos::subview(S->albsod, idx, Kokkos::ALL),
               Kokkos::subview(S->albsoi, idx, Kokkos::ALL),
@@ -793,7 +740,7 @@ int main(int argc, char **argv) {
 
           ELM::surface_albedo::flux_absorption_factor(
               S->Land,
-              coszen(idx),
+              S->coszen(idx),
               S->frac_sno(idx),
               Kokkos::subview(S->albsod, idx, Kokkos::ALL),
               Kokkos::subview(S->albsoi, idx, Kokkos::ALL),
@@ -825,7 +772,7 @@ int main(int argc, char **argv) {
           ELM::surface_albedo::two_stream_solver(
               S->Land,
               S->nrad(idx),
-              coszen(idx),
+              S->coszen(idx),
               S->t_veg(idx),
               S->fwet(idx),
               S->elai(idx),
@@ -1602,12 +1549,12 @@ int main(int argc, char **argv) {
               S->mflx_neg_snow(idx),
               Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcpho, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst1, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst2, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst3, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst4, idx, Kokkos::ALL),
               Kokkos::subview(S->dz, idx, Kokkos::ALL));
         }
 
@@ -1615,7 +1562,7 @@ int main(int argc, char **argv) {
 
       // aerosol deposition must be called between these two snow hydrology functions
       // look at combining aerosol_phase_change and aerosol deposition
-      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, aerosol_masses);
+      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, *aerosol_masses);
 
       Kokkos::parallel_for("third_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
 
@@ -1627,8 +1574,8 @@ int main(int argc, char **argv) {
               S->qflx_sub_snow(idx),
               Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL));
+              Kokkos::subview(aerosol_masses->mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcpho, idx, Kokkos::ALL));
 
 
           ELM::trans::transpiration(veg_active(idx), S->qflx_tran_veg(idx),
@@ -1667,12 +1614,12 @@ int main(int argc, char **argv) {
               Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
               Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcpho, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst1, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst2, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst3, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst4, idx, Kokkos::ALL),
               Kokkos::subview(S->dz, idx, Kokkos::ALL),
               Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
               Kokkos::subview(S->zisoi, idx, Kokkos::ALL));
@@ -1685,12 +1632,12 @@ int main(int argc, char **argv) {
               Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
               Kokkos::subview(S->t_soisno, idx, Kokkos::ALL),
               Kokkos::subview(S->snw_rds, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcphi, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_bcpho, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst1, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst2, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst3, idx, Kokkos::ALL),
-              Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcphi, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_bcpho, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst1, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst2, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst3, idx, Kokkos::ALL),
+              Kokkos::subview(aerosol_masses->mss_dst4, idx, Kokkos::ALL),
               Kokkos::subview(S->dz, idx, Kokkos::ALL),
               Kokkos::subview(S->zsoi, idx, Kokkos::ALL),
               Kokkos::subview(S->zisoi, idx, Kokkos::ALL));

@@ -95,7 +95,7 @@ namespace ELM {
       // required for SurfaceAlbedo kernels
       ArrayI1 snl_top, snl_btm, ncan, flg_nosnl;
       ArrayI2 snw_rds_lcl;
-      ArrayD1 mu_not;
+      ArrayD1 mu_not, coszen;
       ArrayD2 fabd_sun, fabd_sha, fabi_sun, fabi_sha, albsnd, albsni,
               tsai_z, albout_lcl, flx_slrd_lcl, flx_slri_lcl,
               h2osoi_ice_lcl, h2osoi_liq_lcl;
