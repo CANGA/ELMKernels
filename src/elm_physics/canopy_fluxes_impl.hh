@@ -467,7 +467,7 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
                   const double& wtaq0, double& h2ocan, double& eflx_sh_grnd, double& eflx_sh_snow, double& eflx_sh_soil,
                   double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_ev_snow, double& qflx_ev_soil,
                   double& qflx_ev_h2osfc, double& dlrad, double& ulrad, double& cgrnds, double& cgrndl, double& cgrnd,
-                  double& t_ref2m, double& t_ref2m_r, double& q_ref2m, double& rh_ref2m, double& rh_ref2m_r)
+                  double& t_ref2m, double& q_ref2m, double& rh_ref2m)
 {
   using ELMdims::nlevsno;
   using ELMconst::CPAIR;
@@ -511,13 +511,13 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
 
     // 2 m height air temperature
     t_ref2m = thm + temp1 * dth * (1.0 / temp12m - 1.0 / temp1);
-    t_ref2m_r = t_ref2m;
+    //t_ref2m_r = t_ref2m;
     // 2 m height specific humidity
     q_ref2m = forc_q + temp2 * dqh * (1.0 / temp22m - 1.0 / temp2);
     // 2 m height relative humidity
     qsat(t_ref2m, forc_pbot, e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT);
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m) * 100.0);
-    rh_ref2m_r = rh_ref2m;
+    //rh_ref2m_r = rh_ref2m;
 
     // Downward longwave radiation below the canopy
     dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * ELMconst::STEBOL * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);

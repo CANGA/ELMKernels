@@ -272,9 +272,7 @@ void stability_iteration(
 \param[out] cgrndl                     [double] deriv of soil latent heat flux wrt soil temp [w/m**2/k]
 \param[out] cgrnd                      [double] deriv. of soil energy flux wrt to soil temp [w/m2/k]
 \param[out] t_ref2m                    [double]  2 m height surface air temperature (Kelvin)
-\param[out] t_ref2m_r                  [double]  Rural 2 m height surface air temperature (Kelvin)
 \param[out] q_ref2m                    [double]  2 m height surface specific humidity (kg/kg)
-\param[out] rh_ref2m_r                 [double]  Rural 2 m height surface relative humidity (%)
 \param[out] rh_ref2m                   [double]  2 m height surface relative humidity (%)
 */
 template <typename ArrayD1>
@@ -293,7 +291,7 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
                   const double& wtaq0, double& h2ocan, double& eflx_sh_grnd, double& eflx_sh_snow, double& eflx_sh_soil,
                   double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_ev_snow, double& qflx_ev_soil,
                   double& qflx_ev_h2osfc, double& dlrad, double& ulrad, double& cgrnds, double& cgrndl, double& cgrnd,
-                  double& t_ref2m, double& t_ref2m_r, double& q_ref2m, double& rh_ref2m, double& rh_ref2m_r);
+                  double& t_ref2m, double& q_ref2m, double& rh_ref2m);
 
 } // namespace ELM::canopy_fluxes
 

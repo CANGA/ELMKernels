@@ -87,8 +87,8 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
                   const double& forc_q, const double& thm, double& cgrnds, double& cgrndl, double& cgrnd,
                   double& eflx_sh_grnd, double& eflx_sh_tot, double& eflx_sh_snow, double& eflx_sh_soil,
                   double& eflx_sh_h2osfc, double& qflx_evap_soi, double& qflx_evap_tot, double& qflx_ev_snow,
-                  double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& t_ref2m_r, double& q_ref2m,
-                  double& rh_ref2m, double& rh_ref2m_r)
+                  double& qflx_ev_soil, double& qflx_ev_h2osfc, double& t_ref2m, double& q_ref2m,
+                  double& rh_ref2m)
 {
   using ELMdims::nlevsno;
   
@@ -152,10 +152,13 @@ void compute_flux(const LandType& Land, const int& frac_veg_nosno, const int& sn
 
     rh_ref2m = std::min(100.0, (q_ref2m / qsat_ref2m * 100.0));
 
-    if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
-      rh_ref2m_r = rh_ref2m;
-      t_ref2m_r = t_ref2m;
-    }
+    //if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
+    //  // t_ref2m_r  [double] Rural 2 m height surface air temperature (Kelvin)
+    //  // rh_ref2m_r [double] Rural 2 m height surface relative humidity (%)
+
+    //  rh_ref2m_r = rh_ref2m;
+    //  t_ref2m_r = t_ref2m;
+    //}
   }
 } // compute_flux()
 

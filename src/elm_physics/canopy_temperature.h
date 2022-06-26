@@ -64,20 +64,16 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[in]  bsw[nlevgrnd]                [double] Clapp and Hornberger "b"
 \param[in]  watdry[nlevgrnd]             [double] btran parameter for btran = 0
 \param[in]  watopt[nlevgrnd]             [double] btran parameter for btran = 1
-\param[in]  rootfr_road_perv[nlevgrnd]   [double] fraction of roots in each soil layer for urban pervious road
-\param[out] rootr_road_perv[nlevgrnd]    [double] effective fraction of roots in each soil layer for urban pervious road
 \param[out] qred                         [double] soil surface relative humidity
 \param[out] hr                           [double] relative humidity
 \param[out] soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
-\param[out] soilalpha_u                  [double] Urban factor that reduces ground saturated specific humidity (-)
 */
 template <typename ArrayD1>
 ACCELERATE
 void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& frac_h2osfc,
                     const ArrayD1 h2osoi_liq, const ArrayD1 h2osoi_ice, const ArrayD1 dz, const ArrayD1 t_soisno,
                     const ArrayD1 watsat, const ArrayD1 sucsat, const ArrayD1 bsw, const ArrayD1 watdry,
-                    const ArrayD1 watopt, const ArrayD1 rootfr_road_perv, ArrayD1 rootr_road_perv, double& qred,
-                    double& hr, double& soilalpha, double& soilalpha_u);
+                    const ArrayD1 watopt, double& qred, double& hr, double& soilalpha);
 
 /*! Calculate soilbeta parameter.
 
@@ -171,8 +167,6 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 \param[in]  forc_hgt_q       [double] observational height of specific humidity [m]
 \param[in]  z0m              [double] momentum roughness length (m)
 \param[in]  z0mg             [double] roughness length over ground, momentum [m]
-\param[in]  z_0_town         [double] momentum roughness length of urban landunit (
-\param[in]  z_d_town         [double] displacement height of urban landunit (m)
 \param[in]  forc_t           [double] atmospheric temperature (Kelvin)
 \param[in]  displa           [double] displacement height (m)
 \param[out] forc_hgt_u_patch [double] observational height of wind at pft level [m]
@@ -181,29 +175,26 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 \param[out] thm              [double] intermediate variable (forc_t+0.0098*forc_hgt_t_patch)
 */
 ACCELERATE
-void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno, const double& forc_hgt_u,
-                    const double& forc_hgt_t, const double& forc_hgt_q, const double& z0m, const double& z0mg,
-                    const double& z_0_town, const double& z_d_town, const double& forc_t, const double& displa,
-                    double& forc_hgt_u_patch, double& forc_hgt_t_patch, double& forc_hgt_q_patch, double& thm);
+void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno,
+                    const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q,
+                    const double& z0m, const double& z0mg, const double& forc_t, const double& displa,
+                    double& forc_hgt_u_patch, double& forc_hgt_t_patch,
+                    double& forc_hgt_q_patch, double& thm);
 
 /*! Set energy flux terms to 0.0 before calculation.
 
 \param[in]  Land             [LandType] struct containing information about landtype
 \param[out] eflx_sh_tot      [double] total sensible heat flux (W/m**2) [+ to atm]
-\param[out] eflx_sh_tot_u    [double] urban total sensible heat flux (W/m**2) [+ to atm]
-\param[out] eflx_sh_tot_r    [double] rural total sensible heat flux (W/m**2) [+ to atm]
 \param[out] eflx_lh_tot      [double] total latent heat flux (W/m**2)  [+ to atm]
-\param[out] eflx_lh_tot_u    [double] urban total latent heat flux (W/m**2)  [+ to atm]
-\param[out] eflx_lh_tot_r    [double] rural total latent heat flux (W/m**2)  [+ to atm]
 \param[out] eflx_sh_veg      [double] sensible heat flux from leaves (W/m**2) [+ to atm]
 \param[out] qflx_evap_tot    [double] qflx_evap_soi + qflx_evap_can + qflx_tran_veg
 \param[out] qflx_evap_veg    [double] vegetation evaporation (mm H2O/s) (+ = to atm)
 \param[out] qflx_tran_veg    [double] vegetation transpiration (mm H2O/s) (+ = to atm)
 */
 ACCELERATE
-void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_sh_tot_u, double& eflx_sh_tot_r,
-                        double& eflx_lh_tot, double& eflx_lh_tot_u, double& eflx_lh_tot_r, double& eflx_sh_veg,
-                        double& qflx_evap_tot, double& qflx_evap_veg, double& qflx_tran_veg);
+void init_energy_fluxes(const LandType& Land, double& eflx_sh_tot, double& eflx_lh_tot,
+                       double& eflx_sh_veg, double& qflx_evap_tot, double& qflx_evap_veg,
+                       double& qflx_tran_veg);
 
 } // namespace ELM::canopy_temperature
 
