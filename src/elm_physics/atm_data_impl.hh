@@ -42,27 +42,14 @@ constexpr auto get_varname() {
 // return reference to variable that maps to dim_idx for a file_array with 3 dimensions
 template <typename T, typename U>
 constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x, T& y) {
-  if (dim_idx == 2) {
-    return y;
-  }
-  if (dim_idx == 1) {
-    return x;
-  }
-  if (dim_idx == 0) {
-    return t;
-  }
+  return (dim_idx == 2) ? y : (dim_idx == 1) ? x : (dim_idx == 0) ? t :
   throw std::runtime_error("ELM ERROR: NetCDF variable dimension index not in {0,1,2}");
 }
 
 // return reference to variable that maps to dim_idx for a file_array with 2 dimensions
 template <typename T, typename U>
 constexpr T& get_dim_ref(const U& dim_idx, T& t, T& x) {
-  if (dim_idx == 1) {
-    return x;
-  }
-  if (dim_idx == 0) {
-    return t;
-  }
+  return (dim_idx == 1) ? x : (dim_idx == 0) ? t :
   throw std::runtime_error("ELM ERROR: NetCDF variable dimension index not in {0,1}");
 }
 
@@ -387,7 +374,7 @@ get_atm_forcing(const double& model_dt,
   };
 
   const size_t t_idx = forc_t_idx_check_bounds(model_dt, model_time, data_start_time_);
-  const auto forcing = physics_object(t_idx, model_time);
+  const auto& forcing = physics_object(t_idx, model_time);
   invoke_kernel(forcing, std::make_tuple(static_cast<int>(ncells_)), "ComputeAtmForcing_"+atm_utils::get_varname<ftype>());
 
   if (t_idx == ntimes_ - 2) // last possible calculation
