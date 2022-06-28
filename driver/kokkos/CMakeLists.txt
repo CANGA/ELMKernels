@@ -1,9 +1,24 @@
 
-add_executable (ELM_kokkos new_kokkos_driver.cc kokkos_elm_initialize.cc atm_helpers.cc)
+set(kokkos_driver_src_files
+atm_helpers.cc
+kokkos_elm_initialize.cc
+albedo_kokkos.cc
+new_kokkos_driver.cc
+)
 
-target_include_directories (ELM_kokkos PUBLIC ${ELM_PHYSICS_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR} ${NetCDF_INCLUDE_DIR} )
-target_link_libraries (ELM_kokkos LINK_PUBLIC elm_physics elm_utils Kokkos::kokkos ${NetCDF_LIBRARIES})
+set(kokkos_driver_inc_files
+atm_helpers.hh
+kokkos_elm_initialize.hh
+albedo_kokkos.hh
+)
 
-install(TARGETS ELM_kokkos)
+add_executable (elm_kokkos
+${kokkos_driver_src_files}
+${kokkos_driver_inc_files}
+)
+
+target_include_directories (elm_kokkos PUBLIC ${ELM_PHYSICS_SOURCE_DIR} ${ELM_INPUT_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR} ${NetCDF_INCLUDE_DIR})
+target_link_libraries (elm_kokkos LINK_PUBLIC elm_physics elm_input elm_utils Kokkos::kokkos ${NetCDF_LIBRARIES})
 
 
+install(TARGETS elm_kokkos)

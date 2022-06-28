@@ -3,15 +3,14 @@
 #pragma once
 
 
-#include "kokkos_types.hh"
+#include "data_types.hh"
 
 #include "pft_data.h"
 #include "atm_data.h"
 #include "snicar_data.h"
 #include "aerosol_data.h"
-//#include "phenology_data.h"
 
-#include "elm_state.hh"
+#include "elm_state.h"
 
 
 namespace ELM {

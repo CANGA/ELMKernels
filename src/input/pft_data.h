@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM {
 

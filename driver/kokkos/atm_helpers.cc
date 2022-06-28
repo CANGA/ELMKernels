@@ -1,6 +1,6 @@
 
-#include "kokkos_includes.hh"
-#include "kokkos_types.hh"
+#include "compile_options.hh"
+#include "data_types.hh"
 #include "elm_constants.h"
 #include "atm_helpers.hh"
 
@@ -33,16 +33,17 @@ namespace {
 ELM::AtmForcObjects::AtmForcObjects(const std::string& filename,
                                     const ELM::Utils::Date &file_start_time,
                                     const int atm_nsteps, const int ncells)
-    :
-      forc_TBOT(create_forc_util<AtmForcType::TBOT>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_PBOT(create_forc_util<AtmForcType::PBOT>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_QBOT(create_forc_util<AtmForcType::QBOT>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_FLDS(create_forc_util<AtmForcType::FLDS>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_FSDS(create_forc_util<AtmForcType::FSDS>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_PREC(create_forc_util<AtmForcType::PREC>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_WIND(create_forc_util<AtmForcType::WIND>(filename, file_start_time, atm_nsteps, ncells)),
-      forc_ZBOT(create_forc_util<AtmForcType::ZBOT>(filename, file_start_time, atm_nsteps, ncells))
-    {}
+  :
+    forc_TBOT(create_forc_util<AtmForcType::TBOT>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_PBOT(create_forc_util<AtmForcType::PBOT>(filename, file_start_time, atm_nsteps, ncells)),
+    //forc_QBOT(create_forc_util<AtmForcType::QBOT>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_QBOT(create_forc_util<AtmForcType::RH>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_FLDS(create_forc_util<AtmForcType::FLDS>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_FSDS(create_forc_util<AtmForcType::FSDS>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_PREC(create_forc_util<AtmForcType::PREC>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_WIND(create_forc_util<AtmForcType::WIND>(filename, file_start_time, atm_nsteps, ncells)),
+    forc_ZBOT(create_forc_util<AtmForcType::ZBOT>(filename, file_start_time, atm_nsteps, ncells))
+  {}
 
 
 void ELM::read_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,

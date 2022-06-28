@@ -13,11 +13,9 @@ typedef ELM::Array<std::string, 1> ViewS1;
 typedef ELM::Array<double, 1> ViewD1;
 typedef ELM::Array<double, 2> ViewD2;
 typedef ELM::Array<double, 3> ViewD3;
-
 typedef ViewD1 h_ViewD1;
 typedef ViewD2 h_ViewD2;
 typedef ViewD3 h_ViewD3;
-
 typedef ELM::Array<ELM::PFTDataPSN, 1> ViewPSN1;
 
 #else
@@ -29,12 +27,9 @@ typedef Kokkos::View<std::string *> ViewS1;
 typedef Kokkos::View<double *> ViewD1;
 typedef Kokkos::View<double **> ViewD2;
 typedef Kokkos::View<double ***> ViewD3;
-
-
 typedef ViewD1::HostMirror h_ViewD1;
 typedef ViewD2::HostMirror h_ViewD2;
 typedef ViewD3::HostMirror h_ViewD3;
-
 typedef Kokkos::View<ELM::PFTDataPSN *> ViewPSN1;
 
 #endif

@@ -1,12 +1,11 @@
 
 #pragma once
 
-
 #include <functional>
 #include <tuple>
 #include <utility>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 // is there a better way than ifdefs to do conditional compilation?
 // wrapping in constexpr if still required Kokkos to be available 

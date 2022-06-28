@@ -15,7 +15,7 @@ reflected_radiation()
 #include <cassert>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::surface_radiation {
 

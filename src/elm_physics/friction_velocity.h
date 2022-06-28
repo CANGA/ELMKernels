@@ -14,7 +14,7 @@ Vol. 11, 2628-2644.
 #include <algorithm>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::friction_velocity {
 

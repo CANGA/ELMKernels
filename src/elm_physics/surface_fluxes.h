@@ -5,7 +5,7 @@
 #include "land_data.h"
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::surface_fluxes {
 

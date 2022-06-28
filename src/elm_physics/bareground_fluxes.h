@@ -20,7 +20,7 @@ It is not the same as the displa calculated in CanopyTemperature
 #include <algorithm>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::bareground_fluxes {
 

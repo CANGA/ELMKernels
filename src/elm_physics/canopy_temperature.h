@@ -17,7 +17,7 @@ ground_properties() -> forcing_height() -> init_energy_fluxes()
 #include <algorithm>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::canopy_temperature {
 

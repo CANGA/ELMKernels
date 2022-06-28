@@ -8,7 +8,7 @@
 #include <functional>
 #include <tuple>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 #include "invoke_kernel.hh"
 
 namespace ELM {

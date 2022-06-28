@@ -22,7 +22,7 @@ soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without d
 #include <algorithm>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::soil_moist_stress {
 

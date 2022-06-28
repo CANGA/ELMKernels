@@ -1,12 +1,17 @@
-cmake_minimum_required(VERSION 3.13.3)
+cmake_minimum_required(VERSION 3.16)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+message(STATUS "\n-------------------------------------------")
+message(STATUS "\n-- CMake: Configuring and building ELMKernels.\n--")
+message(STATUS "----------------------------------------")
+project(ELMKernels)
+
 enable_testing()
 
-project(ELM CXX)
-enable_language(C)
-
+#project(ELM CXX)
+#enable_language(C)
 
 # need netcdf
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/config/cmake")
@@ -24,7 +29,6 @@ else()
   SET(CMAKE_SKIP_RPATH ON CACHE BOOL "Turn off for static install." FORCE)
 endif()
 
-
 find_package(NetCDF REQUIRED)
 message("Found NetCDF = ${NetCDF_C_LIBRARIES}")
 
@@ -34,15 +38,15 @@ option(ENABLE_KOKKOS "Enable building with Kokkos driver" OFF)
 if (ENABLE_KOKKOS)
   add_compile_definitions(ENABLE_KOKKOS)
   find_package(Kokkos REQUIRED)
+  message(STATUS "Building with Kokkos driver")
   option(ENABLE_CC "Enable building with default C-style driver" OFF)
 else()
   option(ENABLE_CC "Enable building with default C-style driver" ON)
+  message(STATUS "Building with CC driver")
 endif()
-
 
 add_subdirectory (src)
 add_subdirectory (driver)
 
 #add_subdirectory (test)
-enable_testing ()
 #add_test (NAME CanopyHydrology COMMAND test_CanHydro)

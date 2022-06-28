@@ -48,7 +48,7 @@ flux_absorption_factor() flx_absd_snw flx_absi_snw mss_cnc_aer_in_fdb - from Ini
 #include <cmath>
 #include <stdexcept>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::surface_albedo {
 

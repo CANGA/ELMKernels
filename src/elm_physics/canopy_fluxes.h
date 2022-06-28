@@ -20,7 +20,7 @@ Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 #include <assert.h>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::canopy_fluxes {
 

@@ -189,6 +189,7 @@ namespace ELM {
         qflx_ev_snow("qflx_ev_snow", ncells),
         qflx_ev_soil("qflx_ev_soil", ncells),
         qflx_ev_h2osfc("qflx_ev_h2osfc", ncells),
+        t_ref2m("t_ref2m", ncells),
         q_ref2m("q_ref2m", ncells),
         rh_ref2m("rh_ref2m", ncells),
         cgrnds("cgrnds", ncells),

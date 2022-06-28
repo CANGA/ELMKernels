@@ -17,7 +17,7 @@
 #include <tuple>
 #include <unordered_map>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 #include "invoke_kernel.hh"
 
 
@@ -30,7 +30,7 @@
 //#include <string>
 //#include <utility>
 //
-//#include "kokkos_includes.hh"
+//#include "compile_options.hh"
 
 /*
 setup to read 12 months of aerosol forcing

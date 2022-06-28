@@ -2,21 +2,16 @@
 
 // conditional compilation options
 #include "invoke_kernel.hh"
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
-//#include "atm_data.h"
 #include "soil_data.h"
 #include "elm_constants.h"
-//#include "phenology_data.h"
-
 
 // initialization routines
 #include "init_soil_state.h"
 #include "init_snow_state.h"
-//#include "init_timestep.h"
 #include "init_topography.h"
 #include "soil_texture_hydraulic_model.h"
-
 
 #include "kokkos_elm_initialize.hh"
 

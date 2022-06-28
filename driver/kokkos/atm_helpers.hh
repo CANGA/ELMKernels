@@ -2,14 +2,17 @@
 #pragma once
 
 #include "atm_data.h"
-#include "elm_state.hh"
+#include "elm_state.h"
 
 namespace ELM {
 
+  // need to put a check in to automatically choose 
+  // RH or QBOT
+  // will currently error if a file with QBOT instead of RH is used 
   struct AtmForcObjects {
     ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::TBOT> forc_TBOT;
     ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::PBOT> forc_PBOT;
-    ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::QBOT> forc_QBOT;
+    ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::RH> forc_QBOT;
     ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::FLDS> forc_FLDS;
     ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::FSDS> forc_FSDS;
     ELM::AtmDataManager<ViewD1, ViewD2, AtmForcType::PREC> forc_PREC;

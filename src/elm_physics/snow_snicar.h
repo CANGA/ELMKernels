@@ -13,7 +13,7 @@ Must be called twice, for both direct (flg_slr_in == 1) and diffuse (flg_slr_in 
 #include <cmath>
 #include <stdexcept>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::snow_snicar {
 

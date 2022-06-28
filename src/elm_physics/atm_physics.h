@@ -4,7 +4,7 @@
 #include "array.hh"
 #include "elm_constants.h"
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 #include <cmath>
 

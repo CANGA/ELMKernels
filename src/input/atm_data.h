@@ -16,7 +16,7 @@
 
 #include <map>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 #include "invoke_kernel.hh"
 
 

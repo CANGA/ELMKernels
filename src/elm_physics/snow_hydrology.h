@@ -4,7 +4,7 @@
 #include "elm_constants.h"
 #include "snicar_data.h"
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::snow {
 

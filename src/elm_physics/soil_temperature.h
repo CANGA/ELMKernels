@@ -15,7 +15,7 @@ sabg_chk                  ! sum of soil/snow using current fsno, for balance che
 
 #include "elm_constants.h"
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::soil_temp {
 

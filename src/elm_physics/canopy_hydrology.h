@@ -13,7 +13,7 @@ Call sequence: interception() -> Irrigation() -> ground_flux() -> fraction_wet()
 #include <algorithm>
 #include <cmath>
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::canopy_hydrology {
 

@@ -3,7 +3,7 @@
 
 #include "elm_constants.h"
 
-#include "kokkos_includes.hh"
+#include "compile_options.hh"
 
 namespace ELM::trans {
 
