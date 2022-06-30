@@ -103,5 +103,5 @@ void ELM::kokkos_canopy_hydrology(const std::shared_ptr<ELMStateType>& S,
         S->frac_sno_eff(idx),
         S->frac_h2osfc(idx));
   }; // end canhydro lambda
-  invoke_kernel(canhydro_kernels, std::make_tuple(S->h2osno.extent(0)), "kokkos_canopy_hydrology");
+  invoke_kernel(canhydro_kernels, std::make_tuple(S->snl.extent(0)), "kokkos_canopy_hydrology");
 }

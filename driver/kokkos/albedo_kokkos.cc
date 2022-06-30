@@ -345,7 +345,7 @@ void ELM::kokkos_albedo_snicar(const std::shared_ptr<ELMStateType>& S,
         Kokkos::subview(S->fabi_sun_z, idx, Kokkos::ALL),
         Kokkos::subview(S->fabi_sha_z, idx, Kokkos::ALL));
   }; // end albedo lambda
-  invoke_kernel(albedo_kernels, std::make_tuple(S->h2osno.extent(0)), "kokkos_albedo_and_snicar");
+  invoke_kernel(albedo_kernels, std::make_tuple(S->snl.extent(0)), "kokkos_albedo_and_snicar");
 }
 
 

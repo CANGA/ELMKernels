@@ -97,6 +97,7 @@ conversion from bmatrix
 
 #include "soil_temperature.h"
 #include "helper_functions.hh"
+#include "invoke_kernel.hh"
 
 namespace ELM::soil_temp {
 

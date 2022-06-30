@@ -125,8 +125,10 @@ namespace ELM {
 
       // need to put away
       ArrayI1 vtype;
-      // lat/lon
+      // lat/lon in degrees
       double lat{0.0}, lon{0.0};
+      // lat/lon in radians
+      double lat_r{0.0}, lon_r{0.0};
       ELM::LandType Land;
       
       // view of struct PSNVegData
@@ -134,6 +136,9 @@ namespace ELM {
       
       // snow and veg indicators
       ArrayB1 veg_active, do_capsnow;
+
+      // day length
+      double max_dayl{0.0}, dayl{0.0};
   };
 
 } // namespace ELM

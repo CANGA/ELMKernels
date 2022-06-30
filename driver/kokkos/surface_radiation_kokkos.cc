@@ -92,6 +92,6 @@ void ELM::kokkos_surface_radiation(const std::shared_ptr<ELMStateType>& S)
         Kokkos::subview(S->forc_solai, idx, Kokkos::ALL),
         S->fsr(idx));
   }; // end surfrad lambda
-  invoke_kernel(surfrad_kernels, std::make_tuple(S->h2osno.extent(0)), "kokkos_canopy_hydrology");
+  invoke_kernel(surfrad_kernels, std::make_tuple(S->snl.extent(0)), "kokkos_surface_radiation");
 }
 

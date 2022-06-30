@@ -9,6 +9,7 @@
 #include "soil_thermal_properties.h"
 #include "helper_functions.hh"
 #include "phase_change.h"
+#include "invoke_kernel.hh"
 
 namespace ELM::soil_temp {
 
