@@ -19,11 +19,11 @@ namespace {
                    const ELM::Utils::Date& model_time,
                    const size_t& ntimes)
  {
-    auto h_data = Kokkos::create_mirror_view(atm_data.data);
+    auto h_data = NS::create_mirror_view(atm_data.data);
     atm_data.read_atm_forcing(h_data, dd, model_time, ntimes);
     if (atm_data.data.extent(0) != h_data.extent(0) || atm_data.data.extent(1) != h_data.extent(1))
       NS::resize(atm_data.data, h_data.extent(0), h_data.extent(1));
-    Kokkos::deep_copy(atm_data.data, h_data);
+    NS::deep_copy(atm_data.data, h_data);
   }
 
 } // anonymous namespace

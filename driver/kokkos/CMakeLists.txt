@@ -12,7 +12,7 @@ soil_temperature_kokkos.cc
 snow_hydrology_kokkos.cc
 surface_fluxes_kokkos.cc
 init_timestep_kokkos.cc
-new_kokkos_driver.cc
+kokkos_driver.cc
 )
 
 set(kokkos_driver_inc_files

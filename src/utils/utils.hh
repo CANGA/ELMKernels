@@ -85,6 +85,7 @@ template <class Array_t> void convert_precip_to_rain_snow(Array_t &rain, Array_t
   }
 }
 
+
 //
 // Performance metric Clock
 //
@@ -102,6 +103,11 @@ std::array<double, 3> min_max_mean(const MPI_Comm &comm, duration_type duration)
 } // namespace Clock
 
 } // namespace Utils
+
+// mock kokkos' create_mirror_view to allow reuse of code
+template <class T> T& create_mirror_view(T& obj)
+{ return obj; }
+
 } // namespace ELM
 
 #endif
