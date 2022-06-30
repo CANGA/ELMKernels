@@ -1,7 +1,7 @@
 
 set(kokkos_driver_src_files
-atm_helpers.cc
-kokkos_elm_initialize.cc
+atm_data_helpers.cc
+initialize_elm_kokkos.cc
 albedo_kokkos.cc
 canopy_hydrology_kokkos.cc
 surface_radiation_kokkos.cc
@@ -11,12 +11,13 @@ canopy_fluxes_kokkos.cc
 soil_temperature_kokkos.cc
 snow_hydrology_kokkos.cc
 surface_fluxes_kokkos.cc
+init_timestep_kokkos.cc
 new_kokkos_driver.cc
 )
 
 set(kokkos_driver_inc_files
-atm_helpers.hh
-kokkos_elm_initialize.hh
+atm_data_helpers.hh
+initialize_elm_kokkos.hh
 albedo_kokkos.hh
 canopy_hydrology_kokkos.hh
 surface_radiation_kokkos.hh
@@ -26,6 +27,7 @@ canopy_fluxes_kokkos.hh
 soil_temperature_kokkos.hh
 snow_hydrology_kokkos.hh
 surface_fluxes_kokkos.hh
+init_timestep_kokkos.hh
 )
 
 add_executable (elm_kokkos

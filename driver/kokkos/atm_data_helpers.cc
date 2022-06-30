@@ -1,8 +1,7 @@
 
-#include "compile_options.hh"
-#include "data_types.hh"
 #include "elm_constants.h"
-#include "atm_helpers.hh"
+#include "atm_data_helpers.hh"
+#include "invoke_kernel.hh"
 
 namespace {
   template<ELM::AtmForcType ftype>
@@ -74,5 +73,14 @@ void ELM::get_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,
   atm_forcing->forc_PREC.get_atm_forcing(model_dt, time_plus_half_dt, S->forc_tbot, S->forc_rain, S->forc_snow);
   atm_forcing->forc_WIND.get_atm_forcing(model_dt, time_plus_half_dt, S->forc_u, S->forc_v);
   atm_forcing->forc_ZBOT.get_atm_forcing(model_dt, time_plus_half_dt, S->forc_hgt, S->forc_hgt_u, S->forc_hgt_t,  S->forc_hgt_q);
+
+  // calculate constitutive air properties
+  ELM::atm_forcing_physics::ConstitutiveAirProperties
+    compute_air_props(
+      S->forc_qbot, S->forc_pbot,
+      S->forc_tbot, S->forc_vp,
+      S->forc_rho, S->forc_po2,
+      S->forc_pco2);
+  invoke_kernel(compute_air_props, std::make_tuple(S->forc_pbot.extent(0)), "ConstitutiveAirProperties");
 }
 

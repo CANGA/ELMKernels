@@ -13,7 +13,7 @@
 #include "init_topography.h"
 #include "soil_texture_hydraulic_model.h"
 
-#include "kokkos_elm_initialize.hh"
+#include "initialize_elm_kokkos.hh"
 
 
 namespace ELM::kokkos_init {

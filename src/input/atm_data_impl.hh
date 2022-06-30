@@ -254,7 +254,7 @@ read_atm_forcing(h_ArrayD2 h_data,
                  const size_t& ntimes)
 {
   if (need_new_data_) {
-    printf("reading new data\n");
+    std::cout << "reading new "+atm_utils::get_varname<ftype>()+" data\n";
     // resize if ntimes has changed - assume ncells_ doesn't change
     if (ntimes != static_cast<size_t>(h_data.extent(0))) {
       ntimes_ = ntimes;

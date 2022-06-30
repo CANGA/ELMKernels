@@ -14,47 +14,26 @@
 #include "elm_constants.h"
 
 // input data readers and structs
-#include "land_data.h"
 #include "pft_data.h"
-#include "soil_data.h"
 #include "snicar_data.h"
+#include "aerosol_physics.h"
 #include "aerosol_data.h"
 #include "phenology_data.h"
 
+// atm data helper functions
+// contains definition of atm data struct 
+// that should be moved to atm_data.h 
+#include "atm_data_helpers.hh"
+
 // initialization routines
-#include "init_timestep.h"
+#include "initialize_elm_kokkos.hh"
+#include "init_timestep_kokkos.hh"
 
-// physics kernels
-#include "day_length.h" // serial
+// serial physics
+#include "day_length.h"
 #include "incident_shortwave.h"
-//#include "surface_radiation.h"
-//#include "canopy_temperature.h"
-//#include "bareground_fluxes.h"
-//#include "canopy_fluxes.h"
-#include "aerosol_physics.h"
-//#include "surface_albedo.h"
-//#include "snow_snicar.h"
-#include "surface_fluxes.h"
-#include "soil_texture_hydraulic_model.h"
-#include "soil_temperature.h"
-//#include "soil_temp_rhs.h"
-//#include "soil_temp_lhs.h"
-#include "soil_thermal_properties.h"
-#include "pentadiagonal_solver.h"
-#include "snow_hydrology.h"
-#include "transpiration_impl.hh"
 
-// conditional compilation options
-#include "invoke_kernel.hh"
-#include "compile_options.hh"
-#include "data_types.hh"
-
-// elm state struct
-#include "elm_state.h"
-// kokkos specific init
-#include "kokkos_elm_initialize.hh"
-#include "atm_helpers.hh"
-
+// parallel physics
 #include "albedo_kokkos.hh"
 #include "canopy_hydrology_kokkos.hh"
 #include "surface_radiation_kokkos.hh"
@@ -65,11 +44,19 @@
 #include "snow_hydrology_kokkos.hh"
 #include "surface_fluxes_kokkos.hh"
 
+// conditional compilation options
+#include "invoke_kernel.hh"
+#include "compile_options.hh"
+#include "data_types.hh"
+
+// elm state struct
+#include "elm_state.h"
+
 using ELM::Utils::create;
 using ELM::Utils::assign;
-
 using AtmForcType = ELM::AtmForcType;
 
+// these phenology data functions will stay here until I decide what to do about host-device transfer
 std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::PhenologyDataManager<ViewD2>& phen_data)
 {
   std::unordered_map<std::string, h_ViewD2> phen_host_views;
@@ -79,6 +66,47 @@ std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::Phenolo
   phen_host_views["MONTHLY_HEIGHT_BOT"] = Kokkos::create_mirror_view(phen_data.mhbot);
   return phen_host_views;
 }
+
+void update_phenology(ELM::PhenologyDataManager<ViewD2>& phen_data,
+                      std::unordered_map<std::string, h_ViewD2>& host_phen_views,
+                      const std::shared_ptr<ELMStateType>& S,
+                      const h_ViewI1 vtype,
+                      const ELM::Utils::Date& current,
+                      const std::string& fname_surfdata)
+{
+  // copy device data to host
+  // copying entire views is likely inefficient, but it's currently necessary
+  // could be eliminated by shifting older month indices in parallel kernel
+  // and reading new data into a mirror of a subview (or a subview of a mirror?)
+  // then we would only need one copy from host view into the device view
+  // instead of the two we currently have
+  // will fix later - too infrequently run (once per month) to cause concern
+  if (phen_data.need_data()) {
+    Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai);
+    Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai);
+    Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop);
+    Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot);
+  }
+  // reads three months of data on first call
+  // after first call, read new data if phen_data.need_new_data_ == true
+  auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, vtype); // if needed
+  // copy host views to device
+  // could be made more efficient, see above
+  if (phen_updated) {
+    Kokkos::deep_copy(phen_data.mlai, host_phen_views["MONTHLY_LAI"]);
+    Kokkos::deep_copy(phen_data.msai, host_phen_views["MONTHLY_SAI"]);
+    Kokkos::deep_copy(phen_data.mhtop, host_phen_views["MONTHLY_HEIGHT_TOP"]);
+    Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
+  }
+  // run parallel kernel to process phenology data
+  phen_data.get_data(current, S->snow_depth,
+                     S->frac_sno, S->vtype, S->elai, S->esai,
+                     S->htop, S->hbot, S->tlai, S->tsai,
+                     S->frac_veg_nosno_alb);
+}
+
+
+
 
 
 int main(int argc, char **argv) {
@@ -128,6 +156,7 @@ int main(int argc, char **argv) {
     S->Land.urbpoi = false;
 
     assign(S->vtype, 12);
+    auto host_vtype = Kokkos::create_mirror_view(S->vtype);
 
     // hardwired params
     S->lat = 71.323;
@@ -386,82 +415,26 @@ int main(int argc, char **argv) {
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
-
       // read phenology data if required
       // reader will read 3 months of data on first call
       // subsequent calls only read the newest months (when phen_data.need_data() == true)
       // and shift the index of the two remaining older months
+      update_phenology(phen_data, host_phen_views, S, host_vtype, current, fname_surfdata);
 
-      // copy device data to host
-      // copying entire views is likely inefficient, but it's currently necessary
-      // could be eliminated by shifting older month indices in parallel kernel
-      // and reading new data into a mirror of a subview (or a subview of a mirror?)
-      // then we would only need one copy from host view into the device view
-      // instead of the two we currently have
-      // will fix later - too infrequently run (once per month) to cause concern
-      {
-        if (phen_data.need_data()) {
-          Kokkos::deep_copy(host_phen_views["MONTHLY_LAI"], phen_data.mlai);
-          Kokkos::deep_copy(host_phen_views["MONTHLY_SAI"], phen_data.msai);
-          Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_TOP"], phen_data.mhtop);
-          Kokkos::deep_copy(host_phen_views["MONTHLY_HEIGHT_BOT"], phen_data.mhbot);
-        }
-        // reads three months of data on first call
-        // after first call, read new data if phen_data.need_new_data_ == true
-        auto phen_updated = phen_data.read_data(host_phen_views, fname_surfdata, current, S->vtype); // if needed
-        // copy host views to device
-        // could be made more efficient, see above
-        if (phen_updated) {
-          Kokkos::deep_copy(phen_data.mlai, host_phen_views["MONTHLY_LAI"]);
-          Kokkos::deep_copy(phen_data.msai, host_phen_views["MONTHLY_SAI"]);
-          Kokkos::deep_copy(phen_data.mhtop, host_phen_views["MONTHLY_HEIGHT_TOP"]);
-          Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
-        }
-        // run parallel kernel to process phenology data
-        phen_data.get_data(current, S->snow_depth,
-                           S->frac_sno, S->vtype, S->elai, S->esai,
-                           S->htop, S->hbot, S->tlai, S->tsai,
-                           S->frac_veg_nosno_alb);
-      }
-
-
+      // read new atm data if needed
       ELM::read_forcing(atm_forcing, dd, current, atm_nsteps);
+      // get current time forcing values
       ELM::get_forcing(atm_forcing, S, dtime_d, time_plus_half_dt);
 
-      // calculate constitutive air properties
-      {
-        ELM::atm_forcing_physics::ConstitutiveAirProperties
-          compute_air(S->forc_qbot, S->forc_pbot,
-                      S->forc_tbot, S->forc_vp,
-                      S->forc_rho, S->forc_po2,
-                      S->forc_pco2);
-
-        invoke_kernel(compute_air, std::make_tuple(S->forc_pbot.extent(0)), "ConstitutiveAirProperties");
-      }
-
-
-      // get aerosol mss and cnc
-      {
-        ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, *aerosol_masses);
-        ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, S->do_capsnow, S->snl, S->h2osoi_liq,
+      // get aerosol mass (mss) and concentration in snowpack (cnc)
+      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, *aerosol_masses);
+      ELM::aerosols::invoke_aerosol_concen_and_mass(dtime, S->do_capsnow, S->snl, S->h2osoi_liq,
         S->h2osoi_ice, S->snw_rds, S->qflx_snwcp_ice, *aerosol_masses, *aerosol_concentrations);
-      }
 
-
-
-      {
-        Kokkos::parallel_for("init_spatial_loop", ncells, KOKKOS_LAMBDA (const int idx) {
-
-          ELM::init_timestep(S->Land.lakpoi, S->veg_active(idx),
-                             S->frac_veg_nosno_alb(idx),
-                             S->snl(idx), S->h2osno(idx),
-                             Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
-                             Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL),
-                             S->do_capsnow(idx),
-                             S->frac_veg_nosno(idx),
-                             Kokkos::subview(S->frac_iceold, idx, Kokkos::ALL));
-        });
-      }
+      // initialize a few variables at each dt
+      // this function is pretty anemic
+      // more should be incorporated into this call
+      ELM::kokkos_init_timestep(S);
 
 
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/

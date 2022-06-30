@@ -1,6 +1,9 @@
 
 #pragma once
 
+#include "compile_options.hh"
+#include "data_types.hh"
+
 #include "atm_data.h"
 #include "elm_state.h"
 
