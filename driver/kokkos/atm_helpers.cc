@@ -63,7 +63,7 @@ void ELM::read_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,
 
 
 void ELM::get_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,
-                      const std::shared_ptr<ELM::ELMState<ViewI1, ViewI2, ViewD1, ViewD2, ViewD3, ViewPSN1>>& S,
+                      const std::shared_ptr<ELMStateType>& S,
                       const double& model_dt, const ELM::Utils::Date& time_plus_half_dt)
 {
   atm_forcing->forc_TBOT.get_atm_forcing(model_dt, time_plus_half_dt, S->forc_tbot, S->forc_thbot);

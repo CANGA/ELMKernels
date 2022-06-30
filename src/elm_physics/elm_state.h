@@ -6,7 +6,8 @@
 namespace ELM {
 
   template
-  <typename ArrayI1, typename ArrayI2, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
+  <typename ArrayB1, typename ArrayI1, typename ArrayI2, typename ArrayD1,
+   typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
   struct ELMState {
 
       ELMState(const int ncells);
@@ -127,8 +128,12 @@ namespace ELM {
       // lat/lon
       double lat{0.0}, lon{0.0};
       ELM::LandType Land;
+      
       // view of struct PSNVegData
       ArrayPSN1 psn_pft;
+      
+      // snow and veg indicators
+      ArrayB1 veg_active, do_capsnow;
   };
 
 } // namespace ELM

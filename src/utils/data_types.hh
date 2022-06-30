@@ -2,6 +2,7 @@
 #pragma once
 
 #include "pft_data.h"
+#include "elm_state.h"
 
 #ifndef ENABLE_KOKKOS
 
@@ -18,6 +19,8 @@ typedef ViewD2 h_ViewD2;
 typedef ViewD3 h_ViewD3;
 typedef ELM::Array<ELM::PFTDataPSN, 1> ViewPSN1;
 
+typedef ELM::ELMState<ViewB1, ViewI1, ViewI2, ViewD1, ViewD2, ViewD3, ViewPSN1> ELMStateType;
+
 #else
 
 typedef Kokkos::View<bool *> ViewB1;
@@ -31,5 +34,7 @@ typedef ViewD1::HostMirror h_ViewD1;
 typedef ViewD2::HostMirror h_ViewD2;
 typedef ViewD3::HostMirror h_ViewD3;
 typedef Kokkos::View<ELM::PFTDataPSN *> ViewPSN1;
+
+typedef ELM::ELMState<ViewB1, ViewI1, ViewI2, ViewD1, ViewD2, ViewD3, ViewPSN1> ELMStateType;
 
 #endif

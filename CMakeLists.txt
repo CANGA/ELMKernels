@@ -6,12 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 message(STATUS "\n-------------------------------------------")
 message(STATUS "\n-- CMake: Configuring and building ELMKernels.\n--")
 message(STATUS "----------------------------------------")
+
 project(ELMKernels)
-
 enable_testing()
-
-#project(ELM CXX)
-#enable_language(C)
 
 # need netcdf
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/config/cmake")
@@ -39,9 +36,9 @@ if (ENABLE_KOKKOS)
   add_compile_definitions(ENABLE_KOKKOS)
   find_package(Kokkos REQUIRED)
   message(STATUS "Building with Kokkos driver")
-  option(ENABLE_CC "Enable building with default C-style driver" OFF)
+  option(ENABLE_CC "Enable building with default driver" OFF)
 else()
-  option(ENABLE_CC "Enable building with default C-style driver" ON)
+  option(ENABLE_CC "Enable building with default driver" ON)
   message(STATUS "Building with CC driver")
 endif()
 

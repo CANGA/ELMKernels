@@ -6,8 +6,9 @@
 namespace ELM {
 
   template
-  <typename ArrayI1, typename ArrayI2, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
-  ELMState<ArrayI1, ArrayI2, ArrayD1, ArrayD2, ArrayD3, ArrayPSN1>::ELMState(const int ncells)
+  <typename ArrayB1, typename ArrayI1, typename ArrayI2, typename ArrayD1,
+   typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
+  ELMState<ArrayB1, ArrayI1, ArrayI2, ArrayD1, ArrayD2, ArrayD3, ArrayPSN1>::ELMState(const int ncells)
       :
         // forcing data
         forc_tbot("forc_tbot", ncells),
@@ -287,7 +288,10 @@ namespace ELM {
         vtype("vtype", ncells),
 
 
-        psn_pft("psn_pft", ncells)
+        psn_pft("psn_pft", ncells),
+
+        veg_active("veg_active", ncells),
+        do_capsnow("do_capsnow", ncells)
 
 {}
 

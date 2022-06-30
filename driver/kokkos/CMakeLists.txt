@@ -3,6 +3,8 @@ set(kokkos_driver_src_files
 atm_helpers.cc
 kokkos_elm_initialize.cc
 albedo_kokkos.cc
+canopy_hydrology_kokkos.cc
+surface_radiation_kokkos.cc
 new_kokkos_driver.cc
 )
 
@@ -10,6 +12,8 @@ set(kokkos_driver_inc_files
 atm_helpers.hh
 kokkos_elm_initialize.hh
 albedo_kokkos.hh
+canopy_hydrology_kokkos.hh
+surface_radiation_kokkos.hh
 )
 
 add_executable (elm_kokkos

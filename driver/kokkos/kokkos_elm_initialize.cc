@@ -265,7 +265,7 @@ void copy_aero_host_views(std::unordered_map<std::string, h_ViewD1>& aero_host_v
 
 
 void ELM::initialize_kokkos_elm (
-  const std::shared_ptr<ELMState<ViewI1, ViewI2, ViewD1, ViewD2, ViewD3, ViewPSN1>>& S,
+  const std::shared_ptr<ELMStateType>& S,
   const std::shared_ptr<SnicarData<ViewD1, ViewD2, ViewD3>>& snicar_data,
   const std::shared_ptr<SnwRdsTable<ViewD3>>& snw_rds_table,
   const std::shared_ptr<PFTData<ViewD1, ViewD2>>& pft_data,
