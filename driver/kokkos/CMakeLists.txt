@@ -9,6 +9,8 @@ canopy_temperature_kokkos.cc
 bareground_fluxes_kokkos.cc
 canopy_fluxes_kokkos.cc
 soil_temperature_kokkos.cc
+snow_hydrology_kokkos.cc
+surface_fluxes_kokkos.cc
 new_kokkos_driver.cc
 )
 
@@ -22,6 +24,8 @@ canopy_temperature_kokkos.hh
 bareground_fluxes_kokkos.hh
 canopy_fluxes_kokkos.hh
 soil_temperature_kokkos.hh
+snow_hydrology_kokkos.hh
+surface_fluxes_kokkos.hh
 )
 
 add_executable (elm_kokkos
