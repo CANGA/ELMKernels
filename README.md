@@ -1,6 +1,7 @@
 ELM Functional Physics Model
 ================================
 !!work-in-progress!! this project is in active development and is subject to all caveats
+Beta release V0.1 is nearing completion. 
 
 Description
 -----------
@@ -77,7 +78,7 @@ Install
 -------
 sample configure/build/test looks like:
 
-    git clone -b physics https://code.ornl.gov/uec/ELM_Kernels.git ELM_Kernels
+    git clone -b main https://github.com/CANGA/ELMKernels.git ELM_Kernels
     mkdir build-dir
     mkdir install-dir
     
