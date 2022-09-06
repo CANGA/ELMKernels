@@ -8,7 +8,7 @@
 
 namespace ELM {
 
-  void kokkos_soil_temperature(const std::shared_ptr<ELMStateType>& S,
+  void kokkos_soil_temperature(ELMStateType& S,
                                const double& dtime);
 
 }

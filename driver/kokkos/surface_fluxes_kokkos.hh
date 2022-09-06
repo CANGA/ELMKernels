@@ -7,6 +7,6 @@
 
 namespace ELM {
 
-void kokkos_surface_fluxes(const std::shared_ptr<ELMStateType>& S,
+void kokkos_surface_fluxes(ELMStateType& S,
                            const double& dtime);
 }

@@ -69,7 +69,7 @@ std::unordered_map<std::string, h_ViewD2> get_phen_host_views(const ELM::Phenolo
 
 void update_phenology(ELM::PhenologyDataManager<ViewD2>& phen_data,
                       std::unordered_map<std::string, h_ViewD2>& host_phen_views,
-                      const std::shared_ptr<ELMStateType>& S,
+                      ELMStateType& S,
                       const h_ViewI1 vtype,
                       const ELM::Utils::Date& current,
                       const std::string& fname_surfdata)
@@ -99,10 +99,10 @@ void update_phenology(ELM::PhenologyDataManager<ViewD2>& phen_data,
     Kokkos::deep_copy(phen_data.mhbot, host_phen_views["MONTHLY_HEIGHT_BOT"]);
   }
   // run parallel kernel to process phenology data
-  phen_data.get_data(current, S->snow_depth,
-                     S->frac_sno, S->vtype, S->elai, S->esai,
-                     S->htop, S->hbot, S->tlai, S->tsai,
-                     S->frac_veg_nosno_alb);
+  phen_data.get_data(current, S.snow_depth,
+                     S.frac_sno, S.vtype, S.elai, S.esai,
+                     S.htop, S.hbot, S.tlai, S.tsai,
+                     S.frac_veg_nosno_alb);
 }
 
 
@@ -266,8 +266,8 @@ int main(int argc, char **argv) {
     auto aerosol_data = std::make_shared<ELM::AerosolDataManager<ViewD1>>();
     
 
-    ELM::initialize_kokkos_elm(S, snicar_data, snw_rds_table, pft_data,
-                                aerosol_data, dd, fname_surfdata, fname_param,
+    ELM::initialize_kokkos_elm(*S, *snicar_data, *snw_rds_table, *pft_data,
+                                *aerosol_data, dd, fname_surfdata, fname_param,
                                 fname_snicar, fname_snowage, fname_aerosol);
 
     int atm_nsteps = 101;
@@ -419,12 +419,12 @@ int main(int argc, char **argv) {
       // reader will read 3 months of data on first call
       // subsequent calls only read the newest months (when phen_data.need_data() == true)
       // and shift the index of the two remaining older months
-      update_phenology(phen_data, host_phen_views, S, host_vtype, current, fname_surfdata);
+      update_phenology(phen_data, host_phen_views, *S, host_vtype, current, fname_surfdata);
 
       // read new atm data if needed
-      ELM::read_forcing(atm_forcing, dd, current, atm_nsteps);
+      ELM::read_forcing(*atm_forcing, dd, current, atm_nsteps);
       // get current time forcing values
-      ELM::get_forcing(atm_forcing, S, dtime_d, time_plus_half_dt);
+      ELM::get_forcing(*atm_forcing, *S, dtime_d, time_plus_half_dt);
 
       // get aerosol mass (mss) and concentration in snowpack (cnc)
       ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S->snl, *aerosol_data, *aerosol_masses);
@@ -434,7 +434,7 @@ int main(int argc, char **argv) {
       // initialize a few variables at each dt
       // this function is pretty anemic
       // more should be incorporated into this call
-      ELM::kokkos_init_timestep(S);
+      ELM::kokkos_init_timestep(*S);
 
 
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -445,31 +445,31 @@ int main(int argc, char **argv) {
 
       {
         // call surface albedo and SNICAR kernels
-        ELM::kokkos_albedo_snicar(S, aerosol_concentrations, snicar_data, pft_data);
+        ELM::kokkos_albedo_snicar(*S, *aerosol_concentrations, *snicar_data, *pft_data);
 
         // call canopy_hydrology kernels
-        ELM::kokkos_canopy_hydrology(S, dtime);
+        ELM::kokkos_canopy_hydrology(*S, dtime);
 
         // call surface_radiation kernels
-        ELM::kokkos_surface_radiation(S);
+        ELM::kokkos_surface_radiation(*S);
 
         // call canopy_temperature kernels
-        ELM::kokkos_canopy_temperature(S, pft_data);
+        ELM::kokkos_canopy_temperature(*S, *pft_data);
 
         // call bareground_fluxes kernels
-        ELM::kokkos_bareground_fluxes(S);
+        ELM::kokkos_bareground_fluxes(*S);
 
         // call canopy_fluxes kernels
-        ELM::kokkos_canopy_fluxes(S, dtime);
+        ELM::kokkos_canopy_fluxes(*S, dtime);
 
         // call soil_temperature kernels
-        ELM::kokkos_soil_temperature(S, dtime);
+        ELM::kokkos_soil_temperature(*S, dtime);
 
         // call snow_hydrology kernels
-        ELM::kokkos_snow_hydrology(S, aerosol_masses, aerosol_data, snw_rds_table, time_plus_half_dt, dtime);
+        ELM::kokkos_snow_hydrology(*S, *aerosol_masses, *aerosol_data, *snw_rds_table, time_plus_half_dt, dtime);
 
         // call surface_fluxes kernels
-        ELM::kokkos_surface_fluxes(S, dtime);
+        ELM::kokkos_surface_fluxes(*S, dtime);
       }
 
       // print diagnostics

@@ -28,13 +28,13 @@ namespace ELM {
     ~AtmForcObjects() = default;
   };
 
-  void read_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,
+  void read_forcing(ELM::AtmForcObjects& atm_forcing,
                     const Utils::DomainDecomposition<2>& dd,
                     const ELM::Utils::Date& current,
                     const int atm_nsteps);
 
-  void get_forcing(const std::shared_ptr<ELM::AtmForcObjects>& atm_forcing,
-                   const std::shared_ptr<ELMStateType>& S,
+  void get_forcing(ELM::AtmForcObjects& atm_forcing,
+                   ELMStateType& S,
                    const double& model_dt, const ELM::Utils::Date& time_plus_half_dt);
 
 } // namespace ELM

@@ -8,6 +8,6 @@
 
 namespace ELM {
 
-  void kokkos_bareground_fluxes(const std::shared_ptr<ELMStateType>& S);
+  void kokkos_bareground_fluxes(ELMStateType& S);
 
 }

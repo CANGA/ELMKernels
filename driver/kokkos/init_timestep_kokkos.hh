@@ -7,6 +7,6 @@
 
 namespace ELM {
 
-void kokkos_init_timestep(const std::shared_ptr<ELMStateType>& S);
+void kokkos_init_timestep(ELMStateType& S);
 
 }

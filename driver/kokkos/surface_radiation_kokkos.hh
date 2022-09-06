@@ -7,6 +7,6 @@
 
 namespace ELM {
 
-  void kokkos_surface_radiation(const std::shared_ptr<ELMStateType>& S);
+  void kokkos_surface_radiation(ELMStateType& S);
 
 }

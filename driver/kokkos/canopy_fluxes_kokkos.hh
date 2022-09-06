@@ -8,7 +8,7 @@
 
 namespace ELM {
 
-  void kokkos_canopy_fluxes(const std::shared_ptr<ELMStateType>& S,
+  void kokkos_canopy_fluxes(ELMStateType& S,
                             const double& dtime);
 
 }

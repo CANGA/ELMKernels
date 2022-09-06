@@ -16,11 +16,11 @@
 namespace ELM {
 
 void initialize_kokkos_elm(
-  const std::shared_ptr<ELMStateType>& S,
-  const std::shared_ptr<SnicarData<ViewD1, ViewD2, ViewD3>>& snicar_data,
-  const std::shared_ptr<SnwRdsTable<ViewD3>>& snw_rds_table,
-  const std::shared_ptr<PFTData<ViewD1, ViewD2>>& pft_data,
-  const std::shared_ptr<AerosolDataManager<ViewD1>>& aerosol_data,
+  ELMStateType& S,
+  SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data,
+  SnwRdsTable<ViewD3>& snw_rds_table,
+  PFTData<ViewD1, ViewD2>& pft_data,
+  AerosolDataManager<ViewD1>& aerosol_data,
   const Utils::DomainDecomposition<2>& dd,
   const std::string& fname_surfdata,
   const std::string& fname_param,

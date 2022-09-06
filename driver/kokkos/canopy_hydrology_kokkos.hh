@@ -6,6 +6,6 @@
 #include "data_types.hh"
 
 namespace ELM {
-  void kokkos_canopy_hydrology(const std::shared_ptr<ELMStateType>& S,
+  void kokkos_canopy_hydrology(ELMStateType& S,
                                const double& dtime);
 }
