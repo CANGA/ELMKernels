@@ -30,7 +30,7 @@ ${utils_inc_files}
 )
 
 if (ENABLE_KOKKOS)
-target_include_directories (elm_utils PUBLIC ${ELM_UTILS_SOURCE_DIR}  ${NetCDF_INCLUDE_DIR} ${KOKKOS_INCLUDE_DIR})
+target_include_directories (elm_utils PUBLIC ${ELM_UTILS_SOURCE_DIR} ${NetCDF_INCLUDE_DIR} ${KOKKOS_INCLUDE_DIR})
 target_link_libraries (elm_utils LINK_PUBLIC ${NetCDF_C_LIBRARIES} Kokkos::kokkos)
 else()
 target_include_directories (elm_utils PUBLIC ${ELM_UTILS_SOURCE_DIR} ${NetCDF_INCLUDE_DIR})

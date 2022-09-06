@@ -10,6 +10,8 @@ aerosol_data.h
 aerosol_data_impl.hh
 atm_data.h
 atm_data_impl.hh
+elm_state.h
+elm_state_impl.hh
 land_data.h
 monthly_data.h
 pft_data.h
