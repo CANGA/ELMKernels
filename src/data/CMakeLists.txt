@@ -1,11 +1,11 @@
 project(ELM_DATA)
 
-set(input_src_files
+set(data_src_files
 aerosol_data.cc
 monthly_data.cc
 )
 
-set(input_inc_files
+set(data_inc_files
 aerosol_data.h
 aerosol_data_impl.hh
 atm_data.h
@@ -25,8 +25,8 @@ soil_data_impl.hh
 )
 
 add_library (elm_data
-${input_src_files}
-${input_inc_files}
+${data_src_files}
+${data_inc_files}
 )
 
 if (ENABLE_KOKKOS)
