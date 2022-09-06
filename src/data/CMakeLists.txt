@@ -1,4 +1,4 @@
-project(ELM_INPUT)
+project(ELM_DATA)
 
 set(input_src_files
 aerosol_data.cc
@@ -24,17 +24,17 @@ soil_data.h
 soil_data_impl.hh
 )
 
-add_library (elm_input
+add_library (elm_data
 ${input_src_files}
 ${input_inc_files}
 )
 
 if (ENABLE_KOKKOS)
-target_include_directories (elm_input PUBLIC ${ELM_INPUT_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR})
-target_link_libraries (elm_input LINK_PUBLIC elm_utils Kokkos::kokkos)
+target_include_directories (elm_data PUBLIC ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR})
+target_link_libraries (elm_data LINK_PUBLIC elm_utils Kokkos::kokkos)
 else()
-target_include_directories (elm_input PUBLIC ${ELM_INPUT_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR})
-target_link_libraries (elm_input LINK_PUBLIC elm_utils)
+target_include_directories (elm_data PUBLIC ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR})
+target_link_libraries (elm_data LINK_PUBLIC elm_utils)
 endif()
 
-install(TARGETS elm_input)
+install(TARGETS elm_data)
