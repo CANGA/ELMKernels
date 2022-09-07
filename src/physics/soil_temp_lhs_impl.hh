@@ -167,8 +167,8 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_snow.extent(1); ++i) {
-      for (int j = 0; j < bmatrix_snow.extent(2); ++j) {
+    for (size_t i = 0; i < bmatrix_snow.extent(1); ++i) {
+      for (size_t j = 0; j < bmatrix_snow.extent(2); ++j) {
         bmatrix_snow(c, i, j) = 0.0;
       } 
     }
@@ -207,7 +207,7 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_snow_soil.extent(1); ++i) {
+    for (size_t i = 0; i < bmatrix_snow_soil.extent(1); ++i) {
       bmatrix_snow_soil(c, i) = 0.0;
     }
 
@@ -236,8 +236,8 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevgrnd;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_soil.extent(1); ++i) {
-      for (int j = 0; j < bmatrix_soil.extent(2); ++j) {
+    for (size_t i = 0; i < bmatrix_soil.extent(1); ++i) {
+      for (size_t j = 0; j < bmatrix_soil.extent(2); ++j) {
         bmatrix_soil(c, i, j) = 0.0;
       } 
     }
@@ -294,7 +294,7 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_soil_snow.extent(1); ++i) {
+    for (size_t i = 0; i < bmatrix_soil_snow.extent(1); ++i) {
       bmatrix_soil_snow(c, i) = 0.0;
     }
 
@@ -322,7 +322,7 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_ssw.extent(1); ++i) {
+    for (size_t i = 0; i < bmatrix_ssw.extent(1); ++i) {
       bmatrix_ssw(c, i) = 0.0;
     }
 
@@ -344,7 +344,7 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_ssw_soil.extent(1); ++i) {
+    for (size_t i = 0; i < bmatrix_ssw_soil.extent(1); ++i) {
       bmatrix_ssw_soil(c, i) = 0.0;
     }
 
@@ -367,7 +367,7 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
 
-    for (int i = 0; i < bmatrix_soil_ssw.extent(1); ++i) {
+    for (size_t i = 0; i < bmatrix_soil_ssw.extent(1); ++i) {
       bmatrix_soil_ssw(c, i) = 0.0;
     }
 
@@ -394,8 +394,8 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevgrnd;
 
     // zero out matrix
-    for (int i = 0; i < lhs_matrix.extent(1); ++i) {
-      for (int j = 0; j < lhs_matrix.extent(2); ++j) {
+    for (size_t i = 0; i < lhs_matrix.extent(1); ++i) {
+      for (size_t j = 0; j < lhs_matrix.extent(2); ++j) {
         lhs_matrix(c, i, j) = 0.0;
       } 
     }

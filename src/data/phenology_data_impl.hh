@@ -107,8 +107,8 @@ void PhenologyDataManager<ArrayD2>::read_new_month(std::unordered_map<std::strin
                                                const Utils::Date& model_time, const ArrayI1 vtype) {
 
   auto advance_month_idx = [] (h_ArrayD2& arr) {
-    for (int mon = 0; mon < arr.extent(0) - 1; ++mon) {
-      for (int cell = 0; cell < arr.extent(1); ++cell) {
+    for (size_t mon = 0; mon < arr.extent(0) - 1; ++mon) {
+      for (size_t cell = 0; cell < arr.extent(1); ++cell) {
         arr(mon, cell) = arr(mon + 1, cell);
       }
     }

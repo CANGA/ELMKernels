@@ -19,7 +19,8 @@ cmake ..\
     -DENABLE_KOKKOS:BOOL=ON \
     -DENABLE_TESTS:BOOL=OFF \
     -DELM_INPUT_DATA_PREFIX:FILEPATH=${ELM_INPUT_DIR} \
-    -DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
+    -DCMAKE_CXX_FLAGS:STRING="-Wall -Wextra"
+    ##-DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
 make -j6 VERBOSE=1
 make install
 cd $ORIGIN_DIR

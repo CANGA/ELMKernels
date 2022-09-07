@@ -17,8 +17,6 @@ namespace ELM {
         forc_qbot("forc_qbot", ncells),
         forc_rh("forc_rh", ncells),
         forc_lwrad("forc_lwrad", ncells),
-        forc_solai("forc_solai", ncells, 2),
-        forc_solad("forc_solad", ncells, 2),
         forc_rain("forc_rain", ncells),
         forc_snow("forc_snow", ncells),
         forc_u("forc_u", ncells),
@@ -34,6 +32,8 @@ namespace ELM {
         forc_rho("forc_rho", ncells),
         forc_po2("forc_po2", ncells),
         forc_pco2("forc_pco2", ncells),
+        forc_solai("forc_solai", ncells, 2),
+        forc_solad("forc_solad", ncells, 2),
 
         // prescribed sat phenology
         tlai("tlai", ncells),

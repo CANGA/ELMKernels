@@ -204,7 +204,7 @@ inline void read_pft_var(const Comm_type &comm, const std::string& filename,
   std::array<GO, 1> start = {0};
   std::array<GO, 1> count = {(GO)arr.extent(0)};
   read(comm, filename, varname, start, count, arr_for_read.data());
-  for (int i = 0; i != arr.extent(0); ++i) {
+  for (size_t i = 0; i != arr.extent(0); ++i) {
     arr(i) = arr_for_read(i);
   }
 }

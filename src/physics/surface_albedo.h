@@ -4,7 +4,9 @@
 // call sequence -> init_timestep() -> soil_albedo() -> SNICAR_AD_RT() (once for both wavebands) -> ground_albedo() ->
 flux_absorption_factor()
 // CanopyLayers() -> two_stream_solver()
+*/
 
+/*
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check!
 // will need to finish zenith angle ATS code, Aerosol functions
 // need to write coszen function
@@ -15,7 +17,6 @@ flux_absorption_factor()
 by SurfaceAlbedoType::InitCold
 //  why does SurfAlb calc at nstep+1? there must be a reason
 //  from CLM 4.5 tech note:
-/*
 
 The land model calculations are implemented in two steps. The land
 model proceeds with the calculation of surface energy, constituent, momentum, and
@@ -32,11 +33,10 @@ so we can probably calc at beginning of nstep with current solar zenith angle
 these don't need to be persistent at the driver level, but will need to be passed from SNICAR_AD_RT() to
 flux_absorption_factor() flx_absd_snw flx_absi_snw mss_cnc_aer_in_fdb - from InitTimestep() to SNICAR_AD_RT()
 
-*/
-
 // not sure if necessary
 // maybe for nstep == 0 this should be run, don't call surfalb, but call evrything else?
 //  will need to investigate initialization of coupled system - ELM calls dummy nstep == 0 for a reason
+*/
 
 #pragma once
 

@@ -162,8 +162,9 @@ struct ProcessFSDS {
 
 private:
   int t_idx_;
+  ArrayD2 atm_fsds_;
   ArrayD1 coszen_;
-  ArrayD2 atm_fsds_, forc_solai_, forc_solad_;
+  ArrayD2 forc_solai_, forc_solad_;
 };
 
 // functor to calculate liquid and solid precipitation
@@ -180,8 +181,8 @@ struct ProcessPREC {
 
 private:
   int t_idx_;
-  ArrayD1 forc_tbot_, forc_rain_, forc_snow_;
   ArrayD2 atm_prec_;
+  ArrayD1 forc_tbot_, forc_rain_, forc_snow_;
 };
 
 // functor to calculate wind speed

@@ -170,10 +170,10 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd,
   }
 
   // resize albsat and albdry if needed
-  if (albsat.extent(0) != mxsoil_color) {
+  if (albsat.extent(0) != static_cast<size_t>(mxsoil_color)) {
     NS::resize(albsat, mxsoil_color, numrad);
   }
-  if (albdry.extent(0) != mxsoil_color) {
+  if (albdry.extent(0) != static_cast<size_t>(mxsoil_color)) {
     NS::resize(albdry, mxsoil_color, numrad);
   }
 
