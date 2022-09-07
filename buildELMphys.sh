@@ -16,9 +16,10 @@ cmake ..\
     -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install \
     -DCMAKE_BUILD_TYPE:STRING=Debug \
     -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
-    -DENABLE_KOKKOS:BOOL=OFF \
-    -DENABLE_TESTS:BOOL=ON
-    ##-DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
+    -DENABLE_KOKKOS:BOOL=ON \
+    -DENABLE_TESTS:BOOL=OFF \
+    -DELM_INPUT_DATA_PREFIX:FILEPATH=${ELM_INPUT_DIR} \
+    -DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
 make -j6 VERBOSE=1
 make install
 cd $ORIGIN_DIR
