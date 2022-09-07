@@ -35,7 +35,6 @@ t_grnd
 frac_sno
 smpmin
 soilalpha
-soilalpha_u
 soilbeta
 forc_q
 forc_pbot
@@ -63,19 +62,13 @@ displa
 forc_hgt_u
 forc_hgt_t
 forc_hgt_q
-z_0_town
-z_d_town
 forc_t
 forc_hgt_u_patch
 forc_hgt_t_patch
 forc_hgt_q_patch
 thm
 eflx_sh_tot
-eflx_sh_tot_u
-eflx_sh_tot_r
 eflx_lh_tot
-eflx_lh_tot_u
-eflx_lh_tot_r
 eflx_sh_veg
 qflx_evap_tot
 qflx_evap_veg
@@ -90,13 +83,12 @@ sucsat[nlevgrnd]
 bsw[nlevgrnd]
 watdry[nlevgrnd]
 watopt[nlevgrnd]
-rootfr_road_perv[nlevgrnd]
-rootr_road_perv[nlevgrnd]
 watfc[nlevgrnd]
 displar[numpft]
 z0mr[numpft]
 */
 
+using namespace ELM::ELMdims;
 
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayB1 = ELM::Array<bool, 1>;
@@ -109,8 +101,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "CanopyTemperature_IN.txt";
   const std::string output_file = data_dir + "CanopyTemperature_OUT.txt";
 
@@ -137,9 +129,9 @@ int main(int argc, char **argv) {
   auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", n_grid_cells);
   auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
   auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
-  auto smpmin = create<ArrayD1>("smpmin", n_grid_cells);
+  //auto smpmin = create<ArrayD1>("smpmin", n_grid_cells);
   auto soilalpha = create<ArrayD1>("soilalpha", n_grid_cells);
-  auto soilalpha_u = create<ArrayD1>("soilalpha_u", n_grid_cells);
+  //auto soilalpha_u = create<ArrayD1>("soilalpha_u", n_grid_cells);
   auto soilbeta = create<ArrayD1>("soilbeta", n_grid_cells);
   auto forc_q = create<ArrayD1>("forc_q", n_grid_cells);
   auto forc_pbot = create<ArrayD1>("forc_pbot", n_grid_cells);
@@ -167,39 +159,39 @@ int main(int argc, char **argv) {
   auto forc_hgt_u = create<ArrayD1>("forc_hgt_u", n_grid_cells);
   auto forc_hgt_t = create<ArrayD1>("forc_hgt_t", n_grid_cells);
   auto forc_hgt_q = create<ArrayD1>("forc_hgt_q", n_grid_cells);
-  auto z_0_town = create<ArrayD1>("z_0_town", n_grid_cells);
-  auto z_d_town = create<ArrayD1>("z_d_town", n_grid_cells);
+  //auto z_0_town = create<ArrayD1>("z_0_town", n_grid_cells);
+  //auto z_d_town = create<ArrayD1>("z_d_town", n_grid_cells);
   auto forc_t = create<ArrayD1>("forc_t", n_grid_cells);
   auto forc_hgt_u_patch = create<ArrayD1>("forc_hgt_u_patch", n_grid_cells);
   auto forc_hgt_t_patch = create<ArrayD1>("forc_hgt_t_patch", n_grid_cells);
   auto forc_hgt_q_patch = create<ArrayD1>("forc_hgt_q_patch", n_grid_cells);
   auto thm = create<ArrayD1>("thm", n_grid_cells);
   auto eflx_sh_tot = create<ArrayD1>("eflx_sh_tot", n_grid_cells);
-  auto eflx_sh_tot_u = create<ArrayD1>("eflx_sh_tot_u", n_grid_cells);
-  auto eflx_sh_tot_r = create<ArrayD1>("eflx_sh_tot_r", n_grid_cells);
+  //auto eflx_sh_tot_u = create<ArrayD1>("eflx_sh_tot_u", n_grid_cells);
+  //auto eflx_sh_tot_r = create<ArrayD1>("eflx_sh_tot_r", n_grid_cells);
   auto eflx_lh_tot = create<ArrayD1>("eflx_lh_tot", n_grid_cells);
-  auto eflx_lh_tot_u = create<ArrayD1>("eflx_lh_tot_u", n_grid_cells);
-  auto eflx_lh_tot_r = create<ArrayD1>("eflx_lh_tot_r", n_grid_cells);
+  //auto eflx_lh_tot_u = create<ArrayD1>("eflx_lh_tot_u", n_grid_cells);
+  //auto eflx_lh_tot_r = create<ArrayD1>("eflx_lh_tot_r", n_grid_cells);
   auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", n_grid_cells);
   auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", n_grid_cells);
   auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", n_grid_cells);
   auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", n_grid_cells);
 
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevgrnd+ELM::nlevsno);
-  auto tssbef = create<ArrayD2>("tssbef", n_grid_cells, ELM::nlevgrnd+ELM::nlevsno);
-  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevgrnd+ELM::nlevsno);
-  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevgrnd+ELM::nlevsno);
-  auto dz = create<ArrayD2>("dz", n_grid_cells, ELM::nlevgrnd+ELM::nlevsno);
-  auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd);
-  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd);
-  auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);
-  auto watdry = create<ArrayD2>("watdry", n_grid_cells, ELM::nlevgrnd);
-  auto watopt = create<ArrayD2>("watopt", n_grid_cells, ELM::nlevgrnd);
-  auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", n_grid_cells, ELM::nlevgrnd);
-  auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", n_grid_cells, ELM::nlevgrnd);
-  auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);
-  auto displar = create<ArrayD2>("displar", n_grid_cells, ELM::numpft);
-  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, ELM::numpft);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevgrnd+nlevsno);
+  auto tssbef = create<ArrayD2>("tssbef", n_grid_cells, nlevgrnd+nlevsno);
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevgrnd+nlevsno);
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevgrnd+nlevsno);
+  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevgrnd+nlevsno);
+  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd);
+  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd);
+  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd);
+  auto watdry = create<ArrayD2>("watdry", n_grid_cells, nlevgrnd);
+  auto watopt = create<ArrayD2>("watopt", n_grid_cells, nlevgrnd);
+  //auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", n_grid_cells, nlevgrnd);
+  //auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", n_grid_cells, nlevgrnd);
+  auto watfc = create<ArrayD2>("watfc", n_grid_cells, nlevgrnd);
+  auto displar = create<ArrayD2>("displar", n_grid_cells, numpft);
+  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, numpft);
 
 
   // input and output utility class objects
@@ -222,9 +214,9 @@ int main(int argc, char **argv) {
     in.parseState(frac_h2osfc);
     in.parseState(t_grnd);
     in.parseState(frac_sno);
-    in.parseState(smpmin);
+    //in.parseState(smpmin);
     in.parseState(soilalpha);
-    in.parseState(soilalpha_u);
+    //in.parseState(soilalpha_u);
     in.parseState(soilbeta);
     in.parseState(forc_q);
     in.parseState(forc_pbot);
@@ -260,11 +252,11 @@ int main(int argc, char **argv) {
     in.parseState(forc_hgt_q_patch);
     in.parseState(thm);
     in.parseState(eflx_sh_tot);
-    in.parseState(eflx_sh_tot_u);
-    in.parseState(eflx_sh_tot_r);
+    //in.parseState(eflx_sh_tot_u);
+    //in.parseState(eflx_sh_tot_r);
     in.parseState(eflx_lh_tot);
-    in.parseState(eflx_lh_tot_u);
-    in.parseState(eflx_lh_tot_r);
+    //in.parseState(eflx_lh_tot_u);
+    //in.parseState(eflx_lh_tot_r);
     in.parseState(eflx_sh_veg);
     in.parseState(qflx_evap_tot);
     in.parseState(qflx_evap_veg);
@@ -291,9 +283,9 @@ int main(int argc, char **argv) {
     ELM::canopy_temperature::ground_temp(Land, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc[idx], t_soisno[idx],
                              t_grnd[idx]);
 
-    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], smpmin[idx], h2osoi_liq[idx], h2osoi_ice[idx],
+    ELM::canopy_temperature::calc_soilalpha(Land, frac_sno[idx], frac_h2osfc[idx], h2osoi_liq[idx], h2osoi_ice[idx],
                             dz[idx], t_soisno[idx], watsat[idx], sucsat[idx], bsw[idx], watdry[idx], watopt[idx],
-                            rootfr_road_perv[idx], rootr_road_perv[idx], qred, hr, soilalpha[idx], soilalpha_u[idx]);
+                            qred, hr, soilalpha[idx]);
 
     ELM::canopy_temperature::calc_soilbeta(Land, frac_sno[idx], frac_h2osfc[idx], watsat[idx], watfc[idx], h2osoi_liq[idx],
                            h2osoi_ice[idx], dz[idx], soilbeta[idx]);
@@ -309,11 +301,11 @@ int main(int argc, char **argv) {
                            thv[idx], z0m[idx], displa[idx]);
 
     ELM::canopy_temperature::forcing_height(Land, veg_active[idx], frac_veg_nosno[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
-                                 z0m[idx], z0mg[idx], z_0_town[idx], z_d_town[idx], forc_t[idx], displa[idx], forc_hgt_u_patch[idx],
+                                 z0m[idx], z0mg[idx], forc_t[idx], displa[idx], forc_hgt_u_patch[idx],
                                  forc_hgt_t_patch[idx], forc_hgt_q_patch[idx], thm[idx]);
 
-    ELM::canopy_temperature::init_energy_fluxes(Land, eflx_sh_tot[idx], eflx_sh_tot_u[idx], eflx_sh_tot_r[idx], eflx_lh_tot[idx],
-                                eflx_lh_tot_u[idx], eflx_lh_tot_r[idx], eflx_sh_veg[idx], qflx_evap_tot[idx], qflx_evap_veg[idx],
+    ELM::canopy_temperature::init_energy_fluxes(Land, eflx_sh_tot[idx], eflx_lh_tot[idx],
+                                eflx_sh_veg[idx], qflx_evap_tot[idx], qflx_evap_veg[idx],
                                 qflx_tran_veg[idx]);
 
 
@@ -328,9 +320,9 @@ int main(int argc, char **argv) {
     out.compareOutput(frac_h2osfc);
     out.compareOutput(t_grnd);
     out.compareOutput(frac_sno);
-    out.compareOutput(smpmin);
+    //out.compareOutput(smpmin);
     out.compareOutput(soilalpha);
-    out.compareOutput(soilalpha_u);
+    //out.compareOutput(soilalpha_u);
     out.compareOutput(soilbeta);
     out.compareOutput(forc_q);
     out.compareOutput(forc_pbot);
@@ -366,11 +358,11 @@ int main(int argc, char **argv) {
     out.compareOutput(forc_hgt_q_patch);
     out.compareOutput(thm);
     out.compareOutput(eflx_sh_tot);
-    out.compareOutput(eflx_sh_tot_u);
-    out.compareOutput(eflx_sh_tot_r);
+    //out.compareOutput(eflx_sh_tot_u);
+    //out.compareOutput(eflx_sh_tot_r);
     out.compareOutput(eflx_lh_tot);
-    out.compareOutput(eflx_lh_tot_u);
-    out.compareOutput(eflx_lh_tot_r);
+    //out.compareOutput(eflx_lh_tot_u);
+    //out.compareOutput(eflx_lh_tot_r);
     out.compareOutput(eflx_sh_veg);
     out.compareOutput(qflx_evap_tot);
     out.compareOutput(qflx_evap_veg);

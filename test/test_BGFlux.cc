@@ -66,6 +66,7 @@ ArrayD1 t_soisno[nlevsno+nlevgrnd]
 
 */
 
+using namespace ELM::ELMdims;
 
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
@@ -77,8 +78,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "BareGroundFluxes_IN.txt";
   const std::string output_file = data_dir + "BareGroundFluxes_OUT.txt";
 
@@ -151,12 +152,12 @@ int main(int argc, char **argv) {
   auto qflx_ev_soil = create<ArrayD1>("qflx_ev_soil", n_grid_cells);
   auto qflx_ev_h2osfc = create<ArrayD1>("qflx_ev_h2osfc", n_grid_cells);
   auto t_ref2m = create<ArrayD1>("t_ref2m", n_grid_cells);
-  auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
+  //auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
   auto q_ref2m = create<ArrayD1>("q_ref2m", n_grid_cells);
   auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
-  auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
+  //auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
   
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno + nlevgrnd);
 
 
   // input and output utility class objects
@@ -211,10 +212,10 @@ int main(int argc, char **argv) {
     in.parseState(qflx_ev_soil);
     in.parseState(qflx_ev_h2osfc);
     in.parseState(t_ref2m);
-    in.parseState(t_ref2m_r);
+    //in.parseState(t_ref2m_r);
     in.parseState(q_ref2m);
     in.parseState(rh_ref2m);
-    in.parseState(rh_ref2m_r);
+    //in.parseState(rh_ref2m_r);
     in.parseState(t_soisno[idx]);
     
     assign(frac_veg_nosno, 0); // hardwire to make it run
@@ -232,7 +233,7 @@ int main(int argc, char **argv) {
                    dqh, temp1, temp2, temp12m, temp22m, ustar, forc_q[idx], thm[idx], cgrnds[idx], cgrndl[idx], cgrnd[idx],
                    eflx_sh_grnd[idx], eflx_sh_tot[idx], eflx_sh_snow[idx], eflx_sh_soil[idx], eflx_sh_h2osfc[idx],
                    qflx_evap_soi[idx], qflx_evap_tot[idx], qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx], t_ref2m[idx],
-                   t_ref2m_r[idx], q_ref2m[idx], rh_ref2m[idx], rh_ref2m_r[idx]);
+                   q_ref2m[idx], rh_ref2m[idx]);
     
     
     // compare kernel output to ELM output state
@@ -277,10 +278,10 @@ int main(int argc, char **argv) {
     out.compareOutput(qflx_ev_soil);
     out.compareOutput(qflx_ev_h2osfc);
     out.compareOutput(t_ref2m);
-    out.compareOutput(t_ref2m_r);
+    //out.compareOutput(t_ref2m_r);
     out.compareOutput(q_ref2m);
     out.compareOutput(rh_ref2m);
-    out.compareOutput(rh_ref2m_r);
+    //out.compareOutput(rh_ref2m_r);
     out.compareOutput(t_soisno[idx]);
   }
   return 0;

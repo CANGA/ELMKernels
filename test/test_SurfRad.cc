@@ -50,7 +50,7 @@ albi[numrad]
 fsr
 */
 
-
+using namespace ELM::ELMdims;
 
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
@@ -62,8 +62,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "SurfaceRadiation_IN.txt";
   const std::string output_file = data_dir + "SurfaceRadiation_OUT.txt";
 
@@ -92,30 +92,30 @@ int main(int argc, char **argv) {
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
   auto fsr = create<ArrayD1>("fsr", n_grid_cells);
-  auto sabg_lyr = create<ArrayD2>("sabg_lyr", n_grid_cells, ELM::nlevsno + 1);
-  auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, ELM::numrad);
-  auto ftid = create<ArrayD2>("ftid", n_grid_cells, ELM::numrad);
-  auto ftii = create<ArrayD2>("ftii", n_grid_cells, ELM::numrad);
-  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, ELM::numrad);
-  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, ELM::numrad);
-  auto fabd = create<ArrayD2>("fabd", n_grid_cells, ELM::numrad);
-  auto fabi = create<ArrayD2>("fabi", n_grid_cells, ELM::numrad);
-  auto albsod = create<ArrayD2>("albsod", n_grid_cells, ELM::numrad);
-  auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, ELM::numrad);
-  auto albsnd_hst = create<ArrayD2>("albsnd_hst", n_grid_cells, ELM::numrad);
-  auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, ELM::numrad);
-  auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad);
-  auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad);
-  auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno + 1);
-  auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno + 1);
-  auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno + 1);
-  auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno + 1);
-  auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad);
-  auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad);
+  auto sabg_lyr = create<ArrayD2>("sabg_lyr", n_grid_cells, nlevsno + 1);
+  auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, numrad);
+  auto ftid = create<ArrayD2>("ftid", n_grid_cells, numrad);
+  auto ftii = create<ArrayD2>("ftii", n_grid_cells, numrad);
+  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad);
+  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad);
+  auto fabd = create<ArrayD2>("fabd", n_grid_cells, numrad);
+  auto fabi = create<ArrayD2>("fabi", n_grid_cells, numrad);
+  auto albsod = create<ArrayD2>("albsod", n_grid_cells, numrad);
+  auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, numrad);
+  auto albsnd_hst = create<ArrayD2>("albsnd_hst", n_grid_cells, numrad);
+  auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, numrad);
+  auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, numrad);
+  auto albgri = create<ArrayD2>("albgri", n_grid_cells, numrad);
+  auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, nlevsno + 1);
+  auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, nlevsno + 1);
+  auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, nlevsno + 1);
+  auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, nlevsno + 1);
+  auto albd = create<ArrayD2>("albd", n_grid_cells, numrad);
+  auto albi = create<ArrayD2>("albi", n_grid_cells, numrad);
 
   // arrays to compare output (trd & tri are double[numrad])
-  auto trd_array = create<ArrayD2>("trd", n_grid_cells, ELM::numrad);
-  auto tri_array = create<ArrayD2>("tri", n_grid_cells, ELM::numrad);
+  auto trd_array = create<ArrayD2>("trd", n_grid_cells, numrad);
+  auto tri_array = create<ArrayD2>("tri", n_grid_cells, numrad);
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);
@@ -158,8 +158,8 @@ int main(int argc, char **argv) {
     in.parseState(albi[idx]);
 
     // local to these kernel calls
-    double trd[ELM::numrad] = {0.0,0.0};
-    double tri[ELM::numrad] = {0.0,0.0};
+    double trd[numrad] = {0.0,0.0};
+    double tri[numrad] = {0.0,0.0};
 
 
     // call SurfaceRadiation kernels
@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
     out.compareOutput(albi[idx]);
 
     // put trd & tri into ELM::Array for ouput comparison
-    for (std::size_t i = 0; i < ELM::numrad; ++i) {
+    for (std::size_t i = 0; i < numrad; ++i) {
         trd_array(idx,i) = trd[i];
         tri_array(idx,i) = tri[i];
     }

@@ -115,6 +115,8 @@ ArrayD1 bsw
 
 */
 
+using namespace ELM::ELMdims;
+
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayS1 = ELM::Array<std::string, 1>;
@@ -126,8 +128,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "CanopyFluxes_IN.txt";
   const std::string output_file = data_dir + "CanopyFluxes_OUT.txt";
   const std::string pft_file = "clm_params_c180524.nc";
@@ -252,31 +254,31 @@ int main(int argc, char **argv) {
   auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
   auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
 
-  auto rootr = create<ArrayD2>("rootr", n_grid_cells, ELM::nlevgrnd);
-  auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, ELM::nlevgrnd);
-  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
-  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, ELM::nlevcan);
-  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, ELM::nlevcan);
-  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, ELM::nlevcan);
-  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, ELM::nlevcan);
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto dz = create<ArrayD2>("dz", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, ELM::nlevgrnd);
-  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd);
-  auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd);
-  auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);
+  auto rootr = create<ArrayD2>("rootr", n_grid_cells, nlevgrnd);
+  auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, nlevgrnd);
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan);
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan);
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan);
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan);
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno + nlevgrnd);
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevsno + nlevgrnd);
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevsno + nlevgrnd);
+  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevsno + nlevgrnd);
+  auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, nlevgrnd);
+  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd);
+  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd);
+  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd);
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);
   ELM::IO::ELMtestinput out(output_file);
 
   // read veg constants
-  ELM::VegData<ArrayD1, ArrayD2> vegdata;
-  vegdata.read_veg_data(data_dir, pft_file);
+  ELM::PFTData<ArrayD1, ArrayD2> vegdata;
+  vegdata.read_pft_data(data_dir, pft_file);
   // get veg constants for a single pft
-  const ELM::PSNVegData psnveg = vegdata.get_pft_psnveg(Land.vtype);
+  const ELM::PFTDataPSN psnveg = vegdata.get_pft_psnveg(Land.vtype);
 
   for (std::size_t t = 0; t < 97; ++t) {
     

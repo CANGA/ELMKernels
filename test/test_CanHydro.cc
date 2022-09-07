@@ -38,7 +38,6 @@ qflx_irrig
 qflx_snwcp_liq
 qflx_snwcp_ice
 qflx_rain_grnd
-qflx_prec_grnd
 qflx_snow_grnd
 do_capsnow
 t_grnd
@@ -71,6 +70,7 @@ fwet
 fdry
 */
 
+using namespace ELM::ELMdims;
 
 using ArrayB1 = ELM::Array<bool, 1>;
 using ArrayI1 = ELM::Array<int, 1>;
@@ -85,8 +85,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "CanopyHydrology_IN.txt";
   const std::string output_file = data_dir + "CanopyHydrology_OUT.txt";
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
   auto elai = create<ArrayD1>("elai", n_grid_cells);
   auto esai = create<ArrayD1>("esai", n_grid_cells);
   auto h2ocan = create<ArrayD1>("h2ocan", n_grid_cells);
-  auto qflx_prec_grnd = create<ArrayD1>("qflx_prec_grnd", n_grid_cells);
+  //auto qflx_prec_grnd = create<ArrayD1>("qflx_prec_grnd", n_grid_cells);
   auto qflx_snwcp_liq = create<ArrayD1>("qflx_snwcp_liq", n_grid_cells);
   auto qflx_snwcp_ice = create<ArrayD1>("qflx_snwcp_ice", n_grid_cells);
   auto qflx_snow_grnd = create<ArrayD1>("qflx_snow_grnd", n_grid_cells);
@@ -127,24 +127,24 @@ int main(int argc, char **argv) {
   auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
   auto qflx_snow_melt = create<ArrayD1>("qflx_snow_melt", n_grid_cells);
   auto micro_sigma = create<ArrayD1>("micro_sigma", n_grid_cells);
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno + nlevgrnd);
   auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
   auto frac_sno = create<ArrayD1>("frac_sno", n_grid_cells);
   //auto qflx_snow_h2osfc = create<ArrayD1>("qflx_snow_h2osfc", n_grid_cells);
   auto h2osfc = create<ArrayD1>("h2osfc", n_grid_cells);
   auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", n_grid_cells);
   auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", n_grid_cells);
-  auto swe_old = create<ArrayD2>("swe_old", n_grid_cells, ELM::nlevsno);
+  auto swe_old = create<ArrayD2>("swe_old", n_grid_cells, nlevsno);
   auto h2osno = create<ArrayD1>("h2osno", n_grid_cells);
-  auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno);
+  auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, nlevsno);
   auto int_snow = create<ArrayD1>("int_snow", n_grid_cells);
-  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevsno + nlevgrnd);
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevsno + nlevgrnd);
   auto snl = create<ArrayI1>("snl", n_grid_cells);
-  auto frac_iceold = create<ArrayD2>("frac_iceold", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto dz = create<ArrayD2>("dz", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto z = create<ArrayD2>("z", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-  auto zi = create<ArrayD2>("zi", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd + 1);
+  auto frac_iceold = create<ArrayD2>("frac_iceold", n_grid_cells, nlevsno + nlevgrnd);
+  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevsno + nlevgrnd);
+  auto z = create<ArrayD2>("z", n_grid_cells, nlevsno + nlevgrnd);
+  auto zi = create<ArrayD2>("zi", n_grid_cells, nlevsno + nlevgrnd + 1);
   auto fwet = create<ArrayD1>("fwet", n_grid_cells);
   auto fdry = create<ArrayD1>("fdry", n_grid_cells);
 
@@ -169,7 +169,7 @@ int main(int argc, char **argv) {
     in.parseState(qflx_snwcp_liq);
     in.parseState(qflx_snwcp_ice);
     in.parseState(qflx_rain_grnd);
-    in.parseState(qflx_prec_grnd);
+    //in.parseState(qflx_prec_grnd);
     in.parseState(qflx_snow_grnd);
     in.parseState(do_capsnow);
     in.parseState(t_grnd);
@@ -204,7 +204,7 @@ int main(int argc, char **argv) {
                         h2ocan[idx], qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain);
 
     ELM::canopy_hydrology::ground_flux(Land, do_capsnow[idx], frac_veg_nosno[idx], forc_rain[idx], forc_snow[idx], qflx_irrig[idx],
-                      qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain, qflx_prec_grnd[idx],
+                      qflx_candrip, qflx_through_snow, qflx_through_rain, fracsnow, fracrain,
                       qflx_snwcp_liq[idx], qflx_snwcp_ice[idx], qflx_snow_grnd[idx], qflx_rain_grnd[idx]);
 
     ELM::canopy_hydrology::fraction_wet(Land, frac_veg_nosno[idx], dewmx[idx], elai[idx], esai[idx], h2ocan[idx], fwet[idx], fdry[idx]);
@@ -228,7 +228,7 @@ int main(int argc, char **argv) {
     out.compareOutput(qflx_snwcp_liq);
     out.compareOutput(qflx_snwcp_ice);
     out.compareOutput(qflx_rain_grnd);
-    out.compareOutput(qflx_prec_grnd);
+    //out.compareOutput(qflx_prec_grnd);
     out.compareOutput(qflx_snow_grnd);
     out.compareOutput(do_capsnow);
     out.compareOutput(t_grnd);

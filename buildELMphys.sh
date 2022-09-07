@@ -10,12 +10,14 @@ ORIGIN_DIR=${pwd}
 mkdir "install" ; mkdir "build" ; cd "build"
 cmake ..\
     -DBUILD_SHARED_LIBS:BOOL=true \
-    -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
     -DCMAKE_CXX_COMPILER:STRING=mpicxx \
     -DCMAKE_C_COMPILER:STRING=mpicc \
+    -DSOURCE_PATH:FILEPATH=`pwd`/../ \
     -DCMAKE_INSTALL_PREFIX:FILEPATH=`pwd`/../install \
     -DCMAKE_BUILD_TYPE:STRING=Debug \
-    -DENABLE_KOKKOS:BOOL=ON
+    -DKokkos_ROOT:FILEPATH=${KOKKOS_DIR} \
+    -DENABLE_KOKKOS:BOOL=OFF \
+    -DENABLE_TESTS:BOOL=ON
     ##-DCMAKE_CXX_FLAGS:STRING="-pedantic-errors -Wall -Wextra"
 make -j6 VERBOSE=1
 make install

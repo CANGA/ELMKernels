@@ -1,6 +1,6 @@
 
 if (ENABLE_CC)
-  add_subdirectory(cc)
+  #add_subdirectory(cc)
 endif()
 
 if (ENABLE_KOKKOS)

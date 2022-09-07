@@ -35,6 +35,8 @@ laisha_z
 
 */
 
+using namespace ELM::ELMdims;
+
 using ArrayI1 = ELM::Array<int, 1>;
 using ArrayD1 = ELM::Array<double, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
@@ -46,8 +48,8 @@ template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t v
 
 int main(int argc, char **argv) {
 
-  // data files 
-  const std::string data_dir("/Users/80x/Software/elm_kernels/test/data/");
+  // data files
+  const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "CanopySunShadeFractions_IN.txt";
   const std::string output_file = data_dir + "CanopySunShadeFractions_OUT.txt";
 
@@ -66,18 +68,18 @@ int main(int argc, char **argv) {
   auto elai = create<ArrayD1>("elai", n_grid_cells);
   auto laisun = create<ArrayD1>("laisun", n_grid_cells);
   auto laisha = create<ArrayD1>("laisha", n_grid_cells);
-  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
-  auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, ELM::nlevcan);
-  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, ELM::numrad);
-  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, ELM::numrad);
-  auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, ELM::nlevcan);
-  auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan);
-  auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan);
-  auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan);
-  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, ELM::nlevcan);
-  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, ELM::nlevcan);
-  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, ELM::nlevcan);
-  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, ELM::nlevcan);
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan);
+  auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, nlevcan);
+  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad);
+  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad);
+  auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, nlevcan);
+  auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, nlevcan);
+  auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, nlevcan);
+  auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, nlevcan);
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan);
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan);
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan);
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan);
 
 
   // input and output utility class objects
