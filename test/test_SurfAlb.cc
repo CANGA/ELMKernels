@@ -1,13 +1,12 @@
 
 
+#include "compile_options.hh"
+#include "data_types.hh"
 #include "array.hh"
-#include "read_test_input.hh"
-
 #include "elm_constants.h"
 #include "land_data.h"
-#include "elm_state.h"
+#include "read_test_input.hh"
 #include "pft_data.h"
-
 #include "surface_albedo.h"
 #include "snicar_data.h"
 #include "snow_snicar.h"
@@ -162,7 +161,7 @@ int main(int argc, char **argv) {
   const std::string snowoptics_file = data_dir + "SnowOptics_IN.txt";
   const std::string input_file = data_dir + "SurfaceAlbedo_IN.txt";
   const std::string output_file = data_dir + "SurfaceAlbedo_OUT.txt";
-  const std::string pft_file = "clm_params_c180524.nc";
+  const std::string pft_file = data_dir + "clm_params_c180524.nc";
 
   // hardwired
   ELM::LandType Land;
@@ -343,10 +342,53 @@ int main(int argc, char **argv) {
   ELM::IO::ELMtestinput out(output_file);
 
   // read PFT data
-  ELM::PFTData<ArrayD1, ArrayD2> vegdata;
-  vegdata.read_pft_data(data_dir, pft_file);
+  // read veg constants
+  ELM::PFTData<ArrayD1> pft_data;
+  int comm{0};
+
+  ELM::IO::read_pft_var(comm, pft_file, "fnr", pft_data.fnr);
+  ELM::IO::read_pft_var(comm, pft_file, "act25", pft_data.act25);
+  ELM::IO::read_pft_var(comm, pft_file, "kcha", pft_data.kcha);
+  ELM::IO::read_pft_var(comm, pft_file, "koha", pft_data.koha);
+  ELM::IO::read_pft_var(comm, pft_file, "cpha", pft_data.cpha);
+  ELM::IO::read_pft_var(comm, pft_file, "vcmaxha", pft_data.vcmaxha);
+  ELM::IO::read_pft_var(comm, pft_file, "jmaxha", pft_data.jmaxha);
+  ELM::IO::read_pft_var(comm, pft_file, "tpuha", pft_data.tpuha);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrha", pft_data.lmrha);
+  ELM::IO::read_pft_var(comm, pft_file, "vcmaxhd", pft_data.vcmaxhd);
+  ELM::IO::read_pft_var(comm, pft_file, "jmaxhd", pft_data.jmaxhd);
+  ELM::IO::read_pft_var(comm, pft_file, "tpuhd", pft_data.tpuhd);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrhd", pft_data.lmrhd);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrse", pft_data.lmrse);
+  ELM::IO::read_pft_var(comm, pft_file, "qe", pft_data.qe);
+  ELM::IO::read_pft_var(comm, pft_file, "theta_cj", pft_data.theta_cj);
+  ELM::IO::read_pft_var(comm, pft_file, "bbbopt", pft_data.bbbopt);
+  ELM::IO::read_pft_var(comm, pft_file, "mbbopt", pft_data.mbbopt);
+  ELM::IO::read_pft_var(comm, pft_file, "c3psn", pft_data.c3psn);
+  ELM::IO::read_pft_var(comm, pft_file, "slatop", pft_data.slatop);
+  ELM::IO::read_pft_var(comm, pft_file, "leafcn", pft_data.leafcn);
+  ELM::IO::read_pft_var(comm, pft_file, "flnr", pft_data.flnr);
+  ELM::IO::read_pft_var(comm, pft_file, "fnitr", pft_data.fnitr);
+  ELM::IO::read_pft_var(comm, pft_file, "dleaf", pft_data.dleaf);
+  ELM::IO::read_pft_var(comm, pft_file, "smpso", pft_data.smpso);
+  ELM::IO::read_pft_var(comm, pft_file, "smpsc", pft_data.smpsc);
+  ELM::IO::read_pft_var(comm, pft_file, "tc_stress", pft_data.tc_stress);
+  ELM::IO::read_pft_var(comm, pft_file, "z0mr", pft_data.z0mr);
+  ELM::IO::read_pft_var(comm, pft_file, "displar", pft_data.displar);
+  ELM::IO::read_pft_var(comm, pft_file, "xl", pft_data.xl);
+  ELM::IO::read_pft_var(comm, pft_file, "roota_par", pft_data.roota_par);
+  ELM::IO::read_pft_var(comm, pft_file, "rootb_par", pft_data.rootb_par);
+  ELM::IO::read_pft_var(comm, pft_file, "rholvis", pft_data.rholvis);
+  ELM::IO::read_pft_var(comm, pft_file, "rholnir", pft_data.rholnir);
+  ELM::IO::read_pft_var(comm, pft_file, "rhosvis", pft_data.rhosvis);
+  ELM::IO::read_pft_var(comm, pft_file, "rhosnir", pft_data.rhosnir);
+  ELM::IO::read_pft_var(comm, pft_file, "taulvis", pft_data.taulvis);
+  ELM::IO::read_pft_var(comm, pft_file, "taulnir", pft_data.taulnir);
+  ELM::IO::read_pft_var(comm, pft_file, "tausvis", pft_data.tausvis);
+  ELM::IO::read_pft_var(comm, pft_file, "tausnir", pft_data.tausnir);
+
   // parse pft data for Land.vtype
-  ELM::PFTDataAlb albveg = vegdata.get_pft_alb(Land.vtype);
+  ELM::PFTDataAlb albveg = pft_data.get_pft_alb(Land.vtype);
 
   for (std::size_t t = 2; t < 49; ++t) {
 
