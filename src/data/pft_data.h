@@ -31,7 +31,7 @@ struct PFTDataAlb {
 };
 
 // struct that stores array objects containing time-invariant vegetation data
-template <typename ArrayD1, typename ArrayD2>
+template <typename ArrayD1>
 struct PFTData {
 
   const int numpft_{ELMdims::numpft};

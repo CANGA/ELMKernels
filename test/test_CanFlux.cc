@@ -1,12 +1,17 @@
-#include "canopy_fluxes.h"
+#include "compile_options.hh"
+#include "data_types.hh"
+#include "array.hh"
 #include "elm_constants.h"
 #include "land_data.h"
 #include "read_test_input.hh"
-#include "array.hh"
+#include "read_input.hh"
 #include "pft_data.h"
+#include "canopy_fluxes.h"
+
 
 #include <iostream>
 #include <string>
+#include <unordered_map>
 
 /*
 tests canopy_fluxes kernels: 
@@ -92,10 +97,8 @@ double cgrnds
 double cgrndl
 double cgrnd
 double t_ref2m
-double t_ref2m_r
 double q_ref2m
 double rh_ref2m
-double rh_ref2m_r
 
 ArrayD1 rootr
 ArrayD1 eff_porosity
@@ -122,6 +125,7 @@ using ArrayD1 = ELM::Array<double, 1>;
 using ArrayS1 = ELM::Array<std::string, 1>;
 using ArrayD2 = ELM::Array<double, 2>;
 
+template <class Array_t> Array_t create(int D0) { return Array_t(D0); }
 template <class Array_t> Array_t create(const std::string &name, int D0) { return Array_t(name, D0); }
 template <class Array_t> Array_t create(const std::string &name, int D0, int D1) { return Array_t(name, D0, D1); }
 template <class Array_t, typename Scalar_t> void assign(Array_t &arr, Scalar_t val) { ELM::deep_copy(arr, val); }
@@ -132,7 +136,7 @@ int main(int argc, char **argv) {
   const std::string data_dir = TEST_DATA_DIR;
   const std::string input_file = data_dir + "CanopyFluxes_IN.txt";
   const std::string output_file = data_dir + "CanopyFluxes_OUT.txt";
-  const std::string pft_file = "clm_params_c180524.nc";
+  const std::string pft_file = data_dir + "clm_params_c180524.nc";
 
   // hardwired
   ELM::LandType Land;
@@ -249,10 +253,10 @@ int main(int argc, char **argv) {
   auto cgrndl = create<ArrayD1>("cgrndl", n_grid_cells);
   auto cgrnd = create<ArrayD1>("cgrnd", n_grid_cells);
   auto t_ref2m = create<ArrayD1>("t_ref2m", n_grid_cells);
-  auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
+  //auto t_ref2m_r = create<ArrayD1>("t_ref2m_r", n_grid_cells);
   auto q_ref2m = create<ArrayD1>("q_ref2m", n_grid_cells);
   auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
-  auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
+  //auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
 
   auto rootr = create<ArrayD2>("rootr", n_grid_cells, nlevgrnd);
   auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, nlevgrnd);
@@ -275,10 +279,52 @@ int main(int argc, char **argv) {
   ELM::IO::ELMtestinput out(output_file);
 
   // read veg constants
-  ELM::PFTData<ArrayD1, ArrayD2> vegdata;
-  vegdata.read_pft_data(data_dir, pft_file);
+  ELM::PFTData<ArrayD1> pft_data;
+  int comm{0};
+
+  ELM::IO::read_pft_var(comm, pft_file, "fnr", pft_data.fnr);
+  ELM::IO::read_pft_var(comm, pft_file, "act25", pft_data.act25);
+  ELM::IO::read_pft_var(comm, pft_file, "kcha", pft_data.kcha);
+  ELM::IO::read_pft_var(comm, pft_file, "koha", pft_data.koha);
+  ELM::IO::read_pft_var(comm, pft_file, "cpha", pft_data.cpha);
+  ELM::IO::read_pft_var(comm, pft_file, "vcmaxha", pft_data.vcmaxha);
+  ELM::IO::read_pft_var(comm, pft_file, "jmaxha", pft_data.jmaxha);
+  ELM::IO::read_pft_var(comm, pft_file, "tpuha", pft_data.tpuha);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrha", pft_data.lmrha);
+  ELM::IO::read_pft_var(comm, pft_file, "vcmaxhd", pft_data.vcmaxhd);
+  ELM::IO::read_pft_var(comm, pft_file, "jmaxhd", pft_data.jmaxhd);
+  ELM::IO::read_pft_var(comm, pft_file, "tpuhd", pft_data.tpuhd);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrhd", pft_data.lmrhd);
+  ELM::IO::read_pft_var(comm, pft_file, "lmrse", pft_data.lmrse);
+  ELM::IO::read_pft_var(comm, pft_file, "qe", pft_data.qe);
+  ELM::IO::read_pft_var(comm, pft_file, "theta_cj", pft_data.theta_cj);
+  ELM::IO::read_pft_var(comm, pft_file, "bbbopt", pft_data.bbbopt);
+  ELM::IO::read_pft_var(comm, pft_file, "mbbopt", pft_data.mbbopt);
+  ELM::IO::read_pft_var(comm, pft_file, "c3psn", pft_data.c3psn);
+  ELM::IO::read_pft_var(comm, pft_file, "slatop", pft_data.slatop);
+  ELM::IO::read_pft_var(comm, pft_file, "leafcn", pft_data.leafcn);
+  ELM::IO::read_pft_var(comm, pft_file, "flnr", pft_data.flnr);
+  ELM::IO::read_pft_var(comm, pft_file, "fnitr", pft_data.fnitr);
+  ELM::IO::read_pft_var(comm, pft_file, "dleaf", pft_data.dleaf);
+  ELM::IO::read_pft_var(comm, pft_file, "smpso", pft_data.smpso);
+  ELM::IO::read_pft_var(comm, pft_file, "smpsc", pft_data.smpsc);
+  ELM::IO::read_pft_var(comm, pft_file, "tc_stress", pft_data.tc_stress);
+  ELM::IO::read_pft_var(comm, pft_file, "z0mr", pft_data.z0mr);
+  ELM::IO::read_pft_var(comm, pft_file, "displar", pft_data.displar);
+  ELM::IO::read_pft_var(comm, pft_file, "xl", pft_data.xl);
+  ELM::IO::read_pft_var(comm, pft_file, "roota_par", pft_data.roota_par);
+  ELM::IO::read_pft_var(comm, pft_file, "rootb_par", pft_data.rootb_par);
+  ELM::IO::read_pft_var(comm, pft_file, "rholvis", pft_data.rholvis);
+  ELM::IO::read_pft_var(comm, pft_file, "rholnir", pft_data.rholnir);
+  ELM::IO::read_pft_var(comm, pft_file, "rhosvis", pft_data.rhosvis);
+  ELM::IO::read_pft_var(comm, pft_file, "rhosnir", pft_data.rhosnir);
+  ELM::IO::read_pft_var(comm, pft_file, "taulvis", pft_data.taulvis);
+  ELM::IO::read_pft_var(comm, pft_file, "taulnir", pft_data.taulnir);
+  ELM::IO::read_pft_var(comm, pft_file, "tausvis", pft_data.tausvis);
+  ELM::IO::read_pft_var(comm, pft_file, "tausnir", pft_data.tausnir);
+  
   // get veg constants for a single pft
-  const ELM::PFTDataPSN psnveg = vegdata.get_pft_psnveg(Land.vtype);
+  const ELM::PFTDataPSN psnveg = pft_data.get_pft_psn(Land.vtype);
 
   for (std::size_t t = 0; t < 97; ++t) {
     
@@ -359,10 +405,10 @@ int main(int argc, char **argv) {
     in.parseState(cgrndl);
     in.parseState(cgrnd);
     in.parseState(t_ref2m);
-    in.parseState(t_ref2m_r);
+    //in.parseState(t_ref2m_r);
     in.parseState(q_ref2m);
     in.parseState(rh_ref2m);
-    in.parseState(rh_ref2m_r);
+    //in.parseState(rh_ref2m_r);
     in.parseState(rootr[idx]);
     in.parseState(eff_porosity[idx]);
     in.parseState(tlai_z[idx]);
@@ -413,8 +459,8 @@ int main(int argc, char **argv) {
         emg[idx], forc_lwrad[idx], wtgq, wtalq, wtlq0, wtaq0, h2ocan[idx], eflx_sh_grnd[idx], 
         eflx_sh_snow[idx], eflx_sh_soil[idx], eflx_sh_h2osfc[idx], qflx_evap_soi[idx], 
         qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx], dlrad[idx], ulrad[idx], 
-        cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], t_ref2m_r[idx], q_ref2m[idx], 
-        rh_ref2m[idx], rh_ref2m_r[idx]);
+        cgrnds[idx], cgrndl[idx], cgrnd[idx], t_ref2m[idx], q_ref2m[idx], 
+        rh_ref2m[idx]);
 
 
     // compare kernel output to ELM output state
@@ -490,10 +536,10 @@ int main(int argc, char **argv) {
     out.compareOutput(cgrndl);
     out.compareOutput(cgrnd);
     out.compareOutput(t_ref2m);
-    out.compareOutput(t_ref2m_r);
+    //out.compareOutput(t_ref2m_r);
     out.compareOutput(q_ref2m);
     out.compareOutput(rh_ref2m);
-    out.compareOutput(rh_ref2m_r);
+    //out.compareOutput(rh_ref2m_r);
     out.compareOutput(rootr[idx]);
     out.compareOutput(eff_porosity[idx]);
     out.compareOutput(tlai_z[idx]);

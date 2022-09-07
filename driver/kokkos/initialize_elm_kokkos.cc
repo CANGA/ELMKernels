@@ -137,7 +137,7 @@ void copy_snowage_host_views_d3(std::unordered_map<std::string, h_ViewD3>& snowa
 
 
 
-std::unordered_map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<ViewD1, ViewD2>& pft_data)
+std::unordered_map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<ViewD1>& pft_data)
 {
   std::unordered_map<std::string, h_ViewD1> pft_host_views;
   pft_host_views["fnr"] = Kokkos::create_mirror_view(pft_data.fnr);
@@ -183,7 +183,7 @@ std::unordered_map<std::string, h_ViewD1> get_pft_host_views(const ELM::PFTData<
   return pft_host_views;
 }
 
-void copy_pft_host_views(std::unordered_map<std::string, h_ViewD1>& pft_host_views, ELM::PFTData<ViewD1, ViewD2>& pft_data)
+void copy_pft_host_views(std::unordered_map<std::string, h_ViewD1>& pft_host_views, ELM::PFTData<ViewD1>& pft_data)
 {
   Kokkos::deep_copy(pft_data.fnr, pft_host_views["fnr"]);
   Kokkos::deep_copy(pft_data.act25, pft_host_views["act25"]);
@@ -268,7 +268,7 @@ void ELM::initialize_kokkos_elm (
   ELMStateType& S,
   SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data,
   SnwRdsTable<ViewD3>& snw_rds_table,
-  PFTData<ViewD1, ViewD2>& pft_data,
+  PFTData<ViewD1>& pft_data,
   AerosolDataManager<ViewD1>& aerosol_data,
   const Utils::DomainDecomposition<2>& dd,
   const std::string& fname_surfdata,

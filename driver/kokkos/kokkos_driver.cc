@@ -121,18 +121,18 @@ int main(int argc, char **argv) {
 
     std::string input_dir = INPUT_DATA_DIR;
 
-    std::string fname_surfdata =
-     input_dir+"E3SM/components/elm/test_submodules/inputdata/lnd/clm2/surfdata_map/surfdata_1x1pt_US-Brw_simyr1850_forcanga_arcticgrass.nc";
-    std::string fname_snicar =
-      input_dir+"pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_mam_c160322.nc";
-    std::string fname_forc =
-     input_dir+"pt-e3sm-inputdata/atm/datm7/1x1pt_US-Brw/cpl_bypass_full/all_hourly.nc";
-    std::string fname_param =
-      input_dir+"E3SM/components/elm/test_submodules/inputdata/lnd/clm2/paramdata/clm_params_c180524.nc";
-    std::string fname_aerosol =
-      input_dir+"pt-e3sm-inputdata/atm/cam/chem/trop_mozart_aero/aero/aerosoldep_monthly_2000_mean_1.9x2.5_c090421.nc";
-    std::string fname_snowage =
-      input_dir+"pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc";
+    std::string fname_surfdata(
+     input_dir+"E3SM/components/elm/test_submodules/inputdata/lnd/clm2/surfdata_map/surfdata_1x1pt_US-Brw_simyr1850_forcanga_arcticgrass.nc");
+    std::string fname_snicar(
+      input_dir+"pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_optics_5bnd_mam_c160322.nc");
+    std::string fname_forc(
+     input_dir+"pt-e3sm-inputdata/atm/datm7/1x1pt_US-Brw/cpl_bypass_full/all_hourly.nc");
+    std::string fname_param(
+      input_dir+"E3SM/components/elm/test_submodules/inputdata/lnd/clm2/paramdata/clm_params_c180524.nc");
+    std::string fname_aerosol(
+      input_dir+"pt-e3sm-inputdata/atm/cam/chem/trop_mozart_aero/aero/aerosoldep_monthly_2000_mean_1.9x2.5_c090421.nc");
+    std::string fname_snowage(
+      input_dir+"pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc");
 
     const int n_procs = 1;
     const int ncells = 1;
@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
 
     auto snicar_data = std::make_shared<ELM::SnicarData<ViewD1, ViewD2, ViewD3>>();
     auto snw_rds_table = std::make_shared<ELM::SnwRdsTable<ViewD3>>();
-    auto pft_data = std::make_shared<ELM::PFTData<ViewD1, ViewD2>>();
+    auto pft_data = std::make_shared<ELM::PFTData<ViewD1>>();
     auto aerosol_data = std::make_shared<ELM::AerosolDataManager<ViewD1>>();
     
 
