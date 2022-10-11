@@ -417,24 +417,24 @@ namespace ELM::soil_temp::detail {
     // bmatrix(c,3:4,-1   ) = bmatrix_snow(c,3:4,-1   )
     // for lev idx 4 and band idx 2 - 3
     for (int bnd : {2, 3}) {
-      lhs_matrix(c, 4, bnd) = bmatrix_snow(c, 4, bnd);
+      lhs_matrix(c, nlevsno-1, bnd) = bmatrix_snow(c, nlevsno-1, bnd);
     }
 
     // SNOW-SOIL
     // bmatrix(c,1,-1) = bmatrix_snow_soil(c,1,-1)
     // for lev idx 4 and bnd idx 0
-    lhs_matrix(c, 4, 0) = bmatrix_snow_soil(c, 0);
+    lhs_matrix(c, nlevsno-1, 0) = bmatrix_snow_soil(c, 0);
 
 
     // SSW
     // bmatrix(c,3,0) = bmatrix_ssw(c,3,0)
     // for lev idx 5 and bnd idx 2
-    lhs_matrix(c, 5, 2) = bmatrix_ssw(c, 2);
+    lhs_matrix(c, nlevsno, 2) = bmatrix_ssw(c, 2);
 
     // SSW-SOIL
     // bmatrix(c,2,0) = bmatrix_ssw_soil(c,2,0)
     // for lev idx 5 and bnd idx 1
-    lhs_matrix(c, 5, 1) = bmatrix_ssw_soil(c, 1);
+    lhs_matrix(c, nlevsno, 1) = bmatrix_ssw_soil(c, 1);
 
     // SOIL
     // bmatrix(c,2:3,1           )  = bmatrix_soil(c,2:3,1           )
@@ -443,9 +443,20 @@ namespace ELM::soil_temp::detail {
     // bmatrix_soil lev idx 0
     // and band idx 1 - 2
     for (int bnd : {1, 2}) {
-      lhs_matrix(c, 6, bnd) = bmatrix_soil(c, 0, bnd);
+      lhs_matrix(c, nlevsno + 1, bnd) = bmatrix_soil(c, 0, bnd);
     }
 
+    // SOIL-SSW
+    // bmatrix(c,4,1)  = bmatrix_soil_ssw(c,4,1)
+    // for lev idx 6 and bnd idx 3
+    lhs_matrix(c, nlevsno + 1, 3) = bmatrix_soil_ssw(c, 3);
+
+    // SOIL-SNOW
+    // bmatrix(c,5,1)  = bmatrix_soil_snow(c,5,1)
+    // for lev idx 6 and bnd idx 4
+    lhs_matrix(c, nlevsno + 1, 4) = bmatrix_soil_snow(c, 4);
+
+    // SOIL
     // bmatrix(c,2:4,2:nlevgrnd-1)  = bmatrix_soil(c,2:4,2:nlevgrnd-1)
     // for 
     // lhs_matrix lev idx 7 - 19
@@ -457,25 +468,15 @@ namespace ELM::soil_temp::detail {
       }
     }
 
+    // SOIL
     // bmatrix(c,3:4,nlevgrnd    )  = bmatrix_soil(c,3:4,nlevgrnd    )
     // for 
     // lhs_matrix lev idx 20
     // bmatrix_soil lev idx 14
     // and band idx 2 - 3
     for (int bnd : {2, 3}) {
-      lhs_matrix(c, nlevsno + nlevgrnd, bnd) = bmatrix_soil(c, nlevsno + nlevgrnd - 6, bnd);
+      lhs_matrix(c, nlevsno + nlevgrnd, bnd) = bmatrix_soil(c, nlevgrnd - 1, bnd);
     }
-
-    // SOIL-SNOW
-    // bmatrix(c,5,1)  = bmatrix_soil_snow(c,5,1)
-    // for lev idx 6 and bnd idx 4
-    lhs_matrix(c, nlevsno + 1, 4) = bmatrix_soil_snow(c, 4);
-
-
-    // SOIL-SSW
-    // bmatrix(c,4,1)  = bmatrix_soil_ssw(c,4,1)
-    // for lev idx 6 and bnd idx 3
-    lhs_matrix(c, nlevsno + 1, 3) = bmatrix_soil_ssw(c, 3);
-  }
+  } // assemble_lhs()
 
 } // namespace ELM::soil_temp::detail
