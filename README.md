@@ -1,7 +1,6 @@
 ELM Functional Physics Model
 ================================
 This project is in active development.
-Beta release V0.1 is nearing completion. 
 
 Description
 -----------
@@ -58,7 +57,7 @@ cd $ELM_DIR
 sh buildELMphys.sh
 ```
 
-If you set up both the KOKKOS_DIR AND ELM_INPUT_DIR, that script shpuld build without issue.
+If you set up both the KOKKOS_DIR AND ELM_INPUT_DIR, that script should build without issue.
 
 Run some tests
 ```
@@ -66,7 +65,7 @@ Run some tests
 ```
 
 This code has been built with various minor versipns of GCC 11.xx - 13.xx and the past year
-of Clang versions. Device simulation is not currently supported, only CPU computation. The
+of Clang versions. Device simulation is not currently tested, only CPU computation. The
 Kokkos driver at driver/kokkos/kokkos_driver.cc demonstrates simple usage of these kernels.
 
     
