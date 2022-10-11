@@ -285,35 +285,38 @@ void phase_change_soisno(const int& snl,
     }
   }
 
+
   //-- all layers   ---------------------------------------------------
   for (int i = top; i < nlevsno + nlevgrnd; ++i) {
     
     double hm = 0.0;
     // Calculate the energy surplus and loss for melting and freezing
     if (imelt(i) > 0) {
-      // added unique cases for this calculation,
-      // to account for absorbed solar radiation in each layer
+      // this nest of logic defines the following scenarios:
+      // this snow layer is the top active layer
+      // this soil layer is the top active layer
+      // this soil with surface water layer is the top active layer
+      // this soil layer shares an interface with snow
+      // interior soil layer
+      // interior snow layer
       //=================================================================
-      if (i == top) {
-        if (snl == 0) {
-          double temp_hm = dhsdT * tinc[i] - tinc[i] / fact(i);
+      if (i == top) { // top active layer
+        if (i < nlevsno) { // top layer is snow
+           hm = frac_sno_eff * (dhsdT * tinc[i] - tinc[i] / fact(i));
+        } else {
+          double temp_hm = dhsdT * tinc[i] - tinc[i] / fact(i); // top layer is soil or soil with surface water
           hm = (frac_h2osfc != 0.0) ? temp_hm - frac_h2osfc * (dhsdT * tinc[i]) : temp_hm;
-        } else {
-          hm = frac_sno_eff * (dhsdT * tinc[i] - tinc[i] / fact(i));
         }
-      } else if (i == nlevsno) {
-         hm = (1.0 - frac_sno_eff - frac_h2osfc) * dhsdT * tinc[i] - tinc[i] / fact(i);
-      } else { // non-interfacial snow/soil layers                   
-        if (i < nlevsno) {
-          // snow
+      } else if (i == nlevsno) { // top soil layer under snow
+        hm = (1.0 - frac_sno_eff - frac_h2osfc) * dhsdT * tinc[i] - tinc[i] / fact(i);
+      } else { // non-interfacial layers
+        if (i < nlevsno) { // snow
           hm = -frac_sno_eff * (tinc[i] / fact(i));
-        } else {
-          // soil
+        } else { // soil
           hm = -tinc[i] / fact(i);
         }
       }
     }
-
 
     // These two errors were checked carefully (Y. Dai).  They result from the
     // computed error of "Tridiagonal-Matrix" in subroutine "thermal".
@@ -325,7 +328,6 @@ void phase_change_soisno(const int& snl,
       hm = 0.0;
       imelt(i) = 0;
     }
-
 
     // The rate of melting and freezing
     if (imelt(i) > 0 && std::abs(hm) > 0.0) {
@@ -404,6 +406,7 @@ void phase_change_soisno(const int& snl,
       }
     } // if (imelt(i) > 0 && abs(hm) > 0.0)
   } // all layers loop
+
 
   eflx_snomelt = qflx_snomelt * HFUS;
   for (int i = 0; i < nlevsno; ++i) {

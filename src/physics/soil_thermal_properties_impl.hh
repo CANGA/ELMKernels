@@ -55,7 +55,7 @@ void calc_soil_tk(const int& c,
       if (satw > 1.0e-6) {
         double dke;
         if (t_soisno(c, i) >= TFRZ) {                 // Unfrozen soil
-          dke = std::max(0.0, std::log(satw) + 1.0);
+          dke = std::max(0.0, std::log10(satw) + 1.0);
         } else {                                   // Frozen soil
           dke = satw;
         }
@@ -65,7 +65,7 @@ void calc_soil_tk(const int& c,
         double dksat = tkmg(c, i-nlevsno) * pow(TKWAT, fl * watsat(c, i-nlevsno)) * pow(TKICE, (1.0 - fl) * watsat(c, i-nlevsno));
         thk(c, i) = dke * dksat + (1.0 - dke) * tkdry(c, i-nlevsno);
       } else {
-         thk(c, i) = tkdry(c, i-nlevsno);
+        thk(c, i) = tkdry(c, i-nlevsno);
       }
 
       if (i >= nlevsno + nlevbed) { thk(c, i) = TKBDRK; }
@@ -144,7 +144,7 @@ void calc_face_tk(const int& c,
 
   // active interfaces above bottom interface
   const int bot = nlevgrnd + nlevsno - 1;
-  for (int i = top; i < bot - 1; ++i) {
+  for (int i = top; i < bot; ++i) {
     tk(c, i) = thk(c, i) * thk(c, i+1) * (z(c, i+1) - z(c, i)) /
       (thk(c, i) * (z(c, i+1) - zi(c, i+1)) + thk(c, i+1) * (zi(c, i+1) - z(c, i)));
   }
@@ -219,7 +219,7 @@ void calc_snow_heat_capacity(const int& c,
 
   // calculate for all active snow layers
   for (int i = top; i < nlevsno; ++i) {
-    if (frac_sno < 0.0) {
+    if (frac_sno > 0.0) {
       cv(c, i) = std::max(THIN_SFCLAYER, (CPWAT * h2osoi_liq(c, i) + CPICE * h2osoi_ice(c, i)) / frac_sno);
     } else {
       cv(c, i) = THIN_SFCLAYER;
