@@ -197,10 +197,9 @@ int main(int argc, char **argv) {
     assign(S->t10, 276.0);
     assign(S->t_veg, 283.0);
 
-    assign(S->xmf_dummy, 0.0);
-    assign(S->xmf_h2osfc_dummy, 0.0);
-    assign(S->eflx_h2osfc_snow_dummy, 0.0);
-    assign(S->eflx_building_heat_dummy, 0.0);
+    assign(S->xmf, 0.0);
+    assign(S->xmf_h2osfc, 0.0);
+    assign(S->eflx_h2osfc_snow, 0.0);
 
     // hardwired grid info
     // this comes from ELM, but is wrong?
@@ -278,8 +277,8 @@ int main(int argc, char **argv) {
 
     // phenology data manager
     // make host mirrors - need to be persistent
-    ELM::PhenologyDataManager<ViewD2> phen_data(dd, ncells, 17);
-    auto host_phen_views = get_phen_host_views(phen_data);
+    auto phen_data =std::make_shared<ELM::PhenologyDataManager<ViewD2>>(dd, ncells, 17);
+    auto host_phen_views = get_phen_host_views(*phen_data);
 
     // containers for aerosol deposition and concentration within snowpack layers
     auto aerosol_masses = std::make_shared<ELM::AerosolMasses<ViewD2>>(ncells);
@@ -421,7 +420,7 @@ int main(int argc, char **argv) {
       // reader will read 3 months of data on first call
       // subsequent calls only read the newest months (when phen_data.need_data() == true)
       // and shift the index of the two remaining older months
-      update_phenology(phen_data, host_phen_views, *S, host_vtype, current, fname_surfdata);
+      update_phenology(*phen_data, host_phen_views, *S, host_vtype, current, fname_surfdata);
 
       // read new atm data if needed
       ELM::read_forcing(*atm_forcing, dd, current, atm_nsteps);

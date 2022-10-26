@@ -188,7 +188,7 @@ fabi_sha_z[nlevcan]  [double] absorbed shaded leaf diffuse PAR (per unit lai+sai
 template <typename ArrayD1>
 ACCELERATE
 void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai, const double& tlai, const double& tsai,
-                      int& nrad, int& ncan, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
+                      int& nrad, ArrayD1 tlai_z, ArrayD1 tsai_z, ArrayD1 fsun_z, ArrayD1 fabd_sun_z,
                       ArrayD1 fabd_sha_z, ArrayD1 fabi_sun_z, ArrayD1 fabi_sha_z);
 
 /*

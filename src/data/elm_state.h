@@ -94,22 +94,17 @@ namespace ELM {
 
       // surface albedo and snicar
       // required for SurfaceAlbedo kernels
-      ArrayI1 snl_top, snl_btm, ncan, flg_nosnl;
-      ArrayI2 snw_rds_lcl;
-      ArrayD1 mu_not, coszen;
+      ArrayD1 coszen;
       ArrayD2 fabd_sun, fabd_sha, fabi_sun, fabi_sha, albsnd, albsni,
-              tsai_z, albout_lcl, flx_slrd_lcl, flx_slri_lcl,
-              h2osoi_ice_lcl, h2osoi_liq_lcl;
-      ArrayD3 mss_cnc_aer_in_fdb, flx_absd_snw, flx_absi_snw, flx_abs_lcl,
-              g_star, omega_star, tau_star;
+              tsai_z;
 
       // outputs from soil temp/snow hydro
       ArrayI2 imelt;
-      ArrayD1 snot_top, dTdz_top, snw_rds_top, sno_liq_top, qflx_sl_top_soil,
+      ArrayD1 qflx_sl_top_soil,
               qflx_snow2topsoi, mflx_snowlyr_col, qflx_top_soil, mflx_neg_snow,
-              eflx_snomelt, qflx_snomelt, xmf_dummy, xmf_h2osfc_dummy,
-              eflx_h2osfc_snow_dummy, qflx_h2osfc_ice_dummy,
-              eflx_building_heat_dummy, qflx_snofrz;
+              eflx_snomelt, qflx_snomelt, xmf, xmf_h2osfc,
+              eflx_h2osfc_snow, qflx_h2osfc_ice,
+              qflx_snofrz;
       ArrayD2 qflx_snofrz_lyr;
 
       // main exchange variables

@@ -152,7 +152,7 @@ namespace ELM {
         t_h2osfc("t_h2osfc", ncells),
         t_h2osfc_bef("t_h2osfc_bef", ncells),
         soilalpha("soilalpha", ncells),
-        soilbeta("soilbeta", ncells),
+        soilbeta("soilbeta", ncells), 
         qg_snow("qg_snow", ncells),
         qg_soil("qg_soil", ncells),
         qg("qg", ncells),
@@ -198,9 +198,9 @@ namespace ELM {
         cgrnd("cgrnd", ncells),
 
         // canopy fluxes
-        altmax_indx("altmax_indx", ncells),
-        altmax_lastyear_indx("altmax_lastyear_indx", ncells),
-        t10("t10", ncells),
+        altmax_indx("altmax_indx", ncells), // NEED!! - active layer thickness index into subsurface
+        altmax_lastyear_indx("altmax_lastyear_indx", ncells), // NEED!! - active layer thickness index from previous year
+        t10("t10", ncells), // NEED!! - running 10-day mean 2m air temperature 
         vcmaxcintsha("vcmaxcintsha", ncells),
         vcmaxcintsun("vcmaxcintsun", ncells),
         btran("btran", ncells),
@@ -224,12 +224,6 @@ namespace ELM {
 
         // surface albedo and snicar
         // required for SurfaceAlbedo kernels
-        snl_top("snl_top", ncells),
-        snl_btm("snl_btm", ncells),
-        ncan("ncan", ncells), // only called in canopy_flux
-        flg_nosnl("flg_nosnl", ncells),
-        snw_rds_lcl("snw_rds_lcl", ncells, ELMdims::nlevsno),
-        mu_not("mu_not", ncells), // only called in snicar
         coszen("coszen", ncells),
         fabd_sun("fabd_sun", ncells, ELMdims::numrad),
         fabd_sha("fabd_sha", ncells, ELMdims::numrad),
@@ -238,25 +232,10 @@ namespace ELM {
         albsnd("albsnd", ncells, ELMdims::numrad),
         albsni("albsni", ncells, ELMdims::numrad),
         tsai_z("tsai_z", ncells, ELMdims::nlevcan),
-        albout_lcl("albout_lcl", ncells, ELMdims::numrad_snw),
-        flx_slrd_lcl("flx_slrd_lcl", ncells, ELMdims::numrad_snw),
-        flx_slri_lcl("flx_slri_lcl", ncells, ELMdims::numrad_snw),
-        h2osoi_ice_lcl("h2osoi_ice_lcl", ncells, ELMdims::nlevsno),
-        h2osoi_liq_lcl("h2osoi_liq_lcl", ncells, ELMdims::nlevsno),
-        mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", ncells, ELMdims::nlevsno, ELMdims::sno_nbr_aer),
-        flx_absd_snw("flx_absd_snw", ncells, ELMdims::nlevsno+1, ELMdims::numrad),
-        flx_absi_snw("flx_absi_snw", ncells, ELMdims::nlevsno+1, ELMdims::numrad),
-        flx_abs_lcl("flx_abs_lcl", ncells, ELMdims::nlevsno+1, ELMdims::numrad_snw),
-        g_star("g_star", ncells, ELMdims::numrad_snw, ELMdims::nlevsno),
-        omega_star("omega_star", ncells, ELMdims::numrad_snw, ELMdims::nlevsno),
-        tau_star("tau_star", ncells, ELMdims::numrad_snw, ELMdims::nlevsno),
 
         // outputs from soil temp/snow hydro
+        // many of these could be removed if not desired for output
         imelt("imelt", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno),
-        snot_top("snot_top", ncells),
-        dTdz_top("dTdz_top", ncells),
-        snw_rds_top("snw_rds_top", ncells),
-        sno_liq_top("sno_liq_top", ncells),
         qflx_sl_top_soil("qflx_sl_top_soil", ncells),
         qflx_snow2topsoi("qflx_snow2topsoi", ncells),
         mflx_snowlyr_col("mflx_snowlyr_col", ncells),
@@ -264,11 +243,10 @@ namespace ELM {
         mflx_neg_snow("mflx_neg_snow", ncells),
         eflx_snomelt("eflx_snomelt", ncells),
         qflx_snomelt("qflx_snomelt", ncells),
-        xmf_dummy("xmf", ncells),
-        xmf_h2osfc_dummy("xmf_h2osfc", ncells),
-        eflx_h2osfc_snow_dummy("eflx_h2osfc_to_snow", ncells),
-        qflx_h2osfc_ice_dummy("qflx_h2osfc_to_ice", ncells),
-        eflx_building_heat_dummy("eflx_building_heat", ncells),
+        xmf("xmf", ncells),
+        xmf_h2osfc("xmf_h2osfc", ncells),
+        eflx_h2osfc_snow("eflx_h2osfc_to_snow", ncells),
+        qflx_h2osfc_ice("qflx_h2osfc_to_ice", ncells),
         qflx_snofrz("qflx_snofrz", ncells),
         qflx_snofrz_lyr("qflx_snofrz_lyr", ncells, ELMdims::nlevsno),
 

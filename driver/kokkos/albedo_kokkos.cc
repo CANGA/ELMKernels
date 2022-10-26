@@ -12,12 +12,31 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
                                ELM::PFTData<ViewD1>& pft_data)
 {
 
+  // local variables
+  ViewI2 snw_rds_lcl("snw_rds_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
+  ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
+  ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
+  ViewD2 albout_lcl("albout_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
+  ViewD2 flx_slrd_lcl("flx_slrd_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
+  ViewD2 flx_slri_lcl("flx_slri_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
+  ViewD3 flx_abs_lcl("flx_abs_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad_snw);
+  ViewD3 mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", S.snl.extent(0), ELM::ELMdims::nlevsno, ELM::ELMdims::sno_nbr_aer);
+  ViewD3 g_star("g_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 omega_star("omega_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 tau_star("tau_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 flx_absd_snw("flx_absd_snw", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
+  ViewD3 flx_absi_snw("flx_absi_snw", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
+
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // call surface albedo and SNICAR kernels
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   auto albedo_kernels = ELM_LAMBDA (const int& idx) {
+
+    // thread-local
+    int snl_top, snl_btm, flg_nosnl;
+    double mu_not;
     // parse pft data for Land.vtype
     ELM::PFTDataAlb alb_pft = pft_data.get_pft_alb(S.vtype(idx));
 
@@ -51,7 +70,7 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         Kokkos::subview(S.flx_absdn, idx, Kokkos::ALL),
         Kokkos::subview(S.flx_absiv, idx, Kokkos::ALL),
         Kokkos::subview(S.flx_absin, idx, Kokkos::ALL),
-        Kokkos::subview(S.mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL));
+        Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL));
 
     ELM::surface_albedo::soil_albedo(
         S.Land,
@@ -76,28 +95,28 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
           Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
           Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
           Kokkos::subview(S.snw_rds, idx, Kokkos::ALL),
-          S.snl_top(idx),
-          S.snl_btm(idx),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL),
-          S.flg_nosnl(idx),
-          Kokkos::subview(S.h2osoi_ice_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_liq_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
-          S.mu_not(idx),
-          Kokkos::subview(S.flx_slrd_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_slri_lcl, idx, Kokkos::ALL));
+          snl_top,
+          snl_btm,
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL),
+          flg_nosnl,
+          Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
+          mu_not,
+          Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL));
 
       ELM::snow_snicar::snow_aerosol_mie_params(
           S.Land.urbpoi,
           flg_slr_in,
-          S.snl_top(idx),
-          S.snl_btm(idx),
+          snl_top,
+          snl_btm,
           S.coszen(idx),
           S.h2osno(idx),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_ice_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_liq_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
           snicar_data.ss_alb_oc1,
           snicar_data.asm_prm_oc1,
           snicar_data.ext_cff_mss_oc1,
@@ -129,42 +148,42 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
           snicar_data.asm_prm_bc2,
           snicar_data.ext_cff_mss_bc2,
           snicar_data.bcenh,
-          Kokkos::subview(S.mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.g_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.omega_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.tau_star, idx, Kokkos::ALL, Kokkos::ALL));
+          Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(tau_star, idx, Kokkos::ALL, Kokkos::ALL));
 
       ELM::snow_snicar::snow_radiative_transfer_solver(
           S.Land.urbpoi,
           flg_slr_in,
-          S.flg_nosnl(idx),
-          S.snl_top(idx),
-          S.snl_btm(idx),
+          flg_nosnl,
+          snl_top,
+          snl_btm,
           S.coszen(idx),
           S.h2osno(idx),
-          S.mu_not(idx),
-          Kokkos::subview(S.flx_slrd_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_slri_lcl, idx, Kokkos::ALL),
+          mu_not,
+          Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL),
           Kokkos::subview(S.albsoi, idx, Kokkos::ALL),
-          Kokkos::subview(S.g_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.omega_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.tau_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.albout_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL));    
+          Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(tau_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL));    
 
       ELM::snow_snicar::snow_albedo_radiation_factor(
           S.Land.urbpoi,
           flg_slr_in,
-          S.snl_top(idx),
+          snl_top,
           S.coszen(idx),
-          S.mu_not(idx),
+          mu_not,
           S.h2osno(idx),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
           Kokkos::subview(S.albsoi, idx, Kokkos::ALL),
-          Kokkos::subview(S.albout_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
           Kokkos::subview(S.albsnd, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL));
+          Kokkos::subview(flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL));
     }
 
 
@@ -180,28 +199,28 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
           Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
           Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
           Kokkos::subview(S.snw_rds, idx, Kokkos::ALL),
-          S.snl_top(idx),
-          S.snl_btm(idx),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL),
-          S.flg_nosnl(idx),
-          Kokkos::subview(S.h2osoi_ice_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_liq_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
-          S.mu_not(idx),
-          Kokkos::subview(S.flx_slrd_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_slri_lcl, idx, Kokkos::ALL));
+          snl_top,
+          snl_btm,
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL),
+          flg_nosnl,
+          Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
+          mu_not,
+          Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL));
 
       ELM::snow_snicar::snow_aerosol_mie_params(
           S.Land.urbpoi,
           flg_slr_in,
-          S.snl_top(idx),
-          S.snl_btm(idx),
+          snl_top,
+          snl_btm,
           S.coszen(idx),
           S.h2osno(idx),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_ice_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.h2osoi_liq_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_ice_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(h2osoi_liq_lcl, idx, Kokkos::ALL),
           snicar_data.ss_alb_oc1,
           snicar_data.asm_prm_oc1,
           snicar_data.ext_cff_mss_oc1,
@@ -233,42 +252,42 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
           snicar_data.asm_prm_bc2,
           snicar_data.ext_cff_mss_bc2,
           snicar_data.bcenh,
-          Kokkos::subview(S.mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.g_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.omega_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.tau_star, idx, Kokkos::ALL, Kokkos::ALL));
+          Kokkos::subview(mss_cnc_aer_in_fdb, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(tau_star, idx, Kokkos::ALL, Kokkos::ALL));
 
       ELM::snow_snicar::snow_radiative_transfer_solver(
           S.Land.urbpoi,
           flg_slr_in,
-          S.flg_nosnl(idx),
-          S.snl_top(idx),
-          S.snl_btm(idx),
+          flg_nosnl,
+          snl_top,
+          snl_btm,
           S.coszen(idx),
           S.h2osno(idx),
-          S.mu_not(idx),
-          Kokkos::subview(S.flx_slrd_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_slri_lcl, idx, Kokkos::ALL),
+          mu_not,
+          Kokkos::subview(flx_slrd_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_slri_lcl, idx, Kokkos::ALL),
           Kokkos::subview(S.albsoi, idx, Kokkos::ALL),
-          Kokkos::subview(S.g_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.omega_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.tau_star, idx, Kokkos::ALL, Kokkos::ALL),
-          Kokkos::subview(S.albout_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL));
+          Kokkos::subview(g_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(omega_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(tau_star, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL));
 
       ELM::snow_snicar::snow_albedo_radiation_factor(
           S.Land.urbpoi,
           flg_slr_in,
-          S.snl_top(idx),
+          snl_top,
           S.coszen(idx),
-          S.mu_not(idx),
+          mu_not,
           S.h2osno(idx),
-          Kokkos::subview(S.snw_rds_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(snw_rds_lcl, idx, Kokkos::ALL),
           Kokkos::subview(S.albsoi, idx, Kokkos::ALL),
-          Kokkos::subview(S.albout_lcl, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
+          Kokkos::subview(albout_lcl, idx, Kokkos::ALL),
+          Kokkos::subview(flx_abs_lcl, idx, Kokkos::ALL, Kokkos::ALL),
           Kokkos::subview(S.albsni, idx, Kokkos::ALL),
-          Kokkos::subview(S.flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL));
+          Kokkos::subview(flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL));
     }
 
     ELM::surface_albedo::ground_albedo(
@@ -290,8 +309,8 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         Kokkos::subview(S.albsoi, idx, Kokkos::ALL),
         Kokkos::subview(S.albsnd, idx, Kokkos::ALL),
         Kokkos::subview(S.albsni, idx, Kokkos::ALL),
-        Kokkos::subview(S.flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL),
-        Kokkos::subview(S.flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL),
+        Kokkos::subview(flx_absd_snw, idx, Kokkos::ALL, Kokkos::ALL),
+        Kokkos::subview(flx_absi_snw, idx, Kokkos::ALL, Kokkos::ALL),
         Kokkos::subview(S.flx_absdv, idx, Kokkos::ALL),
         Kokkos::subview(S.flx_absdn, idx, Kokkos::ALL),
         Kokkos::subview(S.flx_absiv, idx, Kokkos::ALL),
@@ -304,7 +323,6 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         S.tlai(idx),
         S.tsai(idx),
         S.nrad(idx),
-        S.ncan(idx),
         Kokkos::subview(S.tlai_z, idx, Kokkos::ALL),
         Kokkos::subview(S.tsai_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fsun_z, idx, Kokkos::ALL),

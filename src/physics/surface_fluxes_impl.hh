@@ -264,13 +264,14 @@ ACCELERATE
 double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_soil_grnd, const double& xmf,
                            const double& xmf_h2osfc, const double& frac_h2osfc, const double& t_h2osfc,
                            const double& t_h2osfc_bef, const double& dtime, const double& eflx_h2osfc_to_snow,
-                           const double& eflx_building_heat, const double& frac_sno_eff, const ArrayD1 t_soisno,
+                           const double& frac_sno_eff, const ArrayD1 t_soisno,
                            const ArrayD1 tssbef, const ArrayD1 fact)
 {
   using ELMdims::nlevsno;
   using ELMdims::nlevgrnd;
   using ELMdims::nlevurb;
 
+  constexpr double eflx_building_heat = 0.0;
   double errsoi = eflx_soil_grnd - xmf - xmf_h2osfc - frac_h2osfc * (t_h2osfc - t_h2osfc_bef) * (t_h2osfc / dtime);
   errsoi += eflx_h2osfc_to_snow;
   // For urban sunwall, shadewall, and roof columns, the "soil" energy balance check

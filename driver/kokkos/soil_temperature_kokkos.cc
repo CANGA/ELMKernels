@@ -63,10 +63,10 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   auto int_snow = S.int_snow;
   auto t_h2osfc = S.t_h2osfc;
   auto t_grnd = S.t_grnd;
-  auto xmf_h2osfc = S.xmf_h2osfc_dummy;
-  auto xmf = S.xmf_dummy;
-  auto qflx_h2osfc_to_ice = S.qflx_h2osfc_ice_dummy;
-  auto eflx_h2osfc_to_snow = S.eflx_h2osfc_snow_dummy;
+  auto xmf_h2osfc = S.xmf_h2osfc;
+  auto xmf = S.xmf;
+  auto qflx_h2osfc_to_ice = S.qflx_h2osfc_ice;
+  auto eflx_h2osfc_to_snow = S.eflx_h2osfc_snow;
   auto qflx_snofrz = S.qflx_snofrz;
   auto qflx_snow_melt = S.qflx_snow_melt;
   auto qflx_snomelt = S.qflx_snomelt;
