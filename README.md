@@ -59,7 +59,6 @@ And now we can build this library
 cd $ELM_DIR
 sh buildELMphys.sh
 ```
-
 If you set up both the KOKKOS_DIR and ELM_INPUT_DIR, the build script work without issue.
 
 Run some tests
@@ -67,8 +66,8 @@ Run some tests
 ./install/bin/test_*
 ```
 
-This code has been built with various minor versions of GCC 11.xx - 13.xx and the past year
-of Clang versions. Device simulation is not currently supported, only CPU computation. The
+This code has been built with various minor versipns of GCC 11.xx - 13.xx and the past year
+of Clang versions. Device simulation is not currently tested, only CPU computation. The
 Kokkos driver at driver/kokkos/kokkos_driver.cc demonstrates simple usage of these kernels.
 
     
