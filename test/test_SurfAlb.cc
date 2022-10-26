@@ -180,7 +180,6 @@ int main(int argc, char **argv) {
   auto snl_btm = create<ArrayI1>("snl_btm", n_grid_cells);
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   auto nrad = create<ArrayI1>("nrad", n_grid_cells);
-  auto ncan = create<ArrayI1>("ncan", n_grid_cells);
   auto flg_nosnl = create<ArrayI1>("flg_nosnl", n_grid_cells);
 
   // I2
@@ -532,7 +531,7 @@ int main(int argc, char **argv) {
 
 
   ELM::surface_albedo::canopy_layer_lai(Land.urbpoi, elai[idx], esai[idx], tlai[idx], tsai[idx], 
-    nrad[idx], ncan[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx], 
+    nrad[idx], tlai_z[idx], tsai_z[idx], fsun_z[idx], fabd_sun_z[idx], fabd_sha_z[idx],
     fabi_sun_z[idx], fabi_sha_z[idx]);
 
 
