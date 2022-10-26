@@ -159,10 +159,6 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
         Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
         Kokkos::subview(S.qflx_snofrz_lyr, idx, Kokkos::ALL),
         snw_rds_table,
-        S.snot_top(idx),
-        S.dTdz_top(idx),
-        S.snw_rds_top(idx),
-        S.sno_liq_top(idx),
         Kokkos::subview(S.snw_rds, idx, Kokkos::ALL));
 
   }; // end snow_update_kernels kernels

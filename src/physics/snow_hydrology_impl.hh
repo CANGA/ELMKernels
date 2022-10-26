@@ -61,10 +61,6 @@ namespace ELM::snow {
                  const ArrayD1 t_soisno,
                  const ArrayD1 qflx_snofrz_lyr,
                  const SnwRdsTable<ArrayD3>& snw_table,
-                 double& snot_top,
-                 double& dTdz_top,
-                 double& snw_rds_top,
-                 double& sno_liq_top,
                  ArrayD1 snw_rds)
   {
     using ELMdims::nlevsno;
@@ -225,12 +221,12 @@ namespace ELM::snow {
         }
 
         // set top layer variables for history files
-        if (i == snl_top) {
-          snot_top = t_soisno(i);
-          dTdz_top = dTdz;
-          snw_rds_top = snw_rds(i);
-          sno_liq_top = h2osoi_liq(i) / (h2osoi_liq(i) + h2osoi_ice(i));
-        }
+        //if (i == snl_top) {
+        //  snot_top = t_soisno(i);
+        //  dTdz_top = dTdz;
+        //  snw_rds_top = snw_rds(i);
+        //  sno_liq_top = h2osoi_liq(i) / (h2osoi_liq(i) + h2osoi_ice(i));
+        //}
       } // for i = snl_top .. snl_btm
     } // if snl > 0
 

@@ -23,10 +23,6 @@ namespace ELM::snow {
                  const ArrayD1 t_soisno,
                  const ArrayD1 qflx_snofrz_lyr,
                  const SnwRdsTable<ArrayD3>& snw_table,
-                 double& snot_top,
-                 double& dTdz_top,
-                 double& snw_rds_top,
-                 double& sno_liq_top,
                  ArrayD1 snw_rds);
 
 
