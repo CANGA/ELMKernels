@@ -14,21 +14,25 @@
 namespace ELM {
 
 /*! Set minimum slope value
-/param topo_slope [double] slope (-)
+/param[in]  raw_topo_slope  [double] raw_topo_slope (-)
+\param[out] topo_slope      [double] processed slope (-)
 */
 ACCELERATE
-void init_topo_slope(double& topo_slope);
+double init_topo_slope(double raw_topo_slope);
 
-/*! Initialize n_melt and micro_sigma for SCA calculations.
-\param[in]  ltype       [integer] landunit type
-\param[in]  topo_slope  [double] gridcell topographic slope -- this must be % slope
+/*! Initialize n_melt for SCA calculations.
 \param[in]  topo_std    [double] gridcell elevation standard deviation
 \param[out] n_melt      [double] SCA shape parameter
+*/
+ACCELERATE
+double init_melt_factor(int ltype, double topo_std);
+
+/*! Initialize micro_sigma for SCA calculations.
+\param[in]  topo_slope  [double] gridcell topographic slope -- this must be % slope
 \param[out] micro_sigma [double] microtopography pdf sigma (m)
 */
 ACCELERATE
-void init_micro_topo(const int& ltype, const double& topo_slope, const double& topo_std, double& n_melt,
-                     double& micro_sigma);
+double init_micro_sigma(double topo_slope);
 
 } // namespace ELM
 

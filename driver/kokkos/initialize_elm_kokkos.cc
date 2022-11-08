@@ -375,13 +375,10 @@ void ELM::initialize_kokkos_elm (
   auto init_functions = ELM_LAMBDA (const int& idx) {
 
     S.psn_pft(idx) = pft_data.get_pft_psn(S.vtype(idx));
-  
-    init_topo_slope(S.topo_slope(idx));
 
-    init_micro_topo(
-                    S.Land.ltype, S.topo_slope(idx),
-                    S.topo_std(idx), S.n_melt(idx),
-                    S.micro_sigma(idx));
+    S.topo_slope(idx) = init_topo_slope(S.topo_slope(idx));
+    S.n_melt(idx) = init_melt_factor(S.Land.ltype, S.topo_std(idx));
+    S.micro_sigma(idx) = init_micro_sigma(S.topo_slope(idx));
 
     init_snow_layers(
                     S.snow_depth(idx), S.Land.lakpoi, S.snl(idx),

@@ -4,16 +4,16 @@
 namespace ELM {
 
 ACCELERATE
-void init_topo_slope(double& topo_slope)
+double init_topo_slope(double raw_topo_slope)
 {
   // check for near zero slopes, set minimum value
-  topo_slope = std::max(topo_slope, 0.2);
+  return std::max(raw_topo_slope, 0.2);
 }
 
 ACCELERATE
-void init_micro_topo(const int& ltype, const double& topo_slope, const double& topo_std, double& n_melt,
-                    double& micro_sigma)
+double init_melt_factor(int ltype, double topo_std)
 {
+  double n_melt;
   if (ltype == LND::istice_mec) {
     /* ice_mec columns already account for subgrid topographic variability through
     their use of multiple elevation classes; thus, to avoid double-accounting for
@@ -23,11 +23,17 @@ void init_micro_topo(const int& ltype, const double& topo_slope, const double& t
   } else {
     n_melt = 200.0 / std::max(10.0, topo_std);
   }
+  return n_melt;
+}
+
+ACCELERATE
+double init_micro_sigma(double topo_slope)
+{
   // microtopographic parameter, units are meters (try smooth function of slope)
-  double slopebeta = 3.0;
-  double slopemax = 0.4;
-  double slope0 = pow(slopemax, (-1.0 / slopebeta));
-  micro_sigma = pow((topo_slope + slope0), -slopebeta);
+  const double slopebeta = 3.0;
+  const double slopemax = 0.4;
+  const double slope0 = pow(slopemax, (-1.0 / slopebeta));
+  return pow((topo_slope + slope0), -slopebeta);
 }
 
 } // namespace ELM
