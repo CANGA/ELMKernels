@@ -14,11 +14,9 @@ namespace ELM {
       ~ELMState() = default;
 
       // forcing data
-      ArrayD1 forc_tbot, forc_thbot, forc_pbot, forc_qbot, forc_rh, forc_lwrad,
-              forc_rain, forc_snow, forc_u, forc_v, forc_hgt, forc_hgt_u,
-              forc_hgt_t, forc_hgt_q, forc_hgt_u_patch, forc_hgt_t_patch,
-              forc_hgt_q_patch, forc_vp, forc_rho, forc_po2, forc_pco2;
-      ArrayD2 forc_solai, forc_solad;
+      ArrayD1 forc_tbot, forc_thbot, forc_pbot, forc_qbot, forc_lwrad,
+              forc_u, forc_v, forc_hgt, forc_hgt_u_patch, forc_hgt_t_patch,
+              forc_hgt_q_patch;
 
       // prescribed sat phenology
       ArrayD1 tlai, tsai, elai, esai, htop, hbot;

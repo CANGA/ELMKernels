@@ -15,25 +15,14 @@ namespace ELM {
         forc_thbot("forc_thbot", ncells),
         forc_pbot("forc_pbot", ncells),
         forc_qbot("forc_qbot", ncells),
-        forc_rh("forc_rh", ncells),
         forc_lwrad("forc_lwrad", ncells),
-        forc_rain("forc_rain", ncells),
-        forc_snow("forc_snow", ncells),
-        forc_u("forc_u", ncells),
-        forc_v("forc_v", ncells),
-        forc_hgt("forc_hgt", ncells),
-        forc_hgt_u("forc_hgt_u", ncells),
-        forc_hgt_t("forc_hgt_t", ncells),
-        forc_hgt_q("forc_hgt_q", ncells),
+        forc_u("forc_u", ncells), //in canflux and baregroundflux - could be calculated on the fly
+        forc_v("forc_v", ncells), //in canflux and baregroundflux - could be calculated on the fly
+        forc_hgt("forc_hgt", ncells), // not used now because forc_hgt hardwired as 30.0 - will be useful if forc_hgt read from file
         forc_hgt_u_patch("forc_hgt_u_patch", ncells),
         forc_hgt_t_patch("forc_hgt_t_patch", ncells),
         forc_hgt_q_patch("forc_hgt_q_patch", ncells),
-        forc_vp("forc_vp", ncells),
-        forc_rho("forc_rho", ncells),
-        forc_po2("forc_po2", ncells),
-        forc_pco2("forc_pco2", ncells),
-        forc_solai("forc_solai", ncells, 2),
-        forc_solad("forc_solad", ncells, 2),
+        //forc_rho("forc_rho", ncells), // in canflux and baregroundflux - could be calculated on the fly
 
         // prescribed sat phenology
         tlai("tlai", ncells),
@@ -51,8 +40,8 @@ namespace ELM {
         watsat("watsat", ncells, ELMdims::nlevgrnd),
         sucsat("sucsat", ncells, ELMdims::nlevgrnd),
         bsw("bsw", ncells, ELMdims::nlevgrnd),
-        watdry("watdry", ncells, ELMdims::nlevgrnd),
-        watopt("watopt", ncells, ELMdims::nlevgrnd),
+        watdry("watdry", ncells, ELMdims::nlevgrnd), // only used in canopy_temperature
+        watopt("watopt", ncells, ELMdims::nlevgrnd), // only used in canopy_temperature
         watfc("watfc", ncells, ELMdims::nlevgrnd),
     
         // topo, microtopography
@@ -63,12 +52,13 @@ namespace ELM {
 
         // soil color and texture constants
         //int max_soil_color = 20; // largest option - can't know until NC file is read
-        isoicol("isoicol", ncells),
-        albsat("albsat", 20, 2),
-        albdry("albdry", 20, 2),
+        // should be placed somewhere else
+        isoicol("isoicol", ncells), // only used in surface_albedo
+        albsat("albsat", 20, 2), // only used in surface_albedo
+        albdry("albdry", 20, 2), // only used in surface_albedo
 
         // soil thermal constants
-        tkmg("tkmg", ncells, ELMdims::nlevgrnd),
+        tkmg("tkmg", ncells, ELMdims::nlevgrnd), // created in soil_texture_hydraulic, only used in soil_thermal and soil_temp
         tkdry("tkdry", ncells, ELMdims::nlevgrnd),
         csol("csol", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno),
 
@@ -79,9 +69,9 @@ namespace ELM {
         snl("snl", ncells),
         snow_depth("snow_depth", ncells),
         frac_sno("frac_sno", ncells),
-        int_snow("int_snow", ncells),
+        int_snow("int_snow", ncells), // calced in can_hydro, used in snow_hydro
         snw_rds("snw_rds", ncells, ELMdims::nlevsno),
-        swe_old("swe_old", ncells, ELMdims::nlevsno),
+        swe_old("swe_old", ncells, ELMdims::nlevsno), // calced in can_hydro, used in snow_hydro
 
         // soil/snow/surface h2o state
         frac_iceold("frac_iceold", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
@@ -272,6 +262,6 @@ namespace ELM {
         do_capsnow("do_capsnow", ncells)
 
 {}
-
+  
 
 } // namespace ELM

@@ -449,10 +449,10 @@ int main(int argc, char **argv) {
         ELM::kokkos_albedo_snicar(*S, *aerosol_concentrations, *snicar_data, *pft_data);
 
         // call canopy_hydrology kernels
-        ELM::kokkos_canopy_hydrology(*S, dtime);
+        ELM::kokkos_canopy_hydrology(*S, atm_forcing->forc_PREC, dtime, time_plus_half_dt);
 
         // call surface_radiation kernels
-        ELM::kokkos_surface_radiation(*S);
+        ELM::kokkos_surface_radiation(*S, atm_forcing->forc_FSDS, dtime_d, time_plus_half_dt);
 
         // call canopy_temperature kernels
         ELM::kokkos_canopy_temperature(*S, *pft_data);
