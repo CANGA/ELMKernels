@@ -4,11 +4,24 @@
 
 #include "canopy_hydrology_kokkos.hh"
 
-void ELM::kokkos_canopy_hydrology(ELMStateType& S,
-                                  const double& dtime)
+void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2, AtmForcType::PREC>& forc_PREC,
+                                 const double& model_dt_secs, const Utils::Date& time_plus_half_dt_secs)
 {
-    constexpr double dewmx{0.1};
-    constexpr int oldfflag{1};
+  constexpr double dewmx{0.1};
+  constexpr int oldfflag{1};
+
+  size_t ncells = S.snl.extent(0);
+
+  // get forc_rain and forc_snow
+  ViewD1 forc_rain("forc_rain", ncells);
+  ViewD1 forc_snow("forc_snow", ncells);
+  forc_PREC.get_atm_forcing(model_dt_secs/86400.0, time_plus_half_dt_secs, S.forc_tbot, forc_rain, forc_snow);
+
+  ViewD1 qflx_candrip("qflx_candrip", ncells);
+  ViewD1 qflx_through_snow("qflx_through_snow", ncells);
+  ViewD1 qflx_through_rain("qflx_through_rain", ncells);
+  ViewD1 fracsnow("fracsnow", ncells);
+  ViewD1 fracrain("fracrain", ncells);
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -17,41 +30,36 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   auto canhydro_kernels = ELM_LAMBDA (const int& idx) {
     // local vars - these need to be thread local in parallel runs
-    double qflx_candrip;
-    double qflx_through_snow;
-    double qflx_through_rain;
-    double fracsnow;
-    double fracrain;
     double qflx_irrig = 0.0; // hardwired here
 
     ELM::canopy_hydrology::interception(
         S.Land,
         S.frac_veg_nosno(idx),
-        S.forc_rain(idx),
-        S.forc_snow(idx),
+        forc_rain(idx),
+        forc_snow(idx),
         dewmx,
         S.elai(idx),
         S.esai(idx),
-        dtime,
+        model_dt_secs,
         S.h2ocan(idx),
-        qflx_candrip,
-        qflx_through_snow,
-        qflx_through_rain,
-        fracsnow,
-        fracrain);
+        qflx_candrip(idx),
+        qflx_through_snow(idx),
+        qflx_through_rain(idx),
+        fracsnow(idx),
+        fracrain(idx));
 
     ELM::canopy_hydrology::ground_flux(
         S.Land,
         S.do_capsnow(idx),
         S.frac_veg_nosno(idx),
-        S.forc_rain(idx),
-        S.forc_snow(idx),
+        forc_rain(idx),
+        forc_snow(idx),
         qflx_irrig,
-        qflx_candrip,
-        qflx_through_snow,
-        qflx_through_rain,
-        fracsnow,
-        fracrain,
+        qflx_candrip(idx),
+        qflx_through_snow(idx),
+        qflx_through_rain(idx),
+        fracsnow(idx),
+        fracrain(idx),
         S.qflx_snwcp_liq(idx),
         S.qflx_snwcp_ice(idx),
         S.qflx_snow_grnd(idx),
@@ -69,7 +77,7 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
 
     ELM::canopy_hydrology::snow_init(
         S.Land,
-        dtime,
+        model_dt_secs,
         S.do_capsnow(idx),
         oldfflag,
         S.forc_tbot(idx),

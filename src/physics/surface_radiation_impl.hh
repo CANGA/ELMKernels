@@ -32,7 +32,7 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
                               const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
                               const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
                               const ArrayD1 albgri, double& sabv, double& fsa, double& sabg, double& sabg_soil,
-                              double& sabg_snow, double trd[ELMdims::numrad], double tri[ELMdims::numrad])
+                              double& sabg_snow, ArrayD1 trd, ArrayD1 tri)
 {
   using ELMconfig::subgridflag;
   using ELMdims::numrad;
@@ -47,15 +47,15 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
       fsa += cad[ib] + cai[ib];
 
       // Transmitted = solar fluxes incident on ground
-      trd[ib] = forc_solad(ib) * ftdd(ib);
-      tri[ib] = forc_solad(ib) * ftid(ib) + forc_solai(ib) * ftii(ib);
+      trd(ib) = forc_solad(ib) * ftdd(ib);
+      tri(ib) = forc_solad(ib) * ftid(ib) + forc_solai(ib) * ftii(ib);
       // Solar radiation absorbed by ground surface
       // calculate absorbed solar by soil/snow separately
-      absrad = trd[ib] * (1.0 - albsod(ib)) + tri[ib] * (1.0 - albsoi(ib));
+      absrad = trd(ib) * (1.0 - albsod(ib)) + tri(ib) * (1.0 - albsoi(ib));
       sabg_soil += absrad;
-      absrad = trd[ib] * (1.0 - albsnd_hst(ib)) + tri[ib] * (1.0 - albsni_hst(ib));
+      absrad = trd(ib) * (1.0 - albsnd_hst(ib)) + tri(ib) * (1.0 - albsni_hst(ib));
       sabg_snow += absrad;
-      absrad = trd[ib] * (1.0 - albgrd(ib)) + tri[ib] * (1.0 - albgri(ib));
+      absrad = trd(ib) * (1.0 - albgrd(ib)) + tri(ib) * (1.0 - albgri(ib));
       sabg += absrad;
       fsa += absrad;
 
@@ -76,8 +76,8 @@ template <typename ArrayD1>
 ACCELERATE
 void layer_absorbed_radiation(const LandType& Land, const int& snl, const double& sabg, const double& sabg_snow,
                               const double& snow_depth, const ArrayD1 flx_absdv, const ArrayD1 flx_absdn,
-                              const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const double trd[ELMdims::numrad],
-                              const double tri[ELMdims::numrad], ArrayD1 sabg_lyr)
+                              const ArrayD1 flx_absiv, const ArrayD1 flx_absin, const ArrayD1 trd,
+                              const ArrayD1 tri, ArrayD1 sabg_lyr)
 {
   using ELMconfig::subgridflag;
   using ELMdims::nlevsno;
@@ -100,7 +100,7 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
     } else { // CASE 2: Snow layers present: absorbed radiation is scaled according to flux factors computed by SNICAR
 
       for (int i = 0; i < nlevsno + 1; i++) {
-        sabg_lyr(i) = flx_absdv(i) * trd[0] + flx_absdn(i) * trd[1] + flx_absiv(i) * tri[0] + flx_absin(i) * tri[1];
+        sabg_lyr(i) = flx_absdv(i) * trd(0) + flx_absdn(i) * trd(1) + flx_absiv(i) * tri(0) + flx_absin(i) * tri(1);
         // summed radiation in active snow layers:
         // if snow layer is at or below snow surface
         if (i >= nlevsno - snl) {
