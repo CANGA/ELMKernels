@@ -9,7 +9,6 @@
 #include <string>
 
 /*    
-
 tests SurfaceRadiation kernels: 
 initialize_flux()
 total_absorbed_radiation()
@@ -114,8 +113,11 @@ int main(int argc, char **argv) {
   auto albi = create<ArrayD2>("albi", n_grid_cells, numrad);
 
   // arrays to compare output (trd & tri are double[numrad])
-  auto trd_array = create<ArrayD2>("trd", n_grid_cells, numrad);
-  auto tri_array = create<ArrayD2>("tri", n_grid_cells, numrad);
+  auto trd_array = create<ArrayD2>("trd_array", n_grid_cells, numrad);
+  auto tri_array = create<ArrayD2>("tri_array", n_grid_cells, numrad);
+
+  auto trd = create<ArrayD2>("trd", n_grid_cells, numrad);
+  auto tri = create<ArrayD2>("tri", n_grid_cells, numrad);
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);
@@ -157,11 +159,6 @@ int main(int argc, char **argv) {
     in.parseState(albd[idx]);
     in.parseState(albi[idx]);
 
-    // local to these kernel calls
-    double trd[numrad] = {0.0,0.0};
-    double tri[numrad] = {0.0,0.0};
-
-
     // call SurfaceRadiation kernels
     ELM::surface_radiation::initialize_flux(Land, sabg_soil[idx], sabg_snow[idx], sabg[idx], sabv[idx], fsa[idx],
                           sabg_lyr[idx]);
@@ -173,12 +170,12 @@ int main(int argc, char **argv) {
          albsoi[idx], albsnd_hst[idx],
          albsni_hst[idx], albgrd[idx],
          albgri[idx], sabv[idx], fsa[idx], sabg[idx], sabg_soil[idx], sabg_snow[idx],
-         trd, tri);
+         trd[idx], tri[idx]);
 
 
     ELM::surface_radiation::layer_absorbed_radiation(Land, snl[idx], sabg[idx], sabg_snow[idx], snow_depth[idx], flx_absdv[idx],
                        flx_absdn[idx], flx_absiv[idx],
-                       flx_absin[idx], trd, tri, sabg_lyr[idx]);
+                       flx_absin[idx], trd[idx], tri[idx], sabg_lyr[idx]);
 
     ELM::surface_radiation::reflected_radiation(Land, albd[idx], albi[idx],
                           forc_solad[idx], forc_solai[idx],
@@ -213,14 +210,8 @@ int main(int argc, char **argv) {
     out.compareOutput(flx_absin[idx]);
     out.compareOutput(albd[idx]);
     out.compareOutput(albi[idx]);
-
-    // put trd & tri into ELM::Array for ouput comparison
-    for (std::size_t i = 0; i < numrad; ++i) {
-        trd_array(idx,i) = trd[i];
-        tri_array(idx,i) = tri[i];
-    }
-    out.compareOutput(trd_array[idx]);
-    out.compareOutput(tri_array[idx]);
+    out.compareOutput(trd[idx]);
+    out.compareOutput(tri[idx]);
   }
   return 0;
 }

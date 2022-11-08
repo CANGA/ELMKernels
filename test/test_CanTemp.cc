@@ -247,9 +247,6 @@ int main(int argc, char **argv) {
     //in.parseState(z_0_town);
     //in.parseState(z_d_town);
     in.parseState(forc_t);
-    in.parseState(forc_hgt_u_patch);
-    in.parseState(forc_hgt_t_patch);
-    in.parseState(forc_hgt_q_patch);
     in.parseState(thm);
     in.parseState(eflx_sh_tot);
     //in.parseState(eflx_sh_tot_u);
@@ -271,11 +268,15 @@ int main(int argc, char **argv) {
     in.parseState(bsw[idx]);
     in.parseState(watdry[idx]);
     in.parseState(watopt[idx]);
-    //in.parseState(rootfr_road_perv[idx]);
-    //in.parseState(rootr_road_perv[idx]);
     in.parseState(watfc[idx]);
     in.parseState(displar[idx]);
     in.parseState(z0mr[idx]);
+
+    for (int i = 0; i < n_grid_cells; i++) {
+      forc_hgt_u_patch(i) = forc_hgt_u(i);
+      forc_hgt_t_patch(i) = forc_hgt_t(i);
+      forc_hgt_q_patch(i) = forc_hgt_q(i);
+    }
 
     // call CanopyTemperature kernels
     ELM::canopy_temperature::old_ground_temp(Land, t_h2osfc[idx], t_soisno[idx], t_h2osfc_bef[idx], tssbef[idx]);
@@ -300,15 +301,13 @@ int main(int argc, char **argv) {
                            emg[idx], emv[idx], htvp[idx], z0mg[idx], z0hg[idx], z0qg[idx], z0mv[idx], z0hv[idx], z0qv[idx],
                            thv[idx], z0m[idx], displa[idx]);
 
-    ELM::canopy_temperature::forcing_height(Land, veg_active[idx], frac_veg_nosno[idx], forc_hgt_u[idx], forc_hgt_t[idx], forc_hgt_q[idx],
+    ELM::canopy_temperature::forcing_height(Land, veg_active[idx], frac_veg_nosno[idx],
                                  z0m[idx], z0mg[idx], forc_t[idx], displa[idx], forc_hgt_u_patch[idx],
                                  forc_hgt_t_patch[idx], forc_hgt_q_patch[idx], thm[idx]);
 
     ELM::canopy_temperature::init_energy_fluxes(Land, eflx_sh_tot[idx], eflx_lh_tot[idx],
                                 eflx_sh_veg[idx], qflx_evap_tot[idx], qflx_evap_veg[idx],
                                 qflx_tran_veg[idx]);
-
-
 
     // compare kernel output to ELM output state
     out.compareOutput(veg_active);
@@ -347,9 +346,6 @@ int main(int argc, char **argv) {
     out.compareOutput(thv);
     out.compareOutput(z0m);
     out.compareOutput(displa);
-    out.compareOutput(forc_hgt_u);
-    out.compareOutput(forc_hgt_t);
-    out.compareOutput(forc_hgt_q);
     //out.compareOutput(z_0_town);
     //out.compareOutput(z_d_town);
     out.compareOutput(forc_t);
