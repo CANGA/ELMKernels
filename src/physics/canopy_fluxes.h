@@ -16,6 +16,7 @@ Call sequence: initialize_flux() -> stability_iteration() -> compute_flux()
 #include "photosynthesis.h"
 #include "qsat.h"
 #include "soil_moist_stress.h"
+#include "atm_physics.h"
 #include <algorithm>
 #include <assert.h>
 #include <cmath>

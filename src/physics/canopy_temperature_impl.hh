@@ -258,7 +258,6 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 
 ACCELERATE
 void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno,
-                    const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q,
                     const double& z0m, const double& z0mg, const double& forc_t, const double& displa,
                     double& forc_hgt_u_patch, double& forc_hgt_t_patch,
                     double& forc_hgt_q_patch, double& thm)
@@ -268,30 +267,28 @@ void forcing_height(const LandType& Land, const bool& veg_active, const int& fra
   if (veg_active) {
     if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
       if (frac_veg_nosno == 0) {
-        forc_hgt_u_patch = forc_hgt_u + z0mg + displa;
-        forc_hgt_t_patch = forc_hgt_t + z0mg + displa;
-        forc_hgt_q_patch = forc_hgt_q + z0mg + displa;
+        forc_hgt_u_patch += z0mg + displa;
+        forc_hgt_t_patch += z0mg + displa;
+        forc_hgt_q_patch += z0mg + displa;
       } else {
-        forc_hgt_u_patch = forc_hgt_u + z0m + displa;
-        forc_hgt_t_patch = forc_hgt_t + z0m + displa;
-        forc_hgt_q_patch = forc_hgt_q + z0m + displa;
+        forc_hgt_u_patch += z0m + displa;
+        forc_hgt_t_patch += z0m + displa;
+        forc_hgt_q_patch += z0m + displa;
       }
     } else if (Land.ltype == LND::istwet || Land.ltype == LND::istice || Land.ltype == LND::istice_mec) {
-      forc_hgt_u_patch = forc_hgt_u + z0mg;
-      forc_hgt_t_patch = forc_hgt_t + z0mg;
-      forc_hgt_q_patch = forc_hgt_q + z0mg;
-    } else if (Land.ltype == LND::istdlak) {
-      forc_hgt_u_patch = forc_hgt_u;
-      forc_hgt_t_patch = forc_hgt_t;
-      forc_hgt_q_patch = forc_hgt_q;
+      forc_hgt_u_patch += z0mg;
+      forc_hgt_t_patch += z0mg;
+      forc_hgt_q_patch += z0mg;
+    //} else if (Land.ltype == LND::istdlak) {
+      // do nothing
     } else if (Land.urbpoi) {
       //  z_0_town         [double] momentum roughness length of urban landunit (m)
       //  z_d_town         [double] displacement height of urban landunit (m)
       // hardwired until urban area code completed
       const double z_0_town{0.0}, z_d_town{0.0};
-      forc_hgt_u_patch = forc_hgt_u + z_0_town + z_d_town;
-      forc_hgt_t_patch = forc_hgt_t + z_0_town + z_d_town;
-      forc_hgt_q_patch = forc_hgt_q + z_0_town + z_d_town;
+      forc_hgt_u_patch += z_0_town + z_d_town;
+      forc_hgt_t_patch += z_0_town + z_d_town;
+      forc_hgt_q_patch += z_0_town + z_d_town;
     }
   }
 

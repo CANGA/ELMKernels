@@ -7,6 +7,38 @@
 void ELM::kokkos_canopy_fluxes(ELMStateType& S,
                                const double& dtime)
 {
+    size_t ncells =S.snl.extent(0);
+
+    ViewD1 wtg("wtg", ncells);                  // heat conductance for ground [m/s]
+    ViewD1 wtgq("wtgq", ncells);                // latent heat conductance for ground [m/s]
+    ViewD1 wtalq("wtalq", ncells);              // normalized latent heat cond. for air and leaf [-]
+    ViewD1 wtlq0("wtlq0", ncells);              // normalized latent heat conductance for leaf [-]
+    ViewD1 wtaq0("wtaq0", ncells);              // normalized latent heat conductance for air [-]
+    ViewD1 wtl0("wtl0", ncells);                // normalized heat conductance for leaf [-]
+    ViewD1 wta0("wta0", ncells);                // normalized heat conductance for air [-]
+    ViewD1 wtal("wtal", ncells);                // normalized heat conductance for air and leaf [-]
+    ViewD1 dayl_factor("dayl_factor", ncells);  // scalar (0-1) for daylength effect on Vcmax
+    ViewD1 air("air", ncells);                  // atmos. radiation temporay set
+    ViewD1 bir("bir", ncells);                  // atmos. radiation temporay set
+    ViewD1 cir("cir", ncells);                  // atmos. radiation temporay set
+    ViewD1 el("el", ncells);                    // vapor pressure on leaf surface [pa]
+    ViewD1 qsatl("qsatl", ncells);              // leaf specific humidity [kg/kg]
+    ViewD1 qsatldT("qsatldT", ncells);          // derivative of "qsatl" on "t_veg"
+    ViewD1 taf("taf", ncells);                  // air temperature within canopy space [K]
+    ViewD1 qaf("qaf", ncells);                  // humidity of canopy air [kg/kg]
+    ViewD1 um("um", ncells);                    // wind speed including the stablity effect [m/s]
+    ViewD1 ur("ur", ncells);                    // wind speed at reference height [m/s]
+    ViewD1 dth("dth", ncells);                  // diff of virtual temp. between ref. height and surface
+    ViewD1 dqh("dqh", ncells);                  // diff of humidity between ref. height and surface
+    ViewD1 obu("obu", ncells);                  // Monin-Obukhov length (m)
+    ViewD1 zldis("zldis", ncells);              // reference height "minus" zero displacement height [m]
+    ViewD1 temp1("temp1", ncells);              // relation for potential temperature profile
+    ViewD1 temp2("temp2", ncells);              // relation for specific humidity profile
+    ViewD1 temp12m("temp12m", ncells);          // relation for potential temperature profile applied at 2-m
+    ViewD1 temp22m("temp22m", ncells);          // relation for specific humidity profile applied at 2-m
+    ViewD1 tlbef("tlbef", ncells);              // leaf temperature from previous iteration [K]
+    ViewD1 delq("delq", ncells);                // temporary
+    ViewD1 dt_veg("dt_veg", ncells);            // change in t_veg, last iteration (Kelvin)
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -14,37 +46,10 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   auto canflux_kernels = ELM_LAMBDA (const int& idx) {
-    // thread local
-    double wtg = 0.0;         // heat conductance for ground [m/s]
-    double wtgq = 0.0;        // latent heat conductance for ground [m/s]
-    double wtalq = 0.0;       // normalized latent heat cond. for air and leaf [-]
-    double wtlq0 = 0.0;       // normalized latent heat conductance for leaf [-]
-    double wtaq0 = 0.0;       // normalized latent heat conductance for air [-]
-    double wtl0 = 0.0;        // normalized heat conductance for leaf [-]
-    double wta0 = 0.0;        // normalized heat conductance for air [-]
-    double wtal = 0.0;        // normalized heat conductance for air and leaf [-]
-    double dayl_factor = 0.0; // scalar (0-1) for daylength effect on Vcmax
-    double air = 0.0;         // atmos. radiation temporay set
-    double bir = 0.0;         // atmos. radiation temporay set
-    double cir = 0.0;         // atmos. radiation temporay set
-    double el = 0.0;          // vapor pressure on leaf surface [pa]
-    double qsatl = 0.0;       // leaf specific humidity [kg/kg]
-    double qsatldT = 0.0;     // derivative of "qsatl" on "t_veg"
-    double taf = 0.0;         // air temperature within canopy space [K]
-    double qaf = 0.0;         // humidity of canopy air [kg/kg]
-    double um = 0.0;          // wind speed including the stablity effect [m/s]
-    double ur = 0.0;          // wind speed at reference height [m/s]
-    double dth = 0.0;         // diff of virtual temp. between ref. height and surface
-    double dqh = 0.0;         // diff of humidity between ref. height and surface
-    double obu = 0.0;         // Monin-Obukhov length (m)
-    double zldis = 0.0;       // reference height "minus" zero displacement height [m]
-    double temp1 = 0.0;       // relation for potential temperature profile
-    double temp2 = 0.0;       // relation for specific humidity profile
-    double temp12m = 0.0;     // relation for potential temperature profile applied at 2-m
-    double temp22m = 0.0;     // relation for specific humidity profile applied at 2-m
-    double tlbef = 0.0;       // leaf temperature from previous iteration [K]
-    double delq = 0.0;        // temporary
-    double dt_veg = 0.0;      // change in t_veg, last iteration (Kelvin)
+
+    double forc_po2 = ELM::atm_forcing_physics::derive_forc_po2(S.forc_pbot(idx));
+    double forc_pco2 = ELM::atm_forcing_physics::derive_forc_pco2(S.forc_pbot(idx));
+    double forc_rho = ELM::atm_forcing_physics::derive_forc_rho(S.forc_pbot(idx), S.forc_qbot(idx), S.forc_tbot(idx));
 
     ELM::canopy_fluxes::initialize_flux(
         S.Land,
@@ -90,20 +95,20 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.z0qv(idx),
         Kokkos::subview(S.rootr, idx, Kokkos::ALL),
         Kokkos::subview(S.eff_porosity, idx, Kokkos::ALL),
-        dayl_factor,
-        air,
-        bir,
-        cir,
-        el,
-        qsatl,
-        qsatldT,
-        taf,
-        qaf,
-        um,
-        ur,
-        obu,
-        zldis,
-        delq,
+        dayl_factor(idx),
+        air(idx),
+        bir(idx),
+        cir(idx),
+        el(idx),
+        qsatl(idx),
+        qsatldT(idx),
+        taf(idx),
+        qaf(idx),
+        um(idx),
+        ur(idx),
+        obu(idx),
+        zldis(idx),
+        delq(idx),
         S.t_veg(idx));
 
     ELM::canopy_fluxes::stability_iteration(
@@ -119,7 +124,7 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.fdry(idx),
         S.laisun(idx),
         S.laisha(idx),
-        S.forc_rho(idx),
+        forc_rho,
         S.snow_depth(idx),
         S.soilbeta(idx),
         S.frac_h2osfc(idx),
@@ -128,11 +133,11 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.h2ocan(idx),
         S.htop(idx),
         Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
-        air,
-        bir,
-        cir,
-        ur,
-        zldis,
+        air(idx),
+        bir(idx),
+        cir(idx),
+        ur(idx),
+        zldis(idx),
         S.displa(idx),
         S.elai(idx),
         S.esai(idx),
@@ -157,38 +162,38 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         Kokkos::subview(S.parsun_z, idx, Kokkos::ALL),
         Kokkos::subview(S.laisha_z, idx, Kokkos::ALL),
         Kokkos::subview(S.laisun_z, idx, Kokkos::ALL),
-        S.forc_pco2(idx),
-        S.forc_po2(idx),
-        dayl_factor,
+        forc_pco2,
+        forc_po2,
+        dayl_factor(idx),
         S.btran(idx),
         S.qflx_tran_veg(idx),
         S.qflx_evap_veg(idx),
         S.eflx_sh_veg(idx),
-        wtg,
-        wtl0,
-        wta0,
-        wtal,
-        el,
-        qsatl,
-        qsatldT,
-        taf,
-        qaf,
-        um,
-        dth,
-        dqh,
-        obu,
-        temp1,
-        temp2,
-        temp12m,
-        temp22m,
-        tlbef,
-        delq,
-        dt_veg,
+        wtg(idx),
+        wtl0(idx),
+        wta0(idx),
+        wtal(idx),
+        el(idx),
+        qsatl(idx),
+        qsatldT(idx),
+        taf(idx),
+        qaf(idx),
+        um(idx),
+        dth(idx),
+        dqh(idx),
+        obu(idx),
+        temp1(idx),
+        temp2(idx),
+        temp12m(idx),
+        temp22m(idx),
+        tlbef(idx),
+        delq(idx),
+        dt_veg(idx),
         S.t_veg(idx),
-        wtgq,
-        wtalq,
-        wtlq0,
-        wtaq0);
+        wtgq(idx),
+        wtalq(idx),
+        wtlq0(idx),
+        wtaq0(idx));
 
     ELM::canopy_fluxes::compute_flux(
         S.Land,
@@ -205,24 +210,24 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.qg_h2osfc(idx),
         S.dqgdT(idx),
         S.htvp(idx),
-        wtg,
-        wtl0,
-        wta0,
-        wtal,
-        air,
-        bir,
-        cir,
-        qsatl,
-        qsatldT,
-        dth,
-        dqh,
-        temp1,
-        temp2,
-        temp12m,
-        temp22m,
-        tlbef,
-        delq,
-        dt_veg,
+        wtg(idx),
+        wtl0(idx),
+        wta0(idx),
+        wtal(idx),
+        air(idx),
+        bir(idx),
+        cir(idx),
+        qsatl(idx),
+        qsatldT(idx),
+        dth(idx),
+        dqh(idx),
+        temp1(idx),
+        temp2(idx),
+        temp12m(idx),
+        temp22m(idx),
+        tlbef(idx),
+        delq(idx),
+        dt_veg(idx),
         S.t_veg(idx),
         S.t_grnd(idx),
         S.forc_pbot(idx),
@@ -230,15 +235,15 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.qflx_evap_veg(idx),
         S.eflx_sh_veg(idx),
         S.forc_qbot(idx),
-        S.forc_rho(idx),
+        forc_rho,
         S.thm(idx),
         S.emv(idx),
         S.emg(idx),
         S.forc_lwrad(idx),
-        wtgq,
-        wtalq,
-        wtlq0,
-        wtaq0,
+        wtgq(idx),
+        wtalq(idx),
+        wtlq0(idx),
+        wtaq0(idx),
         S.h2ocan(idx),
         S.eflx_sh_grnd(idx),
         S.eflx_sh_snow(idx),

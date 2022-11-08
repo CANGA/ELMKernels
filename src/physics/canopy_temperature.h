@@ -162,9 +162,6 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 \param[in]  Land             [LandType] struct containing information about landtype
 \param[in]  veg_active       [bool] true => cell contains active vegetation
 \param[in]  frac_veg_nosno   [int] fraction of vegetation not covered by snow (0 OR 1) [-]
-\param[in]  forc_hgt_u       [double] observational height of wind [m]
-\param[in]  forc_hgt_t       [double] observational height of temperature [m]
-\param[in]  forc_hgt_q       [double] observational height of specific humidity [m]
 \param[in]  z0m              [double] momentum roughness length (m)
 \param[in]  z0mg             [double] roughness length over ground, momentum [m]
 \param[in]  forc_t           [double] atmospheric temperature (Kelvin)
@@ -176,7 +173,6 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 */
 ACCELERATE
 void forcing_height(const LandType& Land, const bool& veg_active, const int& frac_veg_nosno,
-                    const double& forc_hgt_u, const double& forc_hgt_t, const double& forc_hgt_q,
                     const double& z0m, const double& z0mg, const double& forc_t, const double& displa,
                     double& forc_hgt_u_patch, double& forc_hgt_t_patch,
                     double& forc_hgt_q_patch, double& thm);
