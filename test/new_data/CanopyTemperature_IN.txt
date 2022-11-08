@@ -1,6 +1,6 @@
 NSTEP 0
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.99682556903366
@@ -74,7 +74,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 0
 NSTEP 1
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.38014651718976
@@ -148,7 +148,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 1
 NSTEP 2
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.7450292924696
@@ -222,7 +222,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 2
 NSTEP 3
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.3726805421796
@@ -296,7 +296,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 3
 NSTEP 4
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.06070388743126
@@ -370,7 +370,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 4
 NSTEP 5
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 277.7753598014125
@@ -444,7 +444,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 5
 NSTEP 6
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 277.7029164289844
@@ -518,7 +518,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 6
 NSTEP 7
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 277.65157021239526
@@ -592,7 +592,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 7
 NSTEP 8
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 277.3187274478756
@@ -666,7 +666,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 8
 NSTEP 9
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.9470572478489
@@ -740,7 +740,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 9
 NSTEP 10
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.87780046919795
@@ -814,7 +814,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 10
 NSTEP 11
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.85031229703503
@@ -888,7 +888,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 11
 NSTEP 12
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.86419437336286
@@ -962,7 +962,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 12
 NSTEP 13
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.89459785160307
@@ -1036,7 +1036,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 13
 NSTEP 14
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.6260150790926
@@ -1110,7 +1110,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 14
 NSTEP 15
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.31199121551884
@@ -1184,7 +1184,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 15
 NSTEP 16
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.109950683363
@@ -1258,7 +1258,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 16
 NSTEP 17
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.9177705766987
@@ -1332,7 +1332,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 17
 NSTEP 18
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.6771680602887
@@ -1406,7 +1406,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 18
 NSTEP 19
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.422570615699
@@ -1480,7 +1480,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 19
 NSTEP 20
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.1748814722407
@@ -1554,7 +1554,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 20
 NSTEP 21
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.92334092845135
@@ -1628,7 +1628,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 21
 NSTEP 22
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.7906322501414
@@ -1702,7 +1702,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 22
 NSTEP 23
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.6830761791769
@@ -1776,7 +1776,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 23
 NSTEP 24
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.5756011334084
@@ -1850,7 +1850,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 24
 NSTEP 25
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.4751252715967
@@ -1924,7 +1924,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 25
 NSTEP 26
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.5503703310113
@@ -1998,7 +1998,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 26
 NSTEP 27
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.6604264455157
@@ -2072,7 +2072,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 27
 NSTEP 28
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 274.96602764735997
@@ -2146,7 +2146,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 28
 NSTEP 29
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.3178843895588
@@ -2220,7 +2220,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 29
 NSTEP 30
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 275.78689534252277
@@ -2294,7 +2294,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 30
 NSTEP 31
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 276.28914162582663
@@ -2368,7 +2368,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 31
 NSTEP 32
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 277.125279416583
@@ -2442,7 +2442,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 32
 NSTEP 33
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.0293535990309
@@ -2516,7 +2516,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 33
 NSTEP 34
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.7619651811428
@@ -2590,7 +2590,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 34
 NSTEP 35
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.50259631689903
@@ -2664,7 +2664,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 35
 NSTEP 36
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 280.44512397396926
@@ -2738,7 +2738,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 36
 NSTEP 37
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.4557127387253
@@ -2812,7 +2812,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 37
 NSTEP 38
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 282.46497351466724
@@ -2886,7 +2886,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 38
 NSTEP 39
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 283.52817086840804
@@ -2960,7 +2960,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 39
 NSTEP 40
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 283.93223207213686
@@ -3034,7 +3034,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 40
 NSTEP 41
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 284.290302382632
@@ -3108,7 +3108,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 41
 NSTEP 42
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 285.4672072799633
@@ -3182,7 +3182,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 42
 NSTEP 43
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 286.7045980167159
@@ -3256,7 +3256,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 43
 NSTEP 44
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 287.2005030203388
@@ -3330,7 +3330,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 44
 NSTEP 45
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 287.6089543773466
@@ -3404,7 +3404,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 45
 NSTEP 46
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 288.21480601127513
@@ -3478,7 +3478,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 46
 NSTEP 47
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 288.7798352422526
@@ -3552,7 +3552,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 47
 NSTEP 48
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.00578902600773
@@ -3626,7 +3626,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 48
 NSTEP 49
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.1275951307735
@@ -3700,7 +3700,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 49
 NSTEP 50
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.29717660376895
@@ -3774,7 +3774,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 50
 NSTEP 51
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.4169961765004
@@ -3848,7 +3848,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 51
 NSTEP 52
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 288.5319680827815
@@ -3922,7 +3922,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 52
 NSTEP 53
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 287.51380188871553
@@ -3996,7 +3996,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 53
 NSTEP 54
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 286.36160034350473
@@ -4070,7 +4070,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 54
 NSTEP 55
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 285.1398461898234
@@ -4144,7 +4144,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 55
 NSTEP 56
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 283.8532307809817
@@ -4218,7 +4218,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 56
 NSTEP 57
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 282.7004769456931
@@ -4292,7 +4292,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 57
 NSTEP 58
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 282.4734746781355
@@ -4366,7 +4366,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 58
 NSTEP 59
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 282.3928741860997
@@ -4440,7 +4440,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 59
 NSTEP 60
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.91107693465744
@@ -4514,7 +4514,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 60
 NSTEP 61
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.4061381132181
@@ -4588,7 +4588,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 61
 NSTEP 62
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 280.89019243963173
@@ -4662,7 +4662,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 62
 NSTEP 63
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 280.3657750496708
@@ -4736,7 +4736,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 63
 NSTEP 64
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.96230666576724
@@ -4810,7 +4810,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 64
 NSTEP 65
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.5675830632484
@@ -4884,7 +4884,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 65
 NSTEP 66
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.27325523570755
@@ -4958,7 +4958,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 66
 NSTEP 67
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.00129646664084
@@ -5032,7 +5032,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 67
 NSTEP 68
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.8410748778674
@@ -5106,7 +5106,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 68
 NSTEP 69
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.7017560888882
@@ -5180,7 +5180,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 69
 NSTEP 70
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.6466508100663
@@ -5254,7 +5254,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 70
 NSTEP 71
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.6156940657723
@@ -5328,7 +5328,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 71
 NSTEP 72
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.6089937058393
@@ -5402,7 +5402,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 72
 NSTEP 73
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.61583560316524
@@ -5476,7 +5476,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 73
 NSTEP 74
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.6640029208224
@@ -5550,7 +5550,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 74
 NSTEP 75
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.7255394666974
@@ -5624,7 +5624,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 75
 NSTEP 76
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 278.91769335384134
@@ -5698,7 +5698,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 76
 NSTEP 77
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.13381564515333
@@ -5772,7 +5772,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 77
 NSTEP 78
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.3849805035342
@@ -5846,7 +5846,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 78
 NSTEP 79
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 279.6553991633639
@@ -5920,7 +5920,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 79
 NSTEP 80
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 280.4886245999989
@@ -5994,7 +5994,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 80
 NSTEP 81
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.43473022839476
@@ -6068,7 +6068,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 81
 NSTEP 82
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.51373536152073
@@ -6142,7 +6142,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 82
 NSTEP 83
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.26187813147806
@@ -6216,7 +6216,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 83
 NSTEP 84
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.37169483720714
@@ -6290,7 +6290,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 84
 NSTEP 85
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 281.4849422724199
@@ -6364,7 +6364,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 85
 NSTEP 86
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 282.5070654480592
@@ -6438,7 +6438,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 86
 NSTEP 87
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 283.6920372946911
@@ -6512,7 +6512,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 87
 NSTEP 88
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 285.22229344650464
@@ -6586,7 +6586,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 88
 NSTEP 89
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 286.8534991365213
@@ -6660,7 +6660,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 89
 NSTEP 90
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 288.4967908403897
@@ -6734,7 +6734,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 90
 NSTEP 91
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 290.125244158726
@@ -6808,7 +6808,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 91
 NSTEP 92
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 291.5895282989047
@@ -6882,7 +6882,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 92
 NSTEP 93
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 293.001315683555
@@ -6956,7 +6956,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 93
 NSTEP 94
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 291.5173111042965
@@ -7030,7 +7030,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 94
 NSTEP 95
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.57730492969534
@@ -7104,7 +7104,7 @@ z0mr 0.0 0.055 0.055 0.055 0.075 0.075 0.055 0.055 0.055 0.12 0.12 0.12 0.12 0.1
 !!! 95
 NSTEP 96
 dtime 1800.0
-veg_active True
+veg_active 1
 snl 0
 frac_veg_nosno 1
 t_h2osfc 289.3169086242876

@@ -14,7 +14,7 @@ qflx_snwcp_ice nan
 qflx_rain_grnd 1e+36
 qflx_prec_grnd 1e+36
 qflx_snow_grnd 1e+36
-do_capsnow False
+do_capsnow 0
 t_grnd 275.87936473562456
 qflx_snow_melt 2.412978910349169e-05
 n_melt 20.0
@@ -57,7 +57,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 6.043516120929471e-06
 qflx_prec_grnd 1.8108410672675316e-05
 qflx_snow_grnd 1.2064894551745844e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 275.79533863536415
 qflx_snow_melt 1.2064894551745844e-05
 n_melt 20.0
@@ -100,7 +100,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 6.043516120929471e-06
 qflx_prec_grnd 1.8108410672675316e-05
 qflx_snow_grnd 1.2064894551745844e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 275.7936899293891
 qflx_snow_melt 1.2064894551745844e-05
 n_melt 20.0
@@ -143,7 +143,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.0045606096563196e-06
 qflx_prec_grnd 1.810841067267532e-05
 qflx_snow_grnd 1.4103850063019e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 275.8038493534094
 qflx_snow_melt 1.4103850063019e-05
 n_melt 20.0
@@ -186,7 +186,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.9850849559815657e-06
 qflx_prec_grnd 1.8108410672675316e-05
 qflx_snow_grnd 1.512332571669375e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 274.12854369322395
 qflx_snow_melt 1.512332571669375e-05
 n_melt 20.0
@@ -229,7 +229,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.657079069385649e-06
 qflx_prec_grnd 1.810841067267532e-05
 qflx_snow_grnd 1.545133160328967e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.7312647377331
 qflx_snow_melt 1.545133160328967e-05
 n_melt 20.0
@@ -272,7 +272,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.329073182789218e-06
 qflx_prec_grnd 1.8108410672675316e-05
 qflx_snow_grnd 1.5779337489886097e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.5461133525494
 qflx_snow_melt 1.5779337489886097e-05
 n_melt 20.0
@@ -315,7 +315,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.001067296193301e-06
 qflx_prec_grnd 1.8108410672675316e-05
 qflx_snow_grnd 1.6107343376482017e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.4316826436853
 qflx_snow_melt 1.6107343376482017e-05
 n_melt 20.0
@@ -358,7 +358,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 8.15617437178474e-06
 qflx_prec_grnd 8.827850202929217e-05
 qflx_snow_grnd 8.012232765750744e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 5.5925899474999505e-05
 n_melt 20.0
@@ -401,7 +401,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 6.55818102240984e-06
 qflx_prec_grnd 8.829244086116355e-05
 qflx_snow_grnd 8.17342598387537e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 3.519136180813527e-05
 n_melt 20.0
@@ -444,7 +444,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.960724118102826e-06
 qflx_prec_grnd 8.832464712281558e-05
 qflx_snow_grnd 8.336392300471276e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 2.7151085056574093e-05
 n_melt 20.0
@@ -487,7 +487,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 7.905477522942244e-06
 qflx_prec_grnd 8.837452524093239e-05
 qflx_snow_grnd 8.046904771799014e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 2.9254950884930804e-05
 n_melt 20.0
@@ -530,7 +530,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.085409149970575e-05
 qflx_prec_grnd 8.842880054370846e-05
 qflx_snow_grnd 7.757470904400271e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 3.254245869851973e-05
 n_melt 20.0
@@ -573,7 +573,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.3805780392951594e-05
 qflx_prec_grnd 8.847962345170497e-05
 qflx_snow_grnd 7.467384305875338e-05
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 3.641539070769035e-05
 n_melt 20.0
@@ -616,7 +616,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.7189254642154356e-06
 qflx_prec_grnd 9.079325395703352e-06
 qflx_snow_grnd 7.360399931487916e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 4.058089220342324e-05
 n_melt 20.0
@@ -659,7 +659,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.0202023980508162e-06
 qflx_prec_grnd 9.074967523315629e-06
 qflx_snow_grnd 7.054765125264812e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 4.484720897377423e-05
 n_melt 20.0
@@ -702,7 +702,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.3211235493242085e-06
 qflx_prec_grnd 9.070353932668898e-06
 qflx_snow_grnd 6.74923038334469e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 4.917734436354154e-05
 n_melt 20.0
@@ -745,7 +745,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.5684547979561146e-06
 qflx_prec_grnd 9.065652009889502e-06
 qflx_snow_grnd 6.497197211933387e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 5.072769368081684e-05
 n_melt 20.0
@@ -788,7 +788,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 2.815633379040909e-06
 qflx_prec_grnd 9.061288444457579e-06
 qflx_snow_grnd 6.245655065416669e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 5.1430751420964046e-05
 n_melt 20.0
@@ -831,7 +831,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 3.062794668315969e-06
 qflx_prec_grnd 9.057581286077207e-06
 qflx_snow_grnd 5.994786617761238e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.15
 qflx_snow_melt 5.0996503252187526e-05
 n_melt 20.0
@@ -874,7 +874,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 8.275243205735917e-07
 qflx_prec_grnd 2.2637041881589224e-06
 qflx_snow_grnd 1.4361798675853307e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.4146055563957
 qflx_snow_melt 1.5034783998957025e-05
 n_melt 20.0
@@ -917,7 +917,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 8.89523610660736e-07
 qflx_prec_grnd 2.2635513340844145e-06
 qflx_snow_grnd 1.3740277234236784e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.4952440920392
 qflx_snow_melt 1.3740277234236784e-06
 n_melt 20.0
@@ -960,7 +960,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 9.515792842688213e-07
 qflx_prec_grnd 2.2635513340844145e-06
 qflx_snow_grnd 1.3119720498155932e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.52870926684324
 qflx_snow_melt 1.3119720498155932e-06
 n_melt 20.0
@@ -1003,7 +1003,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.136636659476707e-06
 qflx_prec_grnd 2.263551334084415e-06
 qflx_snow_grnd 1.1269146746077078e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.61242904041956
 qflx_snow_melt 1.1269146746077078e-06
 n_melt 20.0
@@ -1046,7 +1046,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.3216940346846562e-06
 qflx_prec_grnd 2.2635513340844145e-06
 qflx_snow_grnd 9.418572993997583e-07
-do_capsnow False
+do_capsnow 0
 t_grnd 273.7080665626954
 qflx_snow_melt 9.418572993997583e-07
 n_melt 20.0
@@ -1089,7 +1089,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 1.5067514098925416e-06
 qflx_prec_grnd 2.2635513340844145e-06
 qflx_snow_grnd 7.567999241918729e-07
-do_capsnow False
+do_capsnow 0
 t_grnd 273.80651613134575
 qflx_snow_melt 7.567999241918729e-07
 n_melt 20.0
@@ -1132,7 +1132,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 3.3836175702011107e-06
 qflx_prec_grnd 4.527102668168828e-06
 qflx_snow_grnd 1.143485097967718e-06
-do_capsnow False
+do_capsnow 0
 t_grnd 273.8995013724187
 qflx_snow_melt 1.143485097967718e-06
 n_melt 20.0
@@ -1175,7 +1175,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 3.7537323206168815e-06
 qflx_prec_grnd 4.527102668168829e-06
 qflx_snow_grnd 7.733703475519473e-07
-do_capsnow False
+do_capsnow 0
 t_grnd 273.9908879457855
 qflx_snow_melt 7.733703475519473e-07
 n_melt 20.0
@@ -1218,7 +1218,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.1238499838190164e-06
 qflx_prec_grnd 4.527102668168829e-06
 qflx_snow_grnd 4.0325268434981244e-07
-do_capsnow False
+do_capsnow 0
 t_grnd 274.0744138306409
 qflx_snow_melt 4.0325268434981244e-07
 n_melt 20.0
@@ -1261,7 +1261,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.527102668168829e-06
 qflx_prec_grnd 4.527102668168829e-06
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.12923221819506
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1304,7 +1304,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.527102668168829e-06
 qflx_prec_grnd 4.527102668168829e-06
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.15622475721153
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1347,7 +1347,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 4.527102668168829e-06
 qflx_prec_grnd 4.527102668168829e-06
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.19910610345414
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1390,7 +1390,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.23593695639937
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1433,7 +1433,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.26334204375297
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1476,7 +1476,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.2787115525759
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1519,7 +1519,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.38633913033135
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1562,7 +1562,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.5250260819794
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1605,7 +1605,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.6882305251568
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1648,7 +1648,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 274.871445357421
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1691,7 +1691,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.0716692060169
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1734,7 +1734,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.2868007812954
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1777,7 +1777,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.3921134802658
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1820,7 +1820,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.4727875718756
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1863,7 +1863,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.5400589735109
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1906,7 +1906,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.60091909696786
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1949,7 +1949,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.6597165726953
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -1992,7 +1992,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.7191913570841
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -2035,7 +2035,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.68659173016005
 qflx_snow_melt 0.0
 n_melt 20.0
@@ -2078,7 +2078,7 @@ qflx_snwcp_ice 0.0
 qflx_rain_grnd 0.0
 qflx_prec_grnd 0.0
 qflx_snow_grnd 0.0
-do_capsnow False
+do_capsnow 0
 t_grnd 275.6190675234998
 qflx_snow_melt 0.0
 n_melt 20.0
