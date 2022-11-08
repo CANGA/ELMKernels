@@ -6,10 +6,10 @@ namespace ELM::atm_forcing_physics {
 template <typename ArrayD1>
 ConstitutiveAirProperties<ArrayD1>::
 ConstitutiveAirProperties(const ArrayD1 forc_qbot, const ArrayD1 forc_pbot,
-                          const ArrayD1 forc_tbot, ArrayD1 forc_vp,
+                          const ArrayD1 forc_tbot,
                           ArrayD1 forc_rho, ArrayD1 forc_po2, ArrayD1 forc_pco2)
     : forc_qbot_{forc_qbot}, forc_pbot_{forc_pbot},
-      forc_tbot_{forc_tbot}, forc_vp_{forc_vp},
+      forc_tbot_{forc_tbot},
       forc_rho_{forc_rho}, forc_po2_{forc_po2},
       forc_pco2_{forc_pco2}
     {}
@@ -20,8 +20,7 @@ ACCELERATE
 constexpr void ConstitutiveAirProperties<ArrayD1>::
 operator()(const int i) const
 {
-  forc_vp_(i) = derive_forc_vp(forc_qbot_(i), forc_pbot_(i));
-  forc_rho_(i) = derive_forc_rho(forc_pbot_(i), forc_vp_(i), forc_tbot_(i));
+  forc_rho_(i) = derive_forc_rho(forc_pbot_(i), forc_qbot_(i), forc_tbot_(i));
   forc_po2_(i) = derive_forc_po2(forc_pbot_(i));
   forc_pco2_(i) = derive_forc_pco2(forc_pbot_(i));
 }
@@ -64,11 +63,10 @@ template <typename ArrayD1, typename ArrayD2, AtmForcType ftype>
 ProcessQBOT<ArrayD1, ArrayD2, ftype>::
 ProcessQBOT(const int& t_idx, const double& wt1, const double& wt2,
             const ArrayD2 atm_qbot, const ArrayD1 forc_tbot,
-            const ArrayD1 forc_pbot, ArrayD1 forc_qbot, ArrayD1 forc_rh)
+            const ArrayD1 forc_pbot, ArrayD1 forc_qbot)
     : t_idx_{t_idx}, wt1_{wt1}, wt2_{wt2},
       atm_qbot_{atm_qbot}, forc_tbot_{forc_tbot},
-      forc_pbot_{forc_pbot}, forc_qbot_{forc_qbot},
-      forc_rh_{forc_rh}
+      forc_pbot_{forc_pbot}, forc_qbot_{forc_qbot}
     {}
 
 // functor to calculate specific humidity and relative humidity
@@ -77,13 +75,10 @@ ACCELERATE
 constexpr void ProcessQBOT<ArrayD1, ArrayD2, ftype>::
 operator()(const int i) const {
   forc_qbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_qbot_(t_idx_, i), atm_qbot_(t_idx_ + 1, i)), 1.0e-9);
-  double e = (forc_tbot_(i) > ELMconst::TFRZ) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
-  double qsat = 0.622 * e / (forc_pbot_(i) - 0.378 * e);
-  if constexpr (ftype == AtmForcType::QBOT) {
-    forc_rh_(i) = 100.0 * (forc_qbot_(i) / qsat);
-  } else if constexpr (ftype == AtmForcType::RH) {
-    forc_rh_(i) = forc_qbot_(i);
-    forc_qbot_(i) = qsat * forc_rh_(i) / 100.0;
+  if constexpr (ftype == AtmForcType::RH) {
+    double e = (forc_tbot_(i) > ELMconst::TFRZ) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
+    double qsat = 0.622 * e / (forc_pbot_(i) - 0.378 * e);
+    forc_qbot_(i) *= qsat / 100.0;
   }
 }
 
@@ -257,11 +252,11 @@ double derive_forc_vp(const double& forc_qbot, const double& forc_pbot)
   return forc_qbot * forc_pbot / (0.622 + 0.378 * forc_qbot);
 }
 
-// derive atmospheric density from pressure, vapor pressure, and temperature
+// derive atmospheric density from pressure, specific humidity, and temperature
 ACCELERATE
-double derive_forc_rho(const double& forc_pbot, const double& forc_vp, const double& forc_tbot)
+double derive_forc_rho(const double& forc_pbot, const double& forc_qbot, const double& forc_tbot)
 {
-  return (forc_pbot - 0.378 * forc_vp) / (ELMconst::RAIR * forc_tbot);
+  return (forc_pbot - 0.378 * derive_forc_vp(forc_qbot, forc_pbot)) / (ELMconst::RAIR * forc_tbot);
 }
 
 // derive partial O2 pressure from atmospheric pressure

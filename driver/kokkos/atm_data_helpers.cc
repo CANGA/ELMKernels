@@ -67,20 +67,22 @@ void ELM::get_forcing(ELM::AtmForcObjects& atm_forcing,
 {
   atm_forcing.forc_TBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_thbot);
   atm_forcing.forc_PBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_pbot);
-  atm_forcing.forc_QBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_pbot, S.forc_qbot, S.forc_rh);
+  atm_forcing.forc_QBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_pbot, S.forc_qbot);
   atm_forcing.forc_FLDS.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_pbot, S.forc_qbot, S.forc_tbot, S.forc_lwrad);
-  atm_forcing.forc_FSDS.get_atm_forcing(model_dt, time_plus_half_dt, S.coszen, S.forc_solai, S.forc_solad);
-  atm_forcing.forc_PREC.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_rain, S.forc_snow);
+  // atm_forcing.forc_FSDS.get_atm_forcing(model_dt, time_plus_half_dt, S.coszen, S.forc_solai, S.forc_solad);
+  // atm_forcing.forc_PREC.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_rain, S.forc_snow);
   atm_forcing.forc_WIND.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_u, S.forc_v);
-  atm_forcing.forc_ZBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_hgt, S.forc_hgt_u, S.forc_hgt_t,  S.forc_hgt_q);
+  atm_forcing.forc_ZBOT.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_hgt, S.forc_hgt_u_patch,
+                                       S.forc_hgt_t_patch,S.forc_hgt_q_patch);
 
   // calculate constitutive air properties
-  ELM::atm_forcing_physics::ConstitutiveAirProperties
-    compute_air_props(
-      S.forc_qbot, S.forc_pbot,
-      S.forc_tbot, S.forc_vp,
-      S.forc_rho, S.forc_po2,
-      S.forc_pco2);
-  invoke_kernel(compute_air_props, std::make_tuple(S.forc_pbot.extent(0)), "ConstitutiveAirProperties");
+//  ELM::atm_forcing_physics::ConstitutiveAirProperties
+//    compute_air_props(
+//      S.forc_qbot, S.forc_pbot,
+//      S.forc_tbot, S.forc_vp,
+//      S.forc_rho, S.forc_po2,
+//      S.forc_pco2);
+//  invoke_kernel(compute_air_props, std::make_tuple(S.forc_pbot.extent(0)), "ConstitutiveAirProperties");
+
 }
 

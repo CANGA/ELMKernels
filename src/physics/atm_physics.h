@@ -34,9 +34,9 @@ double esati(const double& t);
 ACCELERATE
 double derive_forc_vp(const double& forc_qbot, const double& forc_pbot);
 
-// derive atmospheric density from pressure, vapor pressure, and temperature
+// derive atmospheric density from pressure, specific humidity, and temperature
 ACCELERATE
-double derive_forc_rho(const double& forc_pbot, const double& forc_vp, const double& forc_tbot);
+double derive_forc_rho(const double& forc_pbot, const double& forc_qbot, const double& forc_tbot);
 
 // derive partial O2 pressure from atmospheric pressure
 ACCELERATE
@@ -51,7 +51,6 @@ struct ConstitutiveAirProperties {
   ConstitutiveAirProperties(const ArrayD1 forc_qbot,
                             const ArrayD1 forc_pbot,
                             const ArrayD1 forc_tbot,
-                            ArrayD1 forc_vp,
                             ArrayD1 forc_rho,
                             ArrayD1 forc_po2,
                             ArrayD1 forc_pco2);
@@ -61,7 +60,7 @@ struct ConstitutiveAirProperties {
 
 private:
   ArrayD1 forc_qbot_, forc_pbot_, forc_tbot_;
-  ArrayD1 forc_vp_, forc_rho_, forc_po2_, forc_pco2_;
+  ArrayD1 forc_rho_, forc_po2_, forc_pco2_;
 };
 
 // functor to calculate atmospheric temperature and potential temperature
@@ -112,8 +111,7 @@ struct ProcessQBOT {
               const ArrayD2 atm_qbot,
               const ArrayD1 forc_tbot,
               const ArrayD1 forc_pbot,
-              ArrayD1 forc_qbot,
-              ArrayD1 forc_rh);
+              ArrayD1 forc_qbot);
 
   ACCELERATE
   constexpr void operator()(const int i) const;
@@ -122,7 +120,7 @@ private:
   int t_idx_;
   double wt1_, wt2_;
   ArrayD2 atm_qbot_;
-  ArrayD1 forc_tbot_, forc_pbot_, forc_qbot_, forc_rh_;
+  ArrayD1 forc_tbot_, forc_pbot_, forc_qbot_;
 };
 
 // functor to calculate downward longwave radiation
