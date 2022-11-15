@@ -37,7 +37,7 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2
         S.frac_veg_nosno(idx),
         forc_rain(idx),
         forc_snow(idx),
-        dewmx,
+        S.dewmx,
         S.elai(idx),
         S.esai(idx),
         model_dt_secs,
@@ -65,21 +65,11 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2
         S.qflx_snow_grnd(idx),
         S.qflx_rain_grnd(idx));
 
-    ELM::canopy_hydrology::fraction_wet(
-        S.Land,
-        S.frac_veg_nosno(idx),
-        dewmx,
-        S.elai(idx),
-        S.esai(idx),
-        S.h2ocan(idx),
-        S.fwet(idx),
-        S.fdry(idx));
-
     ELM::canopy_hydrology::snow_init(
         S.Land,
         model_dt_secs,
         S.do_capsnow(idx),
-        oldfflag,
+        S.oldfflag,
         S.forc_tbot(idx),
         S.t_grnd(idx),
         S.qflx_snow_grnd(idx),
@@ -112,4 +102,20 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2
         S.frac_h2osfc(idx));
   }; // end canhydro lambda
   invoke_kernel(canhydro_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_canopy_hydrology");
+}
+
+void ELM::kokkos_frac_wet(ELMStateType& S)
+{
+  auto fracwet_kernel = ELM_LAMBDA (const int& idx) {
+    ELM::canopy_hydrology::fraction_wet(
+        S.Land,
+        S.frac_veg_nosno(idx),
+        S.dewmx,
+        S.elai(idx),
+        S.esai(idx),
+        S.h2ocan(idx),
+        S.fwet(idx),
+        S.fdry(idx));
+  }; // end fracwet lambda
+  invoke_kernel(fracwet_kernel, std::make_tuple(S.snl.extent(0)), "kokkos_canhydro_fracwet_kernel");
 }
