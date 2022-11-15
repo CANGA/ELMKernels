@@ -30,7 +30,7 @@ ACCELERATE
 void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD1 ftdd, const ArrayD1 ftid,
                               const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
                               const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
-                              const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
+                              const ArrayD1 albsnd, const ArrayD1 albsni, const ArrayD1 albgrd,
                               const ArrayD1 albgri, double& sabv, double& fsa, double& sabg, double& sabg_soil,
                               double& sabg_snow, ArrayD1 trd, ArrayD1 tri)
 {
@@ -53,7 +53,7 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
       // calculate absorbed solar by soil/snow separately
       absrad = trd(ib) * (1.0 - albsod(ib)) + tri(ib) * (1.0 - albsoi(ib));
       sabg_soil += absrad;
-      absrad = trd(ib) * (1.0 - albsnd_hst(ib)) + tri(ib) * (1.0 - albsni_hst(ib));
+      absrad = trd(ib) * (1.0 - albsnd(ib)) + tri(ib) * (1.0 - albsni(ib));
       sabg_snow += absrad;
       absrad = trd(ib) * (1.0 - albgrd(ib)) + tri(ib) * (1.0 - albgri(ib));
       sabg += absrad;

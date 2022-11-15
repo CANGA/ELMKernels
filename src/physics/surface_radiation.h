@@ -45,12 +45,12 @@ void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow,
 \param[in] forc_solai[numrad] [double] diffuse radiation (W/m**2)
 \param[in] fabd[numrad]       [double] flux absorbed by canopy per unit direct flux
 \param[in] fabi[numrad]       [double] flux absorbed by canopy per unit diffuse flux
-\param[in] albsod[numrad]     [double] soil albedo: direct
-\param[in] albsoi[numrad]     [double] soil albedo: diffuse
-\param[in] albsnd_hst[numrad] [double] snow albedo, direct , for history files
-\param[in] albsni_hst[numrad] [double] snow albedo, diffuse, for history files
-\param[in] albgrd[numrad]     [double] ground albedo (direct)
-\param[in] albgri[numrad]     [double] ground albedo (diffuse)
+\param[in] albsod[numrad]     [double] soil albedo, direct
+\param[in] albsoi[numrad]     [double] soil albedo, diffuse
+\param[in] albsnd[numrad] [double] snow albedo, direct
+\param[in] albsni[numrad] [double] snow albedo, diffuse
+\param[in] albgrd[numrad]     [double] ground albedo, direct
+\param[in] albgri[numrad]     [double] ground albedo, diffuse
 \param[out] sabv              [double] solar radiation absorbed by vegetation (W/m**2)
 \param[out] fsa               [double] solar radiation absorbed (total) (W/m**2)
 \param[out] sabg              [double] solar radiation absorbed by ground (W/m**2)
@@ -64,7 +64,7 @@ ACCELERATE
 void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD1 ftdd, const ArrayD1 ftid,
                               const ArrayD1 ftii, const ArrayD1 forc_solad, const ArrayD1 forc_solai,
                               const ArrayD1 fabd, const ArrayD1 fabi, const ArrayD1 albsod, const ArrayD1 albsoi,
-                              const ArrayD1 albsnd_hst, const ArrayD1 albsni_hst, const ArrayD1 albgrd,
+                              const ArrayD1 albsnd, const ArrayD1 albsni, const ArrayD1 albgrd,
                               const ArrayD1 albgri, double& sabv, double& fsa, double& sabg, double& sabg_soil,
                               double& sabg_snow, ArrayD1 trd, ArrayD1 tri);
 

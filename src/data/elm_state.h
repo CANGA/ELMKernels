@@ -58,17 +58,18 @@ namespace ELM {
       // for can_sun_shade
       ArrayI1 nrad;
       ArrayD1 laisun, laisha;
-      ArrayD2 tlai_z, fsun_z, fabd_sun_z, fabd_sha_z, fabi_sun_z,
-              fabi_sha_z, parsun_z, parsha_z, laisun_z, laisha_z;
+      ArrayD2 parsun_z, parsha_z, laisun_z, laisha_z;
 
       // for surface rad
       ArrayD1 sabg_soil, sabg_snow, sabg, sabv, fsa, fsr;
+      ArrayD2 tlai_z, fsun_z, fabd_sun_z, fabd_sha_z, fabi_sun_z,
+              fabi_sha_z;
       ArrayD2 sabg_lyr, ftdd, ftid, ftii, fabd, fabi, albsod,
-              albsoi, albsnd_hst, albsni_hst, albgrd, albgri,
+              albsoi, albgrd, albgri,
               flx_absdv, flx_absdn, flx_absiv, flx_absin, albd, albi;
 
       // variables for CanopyTemperature
-      ArrayD1 t_h2osfc, t_h2osfc_bef, soilalpha, soilbeta, qg_snow, qg_soil,
+      ArrayD1 t_h2osfc, t_h2osfc_bef, soilbeta, qg_snow, qg_soil,
               qg, qg_h2osfc, dqgdT, htvp, emg, emv, z0mg, z0hg, z0qg, z0mv,
               z0hv, z0qv, thv, z0m, displa, thm, eflx_sh_tot, eflx_lh_tot,
               eflx_sh_veg, qflx_evap_tot, qflx_evap_veg, qflx_tran_veg;
@@ -93,14 +94,14 @@ namespace ELM {
       // surface albedo and snicar
       // required for SurfaceAlbedo kernels
       ArrayD1 coszen;
-      ArrayD2 fabd_sun, fabd_sha, fabi_sun, fabi_sha, albsnd, albsni,
-              tsai_z;
+      ArrayD2 fabd_sun, fabd_sha, fabi_sun, fabi_sha, albsnd, albsni;
 
       // outputs from soil temp/snow hydro
       ArrayI2 imelt;
+      ArrayD1 xmf, xmf_h2osfc;
       ArrayD1 qflx_sl_top_soil,
               qflx_snow2topsoi, mflx_snowlyr_col, qflx_top_soil, mflx_neg_snow,
-              eflx_snomelt, qflx_snomelt, xmf, xmf_h2osfc,
+              eflx_snomelt, qflx_snomelt,
               eflx_h2osfc_snow, qflx_h2osfc_ice,
               qflx_snofrz;
       ArrayD2 qflx_snofrz_lyr;
@@ -132,6 +133,8 @@ namespace ELM {
 
       // day length
       double max_dayl{0.0}, dayl{0.0};
+      double dewmx{0.1};
+      int oldfflag{1};
   };
 
 } // namespace ELM

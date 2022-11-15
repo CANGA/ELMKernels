@@ -7,16 +7,18 @@
 void ELM::kokkos_canopy_temperature(ELMStateType& S,
                                     ELM::PFTData<ViewD1>& pft_data)
 {
-
+  // local views
+  size_t ncols = S.snl.extent(0);
+  ViewD1 qred("qred", ncols); // soil surface relative humidity
+  ViewD1 hr("hr", ncols); // relative humidity
+  ViewD1 soilalpha("soilalpha", ncols); // evaporation resistance -- not currently used
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // call canopy_temperature kernels
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   auto cantemp_kernels = ELM_LAMBDA (const int& idx) {
-    // thread local
-    double qred; // soil surface relative humidity
-    double hr;   // relative humidity
+
     ELM::canopy_temperature::old_ground_temp(
         S.Land,
         S.t_h2osfc(idx),
@@ -46,8 +48,8 @@ void ELM::kokkos_canopy_temperature(ELMStateType& S,
         Kokkos::subview(S.bsw, idx, Kokkos::ALL),
         Kokkos::subview(S.watdry, idx, Kokkos::ALL),
         Kokkos::subview(S.watopt, idx, Kokkos::ALL),
-        qred, hr,
-        S.soilalpha(idx));
+        qred(idx), hr(idx),
+        soilalpha(idx));
 
     ELM::canopy_temperature::calc_soilbeta(
         S.Land,
@@ -70,8 +72,8 @@ void ELM::kokkos_canopy_temperature(ELMStateType& S,
         S.frac_sno(idx),
         S.frac_sno_eff(idx),
         S.frac_h2osfc(idx),
-        qred,
-        hr,
+        qred(idx),
+        hr(idx),
         Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
         S.qg_snow(idx),
         S.qg_soil(idx),

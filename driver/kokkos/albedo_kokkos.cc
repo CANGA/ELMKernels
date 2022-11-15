@@ -13,19 +13,27 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
 {
 
   // local variables
-  ViewI2 snw_rds_lcl("snw_rds_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
-  ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
-  ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno);
-  ViewD2 albout_lcl("albout_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
-  ViewD2 flx_slrd_lcl("flx_slrd_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
-  ViewD2 flx_slri_lcl("flx_slri_lcl", S.snl.extent(0), ELM::ELMdims::numrad_snw);
-  ViewD3 flx_abs_lcl("flx_abs_lcl", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad_snw);
-  ViewD3 mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", S.snl.extent(0), ELM::ELMdims::nlevsno, ELM::ELMdims::sno_nbr_aer);
-  ViewD3 g_star("g_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 omega_star("omega_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 tau_star("tau_star", S.snl.extent(0), ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 flx_absd_snw("flx_absd_snw", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
-  ViewD3 flx_absi_snw("flx_absi_snw", S.snl.extent(0), ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
+  size_t ncols = S.snl.extent(0);
+  ViewI2 snw_rds_lcl("snw_rds_lcl", ncols, ELM::ELMdims::nlevsno);
+  ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", ncols, ELM::ELMdims::nlevsno);
+  ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", ncols, ELM::ELMdims::nlevsno);
+  ViewD2 albout_lcl("albout_lcl", ncols, ELM::ELMdims::numrad_snw);
+  ViewD2 flx_slrd_lcl("flx_slrd_lcl", ncols, ELM::ELMdims::numrad_snw);
+  ViewD2 flx_slri_lcl("flx_slri_lcl", ncols, ELM::ELMdims::numrad_snw);
+  ViewD2 tsai_z("tsai_z", ncols, ELM::ELMdims::nlevcan);
+
+  ViewD2 fabd_sun("fabd_sun", ncols, ELM::ELMdims::numrad);
+  ViewD2 fabd_sha("fabd_sha", ncols, ELM::ELMdims::numrad);
+  ViewD2 fabi_sun("fabi_sun", ncols, ELM::ELMdims::numrad);
+  ViewD2 fabi_sha("fabi_sha", ncols, ELM::ELMdims::numrad);
+
+  ViewD3 flx_abs_lcl("flx_abs_lcl", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad_snw);
+  ViewD3 mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", ncols, ELM::ELMdims::nlevsno, ELM::ELMdims::sno_nbr_aer);
+  ViewD3 g_star("g_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 omega_star("omega_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 tau_star("tau_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
+  ViewD3 flx_absd_snw("flx_absd_snw", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
+  ViewD3 flx_absi_snw("flx_absi_snw", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -58,8 +66,8 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         Kokkos::subview(S.albd, idx, Kokkos::ALL),
         Kokkos::subview(S.albi, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd, idx, Kokkos::ALL),
-        Kokkos::subview(S.fabd_sun, idx, Kokkos::ALL),
-        Kokkos::subview(S.fabd_sha, idx, Kokkos::ALL),
+        Kokkos::subview(fabd_sun, idx, Kokkos::ALL),
+        Kokkos::subview(fabd_sha, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi_sun, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi_sha, idx, Kokkos::ALL),
@@ -324,7 +332,7 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         S.tsai(idx),
         S.nrad(idx),
         Kokkos::subview(S.tlai_z, idx, Kokkos::ALL),
-        Kokkos::subview(S.tsai_z, idx, Kokkos::ALL),
+        Kokkos::subview(tsai_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fsun_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd_sun_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd_sha_z, idx, Kokkos::ALL),
@@ -340,7 +348,7 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         S.elai(idx),
         S.esai(idx),
         Kokkos::subview(S.tlai_z, idx, Kokkos::ALL),
-        Kokkos::subview(S.tsai_z, idx, Kokkos::ALL),
+        Kokkos::subview(tsai_z, idx, Kokkos::ALL),
         Kokkos::subview(S.albgrd, idx, Kokkos::ALL),
         Kokkos::subview(S.albgri, idx, Kokkos::ALL),
         alb_pft,
@@ -350,8 +358,8 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S,
         Kokkos::subview(S.ftid, idx, Kokkos::ALL),
         Kokkos::subview(S.ftdd, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd, idx, Kokkos::ALL),
-        Kokkos::subview(S.fabd_sun, idx, Kokkos::ALL),
-        Kokkos::subview(S.fabd_sha, idx, Kokkos::ALL),
+        Kokkos::subview(fabd_sun, idx, Kokkos::ALL),
+        Kokkos::subview(fabd_sha, idx, Kokkos::ALL),
         Kokkos::subview(S.albi, idx, Kokkos::ALL),
         Kokkos::subview(S.ftii, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi, idx, Kokkos::ALL),
