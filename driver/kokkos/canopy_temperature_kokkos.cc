@@ -1,7 +1,6 @@
 
 #include "invoke_kernel.hh"
 #include "canopy_temperature.h"
-
 #include "canopy_temperature_kokkos.hh"
 
 void ELM::kokkos_canopy_temperature(ELMStateType& S,

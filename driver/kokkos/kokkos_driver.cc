@@ -445,6 +445,9 @@ int main(int argc, char **argv) {
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
       {
+        // canhydro::fraction_wet
+        ELM::kokkos_frac_wet(*S);
+
         // call surface albedo and SNICAR kernels
         ELM::kokkos_albedo_snicar(*S, *aerosol_concentrations, *snicar_data, *pft_data);
 

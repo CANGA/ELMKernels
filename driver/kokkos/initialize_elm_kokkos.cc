@@ -1,11 +1,11 @@
-#include "helper_functions.hh"
 
-// conditional compilation options
+#include "helper_functions.hh"
 #include "invoke_kernel.hh"
-#include "compile_options.hh"
 
 #include "soil_data.h"
-#include "elm_constants.h"
+#include "atm_data.h"
+#include "snicar_data.h"
+#include "aerosol_data.h"
 
 // initialization routines
 #include "init_soil_state.h"

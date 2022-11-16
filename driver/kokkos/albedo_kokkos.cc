@@ -1,8 +1,9 @@
 
+#include "invoke_kernel.hh"
 #include "surface_albedo.h"
 #include "snow_snicar.h"
-#include "invoke_kernel.hh"
-
+#include "aerosol_physics.h"
+#include "snicar_data.h"
 #include "albedo_kokkos.hh"
 
 

@@ -1,5 +1,5 @@
 
-#include "elm_constants.h"
+#include "invoke_kernel.hh"
 #include "soil_temperature.h"
 #include "soil_temperature_kokkos.hh"
 
@@ -12,13 +12,6 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // parallel loops are invoked further into the call tree
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-
-  // Kokkos types
-  using ArrayI1 = Kokkos::View<int *>;
-  using ArrayI2 = Kokkos::View<int **>;
-  using ArrayD1 = Kokkos::View<double *>;
-  using ArrayD2 = Kokkos::View<double **>;
-  using ArrayD3 = Kokkos::View<double ***>;
 
   // ELM dimensions
   using ELMdims::nlevgrnd;
@@ -78,10 +71,10 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   auto t_soisno = S.t_soisno;
   auto fact = S.fact;
 
-  const int ncells = snl.extent(0);
+  size_t ncols = snl.extent(0);
 
   // dummy ltype for now
-  auto ltype = create<ArrayI1>("ltype", ncells);
+  ViewI1 ltype("ltype", ncols);
   assign(ltype, 1);
 
 
@@ -91,13 +84,13 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
-  auto tk = create<ArrayD2>("tk", ncells, nlevgrnd + nlevsno); // thermal conductivity at layer interface
-  auto cv = create<ArrayD2>("cv", ncells, nlevgrnd + nlevsno);
-  auto tk_h2osfc = create<ArrayD1>("tk_h2osfc", ncells);
-  auto c_h2osfc = create<ArrayD1>("c_h2osfc", ncells);
-  auto dz_h2osfc = create<ArrayD1>("dz_h2osfc", ncells);
+  ViewD2 tk("tk", ncols, nlevgrnd + nlevsno); // thermal conductivity at layer interface
+  ViewD2 cv("cv", ncols, nlevgrnd + nlevsno);
+  ViewD1 tk_h2osfc("tk_h2osfc", ncols);
+  ViewD1 c_h2osfc("c_h2osfc", ncols);
+  ViewD1 dz_h2osfc("dz_h2osfc", ncols);
   {
-    auto thk = create<ArrayD2>("thk", ncells, nlevgrnd + nlevsno); // thermal conductivity of layer
+    ViewD2 thk("thk", ncols, nlevgrnd + nlevsno); // thermal conductivity of layer
     auto soil_thermal_props = ELM_LAMBDA (const int& c) {
       soil_thermal::calc_soil_tk(c, ltype(c), h2osoi_liq, h2osoi_ice, t_soisno, dz, watsat, tkmg, tkdry, thk);
       soil_thermal::calc_snow_tk(c, snl(c), frac_sno(c), h2osoi_liq, h2osoi_ice, dz, thk);
@@ -108,7 +101,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
       c_h2osfc(c) = ELM::soil_thermal::calc_h2osfc_heat_capacity(snl(c), h2osfc(c), frac_h2osfc(c));
       dz_h2osfc(c) = ELM::soil_thermal::calc_h2osfc_height(snl(c), h2osfc(c), frac_h2osfc(c));
     };
-    invoke_kernel(soil_thermal_props, std::make_tuple(ncells), "soil_thermal_props");
+    invoke_kernel(soil_thermal_props, std::make_tuple(ncols), "soil_thermal_props");
   }
 
 
@@ -118,12 +111,12 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // surface heat fluxes
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  auto hs_soil = create<ArrayD1>("hs_soil", ncells); // [W/m2] soil heat flux
-  //auto hs_snow = create<ArrayD1>("hs_snow", ncells); // [W/m2] snow heat flux - maybe use for coupling?
-  auto hs_h2osfc = create<ArrayD1>("hs_h2osfc", ncells); // [W/m2] standing water heat flux
-  //auto hs_top = create<ArrayD1>("hs_top", ncells); // [W/m2] net heat flux into surface layer - maybe use for coupling?
-  auto hs_top_snow = create<ArrayD1>("hs_top_snow", ncells); // [W/m2] net heat flux into snow surface layer
-  auto dhsdT = create<ArrayD1>("dhsdT", ncells); // derivative of heat flux wrt temperature
+  ViewD1 hs_soil("hs_soil", ncols); // [W/m2] soil heat flux
+  //ViewD1 hs_snow("hs_snow", ncols); // [W/m2] snow heat flux - maybe use for coupling?
+  ViewD1 hs_h2osfc("hs_h2osfc", ncols); // [W/m2] standing water heat flux
+  //ViewD1 hs_top("hs_top", ncols); // [W/m2] net heat flux into surface layer - maybe use for coupling?
+  ViewD1 hs_top_snow("hs_top_snow", ncols); // [W/m2] net heat flux into snow surface layer
+  ViewD1 dhsdT("dhsdT", ncols); // derivative of heat flux wrt temperature
   const auto& soitop = nlevsno;
   {
     auto surface_heat_fluxes = ELM_LAMBDA (const int& c) {
@@ -144,7 +137,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
 
       dhsdT(c) = ELM::soil_temp::calc_dhsdT(cgrnd(c), emg(c), t_grnd(c));
     };
-  invoke_kernel(surface_heat_fluxes, std::make_tuple(ncells), "surface_heat_fluxes");
+  invoke_kernel(surface_heat_fluxes, std::make_tuple(ncols), "surface_heat_fluxes");
   }
 
 
@@ -154,8 +147,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // diffusive heat fluxes and matrix factor used in solve
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  auto fn = create<ArrayD2>("fn", ncells, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
-  //auto fact = create<ArrayD2>("fact", ncells, nlevgrnd + nlevsno); // factors used in computing tridiagonal matrix - needed outside
+  ViewD2 fn("fn", ncols, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
   {
     auto diffusive_heat_flux = ELM_LAMBDA (const int& c) {
 
@@ -173,7 +165,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
           Kokkos::subview(zisoi, c, Kokkos::ALL),
           Kokkos::subview(fact, c, Kokkos::ALL));
     };
-    invoke_kernel(diffusive_heat_flux, std::make_tuple(ncells), "diffusive_heat_flux");
+    invoke_kernel(diffusive_heat_flux, std::make_tuple(ncols), "diffusive_heat_flux");
   }
 
 
@@ -182,8 +174,8 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // set RHS vector and LHS matrix for temperature solve
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  auto rhs_vector = create<ArrayD2>("rhs_vector", ncells, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
-  auto lhs_matrix = create<ArrayD3>("lhs_matrix", ncells, nlevgrnd + nlevsno + 1, ELM::ELMdims::nband); // LHS for soil temp solve
+  ViewD2 rhs_vector("rhs_vector", ncols, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
+  ViewD3 lhs_matrix("lhs_matrix", ncols, nlevgrnd + nlevsno + 1, ELM::ELMdims::nband); // LHS for soil temp solve
   // these launch their own parallel loops
   ELM::soil_temp::set_RHS(dtime, snl, hs_top_snow, dhsdT, hs_soil, frac_sno_eff, t_soisno, fact, fn, sabg_lyr, zsoi,
     tk_h2osfc, t_h2osfc, dz_h2osfc, c_h2osfc, hs_h2osfc, rhs_vector);
@@ -213,9 +205,9 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // maximum size of system
   const int N = nlevgrnd + nlevsno + 1;
 
-  auto A = create<ArrayD2>("A", ncells, N - 1); // A(Ai, ..., An-1)
-  auto B = create<ArrayD2>("B", ncells, N - 2); // B(Bi, ..., Bn-2)
-  auto Z = create<ArrayD2>("Z", ncells, N); // Z(Zi, ..., Zn)
+  ViewD2 A("A", ncols, N - 1); // A(Ai, ..., An-1)
+  ViewD2 B("B", ncols, N - 2); // B(Bi, ..., Bn-2)
+  ViewD2 Z("Z", ncols, N); // Z(Zi, ..., Zn)
 
   {
     auto solver = ELM_LAMBDA (const int& c) {
@@ -234,7 +226,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
     auto update_temp = ELM_LAMBDA (const int& c) {
       ELM::soil_temp::update_temperature(c, snl, frac_h2osfc, rhs_vector, t_h2osfc, t_soisno);
     };
-    invoke_kernel(update_temp, std::make_tuple(ncells), "soil_temp::update_temperature");
+    invoke_kernel(update_temp, std::make_tuple(ncols), "soil_temp::update_temperature");
   }
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -242,7 +234,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // phase change kernels
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  //auto fn1 = create<ArrayD2>("fn1", ncells, nlevgrnd+nlevsno);
+  //auto fn1 = create<ArrayD2>("fn1", ncols, nlevgrnd+nlevsno);
   {
     auto phase_change = ELM_LAMBDA (const int& c) {
 
@@ -263,7 +255,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
         Kokkos::subview(qflx_snofrz_lyr, c, Kokkos::ALL), Kokkos::subview(h2osoi_ice, c, Kokkos::ALL),
         Kokkos::subview(h2osoi_liq, c, Kokkos::ALL), Kokkos::subview(t_soisno, c, Kokkos::ALL));
     };
-    invoke_kernel(phase_change, std::make_tuple(ncells), "soil_temp::phase_change");
+    invoke_kernel(phase_change, std::make_tuple(ncols), "soil_temp::phase_change");
   }
 
 
@@ -276,7 +268,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
     auto update_tgrnd = ELM_LAMBDA (const int& c) {
       ELM::soil_temp::update_t_grnd(c, snl, frac_h2osfc, frac_sno_eff, t_h2osfc, t_soisno, t_grnd);
     };
-    invoke_kernel(update_tgrnd, std::make_tuple(ncells), "soil_temp::update_t_grnd");
+    invoke_kernel(update_tgrnd, std::make_tuple(ncols), "soil_temp::update_t_grnd");
   }
 
 }

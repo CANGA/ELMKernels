@@ -1,12 +1,8 @@
 
 #pragma once
 
-#include "elm_state.h"
-#include "pft_data.h"
 #include "compile_options.hh"
 #include "data_types.hh"
-#include "aerosol_physics.h"
-#include "aerosol_data.h"
 
 namespace ELM {
 

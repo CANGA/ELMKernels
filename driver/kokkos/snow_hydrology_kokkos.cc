@@ -1,9 +1,12 @@
 
 #include "invoke_kernel.hh"
 #include "snow_hydrology.h"
-
+#include "aerosol_physics.h"
+#include "aerosol_data.h"
+#include "transpiration.h"
+#include "date_time.hh"
 #include "snow_hydrology_kokkos.hh"
-#include "transpiration_impl.hh"
+
 
 void ELM::kokkos_snow_hydrology(ELMStateType& S,
                                 ELM::AerosolMasses<ViewD2>& aerosol_masses,

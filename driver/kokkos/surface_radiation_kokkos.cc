@@ -1,21 +1,21 @@
 
 #include "invoke_kernel.hh"
+#include "atm_data.h"
 #include "surface_radiation.h"
-
 #include "surface_radiation_kokkos.hh"
 
 void ELM::kokkos_surface_radiation(ELMStateType& S, AtmDataManager<ViewD1, ViewD2, AtmForcType::FSDS>& forc_FSDS,
                                    const double& model_dt_days, const Utils::Date& time_plus_half_dt_secs)
 {
-  size_t ncells = S.snl.extent(0);
+  size_t ncols = S.snl.extent(0);
 
   // get incoming shortwave
-  ViewD2 forc_solai("forc_solai", ncells, 2);
-  ViewD2 forc_solad("forc_solad", ncells, 2);
+  ViewD2 forc_solai("forc_solai", ncols, 2);
+  ViewD2 forc_solad("forc_solad", ncols, 2);
   forc_FSDS.get_atm_forcing(model_dt_days, time_plus_half_dt_secs, S.coszen, forc_solai, forc_solad);
 
-  ViewD2 trd("trd", S.snl.extent(0), ELMdims::numrad);
-  ViewD2 tri("tri", S.snl.extent(0), ELMdims::numrad);
+  ViewD2 trd("trd", ncols, ELMdims::numrad);
+  ViewD2 tri("tri", ncols, ELMdims::numrad);
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // call surface_radiation kernels

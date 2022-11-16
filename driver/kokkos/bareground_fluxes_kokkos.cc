@@ -6,20 +6,21 @@
 
 void ELM::kokkos_bareground_fluxes(ELMStateType& S)
 {
-  size_t ncells = S.snl.extent(0);
 
-  ViewD1 zldis("zldis", ncells);     // reference height "minus" zero displacement height [m]
-  ViewD1 displa("displa", ncells);   // displacement height [m]
-  ViewD1 dth("dth", ncells);         // diff of virtual temp. between ref. height and surface
-  ViewD1 dqh("dqh", ncells);         // diff of humidity between ref. height and surface
-  ViewD1 obu("obu", ncells);         // Monin-Obukhov length (m)
-  ViewD1 ur("ur", ncells);           // wind speed at reference height [m/s]
-  ViewD1 um("um", ncells);           // wind speed including the stablity effect [m/s]
-  ViewD1 temp1("temp1", ncells);     // relation for potential temperature profile
-  ViewD1 temp2("temp2", ncells);     // relation for specific humidity profile
-  ViewD1 temp12m("temp12m", ncells); // relation for potential temperature profile applied at 2-m
-  ViewD1 temp22m("temp22m", ncells); // relation for specific humidity profile applied at 2-m
-  ViewD1 ustar("ustar", ncells);     // friction velocity [m/s]
+  // local variables
+  size_t ncols = S.snl.extent(0);
+  ViewD1 zldis("zldis", ncols);     // reference height "minus" zero displacement height [m]
+  ViewD1 displa("displa", ncols);   // displacement height [m]
+  ViewD1 dth("dth", ncols);         // diff of virtual temp. between ref. height and surface
+  ViewD1 dqh("dqh", ncols);         // diff of humidity between ref. height and surface
+  ViewD1 obu("obu", ncols);         // Monin-Obukhov length (m)
+  ViewD1 ur("ur", ncols);           // wind speed at reference height [m/s]
+  ViewD1 um("um", ncols);           // wind speed including the stablity effect [m/s]
+  ViewD1 temp1("temp1", ncols);     // relation for potential temperature profile
+  ViewD1 temp2("temp2", ncols);     // relation for specific humidity profile
+  ViewD1 temp12m("temp12m", ncols); // relation for potential temperature profile applied at 2-m
+  ViewD1 temp22m("temp22m", ncols); // relation for specific humidity profile applied at 2-m
+  ViewD1 ustar("ustar", ncols);     // friction velocity [m/s]
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/

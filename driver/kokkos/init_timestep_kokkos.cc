@@ -1,9 +1,9 @@
 
 #include "invoke_kernel.hh"
 #include "surface_fluxes.h"
-
-#include "init_timestep_kokkos.hh"
 #include "init_timestep.h"
+#include "init_timestep_kokkos.hh"
+
 
 void ELM::kokkos_init_timestep(ELMStateType& S)
 {

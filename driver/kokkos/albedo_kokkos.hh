@@ -1,11 +1,6 @@
 
 #pragma once
 
-#include "elm_state.h"
-#include "aerosol_physics.h"
-#include "snicar_data.h"
-#include "pft_data.h"
-
 #include "compile_options.hh"
 #include "data_types.hh"
 

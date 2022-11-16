@@ -1,7 +1,6 @@
 
 #include "invoke_kernel.hh"
 #include "surface_fluxes.h"
-
 #include "surface_fluxes_kokkos.hh"
 
 void ELM::kokkos_surface_fluxes(ELMStateType& S,

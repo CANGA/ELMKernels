@@ -1,27 +1,23 @@
 
 #include "invoke_kernel.hh"
+#include "atm_data.h"
 #include "canopy_hydrology.h"
-
 #include "canopy_hydrology_kokkos.hh"
 
 void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2, AtmForcType::PREC>& forc_PREC,
                                  const double& model_dt_secs, const Utils::Date& time_plus_half_dt_secs)
 {
-  constexpr double dewmx{0.1};
-  constexpr int oldfflag{1};
-
-  size_t ncells = S.snl.extent(0);
-
+  size_t ncols = S.snl.extent(0);
   // get forc_rain and forc_snow
-  ViewD1 forc_rain("forc_rain", ncells);
-  ViewD1 forc_snow("forc_snow", ncells);
+  ViewD1 forc_rain("forc_rain", ncols);
+  ViewD1 forc_snow("forc_snow", ncols);
   forc_PREC.get_atm_forcing(model_dt_secs/86400.0, time_plus_half_dt_secs, S.forc_tbot, forc_rain, forc_snow);
 
-  ViewD1 qflx_candrip("qflx_candrip", ncells);
-  ViewD1 qflx_through_snow("qflx_through_snow", ncells);
-  ViewD1 qflx_through_rain("qflx_through_rain", ncells);
-  ViewD1 fracsnow("fracsnow", ncells);
-  ViewD1 fracrain("fracrain", ncells);
+  ViewD1 qflx_candrip("qflx_candrip", ncols);
+  ViewD1 qflx_through_snow("qflx_through_snow", ncols);
+  ViewD1 qflx_through_rain("qflx_through_rain", ncols);
+  ViewD1 fracsnow("fracsnow", ncols);
+  ViewD1 fracrain("fracrain", ncols);
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/

@@ -3,15 +3,8 @@
 #pragma once
 
 
+#include "compile_options.hh"
 #include "data_types.hh"
-
-#include "pft_data.h"
-#include "atm_data.h"
-#include "snicar_data.h"
-#include "aerosol_data.h"
-
-#include "elm_state.h"
-
 
 namespace ELM {
 

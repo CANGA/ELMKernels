@@ -1,44 +1,43 @@
 
 #include "invoke_kernel.hh"
 #include "canopy_fluxes.h"
-
 #include "canopy_fluxes_kokkos.hh"
 
 void ELM::kokkos_canopy_fluxes(ELMStateType& S,
                                const double& dtime)
 {
-    size_t ncells =S.snl.extent(0);
+    size_t ncols =S.snl.extent(0);
 
-    ViewD1 wtg("wtg", ncells);                  // heat conductance for ground [m/s]
-    ViewD1 wtgq("wtgq", ncells);                // latent heat conductance for ground [m/s]
-    ViewD1 wtalq("wtalq", ncells);              // normalized latent heat cond. for air and leaf [-]
-    ViewD1 wtlq0("wtlq0", ncells);              // normalized latent heat conductance for leaf [-]
-    ViewD1 wtaq0("wtaq0", ncells);              // normalized latent heat conductance for air [-]
-    ViewD1 wtl0("wtl0", ncells);                // normalized heat conductance for leaf [-]
-    ViewD1 wta0("wta0", ncells);                // normalized heat conductance for air [-]
-    ViewD1 wtal("wtal", ncells);                // normalized heat conductance for air and leaf [-]
-    ViewD1 dayl_factor("dayl_factor", ncells);  // scalar (0-1) for daylength effect on Vcmax
-    ViewD1 air("air", ncells);                  // atmos. radiation temporay set
-    ViewD1 bir("bir", ncells);                  // atmos. radiation temporay set
-    ViewD1 cir("cir", ncells);                  // atmos. radiation temporay set
-    ViewD1 el("el", ncells);                    // vapor pressure on leaf surface [pa]
-    ViewD1 qsatl("qsatl", ncells);              // leaf specific humidity [kg/kg]
-    ViewD1 qsatldT("qsatldT", ncells);          // derivative of "qsatl" on "t_veg"
-    ViewD1 taf("taf", ncells);                  // air temperature within canopy space [K]
-    ViewD1 qaf("qaf", ncells);                  // humidity of canopy air [kg/kg]
-    ViewD1 um("um", ncells);                    // wind speed including the stablity effect [m/s]
-    ViewD1 ur("ur", ncells);                    // wind speed at reference height [m/s]
-    ViewD1 dth("dth", ncells);                  // diff of virtual temp. between ref. height and surface
-    ViewD1 dqh("dqh", ncells);                  // diff of humidity between ref. height and surface
-    ViewD1 obu("obu", ncells);                  // Monin-Obukhov length (m)
-    ViewD1 zldis("zldis", ncells);              // reference height "minus" zero displacement height [m]
-    ViewD1 temp1("temp1", ncells);              // relation for potential temperature profile
-    ViewD1 temp2("temp2", ncells);              // relation for specific humidity profile
-    ViewD1 temp12m("temp12m", ncells);          // relation for potential temperature profile applied at 2-m
-    ViewD1 temp22m("temp22m", ncells);          // relation for specific humidity profile applied at 2-m
-    ViewD1 tlbef("tlbef", ncells);              // leaf temperature from previous iteration [K]
-    ViewD1 delq("delq", ncells);                // temporary
-    ViewD1 dt_veg("dt_veg", ncells);            // change in t_veg, last iteration (Kelvin)
+    ViewD1 wtg("wtg", ncols);                  // heat conductance for ground [m/s]
+    ViewD1 wtgq("wtgq", ncols);                // latent heat conductance for ground [m/s]
+    ViewD1 wtalq("wtalq", ncols);              // normalized latent heat cond. for air and leaf [-]
+    ViewD1 wtlq0("wtlq0", ncols);              // normalized latent heat conductance for leaf [-]
+    ViewD1 wtaq0("wtaq0", ncols);              // normalized latent heat conductance for air [-]
+    ViewD1 wtl0("wtl0", ncols);                // normalized heat conductance for leaf [-]
+    ViewD1 wta0("wta0", ncols);                // normalized heat conductance for air [-]
+    ViewD1 wtal("wtal", ncols);                // normalized heat conductance for air and leaf [-]
+    ViewD1 dayl_factor("dayl_factor", ncols);  // scalar (0-1) for daylength effect on Vcmax
+    ViewD1 air("air", ncols);                  // atmos. radiation temporay set
+    ViewD1 bir("bir", ncols);                  // atmos. radiation temporay set
+    ViewD1 cir("cir", ncols);                  // atmos. radiation temporay set
+    ViewD1 el("el", ncols);                    // vapor pressure on leaf surface [pa]
+    ViewD1 qsatl("qsatl", ncols);              // leaf specific humidity [kg/kg]
+    ViewD1 qsatldT("qsatldT", ncols);          // derivative of "qsatl" on "t_veg"
+    ViewD1 taf("taf", ncols);                  // air temperature within canopy space [K]
+    ViewD1 qaf("qaf", ncols);                  // humidity of canopy air [kg/kg]
+    ViewD1 um("um", ncols);                    // wind speed including the stablity effect [m/s]
+    ViewD1 ur("ur", ncols);                    // wind speed at reference height [m/s]
+    ViewD1 dth("dth", ncols);                  // diff of virtual temp. between ref. height and surface
+    ViewD1 dqh("dqh", ncols);                  // diff of humidity between ref. height and surface
+    ViewD1 obu("obu", ncols);                  // Monin-Obukhov length (m)
+    ViewD1 zldis("zldis", ncols);              // reference height "minus" zero displacement height [m]
+    ViewD1 temp1("temp1", ncols);              // relation for potential temperature profile
+    ViewD1 temp2("temp2", ncols);              // relation for specific humidity profile
+    ViewD1 temp12m("temp12m", ncols);          // relation for potential temperature profile applied at 2-m
+    ViewD1 temp22m("temp22m", ncols);          // relation for specific humidity profile applied at 2-m
+    ViewD1 tlbef("tlbef", ncols);              // leaf temperature from previous iteration [K]
+    ViewD1 delq("delq", ncols);                // temporary
+    ViewD1 dt_veg("dt_veg", ncols);            // change in t_veg, last iteration (Kelvin)
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
