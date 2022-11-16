@@ -12,14 +12,14 @@ static constexpr double PI_OVER_TWO{ELM_PI / 2.0};
 }
 
 // declination angle calc from ats/landlab
-double ns::declination_angle(const int& doy) { return 23.45 * ELM_PI / 180.0 * cos(TWO_PI / 365.0 * (172.0 - doy)); }
+double ns::declination_angle_cos(const int& doy) { return 23.45 * ELM_PI / 180.0 * cos(TWO_PI / 365.0 * (172.0 - doy)); }
 
 // declination angle calc from ELM lnd_import szenith()/shr_orb_cosz()
-double ns::declination_angle2(const int& doy) { return 23.45 * ELM_PI / 180.0 * sin(TWO_PI * (284.0 + doy) / 365.0); }
+double ns::declination_angle_sin(const int& doy) { return 23.45 * ELM_PI / 180.0 * sin(TWO_PI * (284.0 + doy) / 365.0); }
 
 // cosine of the solar zenith angle
 double ns::coszen(const double& latrad, const double& lonrad, const double& jday) {
-  const double decrad{declination_angle2(floor(jday))};
+  const double decrad{declination_angle_sin(floor(jday))};
   double cosz = sin(latrad) * sin(decrad) - cos(latrad) * cos(decrad) * cos((jday - floor(jday)) * TWO_PI + lonrad);
   return cosz > 0.001 ? cosz : 0.001;
 }
@@ -115,7 +115,7 @@ double ns::average_cosz(const double& latrad, const double&  lonrad, const doubl
   const double dtrad{dt_radians(dt)};
   const double t_start{dt_start_rad(jday, lonrad)};
   const double t_end{dt_end_rad(t_start, dtrad)};
-  const double declin{declination_angle2(static_cast<int>(jday))};
+  const double declin{declination_angle_sin(static_cast<int>(jday))};
   const double cos_h{coshalfday(latrad, declin)};
   return integrate_cosz(t_start, t_end, dtrad, cos_h, latrad, declin);
 }

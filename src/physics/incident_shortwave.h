@@ -1,17 +1,40 @@
 
 #pragma once
 
+// there are three methods to calculate zenith angle
+// they all produce similar results for the lat/lon tested here.
+
+// for now a single value for coszen is appropriate
+// but a slope based factor would necessitate per-cell values
+
+// first method - average cosz for dt_start to dt_end
+//    auto decday = ELM::Utils::decimal_doy(current) + 1.0;
+//    assign(S->coszen, ELM::incident_shortwave::average_cosz(S->lat_r, S->lon_r, dtime, decday));
+
+// second method - point cosz at dt_start + dt/2
+//    auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
+
+// third method - calc avg cosz over forcing dt (larger than model dt)
+// then calc point dt at start + dt/2
+// and use to calculate cosz_factor
+//    ELM::Utils::Date forc_dt_start{forc_FSDS.get_data_start_time()};
+//    forc_dt_start.increment_seconds(round(forc_FSDS.forc_t_idx(time_plus_half_dt, forc_FSDS.get_data_start_time()) * forc_FSDS.get_forc_dt_secs()));
+//    double cosz_forc_decday = ELM::Utils::decimal_doy(forc_dt_start) + 1.0;
+//    auto cosz_forcdt_avg = ELM::incident_shortwave::average_cosz(lat_r, lon_r, forc_FSDS.get_forc_dt_secs(), cosz_forc_decday);
+//    auto thiscosz = ELM::incident_shortwave::coszen(lat_r, lon_r, decday + dtime / 86400.0 /2.0);
+//    cosz_factor = (thiscosz > 0.001) ? std::min(thiscosz/cosz_forcdt_avg, 10.0) : 0.0;
+
 namespace ELM::incident_shortwave {
 
 // declination angle calc from ats/landlab
 // doy [int]      day of year
 // returns delination angle [radians]
-double declination_angle(const int& doy);
+double declination_angle_cos(const int& doy);
 
 // declination angle calc from ELM lnd_import szenith()/shr_orb_cosz()
 // doy [int]      integer day of year
 // returns delination angle [radians]
-double declination_angle2(const int& doy);
+double declination_angle_sin(const int& doy);
 
 // cosine of the solar zenith angle
 // latrad [double]    latitude [radians]
