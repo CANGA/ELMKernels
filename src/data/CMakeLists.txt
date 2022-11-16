@@ -29,12 +29,8 @@ ${data_src_files}
 ${data_inc_files}
 )
 
-if (ENABLE_KOKKOS)
-target_include_directories (elm_data PUBLIC ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR})
-target_link_libraries (elm_data LINK_PUBLIC elm_utils Kokkos::kokkos)
-else()
-target_include_directories (elm_data PUBLIC ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR})
+target_include_directories (elm_data PUBLIC ${ELM_DATA_SOURCE_DIR})
 target_link_libraries (elm_data LINK_PUBLIC elm_utils)
-endif()
 
+install(FILES ${data_inc_files} DESTINATION include)
 install(TARGETS elm_data)

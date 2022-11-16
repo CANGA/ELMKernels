@@ -38,14 +38,15 @@ ${kokkos_driver_inc_files}
 
 add_compile_definitions(INPUT_DATA_DIR="${ELM_INPUT_DATA_PREFIX}/")
 
-target_include_directories (elm_kokkos PUBLIC ${ELM_PHYSICS_SOURCE_DIR} ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR} ${NetCDF_INCLUDE_DIR})
-target_link_libraries (elm_kokkos LINK_PUBLIC elm_physics elm_data elm_utils Kokkos::kokkos ${NetCDF_LIBRARIES})
+target_include_directories (elm_kokkos PUBLIC ${ELM_KERNELS_KOKKOS_SOURCE_DIR})
+target_link_libraries (elm_kokkos LINK_PUBLIC elm_physics)
 
 add_executable (elm_kokkos_exe
 kokkos_driver.cc
 )
 
-target_include_directories (elm_kokkos_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KOKKOS_INCLUDE_DIR} ${NetCDF_INCLUDE_DIR})
-target_link_libraries (elm_kokkos_exe LINK_PUBLIC elm_kokkos Kokkos::kokkos ${NetCDF_LIBRARIES})
+target_include_directories (elm_kokkos_exe PUBLIC ${ELM_KERNELS_KOKKOS_SOURCE_DIR})
+target_link_libraries (elm_kokkos_exe LINK_PUBLIC elm_kokkos)
 
 install(TARGETS elm_kokkos elm_kokkos_exe)
+install(FILES ${kokkos_driver_inc_files} DESTINATION include)

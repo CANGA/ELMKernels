@@ -37,4 +37,5 @@ target_include_directories (elm_utils PUBLIC ${ELM_UTILS_SOURCE_DIR} ${NetCDF_IN
 target_link_libraries (elm_utils LINK_PUBLIC ${NetCDF_C_LIBRARIES})
 endif()
 
+install(FILES ${utils_inc_files} DESTINATION include)
 install(TARGETS elm_utils)
