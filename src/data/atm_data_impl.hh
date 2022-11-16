@@ -381,4 +381,29 @@ get_atm_forcing(const double& model_dt,
     need_new_data_ = true;
 }
 
+template <typename ArrayD1, typename ArrayD2>
+ELM::AtmForcObjects<ArrayD1, ArrayD2>::AtmForcObjects(
+  const std::string& filename,
+  const ELM::Utils::Date &file_start_time,
+  const int atm_nsteps, const int ncells) :
+    forc_TBOT(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::TBOT>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_PBOT(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::PBOT>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    //forc_QBOT(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::QBOT>>
+    //  (filename, file_start_time, atm_nsteps, ncells)),
+    forc_QBOT(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::RH>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_FLDS(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::FLDS>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_FSDS(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::FSDS>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_PREC(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::PREC>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_WIND(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::WIND>>
+      (filename, file_start_time, atm_nsteps, ncells)),
+    forc_ZBOT(std::make_shared<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::ZBOT>>
+      (filename, file_start_time, atm_nsteps, ncells))
+  {}
+
 } // namespace ELM

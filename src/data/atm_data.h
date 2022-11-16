@@ -185,6 +185,28 @@ private:
   bool need_new_data_{true};
 };
 
+// convenience struct
+// need to put a check in to automatically choose
+// RH or QBOT
+// will currently error if a file with QBOT instead of RH is used
+template <typename ArrayD1, typename ArrayD2>
+struct AtmForcObjects {
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::TBOT>> forc_TBOT;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::PBOT>> forc_PBOT;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::RH>> forc_QBOT;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::FLDS>> forc_FLDS;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::FSDS>> forc_FSDS;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::PREC>> forc_PREC;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::WIND>> forc_WIND;
+  std::shared_ptr<ELM::AtmDataManager<ArrayD1, ArrayD2, AtmForcType::ZBOT>> forc_ZBOT;
+
+  AtmForcObjects(const std::string& filename,
+                 const ELM::Utils::Date &file_start_time,
+                 const int ntimes, const int ncells);
+  ~AtmForcObjects() = default;
+};
+
+
 } // namespace ELM
 
 #include "atm_data_impl.hh"

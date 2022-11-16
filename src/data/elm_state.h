@@ -2,6 +2,13 @@
 #pragma once
 
 #include "land_data.h"
+#include "pft_data.h"
+#include "snicar_data.h"
+#include "aerosol_physics.h"
+#include "aerosol_data.h"
+#include "atm_data.h"
+#include "phenology_data.h"
+#include "utils.hh"
 
 namespace ELM {
 
@@ -10,7 +17,11 @@ namespace ELM {
    typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
   struct ELMState {
 
-      ELMState(const int ncells);
+      ELMState(size_t ncols,
+              const Utils::DomainDecomposition<2>& domain,
+              const std::string& filename,
+              const ELM::Utils::Date &file_start_time,
+              int atm_nsteps);
       ~ELMState() = default;
 
       // forcing data
@@ -119,10 +130,6 @@ namespace ELM {
 
       // need to put away
       ArrayI1 vtype;
-      // lat/lon in degrees
-      double lat{0.0}, lon{0.0};
-      // lat/lon in radians
-      double lat_r{0.0}, lon_r{0.0};
       ELM::LandType Land;
       
       // view of struct PSNVegData
@@ -131,6 +138,22 @@ namespace ELM {
       // snow and veg indicators
       ArrayB1 veg_active, do_capsnow;
 
+      // pointers to data manager objects
+      std::shared_ptr<ELM::SnicarData<ArrayD1, ArrayD2, ArrayD3>> snicar_data;
+      std::shared_ptr<ELM::SnwRdsTable<ArrayD3>> snw_rds_table;
+      std::shared_ptr<ELM::PFTData<ArrayD1>> pft_data;
+      std::shared_ptr<ELM::AerosolDataManager<ArrayD1>> aerosol_data;
+      std::shared_ptr<ELM::AerosolMasses<ArrayD2>> aerosol_masses;
+      std::shared_ptr<ELM::AerosolConcentrations<ArrayD2>> aerosol_concentrations;
+
+      // time-variable - initialize outside of constructor
+      std::shared_ptr<ELM::PhenologyDataManager<ArrayD2>> phen_data;
+      std::shared_ptr<ELM::AtmForcObjects<ArrayD1, ArrayD2>> atm_forcing;
+
+      // lat/lon in degrees
+      double lat{0.0}, lon{0.0};
+      // lat/lon in radians
+      double lat_r{0.0}, lon_r{0.0};
       // day length
       double max_dayl{0.0}, dayl{0.0};
       double dewmx{0.1};
