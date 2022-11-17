@@ -10,9 +10,21 @@ model, ELM.
 https://github.com/E3SM-Project/E3SM
 
 This library's cell-by-cell physics implementation is designed to expose a
-general interface for use with hydrology models anddata/task-parallel 
-programming models.
+general interface for use with hydrology models and data/task-parallel 
+programming models. We rely on programming models (currently Kokkos) to provide
+performance portability. Templated data types are used to provide flexibility
+and allow simple switching between programming models
 
+This library currently includes tools for automating data management, I/O, and
+time/date keeping. An interface for the Kokkos programming model is nearing
+completion. The included physics kernels can simulate the entire water cycle
+(assuming flow is provided by external hydrology model) and energy cycle at
+the land surface. The test suite tests many of the physics kernels against
+output from ELM using included forcing data.
+
+Ongoing development tasks include the completion of verification testing,
+physics-informed functional decomposition of kernels, creation of a general
+interface for hydrology models, and performance optimization.
 
 
 Installation
@@ -41,6 +53,7 @@ git clone -b main "https://github.com/CANGA/ELMKernels.git" $ELM_DIR
 ```
 
 Build Kokkos
+
 Your build options may differ from those shown here
 ```
 cd $KOKKOS_DIR
@@ -59,15 +72,13 @@ And now we can build this library
 cd $ELM_DIR
 sh buildELMphys.sh
 ```
-If you set up both the KOKKOS_DIR and ELM_INPUT_DIR, the build script work without issue.
+If you set up your environment as decribed above, the build script should work without issue.
 
 Run some tests
 ```
 ./install/bin/test_*
 ```
 
-This code has been built with various minor versipns of GCC 11.xx - 13.xx and the past year
+This code has been built with various minor versions of GCC 11.xx - 13.xx and the past year
 of Clang versions. Device simulation is not currently tested, only CPU computation. The
 Kokkos driver at driver/kokkos/kokkos_driver.cc demonstrates simple usage of these kernels.
-
-    
