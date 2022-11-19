@@ -2,7 +2,7 @@ project(ELM_KERNELS_KOKKOS)
 
 set(kokkos_driver_src_files
 aerosol_kokkos.cc
-atm_data_helpers.cc
+atm_forcing_kokkos.cc
 phenology_kokkos.cc
 initialize_elm_kokkos.cc
 albedo_kokkos.cc
@@ -20,7 +20,7 @@ init_timestep_kokkos.cc
 
 set(kokkos_driver_inc_files
 aerosol_kokkos.hh
-atm_data_helpers.hh
+atm_forcing_kokkos.hh
 phenology_kokkos.hh
 initialize_elm_kokkos.hh
 albedo_kokkos.hh

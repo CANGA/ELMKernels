@@ -1,6 +1,6 @@
 
 #include "invoke_kernel.hh"
-#include "atm_data_helpers.hh"
+#include "atm_forcing_kokkos.hh"
 
 namespace {
   template<ELM::AtmForcType ftype>
