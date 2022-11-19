@@ -9,7 +9,6 @@
 #include <tuple>
 
 #include "compile_options.hh"
-#include "invoke_kernel.hh"
 
 namespace ELM {
 
@@ -74,19 +73,6 @@ private:
   AerosolMasses<ArrayD2> aerosol_masses_;
   AerosolConcentrations<ArrayD2> aerosol_concentrations_;
 };
-
-// convenience function to invoke aerosol deposition source functor
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1 snl,
-                           const AerosolDataManager<ArrayD1>& aerosol_data,
-                           AerosolMasses<ArrayD2>& aerosol_masses);
-
-// convenience function to invoke aerosol mass and concen functor
-template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_concen_and_mass(const double& dtime, const ArrayB1 do_capsnow, const ArrayI1 snl,
-                                    const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
-                                    const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
-                                    AerosolConcentrations<ArrayD2>& aerosol_concentrations);
 
 } // namespace ELM::aerosols
 

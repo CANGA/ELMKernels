@@ -3,8 +3,7 @@
 #include "canopy_temperature.h"
 #include "canopy_temperature_kokkos.hh"
 
-void ELM::kokkos_canopy_temperature(ELMStateType& S,
-                                    ELM::PFTData<ViewD1>& pft_data)
+void ELM::kokkos_canopy_temperature(ELMStateType& S)
 {
   // local views
   size_t ncols = S.snl.extent(0);
@@ -89,8 +88,8 @@ void ELM::kokkos_canopy_temperature(ELMStateType& S,
         S.elai(idx),
         S.esai(idx),
         S.htop(idx),
-        pft_data.displar,
-        pft_data.z0mr,
+        S.pft_data->displar,
+        S.pft_data->z0mr,
         Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
         Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
         S.emg(idx),

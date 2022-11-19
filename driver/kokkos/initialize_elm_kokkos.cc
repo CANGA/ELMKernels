@@ -266,11 +266,6 @@ void copy_aero_host_views(std::unordered_map<std::string, h_ViewD1>& aero_host_v
 
 void ELM::initialize_kokkos_elm (
   ELMStateType& S,
-  SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data,
-  SnwRdsTable<ViewD3>& snw_rds_table,
-  PFTData<ViewD1>& pft_data,
-  AerosolDataManager<ViewD1>& aerosol_data,
-  const Utils::DomainDecomposition<2>& dd,
   const std::string& fname_surfdata,
   const std::string& fname_param,
   const std::string& fname_snicar,
@@ -280,6 +275,10 @@ void ELM::initialize_kokkos_elm (
   using ELMdims::nlevsno;
   using ELMdims::nlevgrnd;
 
+  auto& snicar_data = *S.snicar_data.get();
+  auto& snw_rds_table = *S.snw_rds_table.get();
+  auto& pft_data = *S.pft_data.get();
+  auto& aerosol_data = *S.aerosol_data.get();
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // read data from files into host mirrors
@@ -292,7 +291,7 @@ void ELM::initialize_kokkos_elm (
     auto h_isoicol = Kokkos::create_mirror_view(S.isoicol);
     auto h_albsat = Kokkos::create_mirror_view(S.albsat);
     auto h_albdry = Kokkos::create_mirror_view(S.albdry);
-    ELM::read_soil::read_soil_colors(dd, fname_surfdata, h_isoicol, h_albsat, h_albdry);
+    ELM::read_soil::read_soil_colors(S.dd, fname_surfdata, h_isoicol, h_albsat, h_albdry);
     if (S.albsat.extent(0) != h_albsat.extent(0) || S.albsat.extent(1) != h_albsat.extent(1))
     {
       NS::resize(S.albsat, h_albsat.extent(0), h_albsat.extent(1));
@@ -318,7 +317,7 @@ void ELM::initialize_kokkos_elm (
     auto h_pct_clay = Kokkos::create_mirror_view(pct_clay);
     auto h_organic = Kokkos::create_mirror_view(organic);
     auto h_organic_max = Kokkos::create_mirror_view(organic_max);
-    read_soil::read_soil_texture(dd, fname_surfdata, fname_param,
+    read_soil::read_soil_texture(S.dd, fname_surfdata, fname_param,
                     h_organic_max, h_pct_sand, h_pct_clay, h_organic);
     Kokkos::deep_copy(pct_sand, h_pct_sand);
     Kokkos::deep_copy(pct_clay, h_pct_clay);
@@ -332,7 +331,7 @@ void ELM::initialize_kokkos_elm (
     auto host_snicar_d2 = kokkos_init::get_snicar_host_views_d2(snicar_data);
     auto host_snicar_d3 = kokkos_init::get_snicar_host_views_d3(snicar_data);
     read_snicar_data(host_snicar_d1, host_snicar_d2,
-                          host_snicar_d3, dd.comm, fname_snicar);
+                          host_snicar_d3, S.dd.comm, fname_snicar);
     kokkos_init::copy_snicar_host_views_d1(host_snicar_d1, snicar_data);
     kokkos_init::copy_snicar_host_views_d2(host_snicar_d2, snicar_data);
     kokkos_init::copy_snicar_host_views_d3(host_snicar_d3, snicar_data);
@@ -344,21 +343,21 @@ void ELM::initialize_kokkos_elm (
   // this table and Mie aerosol model lookup table
   {
     auto host_snowage_d3 = kokkos_init::get_snowage_host_views_d3(snw_rds_table);
-    read_snowrds_data(host_snowage_d3, dd.comm, fname_snowage);
+    read_snowrds_data(host_snowage_d3, S.dd.comm, fname_snowage);
     kokkos_init::copy_snowage_host_views_d3(host_snowage_d3, snw_rds_table);
   }
 
   // pft data constants
   {
     auto host_pft_views = kokkos_init::get_pft_host_views(pft_data);
-    read_pft_data(host_pft_views, dd.comm, fname_param);
+    read_pft_data(host_pft_views, S.dd.comm, fname_param);
     kokkos_init::copy_pft_host_views(host_pft_views, pft_data);
   }
 
   // aerosol deposition data manager
   {
     auto host_aero_views = kokkos_init::get_aero_host_views(aerosol_data);
-    read_aerosol_data(host_aero_views, dd.comm, fname_aerosol, S.lon, S.lat);
+    read_aerosol_data(host_aero_views, S.dd.comm, fname_aerosol, S.lon, S.lat);
     kokkos_init::copy_aero_host_views(host_aero_views, aerosol_data);
   }
 

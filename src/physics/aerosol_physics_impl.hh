@@ -101,28 +101,4 @@ operator()(const int i) const {
   }
 }
 
-template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_source(const Utils::Date& model_time, const double& dtime, const ArrayI1 snl,
-                           const AerosolDataManager<ArrayD1>& aerosol_data,
-                           AerosolMasses<ArrayD2>& aerosol_masses)
-{
-  auto aerosol_forc_flux = aerosol_data.get_aerosol_source(model_time, dtime);
-  ComputeAerosolDeposition aerosol_source_object(aerosol_forc_flux, snl, aerosol_masses);
-  
-  invoke_kernel(aerosol_source_object, std::make_tuple(snl.extent(0)), "ComputeAerosolDeposition");
-
-}
-
-template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
-void invoke_aerosol_concen_and_mass(const double& dtime, const ArrayB1 do_capsnow, const ArrayI1 snl,
-                                    const ArrayD2 h2osoi_liq, const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
-                                    const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
-                                    AerosolConcentrations<ArrayD2>& aerosol_concentrations)
-{
-  ComputeAerosolConcenAndMass aerosol_c_mass_object(dtime, do_capsnow, snl, h2osoi_liq, h2osoi_ice, snw_rds,
-                                                    qflx_snwcp_ice, aerosol_masses, aerosol_concentrations);
-
-  invoke_kernel(aerosol_c_mass_object, std::make_tuple(snl.extent(0)), "ComputeAerosolConcenAndMass");
-}
-
 } // namespace ELM::aerosols

@@ -26,6 +26,7 @@ read_data(std::unordered_map<std::string, h_ArrayD2>& phenology_views, const std
   if (!initialized_) {
     read_initial(phenology_views, filename, model_time, vtype);
     initialized_ = true;
+    need_new_data_ = false;
     auto m1 = monthly_data::first_month_idx(model_time);
     data_m1_ = m1;
     return true;

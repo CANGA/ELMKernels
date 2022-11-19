@@ -21,7 +21,7 @@ namespace ELM {
               const Utils::DomainDecomposition<2>& domain,
               const std::string& filename,
               const ELM::Utils::Date &file_start_time,
-              int atm_nsteps);
+              int forc_steps);
       ~ELMState() = default;
 
       // forcing data
@@ -149,6 +149,10 @@ namespace ELM {
       // time-variable - initialize outside of constructor
       std::shared_ptr<ELM::PhenologyDataManager<ArrayD2>> phen_data;
       std::shared_ptr<ELM::AtmForcObjects<ArrayD1, ArrayD2>> atm_forcing;
+
+      // domain decomp data
+      Utils::DomainDecomposition<2> dd;
+      int atm_nsteps;
 
       // lat/lon in degrees
       double lat{0.0}, lon{0.0};

@@ -12,7 +12,7 @@ ELMState(size_t ncols,
         const Utils::DomainDecomposition<2>& domain,
         const std::string& filename,
         const ELM::Utils::Date &file_start_time,
-        int atm_nsteps) :
+        int forc_steps) :
 
     // recalculated every dt
     // forcing data
@@ -335,7 +335,10 @@ ELMState(size_t ncols,
     // container for satellite phenology forcing data
     phen_data(std::make_shared<ELM::PhenologyDataManager<ArrayD2>>(domain, ncols, ELMdims::numveg)),
     // container for atmospheric forcing data
-    atm_forcing(std::make_shared<ELM::AtmForcObjects<ArrayD1, ArrayD2>>(filename, file_start_time, atm_nsteps, ncols))
+    atm_forcing(std::make_shared<ELM::AtmForcObjects<ArrayD1, ArrayD2>>(filename, file_start_time, forc_steps, ncols)),
+
+    dd(domain),
+    atm_nsteps(forc_steps)
 {}
   
 

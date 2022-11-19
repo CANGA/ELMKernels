@@ -6,22 +6,17 @@
 #include "transpiration.h"
 #include "date_time.hh"
 #include "snow_hydrology_kokkos.hh"
+#include "aerosol_kokkos.hh"
+
 
 
 void ELM::kokkos_snow_hydrology(ELMStateType& S,
-                                ELM::AerosolMasses<ViewD2>& aerosol_masses,
-                                ELM::AerosolDataManager<ViewD1>& aerosol_data,
-                                const ELM::SnwRdsTable<ViewD3>& snw_rds_table,
-                                const ELM::Utils::Date& time_plus_half_dt,
-                                const double& dtime)
+                               const double& dtime,
+                               const ELM::Utils::Date& time_plus_half_dt)
 {
+  auto& aerosol_masses = *S.aerosol_masses.get();
 
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // call snow hydrology kernels
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-
   // evaluate change in snow mass due to water movement
   // and snow->soil fluxes
   auto snow_water_kernel = ELM_LAMBDA (const int& idx) {
@@ -56,7 +51,7 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
     
   // aerosol deposition must be called between these two snow hydrology functions
   // invokes it's own parallel loop
-  ELM::aerosols::invoke_aerosol_source(time_plus_half_dt, dtime, S.snl, aerosol_data, aerosol_masses);
+  ELM::invoke_aerosol_source(S, dtime, time_plus_half_dt);
 
   // evolve snowpack - adds/combines/divides/removes snow layers
   // updates snow mesh
@@ -161,7 +156,7 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
         Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
         Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
         Kokkos::subview(S.qflx_snofrz_lyr, idx, Kokkos::ALL),
-        snw_rds_table,
+        *S.snw_rds_table.get(),
         Kokkos::subview(S.snw_rds, idx, Kokkos::ALL));
 
   }; // end snow_update_kernels kernels

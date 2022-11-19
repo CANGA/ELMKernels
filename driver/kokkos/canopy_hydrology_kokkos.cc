@@ -4,9 +4,12 @@
 #include "canopy_hydrology.h"
 #include "canopy_hydrology_kokkos.hh"
 
-void ELM::kokkos_canopy_hydrology(ELMStateType& S, AtmDataManager<ViewD1, ViewD2, AtmForcType::PREC>& forc_PREC,
-                                 const double& model_dt_secs, const Utils::Date& time_plus_half_dt_secs)
+void ELM::kokkos_canopy_hydrology(ELMStateType& S,
+                                 const double& model_dt_secs,
+                                 const Utils::Date& time_plus_half_dt_secs)
 {
+
+  auto& forc_PREC = *S.atm_forcing->forc_PREC.get();
   size_t ncols = S.snl.extent(0);
   // get forc_rain and forc_snow
   ViewD1 forc_rain("forc_rain", ncols);

@@ -13,28 +13,12 @@
 // constants
 #include "elm_constants.h"
 
-// input data readers and structs
-#include "pft_data.h"
-#include "snicar_data.h"
-#include "aerosol_physics.h"
-#include "aerosol_data.h"
-
-// atm data helper functions
-// contains definition of atm data struct 
-// that should be moved to atm_data.h 
-#include "atm_data_helpers.hh"
-// helper funcs for phenology
-#include "phenology_kokkos.hh"
-
 // initialization routines
 #include "initialize_elm_kokkos.hh"
 #include "init_timestep_kokkos.hh"
 
-// serial physics
-#include "day_length.h"
-#include "incident_shortwave.h"
-
 // parallel physics
+#include "aerosol_kokkos.hh"
 #include "albedo_kokkos.hh"
 #include "canopy_hydrology_kokkos.hh"
 #include "surface_radiation_kokkos.hh"
@@ -46,12 +30,9 @@
 #include "surface_fluxes_kokkos.hh"
 
 // conditional compilation options
-#include "invoke_kernel.hh"
 #include "compile_options.hh"
 #include "data_types.hh"
 
-// elm state struct
-#include "elm_state.h"
 
 using ELM::Utils::assign;
 using AtmForcType = ELM::AtmForcType;
@@ -112,7 +93,6 @@ int main(int argc, char **argv) {
     S.get()->Land.urbpoi = false;
 
     assign(S.get()->vtype, 12);
-    auto host_vtype = Kokkos::create_mirror_view(S.get()->vtype);
 
     // hardwired params
     S.get()->lat = 71.323;
@@ -215,15 +195,8 @@ int main(int argc, char **argv) {
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
     /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
-    ELM::initialize_kokkos_elm(*S.get(), *S->snicar_data.get(),
-      *S->snw_rds_table.get(), *S->pft_data.get(),
-      *S->aerosol_data.get(), dd, fname_surfdata,
+    ELM::initialize_kokkos_elm(*S.get(), fname_surfdata,
       fname_param, fname_snicar, fname_snowage, fname_aerosol);
-
-    // phenology data manager
-    // make host mirrors - need to be persistent
-    // move this somewhere else
-    auto host_phen_views = ELM::get_phen_host_views(S->phen_data.get());
 
     // hardwired soil/snow water state
     {
@@ -309,59 +282,13 @@ int main(int argc, char **argv) {
     for (int t = 0; t < ntimes; ++t) {
 
       ELM::Utils::Date time_plus_half_dt(current);
-      time_plus_half_dt.increment_seconds(dtime/2);
+      time_plus_half_dt.increment_seconds(static_cast<size_t>((dtime + 1.0)/2)); // round to nearest second
 
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      // get coszen
-      // only one value currently
-      // will change when slope aspect modifier is completed
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      {
-        auto decday = ELM::Utils::decimal_doy(current) + 1.0;
-        // coszen is ViewD1, dayl vars are double
-        assign(S.get()->coszen,
-          ELM::incident_shortwave::average_cosz(S.get()->lat_r, S.get()->lon_r, dtime, decday));
-        S.get()->max_dayl = ELM::max_daylength(S.get()->lat_r);
-        S.get()->dayl = ELM::daylength(
-          S.get()->lat_r, ELM::incident_shortwave::declination_angle_sin(current.doy + 1));
-      }
-
-
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      // timestep init functions
-      // read time-variable data
-      // these are all self-invoking parallel kernels
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-      /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-
-      // read phenology data if required
-      // reader will read 3 months of data on first call
-      // subsequent calls only read the newest months (when phen_data.need_data() == true)
-      // and shift the index of the two remaining older months
-      ELM::update_phenology(S->phen_data.get(),
-        host_phen_views, S.get(), host_vtype, current, fname_surfdata);
-
-      // read new atm data if needed
-      // pass in shared ptrs
-      ELM::read_forcing(S.get()->atm_forcing, dd, current, atm_nsteps);
-      // get current time forcing values
-      ELM::get_forcing(S.get()->atm_forcing, *S.get(), dtime_d, time_plus_half_dt);
-
-      // get aerosol mass (mss) and concentration in snowpack (cnc)
-      ELM::aerosols::invoke_aerosol_source(time_plus_half_dt,
-        dtime, S.get()->snl, *S->aerosol_data.get(), *S->aerosol_masses.get());
-      ELM::aerosols::invoke_aerosol_concen_and_mass(dtime,
-        S.get()->do_capsnow, S.get()->snl, S.get()->h2osoi_liq,
-        S.get()->h2osoi_ice, S.get()->snw_rds, S.get()->qflx_snwcp_ice,
-        *S->aerosol_masses.get(), *S->aerosol_concentrations.get());
-
-      // initialize a few variables at each dt
-      // this function is pretty anemic
-      // more should be incorporated into this call
-      ELM::kokkos_init_timestep(*S.get());
+      // get coszen, day length,
+      // phenology data, atmospheric forcing,
+      // aerosol forcing and snowpack state,
+      // and a handful of variables that need to be reset every timestep
+      ELM::kokkos_init_timestep(S.get(), dtime, current, fname_surfdata);
 
 
       /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -375,26 +302,16 @@ int main(int argc, char **argv) {
         ELM::kokkos_frac_wet(*S.get());
 
         // call surface albedo and SNICAR kernels
-        ELM::kokkos_albedo_snicar(*S.get(),
-          *S->aerosol_concentrations.get(), 
-          *S->snicar_data.get(), 
-          *S->pft_data.get());
+        ELM::kokkos_albedo_snicar(*S.get());
 
         // call canopy_hydrology kernels
-        auto PREC_ptr = S.get()->atm_forcing.get()->forc_PREC.get();
-        ELM::kokkos_canopy_hydrology(*S.get(),
-          *PREC_ptr, dtime,
-          time_plus_half_dt);
+        ELM::kokkos_canopy_hydrology(*S.get(), dtime, time_plus_half_dt);
 
         // call surface_radiation kernels
-        auto FSDS_ptr = S.get()->atm_forcing.get()->forc_FSDS.get();
-        ELM::kokkos_surface_radiation(*S.get(),
-          *FSDS_ptr, dtime_d,
-          time_plus_half_dt);
+        ELM::kokkos_surface_radiation(*S.get(), dtime_d, time_plus_half_dt);
 
         // call canopy_temperature kernels
-        ELM::kokkos_canopy_temperature(*S.get(),
-          *S->pft_data.get());
+        ELM::kokkos_canopy_temperature(*S.get());
 
         // call bareground_fluxes kernels
         ELM::kokkos_bareground_fluxes(*S.get());
@@ -406,11 +323,7 @@ int main(int argc, char **argv) {
         ELM::kokkos_soil_temperature(*S.get(), dtime);
 
         // call snow_hydrology kernels
-        ELM::kokkos_snow_hydrology(*S.get(),
-          *S->aerosol_masses.get(),
-          *S->aerosol_data.get(),
-          *S->snw_rds_table.get(),
-          time_plus_half_dt, dtime);
+        ELM::kokkos_snow_hydrology(*S.get(), dtime, time_plus_half_dt);
 
         // call surface_fluxes kernels
         ELM::kokkos_surface_fluxes(*S.get(), dtime);

@@ -7,11 +7,12 @@
 #include "albedo_kokkos.hh"
 
 
-void ELM::kokkos_albedo_snicar(ELMStateType& S,
-                               ELM::AerosolConcentrations<ViewD2>& aerosol_concentrations,
-                               ELM::SnicarData<ViewD1, ViewD2, ViewD3>& snicar_data,
-                               ELM::PFTData<ViewD1>& pft_data)
+void ELM::kokkos_albedo_snicar(ELMStateType& S)
 {
+  // get data managers from state
+  auto& aerosol_concentrations = *S.aerosol_concentrations.get();
+  auto& snicar_data = *S.snicar_data.get();
+  auto& pft_data = *S.pft_data.get();
 
   // local variables
   size_t ncols = S.snl.extent(0);

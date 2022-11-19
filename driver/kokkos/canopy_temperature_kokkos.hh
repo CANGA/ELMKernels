@@ -6,7 +6,6 @@
 
 namespace ELM {
 
-  void kokkos_canopy_temperature(ELMStateType& S,
-                                 ELM::PFTData<ViewD1>& pft_data);
+  void kokkos_canopy_temperature(ELMStateType& S);
 
 }

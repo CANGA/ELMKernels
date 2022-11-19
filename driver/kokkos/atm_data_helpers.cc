@@ -17,7 +17,7 @@ namespace {
                    const ELM::Utils::DomainDecomposition<2>& dd,
                    const ELM::Utils::Date& model_time,
                    const size_t& ntimes)
- {
+  {
     auto fptr = atm_data.get();
     auto h_data = NS::create_mirror_view(atm_data->data);
     atm_data->read_atm_forcing(h_data, dd, model_time, ntimes);
@@ -29,28 +29,25 @@ namespace {
 } // anonymous namespace
 
 
-void ELM::read_forcing(std::shared_ptr<ELM::AtmForcObjects<ViewD1, ViewD2>> atm_forcing,
-                  const Utils::DomainDecomposition<2>& dd,
-                  const ELM::Utils::Date& current,
-                  const int atm_nsteps)
+void ELM::read_forcing(ELMStateType& S, const ELM::Utils::Date& current)
 {
-  auto fptr = atm_forcing.get();
-  read_atm_data(fptr->forc_TBOT, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_PBOT, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_QBOT, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_FLDS, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_FSDS, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_PREC, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_WIND, dd, current, atm_nsteps);
-  read_atm_data(fptr->forc_ZBOT, dd, current, atm_nsteps);
+  auto fptr = S.atm_forcing.get();
+  read_atm_data(fptr->forc_TBOT, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_PBOT, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_QBOT, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_FLDS, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_FSDS, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_PREC, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_WIND, S.dd, current, S.atm_nsteps);
+  read_atm_data(fptr->forc_ZBOT, S.dd, current, S.atm_nsteps);
 }
 
 
-void ELM::get_forcing(std::shared_ptr<ELM::AtmForcObjects<ViewD1, ViewD2>> atm_forcing,
-                      ELMStateType& S,
-                      const double& model_dt, const ELM::Utils::Date& time_plus_half_dt)
+void ELM::get_forcing(ELMStateType& S,
+                      const double& model_dt,
+                      const ELM::Utils::Date& time_plus_half_dt)
 {
-  auto fptr = atm_forcing.get();
+  auto fptr = S.atm_forcing.get();
   fptr->forc_TBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_thbot);
   fptr->forc_PBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_pbot);
   fptr->forc_QBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_pbot, S.forc_qbot);
