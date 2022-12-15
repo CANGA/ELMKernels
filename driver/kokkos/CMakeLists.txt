@@ -16,6 +16,7 @@ soil_temperature_kokkos.cc
 snow_hydrology_kokkos.cc
 surface_fluxes_kokkos.cc
 init_timestep_kokkos.cc
+elm_kokkos_interface.cc
 #kokkos_driver.cc
 )
 
@@ -35,6 +36,7 @@ soil_temperature_kokkos.hh
 snow_hydrology_kokkos.hh
 surface_fluxes_kokkos.hh
 init_timestep_kokkos.hh
+elm_kokkos_interface.hh
 )
 
 add_library (elm_kokkos
