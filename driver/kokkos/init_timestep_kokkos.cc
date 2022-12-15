@@ -10,6 +10,9 @@
 #include "incident_shortwave.h"
 #include "init_timestep.h"
 
+#include "conserved_quantity_evaluators.h"
+
+
 
 
 void ELM::kokkos_init_timestep(ELMStateType *S,
@@ -48,6 +51,15 @@ t_centered.increment_seconds(static_cast<size_t>((dtime + 1.0)/2)); // round to 
   ELM::invoke_aerosol_concen_and_mass(*S, dtime);
 
   auto init_step_kernel = ELM_LAMBDA (const int& idx) {
+
+    S->h2osno_old(idx) = S->h2osno(idx);
+
+    S->dtbegin_column_h2o(idx) =
+      ELM::conservation_eval::column_water_mass(S->h2ocan(idx),
+        S->h2osno(idx), S->h2osfc(idx),
+        Kokkos::subview(S->h2osoi_ice, idx, Kokkos::ALL),
+        Kokkos::subview(S->h2osoi_liq, idx, Kokkos::ALL));
+
     ELM::init_timestep(S->Land.lakpoi, S->veg_active(idx),
                      S->frac_veg_nosno_alb(idx),
                      S->snl(idx), S->h2osno(idx),

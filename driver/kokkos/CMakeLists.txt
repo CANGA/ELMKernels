@@ -7,6 +7,7 @@ phenology_kokkos.cc
 initialize_elm_kokkos.cc
 albedo_kokkos.cc
 canopy_hydrology_kokkos.cc
+conserved_quantity_kokkos.cc
 surface_radiation_kokkos.cc
 canopy_temperature_kokkos.cc
 bareground_fluxes_kokkos.cc
@@ -25,6 +26,7 @@ phenology_kokkos.hh
 initialize_elm_kokkos.hh
 albedo_kokkos.hh
 canopy_hydrology_kokkos.hh
+conserved_quantity_kokkos.hh
 surface_radiation_kokkos.hh
 canopy_temperature_kokkos.hh
 bareground_fluxes_kokkos.hh
