@@ -8,6 +8,7 @@ monthly_data.cc
 set(data_inc_files
 aerosol_data.h
 aerosol_data_impl.hh
+elm_constants.h
 atm_data.h
 atm_data_impl.hh
 elm_state.h

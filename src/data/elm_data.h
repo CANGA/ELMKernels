@@ -67,6 +67,8 @@ struct ConstitutiveData {
 
   ArrayD2 rootr, eff_porosity;
 
+  ArrayD1 sabg_chk;
+
   // from soil temp - used in soil_e_balance
   // could be moved into more local scope
   ArrayD3 fact;

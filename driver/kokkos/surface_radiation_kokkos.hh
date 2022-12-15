@@ -6,8 +6,6 @@
 
 namespace ELM {
 
-  void kokkos_surface_radiation(ELMStateType& S,
-                                const double& model_dt_days,
-                                const Utils::Date& time_plus_half_dt);
+  void kokkos_surface_radiation(ELMStateType& S);
 
 }

@@ -69,6 +69,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   auto h2osoi_ice = S.h2osoi_ice;
   auto qflx_snofrz_lyr = S.qflx_snofrz_lyr;
   auto t_soisno = S.t_soisno;
+  auto sabg_chk = S.sabg_chk;
   auto fact = S.fact;
 
   size_t ncols = snl.extent(0);
@@ -92,6 +93,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   {
     ViewD2 thk("thk", ncols, nlevgrnd + nlevsno); // thermal conductivity of layer
     auto soil_thermal_props = ELM_LAMBDA (const int& c) {
+
       soil_thermal::calc_soil_tk(c, ltype(c), h2osoi_liq, h2osoi_ice, t_soisno, dz, watsat, tkmg, tkdry, thk);
       soil_thermal::calc_snow_tk(c, snl(c), frac_sno(c), h2osoi_liq, h2osoi_ice, dz, thk);
       soil_thermal::calc_face_tk(c, snl(c), thk, zsoi, zisoi, tk);
@@ -117,11 +119,13 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   //ViewD1 hs_top("hs_top", ncols); // [W/m2] net heat flux into surface layer - maybe use for coupling?
   ViewD1 hs_top_snow("hs_top_snow", ncols); // [W/m2] net heat flux into snow surface layer
   ViewD1 dhsdT("dhsdT", ncols); // derivative of heat flux wrt temperature
-  const auto& soitop = nlevsno;
+  const int soitop = nlevsno;
   {
     auto surface_heat_fluxes = ELM_LAMBDA (const int& c) {
 
       const int snotop = nlevsno-snl(c);
+
+      sabg_chk(c) = ELM::soil_temp::check_absorbed_solar(frac_sno_eff(c), sabg_snow(c), sabg_soil(c));
 
       hs_soil(c) = ELM::soil_temp::calc_surface_heat_flux(frac_veg_nosno(c), dlrad(c), emg(c), forc_lwrad(c), htvp(c),
           sabg_soil(c), t_soisno(c, soitop), eflx_sh_soil(c), qflx_ev_soil(c));

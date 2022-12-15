@@ -27,6 +27,10 @@ ELMState(size_t ncols,
     forc_hgt_u_patch("forc_hgt_u_patch", ncols),
     forc_hgt_t_patch("forc_hgt_t_patch", ncols),
     forc_hgt_q_patch("forc_hgt_q_patch", ncols),
+    forc_rain("forc_rain", ncols),
+    forc_snow("forc_snow", ncols),
+    forc_solai("forc_solai", ncols, ELMdims::numrad),
+    forc_solad("forc_solad", ncols, ELMdims::numrad),
     //forc_rho("forc_rho", ncols), // in canflux and baregroundflux - could be calculated on the fly
 
     // recalculated every dt
@@ -105,6 +109,7 @@ ELMState(size_t ncols,
     // need to retain value between timesteps
     h2ocan("h2ocan", ncols),
     h2osno("h2osno", ncols),
+    h2osno_old("h2osno_old", ncols), // constitutive? 
 
     // recalced, but albedo needs this - save as time-variable state
     // or call before/from albedo
@@ -260,6 +265,7 @@ ELMState(size_t ncols,
     soil_e_balance("soil_e_balance", ncols),
 
     // from soil temp - used in soil_e_balance
+    sabg_chk("sabg_chk", ncols),
     // could be moved into more local scope
     // recalculate every dt
     fact("fact", ncols, ELMdims::nlevgrnd + ELMdims::nlevsno), // factors used in computing tridiagonal matrix
@@ -300,6 +306,9 @@ ELMState(size_t ncols,
     // transpiration
     // vegetation/soil water exchange (m H2O/s) (+ = to atm)
     qflx_rootsoi("qflx_rootsoi", ncols, ELMdims::nlevgrnd),
+
+    // column-integrated mass of h2o at dt start   
+    dtbegin_column_h2o("dtbegin_column_h2o", ncols),
 
     // grid data
     // may not stay in ELM state

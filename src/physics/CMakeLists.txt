@@ -18,8 +18,9 @@ canopy_hydrology.h
 canopy_hydrology_impl.hh
 canopy_temperature.h
 canopy_temperature_impl.hh
+conserved_quantity_evaluators.h
+conserved_quantity_evaluators_impl.hh
 day_length.h
-elm_constants.h
 friction_velocity.h
 friction_velocity_impl.hh
 incident_shortwave.h
@@ -77,4 +78,5 @@ ${physics_inc_files}
 target_include_directories (elm_physics PUBLIC ${ELM_PHYSICS_SOURCE_DIR})
 target_link_libraries (elm_physics LINK_PUBLIC elm_data)
 
+install(FILES ${physics_inc_files} DESTINATION include)
 install(TARGETS elm_physics)

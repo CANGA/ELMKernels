@@ -4,18 +4,9 @@
 #include "surface_radiation.h"
 #include "surface_radiation_kokkos.hh"
 
-void ELM::kokkos_surface_radiation(ELMStateType& S,
-                                   const double& model_dt_days,
-                                   const Utils::Date& time_plus_half_dt_secs)
+void ELM::kokkos_surface_radiation(ELMStateType& S)
 {
   size_t ncols = S.snl.extent(0);
-
-  // get incoming shortwave
-  ViewD2 forc_solai("forc_solai", ncols, 2);
-  ViewD2 forc_solad("forc_solad", ncols, 2);
-  S.atm_forcing->forc_FSDS.get()->get_atm_forcing(
-                                  model_dt_days, time_plus_half_dt_secs,
-                                  S.coszen, forc_solai, forc_solad);
 
   // local work arrays
   ViewD2 trd("trd", ncols, ELMdims::numrad);
@@ -34,8 +25,8 @@ void ELM::kokkos_surface_radiation(ELMStateType& S,
         S.elai(idx),
         Kokkos::subview(S.tlai_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fsun_z, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solad, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solai, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solad, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solai, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd_sun_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd_sha_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi_sun_z, idx, Kokkos::ALL),
@@ -62,8 +53,8 @@ void ELM::kokkos_surface_radiation(ELMStateType& S,
         Kokkos::subview(S.ftdd, idx, Kokkos::ALL),
         Kokkos::subview(S.ftid, idx, Kokkos::ALL),
         Kokkos::subview(S.ftii, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solad, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solai, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solad, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solai, idx, Kokkos::ALL),
         Kokkos::subview(S.fabd, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi, idx, Kokkos::ALL),
         Kokkos::subview(S.albsod, idx, Kokkos::ALL),
@@ -98,8 +89,8 @@ void ELM::kokkos_surface_radiation(ELMStateType& S,
         S.Land,
         Kokkos::subview(S.albd, idx, Kokkos::ALL),
         Kokkos::subview(S.albi, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solad, idx, Kokkos::ALL),
-        Kokkos::subview(forc_solai, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solad, idx, Kokkos::ALL),
+        Kokkos::subview(S.forc_solai, idx, Kokkos::ALL),
         S.fsr(idx));
   }; // end surfrad lambda
   invoke_kernel(surfrad_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_surface_radiation");

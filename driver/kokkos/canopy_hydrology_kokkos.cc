@@ -5,16 +5,9 @@
 #include "canopy_hydrology_kokkos.hh"
 
 void ELM::kokkos_canopy_hydrology(ELMStateType& S,
-                                 const double& model_dt_secs,
-                                 const Utils::Date& time_plus_half_dt_secs)
+                                 const double& model_dt_secs)
 {
-
-  auto& forc_PREC = *S.atm_forcing->forc_PREC.get();
   size_t ncols = S.snl.extent(0);
-  // get forc_rain and forc_snow
-  ViewD1 forc_rain("forc_rain", ncols);
-  ViewD1 forc_snow("forc_snow", ncols);
-  forc_PREC.get_atm_forcing(model_dt_secs/86400.0, time_plus_half_dt_secs, S.forc_tbot, forc_rain, forc_snow);
 
   ViewD1 qflx_candrip("qflx_candrip", ncols);
   ViewD1 qflx_through_snow("qflx_through_snow", ncols);
@@ -34,8 +27,8 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
     ELM::canopy_hydrology::interception(
         S.Land,
         S.frac_veg_nosno(idx),
-        forc_rain(idx),
-        forc_snow(idx),
+        S.forc_rain(idx),
+        S.forc_snow(idx),
         S.dewmx,
         S.elai(idx),
         S.esai(idx),
@@ -51,8 +44,8 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
         S.Land,
         S.do_capsnow(idx),
         S.frac_veg_nosno(idx),
-        forc_rain(idx),
-        forc_snow(idx),
+        S.forc_rain(idx),
+        S.forc_snow(idx),
         qflx_irrig,
         qflx_candrip(idx),
         qflx_through_snow(idx),

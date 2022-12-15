@@ -52,8 +52,8 @@ void ELM::get_forcing(ELMStateType& S,
   fptr->forc_PBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_pbot);
   fptr->forc_QBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_pbot, S.forc_qbot);
   fptr->forc_FLDS->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_pbot, S.forc_qbot, S.forc_tbot, S.forc_lwrad);
-  // fptr->forc_FSDS.get_atm_forcing(model_dt, time_plus_half_dt, S.coszen, S.forc_solai, S.forc_solad);
-  // fptr->forc_PREC.get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_rain, S.forc_snow);
+  fptr->forc_FSDS->get_atm_forcing(model_dt, time_plus_half_dt, S.coszen, S.forc_solai, S.forc_solad);
+  fptr->forc_PREC->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_tbot, S.forc_rain, S.forc_snow);
   fptr->forc_WIND->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_u, S.forc_v);
   fptr->forc_ZBOT->get_atm_forcing(model_dt, time_plus_half_dt, S.forc_hgt, S.forc_hgt_u_patch,
                                        S.forc_hgt_t_patch,S.forc_hgt_q_patch);

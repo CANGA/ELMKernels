@@ -123,6 +123,7 @@ ConstitutiveData(const int ncells) :
     rootr("rootr", ncells, ELMdims::nlevgrnd),
     eff_porosity("eff_porosity", ncells, ELMdims::nlevgrnd),
     // from soil temp - used in soil_e_balance
+    sabg_chk("sabg_chk", ncells),
     // could be moved into more local scope
     fact("fact", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno), // factors used in computing tridiagonal matrix
     do_capsnow("do_capsnow", ncells) // calced in init_timestep

@@ -27,7 +27,8 @@ namespace ELM {
       // forcing data
       ArrayD1 forc_tbot, forc_thbot, forc_pbot, forc_qbot, forc_lwrad,
               forc_u, forc_v, forc_hgt, forc_hgt_u_patch, forc_hgt_t_patch,
-              forc_hgt_q_patch;
+              forc_hgt_q_patch, forc_rain, forc_snow;
+      ArrayD2 forc_solai, forc_solad;
 
       // prescribed sat phenology
       ArrayD1 tlai, tsai, elai, esai, htop, hbot;
@@ -56,7 +57,7 @@ namespace ELM {
 
       // soil/snow/surface h2o state
       ArrayD2 frac_iceold, h2osoi_liq, h2osoi_ice, h2osoi_vol;
-      ArrayD1 h2ocan, h2osno, fwet, fdry, h2osfc, frac_h2osfc, frac_sno_eff;
+      ArrayD1 h2ocan, h2osno, h2osno_old, fwet, fdry, h2osfc, frac_h2osfc, frac_sno_eff;
 
       // water fluxes
       ArrayD1 qflx_snwcp_liq, qflx_snwcp_ice, qflx_snow_grnd,
@@ -100,6 +101,7 @@ namespace ELM {
       ArrayD1 eflx_soil_grnd, qflx_evap_grnd, qflx_sub_snow, qflx_dew_snow,
               qflx_dew_grnd, eflx_lwrad_out, eflx_lwrad_net, soil_e_balance;
       // from soil temp - used in soil_e_balance 
+      ArrayD1 sabg_chk;
       ArrayD2 fact;
 
       // surface albedo and snicar
@@ -121,6 +123,9 @@ namespace ELM {
       // transpiration
       // vegetation/soil water exchange (m H2O/s) (+ = to atm)
       ArrayD2 qflx_rootsoi;
+
+      // column-integrated mass of h2o at dt start 
+      ArrayD1 dtbegin_column_h2o;
 
       // grid data
       // may not stay in ELM state

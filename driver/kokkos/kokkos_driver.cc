@@ -28,6 +28,7 @@
 #include "soil_temperature_kokkos.hh"
 #include "snow_hydrology_kokkos.hh"
 #include "surface_fluxes_kokkos.hh"
+#include "conserved_quantity_kokkos.hh"
 
 // conditional compilation options
 #include "compile_options.hh"
@@ -305,10 +306,10 @@ int main(int argc, char **argv) {
         ELM::kokkos_albedo_snicar(*S.get());
 
         // call canopy_hydrology kernels
-        ELM::kokkos_canopy_hydrology(*S.get(), dtime, time_plus_half_dt);
+        ELM::kokkos_canopy_hydrology(*S.get(), dtime);
 
         // call surface_radiation kernels
-        ELM::kokkos_surface_radiation(*S.get(), dtime_d, time_plus_half_dt);
+        ELM::kokkos_surface_radiation(*S.get());
 
         // call canopy_temperature kernels
         ELM::kokkos_canopy_temperature(*S.get());
@@ -327,6 +328,8 @@ int main(int argc, char **argv) {
 
         // call surface_fluxes kernels
         ELM::kokkos_surface_fluxes(*S.get(), dtime);
+
+        ELM::kokkos_evaluate_conservation(*S.get(), dtime);
       }
 
       // print diagnostics
@@ -364,6 +367,9 @@ int main(int argc, char **argv) {
       for (int i = 0; i < ncells; ++i) {
         std::cout << "h2osno: " << S.get()->h2osno(i) << std::endl;
         std::cout << "t_grnd: " << S.get()->t_grnd(i) << std::endl;
+        std::cout << "t_h2osfc: " << S.get()->t_h2osfc(i) << std::endl;
+        std::cout << "t10: " << S.get()->t10(i) << std::endl;
+        std::cout << "t_veg: " << S.get()->t_veg(i) << std::endl;
         std::cout << "snow_depth: " << S.get()->snow_depth(i) << std::endl;
         std::cout << "frac_sno: " << S.get()->frac_sno(i) << std::endl;
         std::cout << "frac_sno_eff: " << S.get()->frac_sno_eff(i) << std::endl;
