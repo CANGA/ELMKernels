@@ -34,6 +34,7 @@
 #include "compile_options.hh"
 #include "data_types.hh"
 
+#include "elm_kokkos_interface.hh"
 
 using ELM::Utils::assign;
 using AtmForcType = ELM::AtmForcType;
@@ -64,9 +65,9 @@ int main(int argc, char **argv) {
       input_dir+"pt-e3sm-inputdata/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc");
 
     const int n_procs = 1;
-    const int ncells = 1;
-    int idx = 0; // hardwire for ncells = 1
-    const int ntimes = 3000;
+    const int ncols = 1;
+    int idx = 0; // hardwire for ncols = 1
+    const int ntimes = 100;
     const int myrank = 0;
     const double dtime = 1800.0;
     const double dtime_d = 1800.0 / 86400.0;
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
     // starting time of forcing file
     const auto fstart = ELM::Utils::Date(1985, 1, 1);
     // ELM State
-    auto S = std::make_shared<ELMStateType>(ncells, dd, fname_forc, fstart, atm_nsteps);
+    auto S = std::make_shared<ELMStateType>(ncols, dd, fname_forc, fstart, atm_nsteps);
 
     // fix this soon
     //S.get()->Land.ltype = 1;
@@ -104,9 +105,9 @@ int main(int argc, char **argv) {
     const double irrig_rate = 0.0;
     const int n_irrig_steps_left = 0;
     const int oldfflag = 1;
-    //auto veg_active = create<ViewB1>("veg_active", ncells); // need value
+    //auto veg_active = create<ViewB1>("veg_active", ncols); // need value
     assign(S.get()->veg_active, true);                               // hardwired
-    //auto do_capsnow = create<ViewB1>("do_capsnow", ncells); // need value
+    //auto do_capsnow = create<ViewB1>("do_capsnow", ncols); // need value
     assign(S.get()->do_capsnow, false);                               // hardwired
     assign(S.get()->topo_slope, 0.070044865858546);
     assign(S.get()->topo_std, 3.96141847422387);
@@ -149,7 +150,7 @@ int main(int argc, char **argv) {
       2.482579696981332, 4.0930819526214, 6.7483512780057175,
       11.12615029420442, 13.851152141963599 };
       auto h_dz = Kokkos::create_mirror_view(S.get()->dz);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_dz(n, i) = dz_hardwire[i];
         }
@@ -165,7 +166,7 @@ int main(int argc, char **argv) {
       4.73915671146575, 7.829766507142356, 12.92532061670855,
       21.32646906315379, 35.17762120511739 };
       auto h_zsoi = Kokkos::create_mirror_view(S.get()->zsoi);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_zsoi(n, i) = zsoi_hardwire[i];
         }
@@ -181,7 +182,7 @@ int main(int argc, char **argv) {
       3.8018819123227208, 6.284461609304053, 10.377543561925453,
       17.12589483993117, 28.252045134135592, 42.10319727609919 };
       auto h_zisoi = Kokkos::create_mirror_view(S.get()->zisoi);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd + 1; ++i) {
           h_zisoi(n, i) = zisoi_hardwire[i];
         }
@@ -221,7 +222,7 @@ int main(int argc, char **argv) {
 
       auto h_soi_ice = Kokkos::create_mirror_view(S.get()->h2osoi_ice);
       auto h_soi_liq = Kokkos::create_mirror_view(S.get()->h2osoi_liq);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_soi_ice(n, i) = h2osoi_ice_hardwire[i];
           h_soi_liq(n, i) = h2osoi_liq_hardwire[i];
@@ -238,7 +239,7 @@ int main(int argc, char **argv) {
         0.15954052527228618, 8.420726808634413e-06, 5.107428986500891e-06,
         3.0978122726178113e-06, 1.8789181213767733e-06, 1.5092697845407248e-06 };
       auto h_soi_vol = Kokkos::create_mirror_view(S.get()->h2osoi_vol);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevgrnd; ++i) {
           h_soi_vol(n, i) = h2osoi_vol_hardwire[i];
         }
@@ -259,7 +260,7 @@ int main(int argc, char **argv) {
       264.49481140089864, 264.14163363048056, 264.3351872934207,
       264.1163763444719, 263.88852987294865 };
       auto h_tsoi = Kokkos::create_mirror_view(S.get()->t_soisno);
-      for (int n = 0; n < ncells; ++n) {
+      for (int n = 0; n < ncols; ++n) {
         for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
           h_tsoi(n, i) = tsoi_hardwire[i];
         }
@@ -364,7 +365,7 @@ int main(int argc, char **argv) {
          std::cout << i <<"  qflx_rootsoi:  " << S.get()->qflx_rootsoi(0, i) << "\n";
 
 
-      for (int i = 0; i < ncells; ++i) {
+      for (int i = 0; i < ncols; ++i) {
         std::cout << "h2osno: " << S.get()->h2osno(i) << std::endl;
         std::cout << "t_grnd: " << S.get()->t_grnd(i) << std::endl;
         std::cout << "t_h2osfc: " << S.get()->t_h2osfc(i) << std::endl;
@@ -381,6 +382,22 @@ int main(int argc, char **argv) {
 
     } // time loop
 
+
+    // test interface
+    ELM::ELMInterface test(ncols);
+    test.setup();
+    auto state_ptr = test.getPrimaryVars();
+    std::cout << "test vars  !!!!!!!!!!!!! " << std::endl;
+    std::cout << "snl " << state_ptr.get()->snl(0) << std::endl;
+    std::cout << "snow_depth " << state_ptr.get()->snow_depth(0) << std::endl;
+    std::cout << "frac_sno " << state_ptr.get()->frac_sno(0) << std::endl;
+    std::cout << "int_snow " << state_ptr.get()->int_snow(0) << std::endl;
+    std::cout << "h2ocan " << state_ptr.get()->h2ocan(0) << std::endl;
+    std::cout << "h2osno " << state_ptr.get()->h2osno(0) << std::endl;
+    std::cout << "h2osfc " << state_ptr.get()->h2osfc(0) << std::endl;
+    std::cout << "t_grnd " << state_ptr.get()->t_grnd(0) << std::endl;
+    std::cout << "t_h2osfc " << state_ptr.get()->t_h2osfc(0) << std::endl;
+    std::cout << "t_h2osfc_bef " << state_ptr.get()->t_h2osfc_bef(0) << std::endl;
   } // inner scope
 
   Kokkos::finalize();

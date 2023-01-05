@@ -12,6 +12,41 @@
 
 namespace ELM {
 
+
+
+template<typename ArrayI1, typename ArrayD1, typename ArrayD2>
+struct PrimaryVars {
+  
+  PrimaryVars(int ncols);
+
+  // snow
+  // snow layers, depth, fraction SCA, integrated snow, snow radius(age proxy)
+  ArrayI1 snl; 
+  ArrayD1 snow_depth, frac_sno, int_snow;
+  ArrayD2 snw_rds;
+
+  // water
+  // soil water and soil ice in [kg/m2] and volumetric soil water in [m3/m3]
+  ArrayD2 h2osoi_liq, h2osoi_ice, h2osoi_vol;
+  // canopy water, SWE, and standing surface water
+  ArrayD1 h2ocan, h2osno, h2osfc;
+
+  // temperature
+  ArrayD2 t_soisno;
+  // temp of ground interface, surface water at current and previous timestep
+  // t_grnd should be calculated from incoming t_soisno - leave for now
+  ArrayD1 t_grnd, t_h2osfc, t_h2osfc_bef;
+
+  // number of canopy layers above snow for radiative transfer
+  ArrayI1 nrad;
+  
+  // grid data
+  // may not stay here
+  // subsurface layer data is likely constant in time
+  // snow data is variable in time
+  ArrayD2 dz, zsoi, zisoi;
+};
+
   template
   <typename ArrayB1, typename ArrayI1, typename ArrayI2, typename ArrayD1,
    typename ArrayD2, typename ArrayD3, typename ArrayPSN1>

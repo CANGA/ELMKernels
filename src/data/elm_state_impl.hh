@@ -5,6 +5,43 @@
 
 namespace ELM {
 
+
+template<typename ArrayI1, typename ArrayD1, typename ArrayD2>
+PrimaryVars<ArrayI1, ArrayD1, ArrayD2>::PrimaryVars(int ncols) :
+  // snow variables
+  // time-variable state
+  // need to retain value between timesteps
+  snl("snl", ncols),
+  snow_depth("snow_depth", ncols),
+  frac_sno("frac_sno", ncols),
+  int_snow("int_snow", ncols), // calced in can_hydro, used in snow_hydro
+  snw_rds("snw_rds", ncols, ELMdims::nlevsno),
+  // exchange state
+  // exchange variables: soil water and soil ice in [kg/m2] and volumetric soil water in [m3/m3]
+  h2osoi_liq("h2osoi_liq", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  h2osoi_ice("h2osoi_ice", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  h2osoi_vol("h2osoi_vol", ncols, ELMdims::nlevgrnd),
+  // time-variable state
+  // need to retain value between timesteps
+  h2ocan("h2ocan", ncols),
+  h2osno("h2osno", ncols),
+  h2osfc("h2osfc", ncols),
+  t_soisno("t_soisno", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  // should be calced from t_soisno
+  t_grnd("t_grnd", ncols),
+  // variables for CanopyTemperature
+  t_h2osfc("t_h2osfc", ncols),
+  t_h2osfc_bef("t_h2osfc_bef", ncols),
+  nrad("nrad", ncols),
+  // grid data
+  // may not stay in ELM state
+  // subsurface layer data is likely constant in time
+  // snow data is variable in time
+  dz("dz", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  zsoi("zsoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  zisoi("zisoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd + 1)
+{};
+
 template<typename ArrayB1, typename ArrayI1, typename ArrayI2, typename ArrayD1,
          typename ArrayD2, typename ArrayD3, typename ArrayPSN1>
 ELMState<ArrayB1, ArrayI1, ArrayI2, ArrayD1, ArrayD2, ArrayD3, ArrayPSN1>::
@@ -109,7 +146,7 @@ ELMState(size_t ncols,
     // need to retain value between timesteps
     h2ocan("h2ocan", ncols),
     h2osno("h2osno", ncols),
-    h2osno_old("h2osno_old", ncols), // constitutive? 
+    h2osno_old("h2osno_old", ncols), // constitutive? - only needs to be saved during ELM timestep
 
     // recalced, but albedo needs this - save as time-variable state
     // or call before/from albedo
