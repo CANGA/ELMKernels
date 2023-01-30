@@ -6,7 +6,7 @@
 
 void ELM::kokkos_surface_radiation(ELMStateType& S)
 {
-  size_t ncols = S.snl.extent(0);
+  const int ncols = S.num_columns;
 
   // local work arrays
   ViewD2 trd("trd", ncols, ELMdims::numrad);
@@ -93,6 +93,6 @@ void ELM::kokkos_surface_radiation(ELMStateType& S)
         Kokkos::subview(S.forc_solai, idx, Kokkos::ALL),
         S.fsr(idx));
   }; // end surfrad lambda
-  apply_parallel_for(surfrad_kernels, "kokkos_surface_radiation", S.snl.extent(0));
+  apply_parallel_for(surfrad_kernels, "kokkos_surface_radiation", ncols);
 }
 

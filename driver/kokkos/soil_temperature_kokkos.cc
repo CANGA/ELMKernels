@@ -72,7 +72,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   auto& sabg_chk = S.sabg_chk;
   auto& fact = S.fact;
 
-  size_t ncols = snl.extent(0);
+  const int ncols = S.num_columns;
 
   // dummy ltype for now
   ViewI1 ltype("ltype", ncols);
@@ -218,7 +218,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
       // rhs_vector will contain solution
       solver::PDMA(c, snl, lhs_matrix, A, B, Z, rhs_vector);
     };
-    apply_parallel_for(solver, "soil_temp::solve_temp", snl.extent(0));
+    apply_parallel_for(solver, "soil_temp::solve_temp", ncols);
   }
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/

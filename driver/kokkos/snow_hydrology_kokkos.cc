@@ -47,7 +47,8 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
         Kokkos::subview(aerosol_masses.mss_dst4, idx, Kokkos::ALL),
         Kokkos::subview(S.dz, idx, Kokkos::ALL));
   }; // end snow_water lambda
-  apply_parallel_for(snow_water_kernel, "kokkos_snow_hydrology::snow_water", S.snl.extent(0));
+  const int ncols = S.num_columns;
+  apply_parallel_for(snow_water_kernel, "kokkos_snow_hydrology::snow_water", ncols);
     
   // aerosol deposition must be called between these two snow hydrology functions
   // invokes it's own parallel loop
@@ -160,5 +161,5 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
         Kokkos::subview(S.snw_rds, idx, Kokkos::ALL));
 
   }; // end snow_update_kernels kernels
-  apply_parallel_for(snow_update_kernels, "kokkos_snow_hydrology::snow_update", S.snl.extent(0));
+  apply_parallel_for(snow_update_kernels, "kokkos_snow_hydrology::snow_update", ncols);
 }

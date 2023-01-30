@@ -9,7 +9,7 @@ void ELM::kokkos_evaluate_conservation(ELMStateType& S,
                                        const double& dtime)
 {
 
-  size_t ncols =S.snl.extent(0);
+  const int ncols = S.num_columns;
   ViewD1 dtend_column_h2o("dtend_column_h2o", ncols);
   ViewD1 errh2o("errh2o", ncols);
   ViewD1 errh2osno("errh2osno", ncols);
@@ -67,7 +67,7 @@ void ELM::kokkos_evaluate_conservation(ELMStateType& S,
 
   };
 
-  apply_parallel_for(conservation_evaluator_kernels, "conservation_evaluator_kernels", S.snl.extent(0));
+  apply_parallel_for(conservation_evaluator_kernels, "conservation_evaluator_kernels", ncols);
 
   std::cout << "dtend_column_h2o::  " << 
 dtend_column_h2o(0) << "\nerrh2o  " <<

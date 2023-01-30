@@ -59,6 +59,9 @@ struct PrimaryVars {
               int forc_steps);
       ~ELMState() = default;
 
+      // number of columns
+      int num_columns;
+
       // forcing data
       ArrayD1 forc_tbot, forc_thbot, forc_pbot, forc_qbot, forc_lwrad,
               forc_u, forc_v, forc_hgt, forc_hgt_u_patch, forc_hgt_t_patch,

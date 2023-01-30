@@ -8,7 +8,7 @@ void ELM::kokkos_bareground_fluxes(ELMStateType& S)
 {
 
   // local variables
-  size_t ncols = S.snl.extent(0);
+  const int ncols = S.num_columns;
   ViewD1 zldis("zldis", ncols);     // reference height "minus" zero displacement height [m]
   ViewD1 displa("displa", ncols);   // displacement height [m]
   ViewD1 dth("dth", ncols);         // diff of virtual temp. between ref. height and surface
@@ -119,5 +119,5 @@ void ELM::kokkos_bareground_fluxes(ELMStateType& S)
         S.q_ref2m(idx),
         S.rh_ref2m(idx));
   }; // end bgflux lambda
-  apply_parallel_for(bgflux_kernels, "kokkos_bareground_fluxes", S.snl.extent(0));
+  apply_parallel_for(bgflux_kernels, "kokkos_bareground_fluxes", ncols);
 }

@@ -6,7 +6,7 @@
 void ELM::kokkos_canopy_temperature(ELMStateType& S)
 {
   // local views
-  size_t ncols = S.snl.extent(0);
+  const int ncols = S.num_columns;
   ViewD1 qred("qred", ncols); // soil surface relative humidity
   ViewD1 hr("hr", ncols); // relative humidity
   ViewD1 soilalpha("soilalpha", ncols); // evaporation resistance -- not currently used
@@ -127,5 +127,5 @@ void ELM::kokkos_canopy_temperature(ELMStateType& S)
         S.qflx_evap_veg(idx),
         S.qflx_tran_veg(idx));
   }; // end cantemp lambda
-  apply_parallel_for(cantemp_kernels, "kokkos_canopy_temperature", S.snl.extent(0));
+  apply_parallel_for(cantemp_kernels, "kokkos_canopy_temperature", ncols);
 }

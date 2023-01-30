@@ -6,7 +6,7 @@
 void ELM::kokkos_canopy_fluxes(ELMStateType& S,
                                const double& dtime)
 {
-    size_t ncols =S.snl.extent(0);
+    const int ncols = S.num_columns;
 
     ViewD1 wtg("wtg", ncols);                  // heat conductance for ground [m/s]
     ViewD1 wtgq("wtgq", ncols);                // latent heat conductance for ground [m/s]
@@ -261,5 +261,5 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.q_ref2m(idx),
         S.rh_ref2m(idx));
   }; // end canflux lambda
-  apply_parallel_for(canflux_kernels, "kokkos_canopy_fluxes", S.snl.extent(0));
+  apply_parallel_for(canflux_kernels, "kokkos_canopy_fluxes", ncols);
 }

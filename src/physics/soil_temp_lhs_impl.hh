@@ -120,13 +120,14 @@ namespace ELM::soil_temp {
     using ELMdims::nband;
     using Utils::create;
 
-    auto bmatrix_snow = create<ArrayD3>("bmatrix_snow", snl.extent(0), nlevsno, nband);
-    auto bmatrix_soil = create<ArrayD3>("bmatrix_soil", snl.extent(0), nlevgrnd, nband);
-    auto bmatrix_ssw = create<ArrayD2>("bmatrix_ssw", snl.extent(0), nband);
-    auto bmatrix_snow_soil = create<ArrayD2>("bmatrix_snow_soil", snl.extent(0), nband);
-    auto bmatrix_ssw_soil = create<ArrayD2>("bmatrix_ssw_soil", snl.extent(0), nband);
-    auto bmatrix_soil_snow = create<ArrayD2>("bmatrix_soil_snow", snl.extent(0), nband);
-    auto bmatrix_soil_ssw = create<ArrayD2>("bmatrix_soil_ssw", snl.extent(0), nband);
+    const int ncols = snl.extent(0);
+    auto bmatrix_snow = create<ArrayD3>("bmatrix_snow", ncols, nlevsno, nband);
+    auto bmatrix_soil = create<ArrayD3>("bmatrix_soil", ncols, nlevgrnd, nband);
+    auto bmatrix_ssw = create<ArrayD2>("bmatrix_ssw", ncols, nband);
+    auto bmatrix_snow_soil = create<ArrayD2>("bmatrix_snow_soil", ncols, nband);
+    auto bmatrix_ssw_soil = create<ArrayD2>("bmatrix_ssw_soil", ncols, nband);
+    auto bmatrix_soil_snow = create<ArrayD2>("bmatrix_soil_snow", ncols, nband);
+    auto bmatrix_soil_ssw = create<ArrayD2>("bmatrix_soil_ssw", ncols, nband);
 
     auto kernel = ELM_LAMBDA (const int& c) {
 
@@ -145,7 +146,7 @@ namespace ELM::soil_temp {
           bmatrix_soil_ssw, bmatrix_ssw, bmatrix_snow, bmatrix_soil, lhs_matrix);
     };
 
-    apply_parallel_for(kernel, "soil_temp::set_LHS", snl.extent(0));
+    apply_parallel_for(kernel, "soil_temp::set_LHS", ncols);
   }
 
 } // namespace ELM::soil_temp

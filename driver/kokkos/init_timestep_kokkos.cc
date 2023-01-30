@@ -69,7 +69,7 @@ t_centered.increment_seconds(static_cast<size_t>((dtime + 1.0)/2)); // round to 
                      S->frac_veg_nosno(idx),
                      Kokkos::subview(S->frac_iceold, idx, Kokkos::ALL));
   }; // end init_step lambda
-  apply_parallel_for(init_step_kernel, "kokkos_init_timestep", S->snl.extent(0));
+  apply_parallel_for(init_step_kernel, "kokkos_init_timestep", S->num_columns);
 }
 
 

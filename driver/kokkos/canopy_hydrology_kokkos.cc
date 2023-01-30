@@ -7,8 +7,7 @@
 void ELM::kokkos_canopy_hydrology(ELMStateType& S,
                                  const double& model_dt_secs)
 {
-  size_t ncols = S.snl.extent(0);
-
+  const int ncols = S.num_columns;
   ViewD1 qflx_candrip("qflx_candrip", ncols);
   ViewD1 qflx_through_snow("qflx_through_snow", ncols);
   ViewD1 qflx_through_rain("qflx_through_rain", ncols);
@@ -93,7 +92,7 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
         S.frac_sno_eff(idx),
         S.frac_h2osfc(idx));
   }; // end canhydro lambda
-  apply_parallel_for(canhydro_kernels, "kokkos_canopy_hydrology", S.snl.extent(0));
+  apply_parallel_for(canhydro_kernels, "kokkos_canopy_hydrology", ncols);
 }
 
 void ELM::kokkos_frac_wet(ELMStateType& S)
@@ -109,5 +108,5 @@ void ELM::kokkos_frac_wet(ELMStateType& S)
         S.fwet(idx),
         S.fdry(idx));
   }; // end fracwet lambda
-  apply_parallel_for(fracwet_kernel, "kokkos_canhydro_fracwet_kernel", S.snl.extent(0));
+  apply_parallel_for(fracwet_kernel, "kokkos_canhydro_fracwet_kernel", S.num_columns);
 }

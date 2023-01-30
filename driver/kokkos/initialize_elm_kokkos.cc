@@ -305,10 +305,10 @@ void ELM::initialize_kokkos_elm (
     Kokkos::deep_copy(S.albdry, h_albdry);
   }
 
-  const int ncells = S.snl.extent(0);
-  auto pct_sand = ELM::Utils::create<ViewD2>("pct_sand", ncells, nlevgrnd); // only used in init_soil_hydraulics()
-  auto pct_clay = ELM::Utils::create<ViewD2>("pct_clay", ncells, nlevgrnd); // only used in init_soil_hydraulics()
-  auto organic = ELM::Utils::create<ViewD2>("organic", ncells, nlevgrnd); // only used in init_soil_hydraulics()
+  const int ncols = S.num_columns;
+  auto pct_sand = ELM::Utils::create<ViewD2>("pct_sand", ncols, nlevgrnd); // only used in init_soil_hydraulics()
+  auto pct_clay = ELM::Utils::create<ViewD2>("pct_clay", ncols, nlevgrnd); // only used in init_soil_hydraulics()
+  auto organic = ELM::Utils::create<ViewD2>("organic", ncols, nlevgrnd); // only used in init_soil_hydraulics()
   auto organic_max = ELM::Utils::create<ViewD1>("organic_max", 1); // only used in init_soil_hydraulics()
 
   {
@@ -362,7 +362,7 @@ void ELM::initialize_kokkos_elm (
   }
 
   // Kokkos view of struct PSNVegData
-  auto psn_pft = ELM::Utils::create<Kokkos::View<PFTDataPSN *>>("psn_pft", ncells);
+  auto psn_pft = ELM::Utils::create<Kokkos::View<PFTDataPSN *>>("psn_pft", ncols);
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -428,5 +428,5 @@ void ELM::initialize_kokkos_elm (
                       Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
                       Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL));
   };
-  apply_parallel_for(init_functions, "init functions", ncells);
+  apply_parallel_for(init_functions, "init functions", ncols);
 }

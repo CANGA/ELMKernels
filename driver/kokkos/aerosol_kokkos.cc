@@ -16,7 +16,7 @@ void ELM::invoke_aerosol_source(ELMStateType& S,
     aerosol_source_object(aerosol_forc_flux,
                           S.snl, *S.aerosol_masses);
 
-  apply_parallel_for(aerosol_source_object, "ComputeAerosolDeposition", S.snl.extent(0));
+  apply_parallel_for(aerosol_source_object, "ComputeAerosolDeposition", S.num_columns);
 }
 
 
@@ -28,5 +28,5 @@ void ELM::invoke_aerosol_concen_and_mass(ELMStateType& S,
                           S.h2osoi_ice, S.snw_rds, S.qflx_snwcp_ice,
                           *S.aerosol_masses, *S.aerosol_concentrations);
 
-  apply_parallel_for(aerosol_c_mass_object, "ComputeAerosolConcenAndMass", S.snl.extent(0));
+  apply_parallel_for(aerosol_c_mass_object, "ComputeAerosolConcenAndMass", S.num_columns);
 }

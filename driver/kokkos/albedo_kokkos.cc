@@ -15,7 +15,7 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S)
   auto& pft_data = *S.pft_data.get();
 
   // local variables
-  size_t ncols = S.snl.extent(0);
+  const int ncols = S.num_columns;
   ViewI2 snw_rds_lcl("snw_rds_lcl", ncols, ELM::ELMdims::nlevsno);
   ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", ncols, ELM::ELMdims::nlevsno);
   ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", ncols, ELM::ELMdims::nlevsno);
@@ -373,7 +373,7 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S)
         Kokkos::subview(S.fabi_sun_z, idx, Kokkos::ALL),
         Kokkos::subview(S.fabi_sha_z, idx, Kokkos::ALL));
   }; // end albedo lambda
-  apply_parallel_for(albedo_kernels, "kokkos_albedo_and_snicar", S.snl.extent(0));
+  apply_parallel_for(albedo_kernels, "kokkos_albedo_and_snicar", ncols);
 }
 
 

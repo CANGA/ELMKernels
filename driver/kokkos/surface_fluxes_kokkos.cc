@@ -103,5 +103,5 @@ void ELM::kokkos_surface_fluxes(ELMStateType& S,
         Kokkos::subview(S.tssbef, idx, Kokkos::ALL),
         Kokkos::subview(S.fact, idx, Kokkos::ALL));
   }; // end surf_flux lambda
-  apply_parallel_for(surf_flux_kernels, "kokkos_surface_fluxes", S.snl.extent(0));
+  apply_parallel_for(surf_flux_kernels, "kokkos_surface_fluxes", S.num_columns);
 }

@@ -50,10 +50,11 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
     using ELMdims::nlevgrnd;
     using Utils::create;
 
-    auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", snl.extent(0));
-    auto rt_snow = create<ArrayD2>("rt_snow", snl.extent(0), nlevsno);
-    auto rt_ssw = create<ArrayD1>("rt_ssw", snl.extent(0));
-    auto rt_soil = create<ArrayD2>("rt_soil", snl.extent(0), nlevgrnd);
+    const int ncols = snl.extent(0);
+    auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", ncols);
+    auto rt_snow = create<ArrayD2>("rt_snow", ncols, nlevsno);
+    auto rt_ssw = create<ArrayD1>("rt_ssw", ncols);
+    auto rt_soil = create<ArrayD2>("rt_soil", ncols, nlevgrnd);
 
     auto kernel = ELM_LAMBDA (const int& c) {
       detail::get_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
@@ -65,7 +66,7 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
       detail::assemble_rhs(c, rt_snow, rt_ssw, rt_soil, rhs_vec);
     };
 
-    apply_parallel_for(kernel, "soil_temp::set_RHS", snl.extent(0));
+    apply_parallel_for(kernel, "soil_temp::set_RHS", ncols);
   }
 
 } // namespace ELM::soil_temp

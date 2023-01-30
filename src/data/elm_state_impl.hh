@@ -51,6 +51,9 @@ ELMState(size_t ncols,
         const ELM::Utils::Date &file_start_time,
         int forc_steps) :
 
+    // number of columns
+    num_columns(ncols),
+
     // recalculated every dt
     // forcing data
     forc_tbot("forc_tbot", ncols),
