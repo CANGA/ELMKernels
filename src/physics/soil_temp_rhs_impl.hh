@@ -65,7 +65,7 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
       detail::assemble_rhs(c, rt_snow, rt_ssw, rt_soil, rhs_vec);
     };
 
-    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp::set_RHS");
+    apply_parallel_for(kernel, "soil_temp::set_RHS", snl.extent(0));
   }
 
 } // namespace ELM::soil_temp

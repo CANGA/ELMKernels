@@ -59,7 +59,7 @@ get_data(const Utils::Date& model_time, const ArrayD1 snow_depth,
   phenology::ComputePhenology compute_phen(mlai, msai, mhtop, mhbot, snow_depth, frac_sno, vtype, wt1, wt2,
                                            start_idx, elai, esai, htop, hbot, tlai, tsai, frac_veg_nosno_alb);
 
-  invoke_kernel(compute_phen, std::make_tuple(elai.extent(0)), "ComputePhenology");
+  apply_parallel_for(compute_phen, "ComputePhenology", elai.extent(0));
 }
 
 // read 1 month of data from file (1, npfts, nlat, nlon) for input param month

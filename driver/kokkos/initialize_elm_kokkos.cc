@@ -428,5 +428,5 @@ void ELM::initialize_kokkos_elm (
                       Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
                       Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL));
   };
-  invoke_kernel(init_functions, std::make_tuple(ncells), "init functions");
+  apply_parallel_for(init_functions, "init functions", ncells);
 }

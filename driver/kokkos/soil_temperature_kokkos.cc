@@ -103,7 +103,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
       c_h2osfc(c) = ELM::soil_thermal::calc_h2osfc_heat_capacity(snl(c), h2osfc(c), frac_h2osfc(c));
       dz_h2osfc(c) = ELM::soil_thermal::calc_h2osfc_height(snl(c), h2osfc(c), frac_h2osfc(c));
     };
-    invoke_kernel(soil_thermal_props, std::make_tuple(ncols), "soil_thermal_props");
+    apply_parallel_for(soil_thermal_props, "soil_thermal_props", ncols);
   }
 
 
@@ -141,7 +141,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
 
       dhsdT(c) = ELM::soil_temp::calc_dhsdT(cgrnd(c), emg(c), t_grnd(c));
     };
-  invoke_kernel(surface_heat_fluxes, std::make_tuple(ncols), "surface_heat_fluxes");
+  apply_parallel_for(surface_heat_fluxes, "surface_heat_fluxes", ncols);
   }
 
 
@@ -169,7 +169,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
           Kokkos::subview(zisoi, c, Kokkos::ALL),
           Kokkos::subview(fact, c, Kokkos::ALL));
     };
-    invoke_kernel(diffusive_heat_flux, std::make_tuple(ncols), "diffusive_heat_flux");
+    apply_parallel_for(diffusive_heat_flux, "diffusive_heat_flux", ncols);
   }
 
 
@@ -218,7 +218,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
       // rhs_vector will contain solution
       solver::PDMA(c, snl, lhs_matrix, A, B, Z, rhs_vector);
     };
-    invoke_kernel(solver, std::make_tuple(snl.extent(0)), "soil_temp::solve_temp");
+    apply_parallel_for(solver, "soil_temp::solve_temp", snl.extent(0));
   }
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -230,7 +230,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
     auto update_temp = ELM_LAMBDA (const int& c) {
       ELM::soil_temp::update_temperature(c, snl, frac_h2osfc, rhs_vector, t_h2osfc, t_soisno);
     };
-    invoke_kernel(update_temp, std::make_tuple(ncols), "soil_temp::update_temperature");
+    apply_parallel_for(update_temp, "soil_temp::update_temperature", ncols);
   }
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
@@ -259,7 +259,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
         Kokkos::subview(qflx_snofrz_lyr, c, Kokkos::ALL), Kokkos::subview(h2osoi_ice, c, Kokkos::ALL),
         Kokkos::subview(h2osoi_liq, c, Kokkos::ALL), Kokkos::subview(t_soisno, c, Kokkos::ALL));
     };
-    invoke_kernel(phase_change, std::make_tuple(ncols), "soil_temp::phase_change");
+    apply_parallel_for(phase_change, "soil_temp::phase_change", ncols);
   }
 
 
@@ -272,7 +272,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
     auto update_tgrnd = ELM_LAMBDA (const int& c) {
       ELM::soil_temp::update_t_grnd(c, snl, frac_h2osfc, frac_sno_eff, t_h2osfc, t_soisno, t_grnd);
     };
-    invoke_kernel(update_tgrnd, std::make_tuple(ncols), "soil_temp::update_t_grnd");
+    apply_parallel_for(update_tgrnd, "soil_temp::update_t_grnd", ncols);
   }
 
 }

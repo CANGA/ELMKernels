@@ -145,7 +145,7 @@ namespace ELM::soil_temp {
           bmatrix_soil_ssw, bmatrix_ssw, bmatrix_snow, bmatrix_soil, lhs_matrix);
     };
 
-    invoke_kernel(kernel, std::make_tuple(snl.extent(0)), "soil_temp::set_LHS");
+    apply_parallel_for(kernel, "soil_temp::set_LHS", snl.extent(0));
   }
 
 } // namespace ELM::soil_temp

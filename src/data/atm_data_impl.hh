@@ -375,7 +375,7 @@ get_atm_forcing(const double& model_dt,
 
   const size_t t_idx = forc_t_idx_check_bounds(model_dt, model_time, data_start_time_);
   const auto& forcing = physics_object(t_idx, model_time);
-  invoke_kernel(forcing, std::make_tuple(static_cast<int>(ncells_)), "ComputeAtmForcing_"+atm_utils::get_varname<ftype>());
+  apply_parallel_for(forcing, "ComputeAtmForcing_"+atm_utils::get_varname<ftype>(), static_cast<int>(ncells_));
 
   if (t_idx == ntimes_ - 2) // last possible calculation
     need_new_data_ = true;

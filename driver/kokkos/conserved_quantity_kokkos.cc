@@ -67,7 +67,7 @@ void ELM::kokkos_evaluate_conservation(ELMStateType& S,
 
   };
 
-  invoke_kernel(conservation_evaluator_kernels, std::make_tuple(S.snl.extent(0)), "conservation_evaluator_kernels");
+  apply_parallel_for(conservation_evaluator_kernels, "conservation_evaluator_kernels", S.snl.extent(0));
 
   std::cout << "dtend_column_h2o::  " << 
 dtend_column_h2o(0) << "\nerrh2o  " <<

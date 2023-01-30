@@ -93,7 +93,7 @@ void ELM::kokkos_canopy_hydrology(ELMStateType& S,
         S.frac_sno_eff(idx),
         S.frac_h2osfc(idx));
   }; // end canhydro lambda
-  invoke_kernel(canhydro_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_canopy_hydrology");
+  apply_parallel_for(canhydro_kernels, "kokkos_canopy_hydrology", S.snl.extent(0));
 }
 
 void ELM::kokkos_frac_wet(ELMStateType& S)
@@ -109,5 +109,5 @@ void ELM::kokkos_frac_wet(ELMStateType& S)
         S.fwet(idx),
         S.fdry(idx));
   }; // end fracwet lambda
-  invoke_kernel(fracwet_kernel, std::make_tuple(S.snl.extent(0)), "kokkos_canhydro_fracwet_kernel");
+  apply_parallel_for(fracwet_kernel, "kokkos_canhydro_fracwet_kernel", S.snl.extent(0));
 }

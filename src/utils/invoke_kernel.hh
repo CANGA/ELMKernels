@@ -2,47 +2,75 @@
 #pragma once
 
 #include <functional>
-#include <tuple>
-#include <utility>
-
 #include "compile_options.hh"
 
-// is there a better way than ifdefs to do conditional compilation?
-// wrapping in constexpr if still required Kokkos to be available 
+// generic interface to parallel dispatch
+// decouples programming model library syntax from core physics model
+// currently supports Kokkos SIMD and serial C++ test code
+// Kokkos parallel_reduce and parallel_scan planned for future
 
-#ifdef ENABLE_KOKKOS
-namespace impl {
-template <class F, typename T, std::size_t... I>
-constexpr decltype(auto) apply_kokkos_parallel_for(F&& obj, T&& args, const std::string& name, std::index_sequence<I...>)
-{
-  auto run_kernel = [] (F&& obj, T&& args, const std::string& name) {
-    Kokkos::parallel_for(name, std::get<I>(std::forward<T>(args))..., std::forward<F>(obj));
-  };
+// variadic template interface adds flexibility
+// functions should compile to zero-overhead invocations of incoming stateful lambda
 
-  return run_kernel(std::forward<F>(obj), std::forward<T>(args), name);
-}
-}  // namespace impl
+namespace ELM {
 
-template <class F, typename T>
-constexpr decltype(auto) invoke_kernel(F&& obj, T&& args, const std::string& name = "") {
-  return impl::apply_kokkos_parallel_for(
-         std::forward<F>(obj), std::forward<T>(args), name,
-         std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<T>>>{});
-}
+  // implementation
+  namespace impl {
+#ifdef ENABLE_KOKKOS // Kokkos implementation
+
+    // simple call to Kokkos::parallel_for
+    // args can be (name, policy) or just (policy)
+    // policy can be any valid Kokkos execution policy
+    template <typename F, typename... Args>
+    constexpr decltype(auto) apply_parallel_for_impl(F&& kernel, Args&&... args)
+    {
+      return Kokkos::parallel_for(std::forward<Args>(args)..., std::forward<F>(kernel));
+    }
+
+    // deprecated
+    // call Kokkos::parallel_for using tuple for args
+    template <typename F, typename T, std::size_t... I>
+    constexpr decltype(auto) apply_parallel_for_tuple_impl(F&& kernel, T&& args_tuple, std::index_sequence<I...>)
+    {
+      return Kokkos::parallel_for(std::get<I>(std::forward<T>(args_tuple))..., std::forward<F>(kernel));
+    }
+
 #else
 
-template <class F, typename T>
-constexpr decltype(auto) invoke_kernel(F&& obj, T&& args, const std::string& name = "") {
-  // args will be a scalar int (index/num func calls)
-
-  auto run_kernel = [] (F&& obj, int N) {
-    for (int i = 0; i < N; ++i) {
-      std::invoke(std::forward<F>(obj), i);
+    // interface for serial test implementation
+    template <typename F>
+    constexpr decltype(auto) apply_parallel_for_impl(F&& kernel, int N)
+    {
+      return [] (F&& obj, int n) {
+        for (int i = 0; i < n; ++i) std::invoke(obj, i);
+      }(std::forward<F>(kernel), N);
     }
-  };
-
-  return run_kernel(std::forward<F>(obj), std::get<0>(args));
-}
 
 #endif
+  } // namespace impl
 
+
+  // generic interfaces
+
+  // interface for SIMD kernel dispatch
+  template <typename F, typename... Args>
+  constexpr decltype(auto) apply_parallel_for(F&& kernel, Args&&... args)
+  {
+    return impl::apply_parallel_for_impl(
+           std::forward<F>(kernel),
+           std::forward<Args>(args)...);
+  }
+
+  // deprecated
+  // interface for SIMD kernel dispatch
+  // using tuple for args
+  template <typename F, typename T>
+  constexpr decltype(auto) apply_parallel_for_tuple(F&& kernel, T&& args_tuple)
+  {
+    return impl::apply_parallel_for_tuple_impl(
+           std::forward<F>(kernel),
+           std::forward<T>(args_tuple),
+           std::make_index_sequence<std::tuple_size_v<std::remove_reference_t<T>>>{});
+  }
+
+} // namespace ELM

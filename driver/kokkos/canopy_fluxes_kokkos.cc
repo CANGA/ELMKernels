@@ -261,5 +261,5 @@ void ELM::kokkos_canopy_fluxes(ELMStateType& S,
         S.q_ref2m(idx),
         S.rh_ref2m(idx));
   }; // end canflux lambda
-  invoke_kernel(canflux_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_canopy_fluxes");
+  apply_parallel_for(canflux_kernels, "kokkos_canopy_fluxes", S.snl.extent(0));
 }

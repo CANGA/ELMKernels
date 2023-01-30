@@ -65,7 +65,7 @@ void ELM::get_forcing(ELMStateType& S,
 //      S.forc_tbot, S.forc_vp,
 //      S.forc_rho, S.forc_po2,
 //      S.forc_pco2);
-//  invoke_kernel(compute_air_props, std::make_tuple(S.forc_pbot.extent(0)), "ConstitutiveAirProperties");
+//  apply_parallel_for(compute_air_props, "ConstitutiveAirProperties", S.forc_pbot.extent(0));
 
 }
 

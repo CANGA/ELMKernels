@@ -127,5 +127,5 @@ void ELM::kokkos_canopy_temperature(ELMStateType& S)
         S.qflx_evap_veg(idx),
         S.qflx_tran_veg(idx));
   }; // end cantemp lambda
-  invoke_kernel(cantemp_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_canopy_temperature");
+  apply_parallel_for(cantemp_kernels, "kokkos_canopy_temperature", S.snl.extent(0));
 }

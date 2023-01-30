@@ -93,6 +93,6 @@ void ELM::kokkos_surface_radiation(ELMStateType& S)
         Kokkos::subview(S.forc_solai, idx, Kokkos::ALL),
         S.fsr(idx));
   }; // end surfrad lambda
-  invoke_kernel(surfrad_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_surface_radiation");
+  apply_parallel_for(surfrad_kernels, "kokkos_surface_radiation", S.snl.extent(0));
 }
 

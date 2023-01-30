@@ -119,5 +119,5 @@ void ELM::kokkos_bareground_fluxes(ELMStateType& S)
         S.q_ref2m(idx),
         S.rh_ref2m(idx));
   }; // end bgflux lambda
-  invoke_kernel(bgflux_kernels, std::make_tuple(S.snl.extent(0)), "kokkos_bareground_fluxes");
+  apply_parallel_for(bgflux_kernels, "kokkos_bareground_fluxes", S.snl.extent(0));
 }
