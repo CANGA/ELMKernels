@@ -1,6 +1,6 @@
 include_directories (${ELM_PHYSICS_SOURCE_DIR} ${ELM_DATA_SOURCE_DIR} ${ELM_UTILS_SOURCE_DIR})
 
-add_compile_definitions(TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/new_data/")
+add_compile_definitions(TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/")
 
 add_executable (test_CanHydro test_CanHydro.cc)
 target_link_libraries (test_CanHydro LINK_PUBLIC elm_physics elm_data elm_utils)

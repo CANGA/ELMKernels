@@ -37,7 +37,7 @@ void ELM::kokkos_bareground_fluxes(ELMStateType& S)
         S.forc_u(idx),
         S.forc_v(idx),
         S.forc_qbot(idx),
-        forc_rho,
+        S.forc_thbot(idx),
         S.forc_hgt_u_patch(idx),
         S.thm(idx),
         S.thv(idx),
