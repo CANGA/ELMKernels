@@ -33,8 +33,8 @@ ConstitutiveData(const int ncells) :
     frac_veg_nosno_alb("frac_veg_nosno_alb", ncells),
     frac_veg_nosno("frac_veg_nosno", ncells),
     // from can_hydro
-    swe_old("swe_old", ncells, ELMdims::nlevsno), // calced in can_hydro, used in snow_hydro
-    frac_iceold("frac_iceold", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
+    swe_old("swe_old", ncells, ELMdims::nlevsno()), // calced in can_hydro, used in snow_hydro
+    frac_iceold("frac_iceold", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
     fwet("fwet", ncells),
     fdry("fdry", ncells),
     frac_h2osfc("frac_h2osfc", ncells),
@@ -42,10 +42,10 @@ ConstitutiveData(const int ncells) :
     // from cansunshade
     laisun("laisun", ncells),
     laisha("laisha", ncells),
-    parsun_z("parsun_z", ncells, ELMdims::nlevcan),
-    parsha_z("parsha_z", ncells, ELMdims::nlevcan),
-    laisun_z("laisun_z", ncells, ELMdims::nlevcan),
-    laisha_z("laisha_z", ncells, ELMdims::nlevcan),
+    parsun_z("parsun_z", ncells, ELMdims::nlevcan()),
+    parsha_z("parsha_z", ncells, ELMdims::nlevcan()),
+    laisun_z("laisun_z", ncells, ELMdims::nlevcan()),
+    laisha_z("laisha_z", ncells, ELMdims::nlevcan()),
     // from surface rad
     sabg_soil("sabg_soil", ncells),
     sabg_snow("sabg_snow", ncells),
@@ -53,35 +53,35 @@ ConstitutiveData(const int ncells) :
     sabv("sabv", ncells),
     fsa("fsa", ncells),
     fsr("fsr", ncells),
-    sabg_lyr("sabg_lyr", ncells, ELMdims::nlevsno + 1),
+    sabg_lyr("sabg_lyr", ncells, ELMdims::nlevsno() + 1),
     // from albedo and snicar
     coszen("coszen", ncells),
     xmf("xmf", ncells),
     xmf_h2osfc("xmf_h2osfc", ncells),
-    albsnd("albsnd", ncells, ELMdims::numrad),
-    albsni("albsni", ncells, ELMdims::numrad),
-    tlai_z("tlai_z", ncells, ELMdims::nlevcan), // in albedo
-    fsun_z("fsun_z", ncells, ELMdims::nlevcan),
-    fabd_sun_z("fabd_sun_z", ncells, ELMdims::nlevcan),
-    fabd_sha_z("fabd_sha_z", ncells, ELMdims::nlevcan),
-    fabi_sun_z("fabi_sun_z", ncells, ELMdims::nlevcan),
-    fabi_sha_z("fabi_sha_z", ncells, ELMdims::nlevcan),
-    ftdd("ftdd", ncells, ELMdims::numrad),
-    ftid("ftid", ncells, ELMdims::numrad),
-    ftii("ftii", ncells, ELMdims::numrad),
-    fabd("fabd", ncells, ELMdims::numrad),
-    fabi("fabi", ncells, ELMdims::numrad),
-    albsod("albsod", ncells, ELMdims::numrad),
-    albsoi("albsoi", ncells, ELMdims::numrad),
-    albgrd("albgrd", ncells, ELMdims::numrad),
-    albgri("albgri", ncells, ELMdims::numrad),
-    flx_absdv("flx_absdv", ncells, ELMdims::nlevsno + 1),
-    flx_absdn("flx_absdn", ncells, ELMdims::nlevsno + 1),
-    flx_absiv("flx_absiv", ncells, ELMdims::nlevsno + 1),
-    flx_absin("flx_absin", ncells, ELMdims::nlevsno + 1),
-    albd("albd", ncells, ELMdims::numrad),
-    albi("albi", ncells, ELMdims::numrad),
-    imelt("imelt", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno),
+    albsnd("albsnd", ncells, ELMdims::numrad()),
+    albsni("albsni", ncells, ELMdims::numrad()),
+    tlai_z("tlai_z", ncells, ELMdims::nlevcan()), // in albedo
+    fsun_z("fsun_z", ncells, ELMdims::nlevcan()),
+    fabd_sun_z("fabd_sun_z", ncells, ELMdims::nlevcan()),
+    fabd_sha_z("fabd_sha_z", ncells, ELMdims::nlevcan()),
+    fabi_sun_z("fabi_sun_z", ncells, ELMdims::nlevcan()),
+    fabi_sha_z("fabi_sha_z", ncells, ELMdims::nlevcan()),
+    ftdd("ftdd", ncells, ELMdims::numrad()),
+    ftid("ftid", ncells, ELMdims::numrad()),
+    ftii("ftii", ncells, ELMdims::numrad()),
+    fabd("fabd", ncells, ELMdims::numrad()),
+    fabi("fabi", ncells, ELMdims::numrad()),
+    albsod("albsod", ncells, ELMdims::numrad()),
+    albsoi("albsoi", ncells, ELMdims::numrad()),
+    albgrd("albgrd", ncells, ELMdims::numrad()),
+    albgri("albgri", ncells, ELMdims::numrad()),
+    flx_absdv("flx_absdv", ncells, ELMdims::nlevsno() + 1),
+    flx_absdn("flx_absdn", ncells, ELMdims::nlevsno() + 1),
+    flx_absiv("flx_absiv", ncells, ELMdims::nlevsno() + 1),
+    flx_absin("flx_absin", ncells, ELMdims::nlevsno() + 1),
+    albd("albd", ncells, ELMdims::numrad()),
+    albi("albi", ncells, ELMdims::numrad()),
+    imelt("imelt", ncells, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
     soilbeta("soilbeta", ncells),
     qg_snow("qg_snow", ncells),
     qg_soil("qg_soil", ncells),
@@ -101,7 +101,7 @@ ConstitutiveData(const int ncells) :
     z0m("z0m", ncells),
     displa("displa", ncells),
     thm("thm", ncells),
-    tssbef("tssbef", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno),
+    tssbef("tssbef", ncells, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
     // bareground fluxes
     dlrad("dlrad", ncells),
     ulrad("ulrad", ncells),
@@ -120,12 +120,12 @@ ConstitutiveData(const int ncells) :
     vcmaxcintsun("vcmaxcintsun", ncells),
     btran("btran", ncells),
     t_veg("t_veg", ncells),
-    rootr("rootr", ncells, ELMdims::nlevgrnd),
-    eff_porosity("eff_porosity", ncells, ELMdims::nlevgrnd),
+    rootr("rootr", ncells, ELMdims::nlevgrnd()),
+    eff_porosity("eff_porosity", ncells, ELMdims::nlevgrnd()),
     // from soil temp - used in soil_e_balance
     sabg_chk("sabg_chk", ncells),
     // could be moved into more local scope
-    fact("fact", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno), // factors used in computing tridiagonal matrix
+    fact("fact", ncells, ELMdims::nlevgrnd() + ELMdims::nlevsno()), // factors used in computing tridiagonal matrix
     do_capsnow("do_capsnow", ncells) // calced in init_timestep
   {};
 
@@ -138,12 +138,12 @@ ConstantData(const int ncells) :
   // based on soil texture
   // make congruent w Van Genuchten 
   // soil hydraulics
-  watsat("watsat", ncells, ELMdims::nlevgrnd),
-  sucsat("sucsat", ncells, ELMdims::nlevgrnd),
-  bsw("bsw", ncells, ELMdims::nlevgrnd),
-  watdry("watdry", ncells, ELMdims::nlevgrnd), // only used in canopy_temperature
-  watopt("watopt", ncells, ELMdims::nlevgrnd), // only used in canopy_temperature
-  watfc("watfc", ncells, ELMdims::nlevgrnd),
+  watsat("watsat", ncells, ELMdims::nlevgrnd()),
+  sucsat("sucsat", ncells, ELMdims::nlevgrnd()),
+  bsw("bsw", ncells, ELMdims::nlevgrnd()),
+  watdry("watdry", ncells, ELMdims::nlevgrnd()), // only used in canopy_temperature
+  watopt("watopt", ncells, ELMdims::nlevgrnd()), // only used in canopy_temperature
+  watfc("watfc", ncells, ELMdims::nlevgrnd()),
   // these are constant in time
   // topo, microtopography
   n_melt("n_melt", ncells),
@@ -159,11 +159,11 @@ ConstantData(const int ncells) :
   albdry("albdry", 20, 2), // only used in surface_albedo
   // these are constant in time
   // soil thermal constants
-  tkmg("tkmg", ncells, ELMdims::nlevgrnd), // created in soil_texture_hydraulic, only used in soil_thermal and soil_temp
-  tkdry("tkdry", ncells, ELMdims::nlevgrnd),
-  csol("csol", ncells, ELMdims::nlevgrnd + ELMdims::nlevsno),
+  tkmg("tkmg", ncells, ELMdims::nlevgrnd()), // created in soil_texture_hydraulic, only used in soil_thermal and soil_temp
+  tkdry("tkdry", ncells, ELMdims::nlevgrnd()),
+  csol("csol", ncells, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
   // constant value, initialized once
-  rootfr("rootfr", ncells, ELMdims::nlevgrnd),
+  rootfr("rootfr", ncells, ELMdims::nlevgrnd()),
   // constant 
   psn_pft("psn_pft", ncells),
   // hardwired pft type
@@ -184,18 +184,18 @@ StateData(const int ncells) :
   snow_depth("snow_depth", ncells),
   frac_sno("frac_sno", ncells),
   int_snow("int_snow", ncells), // calced in can_hydro, used in snow_hydro
-  snw_rds("snw_rds", ncells, ELMdims::nlevsno),
+  snw_rds("snw_rds", ncells, ELMdims::nlevsno()),
   // exchange state
   // exchange variables: soil water and soil ice in [kg/m2] and volumetric soil water in [m3/m3]
-  h2osoi_liq("h2osoi_liq", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  h2osoi_ice("h2osoi_ice", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  h2osoi_vol("h2osoi_vol", ncells, ELMdims::nlevgrnd),
+  h2osoi_liq("h2osoi_liq", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  h2osoi_ice("h2osoi_ice", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  h2osoi_vol("h2osoi_vol", ncells, ELMdims::nlevgrnd()),
   // time-variable state
   // need to retain value between timesteps
   h2ocan("h2ocan", ncells),
   h2osno("h2osno", ncells),
   h2osfc("h2osfc", ncells),
-  t_soisno("t_soisno", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  t_soisno("t_soisno", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
   // should be calced from t_soisno
   t_grnd("t_grnd", ncells),
   // variables for CanopyTemperature
@@ -206,9 +206,9 @@ StateData(const int ncells) :
   // may not stay in ELM state
   // subsurface layer data is likely constant in time
   // snow data is variable in time
-  dz("dz", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  zsoi("zsoi", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  zisoi("zisoi", ncells, ELMdims::nlevsno + ELMdims::nlevgrnd + 1)
+  dz("dz", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  zsoi("zsoi", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  zisoi("zisoi", ncells, ELMdims::nlevsno() + ELMdims::nlevgrnd() + 1)
 {};
 
 
@@ -255,10 +255,10 @@ FluxData(const int ncells) :
   eflx_h2osfc_snow("eflx_h2osfc_to_snow", ncells),
   qflx_h2osfc_ice("qflx_h2osfc_to_ice", ncells),
   qflx_snofrz("qflx_snofrz", ncells),
-  qflx_snofrz_lyr("qflx_snofrz_lyr", ncells, ELMdims::nlevsno),
+  qflx_snofrz_lyr("qflx_snofrz_lyr", ncells, ELMdims::nlevsno()),
   // transpiration
   // vegetation/soil water exchange (m H2O/s) (+ = to atm)
-  qflx_rootsoi("qflx_rootsoi", ncells, ELMdims::nlevgrnd)
+  qflx_rootsoi("qflx_rootsoi", ncells, ELMdims::nlevgrnd())
 {};
 
 } // namespace ELM

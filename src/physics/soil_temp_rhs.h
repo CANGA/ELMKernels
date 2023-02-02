@@ -8,7 +8,7 @@
 
 namespace ELM::soil_temp {
 
-  // rhs_vec(ncells, nlevgrnd+nlevsno+1) RHS vector for numerical solution of temperature
+  // rhs_vec(ncells, nlevgrnd()+nlevsno()+1) RHS vector for numerical solution of temperature
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
   void set_RHS(const double& dtime,
                const ArrayI1 snl,

@@ -76,7 +76,7 @@ constexpr void ProcessQBOT<ArrayD1, ArrayD2, ftype>::
 operator()(const int i) const {
   forc_qbot_(i) = std::max(interp_forcing(wt1_, wt2_, atm_qbot_(t_idx_, i), atm_qbot_(t_idx_ + 1, i)), 1.0e-9);
   if constexpr (ftype == AtmForcType::RH) {
-    double e = (forc_tbot_(i) > ELMconst::TFRZ) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
+    double e = (forc_tbot_(i) > ELMconst::TFRZ()) ? esatw(tdc(forc_tbot_(i))) : esati(tdc(forc_tbot_(i)));
     double qsat = 0.622 * e / (forc_pbot_(i) - 0.378 * e);
     forc_qbot_(i) *= qsat / 100.0;
   }
@@ -102,7 +102,7 @@ operator()(const int i) const {
   if (flds <= 50.0 || flds >= 600.0) {
     const double e = forc_pbot_(i) * forc_qbot_(i) / (0.622 + 0.378 * forc_qbot_(i));
     const double ea = 0.70 + 5.95e-5 * 0.01 * e * exp(1500.0 / forc_tbot_(i));
-    forc_lwrad_(i) = ea * ELMconst::STEBOL * pow(forc_tbot_(i), 4.0);
+    forc_lwrad_(i) = ea * ELMconst::STEBOL() * pow(forc_tbot_(i), 4.0);
   } else {
     forc_lwrad_(i) = flds;
   }
@@ -157,7 +157,7 @@ template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
 constexpr void ProcessPREC<ArrayD1, ArrayD2>::
 operator()(const int i) const {
-  const double frac1 = (forc_tbot_(i) - ELMconst::TFRZ) * 0.5; // ramp near freezing
+  const double frac1 = (forc_tbot_(i) - ELMconst::TFRZ()) * 0.5; // ramp near freezing
   const double frac2 = std::min(1.0, std::max(0.0, frac1));        // bound in [0,1]
   forc_rain_(i) = frac2 * std::max(atm_prec_(t_idx_, i), 0.0);
   forc_snow_(i) = (1.0 - frac2) * std::max(atm_prec_(t_idx_, i), 0.0);
@@ -211,7 +211,7 @@ double interp_forcing(const double& wt1, const double& wt2, const double& forc1,
 
 // convert degrees K to C; bound on interval [-50,50]
 ACCELERATE
-double tdc(const double& t) { return std::min(50.0, std::max(-50.0, (t - ELMconst::TFRZ))); }
+double tdc(const double& t) { return std::min(50.0, std::max(-50.0, (t - ELMconst::TFRZ()))); }
 
 // calc saturated vapor pressure as function of temp for t > freezing
 // Lowe, P.R. 1977. An approximating polynomial for the computation of saturation vapor pressure.
@@ -256,15 +256,15 @@ double derive_forc_vp(const double& forc_qbot, const double& forc_pbot)
 ACCELERATE
 double derive_forc_rho(const double& forc_pbot, const double& forc_qbot, const double& forc_tbot)
 {
-  return (forc_pbot - 0.378 * derive_forc_vp(forc_qbot, forc_pbot)) / (ELMconst::RAIR * forc_tbot);
+  return (forc_pbot - 0.378 * derive_forc_vp(forc_qbot, forc_pbot)) / (ELMconst::RAIR() * forc_tbot);
 }
 
 // derive partial O2 pressure from atmospheric pressure
 ACCELERATE
-double derive_forc_po2(const double& forc_pbot) { return ELMconst::O2_MOLAR_CONST * forc_pbot; }
+double derive_forc_po2(const double& forc_pbot) { return ELMconst::O2_MOLAR_CONST() * forc_pbot; }
 
 // derive partial CO2 pressure from atmospheric pressure
 ACCELERATE
-double derive_forc_pco2(const double& forc_pbot) { return ELMconst::CO2_PPMV * 1.0e-6 * forc_pbot; }
+double derive_forc_pco2(const double& forc_pbot) { return ELMconst::CO2_PPMV() * 1.0e-6 * forc_pbot; }
 
 } // namespace ELM::atm_forcing_physics

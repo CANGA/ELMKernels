@@ -85,13 +85,13 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
-  ViewD2 tk("tk", ncols, nlevgrnd + nlevsno); // thermal conductivity at layer interface
-  ViewD2 cv("cv", ncols, nlevgrnd + nlevsno);
+  ViewD2 tk("tk", ncols, nlevgrnd() + nlevsno()); // thermal conductivity at layer interface
+  ViewD2 cv("cv", ncols, nlevgrnd() + nlevsno());
   ViewD1 tk_h2osfc("tk_h2osfc", ncols);
   ViewD1 c_h2osfc("c_h2osfc", ncols);
   ViewD1 dz_h2osfc("dz_h2osfc", ncols);
   {
-    ViewD2 thk("thk", ncols, nlevgrnd + nlevsno); // thermal conductivity of layer
+    ViewD2 thk("thk", ncols, nlevgrnd() + nlevsno()); // thermal conductivity of layer
     auto soil_thermal_props = ELM_LAMBDA (const int& c) {
 
       soil_thermal::calc_soil_tk(c, ltype(c), h2osoi_liq, h2osoi_ice, t_soisno, dz, watsat, tkmg, tkdry, thk);
@@ -119,11 +119,11 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   //ViewD1 hs_top("hs_top", ncols); // [W/m2] net heat flux into surface layer - maybe use for coupling?
   ViewD1 hs_top_snow("hs_top_snow", ncols); // [W/m2] net heat flux into snow surface layer
   ViewD1 dhsdT("dhsdT", ncols); // derivative of heat flux wrt temperature
-  const int soitop = nlevsno;
+  const int soitop = nlevsno();
   {
     auto surface_heat_fluxes = ELM_LAMBDA (const int& c) {
 
-      const int snotop = nlevsno-snl(c);
+      const int snotop = nlevsno()-snl(c);
 
       sabg_chk(c) = ELM::soil_temp::check_absorbed_solar(frac_sno_eff(c), sabg_snow(c), sabg_soil(c));
 
@@ -151,7 +151,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // diffusive heat fluxes and matrix factor used in solve
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  ViewD2 fn("fn", ncols, nlevgrnd + nlevsno); // heat diffusion through the layer interface [W/m2]
+  ViewD2 fn("fn", ncols, nlevgrnd() + nlevsno()); // heat diffusion through the layer interface [W/m2]
   {
     auto diffusive_heat_flux = ELM_LAMBDA (const int& c) {
 
@@ -178,8 +178,8 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // set RHS vector and LHS matrix for temperature solve
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  ViewD2 rhs_vector("rhs_vector", ncols, nlevgrnd + nlevsno + 1); // RHS for soil temp solve
-  ViewD3 lhs_matrix("lhs_matrix", ncols, nlevgrnd + nlevsno + 1, ELM::ELMdims::nband); // LHS for soil temp solve
+  ViewD2 rhs_vector("rhs_vector", ncols, nlevgrnd() + nlevsno() + 1); // RHS for soil temp solve
+  ViewD3 lhs_matrix("lhs_matrix", ncols, nlevgrnd() + nlevsno() + 1, ELM::ELMdims::nband()); // LHS for soil temp solve
   // these launch their own parallel loops
   ELM::soil_temp::set_RHS(dtime, snl, hs_top_snow, dhsdT, hs_soil, frac_sno_eff, t_soisno, fact, fn, sabg_lyr, zsoi,
     tk_h2osfc, t_h2osfc, dz_h2osfc, c_h2osfc, hs_h2osfc, rhs_vector);
@@ -207,7 +207,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // maximum size of system
-  const int N = nlevgrnd + nlevsno + 1;
+  const int N = nlevgrnd() + nlevsno() + 1;
 
   ViewD2 A("A", ncols, N - 1); // A(Ai, ..., An-1)
   ViewD2 B("B", ncols, N - 2); // B(Bi, ..., Bn-2)
@@ -238,7 +238,7 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
   // phase change kernels
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  //auto fn1 = create<ArrayD2>("fn1", ncols, nlevgrnd+nlevsno);
+  //auto fn1 = create<ArrayD2>("fn1", ncols, nlevgrnd()+nlevsno());
   {
     auto phase_change = ELM_LAMBDA (const int& c) {
 
@@ -247,9 +247,9 @@ void ELM::kokkos_soil_temperature(ELMStateType& S,
       //    Kokkos::subview(fn1, c, Kokkos::ALL));
 
       ELM::soil_temp::phase_change_h2osfc(snl(c), dtime, frac_sno(c), frac_h2osfc(c), dhsdT(c), c_h2osfc(c),
-        fact(c, nlevsno - 1), t_h2osfc(c), h2osfc(c), xmf_h2osfc(c), qflx_h2osfc_to_ice(c),
-        eflx_h2osfc_to_snow(c), h2osno(c), int_snow(c), snow_depth(c), h2osoi_ice(c, nlevsno - 1),
-        t_soisno(c, nlevsno - 1));
+        fact(c, nlevsno() - 1), t_h2osfc(c), h2osfc(c), xmf_h2osfc(c), qflx_h2osfc_to_ice(c),
+        eflx_h2osfc_to_snow(c), h2osno(c), int_snow(c), snow_depth(c), h2osoi_ice(c, nlevsno() - 1),
+        t_soisno(c, nlevsno() - 1));
 
       ELM::soil_temp::phase_change_soisno(snl(c), ltype(c), dtime, dhsdT(c), frac_h2osfc(c), frac_sno_eff(c),
         Kokkos::subview(fact, c, Kokkos::ALL), Kokkos::subview(watsat, c, Kokkos::ALL),

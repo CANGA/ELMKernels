@@ -44,7 +44,7 @@ ACCELERATE
 void ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::
 operator()(const int i) const {
   if (snl_(i) > 0) {
-    const int j = ELMdims::nlevsno - snl_(i);
+    const int j = ELMdims::nlevsno() - snl_(i);
     aerosol_masses_.mss_bcphi(i, j) += forc_bcphi_;
     aerosol_masses_.mss_bcpho(i, j) += forc_bcpho_;
     aerosol_masses_.mss_dst1(i, j) += forc_dst1_;
@@ -69,9 +69,9 @@ template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2
 ACCELERATE
 void ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
 operator()(const int i) const {
-  for (int sl = 0; sl < ELMdims::nlevsno; ++sl) {
+  for (int sl = 0; sl < ELMdims::nlevsno(); ++sl) {
     double snowmass = h2osoi_ice_(i, sl) + h2osoi_liq_(i, sl);
-    if (sl == ELMdims::nlevsno - snl_(i) && do_capsnow_(i)) {
+    if (sl == ELMdims::nlevsno() - snl_(i) && do_capsnow_(i)) {
       const double snowcap_scl_fct = snowmass / (snowmass + qflx_snwcp_ice_(i) * dtime_);
       aerosol_masses_.mss_bcpho(i, sl) *= snowcap_scl_fct;
       aerosol_masses_.mss_bcphi(i, sl) *= snowcap_scl_fct;
@@ -81,7 +81,7 @@ operator()(const int i) const {
       aerosol_masses_.mss_dst4(i, sl) *= snowcap_scl_fct;
     }
 
-    if (sl < ELMdims::nlevsno - snl_(i)) {
+    if (sl < ELMdims::nlevsno() - snl_(i)) {
       snw_rds_(i, sl) = 0.0;
       aerosol_masses_.mss_bcpho(i, sl) = 0.0;
       aerosol_masses_.mss_bcphi(i, sl) = 0.0;

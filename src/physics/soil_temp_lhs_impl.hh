@@ -5,8 +5,8 @@ to accommodate coefficients for snow-soil and soil-surface water
 interactions
 
 matrix is stored in sparse 5-band format
-in ELM: bmatrix(ncells, nband, nlevgrnd+nlevsno+1) banded matrix for numerical solution of temperature
-here: bmatrix(ncells, nlevgrnd+nlevsno+1, nband) banded matrix for numerical solution of temperature
+in ELM: bmatrix(ncells, nband(), nlevgrnd()+nlevsno()+1) banded matrix for numerical solution of temperature
+here: bmatrix(ncells, nlevgrnd()+nlevsno()+1, nband()) banded matrix for numerical solution of temperature
 
 bmatrix(:, :, 0) = 2nd superdiag
 bmatrix(:, :, 1) = 1st superdiag
@@ -15,13 +15,13 @@ bmatrix(:, :, 3) = 1st subdiagonal
 bmatrix(:, :, 4) = 2nd subdiagonal
 
 submatrix original ELM bounds:
-bmatrix_snow(bounds%begc:bounds%endc,nband,-nlevsno:-1      )  ! block-diagonal matrix for snow layers
-bmatrix_ssw(bounds%begc:bounds%endc,nband,       0:0       )   ! block-diagonal matrix for standing surface water
-bmatrix_soil(bounds%begc:bounds%endc,nband,       1:nlevgrnd)  ! block-diagonal matrix for soil layers
-bmatrix_snow_soil(bounds%begc:bounds%endc,nband,-1:-1)         ! off-diagonal matrix for snow-soil interaction
-bmatrix_ssw_soil(bounds%begc:bounds%endc,nband, 0:0 )          ! off-diagonal matrix for standing surface water-soil interaction
-bmatrix_soil_snow(bounds%begc:bounds%endc,nband, 1:1 )         ! off-diagonal matrix for soil-snow interaction
-bmatrix_soil_ssw(bounds%begc:bounds%endc,nband, 1:1 )          ! off-diagonal matrix for soil-standing surface water interaction
+bmatrix_snow(bounds%begc:bounds%endc,nband(),-nlevsno():-1      )  ! block-diagonal matrix for snow layers
+bmatrix_ssw(bounds%begc:bounds%endc,nband(),       0:0       )   ! block-diagonal matrix for standing surface water
+bmatrix_soil(bounds%begc:bounds%endc,nband(),       1:nlevgrnd())  ! block-diagonal matrix for soil layers
+bmatrix_snow_soil(bounds%begc:bounds%endc,nband(),-1:-1)         ! off-diagonal matrix for snow-soil interaction
+bmatrix_ssw_soil(bounds%begc:bounds%endc,nband(), 0:0 )          ! off-diagonal matrix for standing surface water-soil interaction
+bmatrix_soil_snow(bounds%begc:bounds%endc,nband(), 1:1 )         ! off-diagonal matrix for soil-snow interaction
+bmatrix_soil_ssw(bounds%begc:bounds%endc,nband(), 1:1 )          ! off-diagonal matrix for soil-standing surface water interaction
 
 Non-zero pattern of bmatrix:
        SNOW-LAYERS
@@ -121,13 +121,13 @@ namespace ELM::soil_temp {
     using Utils::create;
 
     const int ncols = snl.extent(0);
-    auto bmatrix_snow = create<ArrayD3>("bmatrix_snow", ncols, nlevsno, nband);
-    auto bmatrix_soil = create<ArrayD3>("bmatrix_soil", ncols, nlevgrnd, nband);
-    auto bmatrix_ssw = create<ArrayD2>("bmatrix_ssw", ncols, nband);
-    auto bmatrix_snow_soil = create<ArrayD2>("bmatrix_snow_soil", ncols, nband);
-    auto bmatrix_ssw_soil = create<ArrayD2>("bmatrix_ssw_soil", ncols, nband);
-    auto bmatrix_soil_snow = create<ArrayD2>("bmatrix_soil_snow", ncols, nband);
-    auto bmatrix_soil_ssw = create<ArrayD2>("bmatrix_soil_ssw", ncols, nband);
+    auto bmatrix_snow = create<ArrayD3>("bmatrix_snow", ncols, nlevsno(), nband());
+    auto bmatrix_soil = create<ArrayD3>("bmatrix_soil", ncols, nlevgrnd(), nband());
+    auto bmatrix_ssw = create<ArrayD2>("bmatrix_ssw", ncols, nband());
+    auto bmatrix_snow_soil = create<ArrayD2>("bmatrix_snow_soil", ncols, nband());
+    auto bmatrix_ssw_soil = create<ArrayD2>("bmatrix_ssw_soil", ncols, nband());
+    auto bmatrix_soil_snow = create<ArrayD2>("bmatrix_soil_snow", ncols, nband());
+    auto bmatrix_soil_ssw = create<ArrayD2>("bmatrix_soil_ssw", ncols, nband());
 
     auto kernel = ELM_LAMBDA (const int& c) {
 
@@ -175,7 +175,7 @@ namespace ELM::soil_temp::detail {
     }
 
     if (snl(c) > 0) {
-      const int top = nlevsno - snl(c);
+      const int top = nlevsno() - snl(c);
       double dzp = z(c, top + 1) - z(c, top);
       bmatrix_snow(c, top, 3) = 0.0;
       bmatrix_snow(c, top, 2) = 1.0 + (1.0 - cnfac) * fact(c, top) * tk(c, top) / dzp - fact(c, top) * dhsdT(c);
@@ -183,12 +183,12 @@ namespace ELM::soil_temp::detail {
         bmatrix_snow(c, top, 1) = - (1.0 - cnfac) * fact(c, top) * tk(c, top) / dzp;
       }
 
-      for (int i = top + 1; i < nlevsno; ++i) {
+      for (int i = top + 1; i < nlevsno(); ++i) {
         double dzm = z(c, i) - z(c, i - 1);
         dzp = z(c, i + 1) - z(c, i);
         bmatrix_snow(c, i, 3) = - (1.0 - cnfac) * fact(c, i) * tk(c, i - 1) / dzm;
         bmatrix_snow(c, i, 2) = 1.0 + (1.0 - cnfac) * fact(c, i) * (tk(c, i) / dzp + tk(c, i - 1) / dzm);
-        if (i != nlevsno - 1) {
+        if (i != nlevsno() - 1) {
           bmatrix_snow(c, i, 1) = - (1.0 - cnfac) * fact(c, i) * tk(c, i) / dzp;
         }
       }
@@ -213,8 +213,8 @@ namespace ELM::soil_temp::detail {
     }
 
     if (snl(c) > 0) {
-      bmatrix_snow_soil(c, 0) = - (1.0 - cnfac) * fact(c, nlevsno - 1) * tk(c, nlevsno - 1) /
-        (z(c, nlevsno) - z(c, nlevsno-1));
+      bmatrix_snow_soil(c, 0) = - (1.0 - cnfac) * fact(c, nlevsno() - 1) * tk(c, nlevsno() - 1) /
+        (z(c, nlevsno()) - z(c, nlevsno()-1));
     }
   }
 
@@ -244,21 +244,21 @@ namespace ELM::soil_temp::detail {
     }
 
     if (snl(c) == 0) {
-      double dzp = z(c, nlevsno + 1) - z(c, nlevsno);
-      bmatrix_soil(c, 0, 2) = 1.0 + (1.0 - cnfac) * fact(c, nlevsno) * tk(c, nlevsno) / dzp - fact(c, nlevsno) * dhsdT(c);
-      bmatrix_soil(c, 0, 1) = - (1.0 - cnfac) * fact(c, nlevsno) * tk(c, nlevsno) / dzp;
+      double dzp = z(c, nlevsno() + 1) - z(c, nlevsno());
+      bmatrix_soil(c, 0, 2) = 1.0 + (1.0 - cnfac) * fact(c, nlevsno()) * tk(c, nlevsno()) / dzp - fact(c, nlevsno()) * dhsdT(c);
+      bmatrix_soil(c, 0, 1) = - (1.0 - cnfac) * fact(c, nlevsno()) * tk(c, nlevsno()) / dzp;
     } else {
       // this is the snow/soil interface layer
-      double dzm = z(c, nlevsno) - z(c, nlevsno - 1);
-      double dzp = z(c, nlevsno + 1) - z(c, nlevsno);
-      bmatrix_soil(c, 0, 2) = 1.0 + (1.0 - cnfac) * fact(c,nlevsno) * (tk(c, nlevsno) /
-        dzp + frac_sno_eff(c) * tk(c, nlevsno - 1) / dzm) - (1.0 - frac_sno_eff(c)) *
-        fact(c, nlevsno) * dhsdT(c);
-      bmatrix_soil(c, 0, 1) = - (1.0 - cnfac) * fact(c, nlevsno) * tk(c, nlevsno) / dzp;
+      double dzm = z(c, nlevsno()) - z(c, nlevsno() - 1);
+      double dzp = z(c, nlevsno() + 1) - z(c, nlevsno());
+      bmatrix_soil(c, 0, 2) = 1.0 + (1.0 - cnfac) * fact(c,nlevsno()) * (tk(c, nlevsno()) /
+        dzp + frac_sno_eff(c) * tk(c, nlevsno() - 1) / dzm) - (1.0 - frac_sno_eff(c)) *
+        fact(c, nlevsno()) * dhsdT(c);
+      bmatrix_soil(c, 0, 1) = - (1.0 - cnfac) * fact(c, nlevsno()) * tk(c, nlevsno()) / dzp;
     }
 
-    for (int i = 1; i < nlevgrnd - 1; ++i) {
-      int offset = i + nlevsno;
+    for (int i = 1; i < nlevgrnd() - 1; ++i) {
+      int offset = i + nlevsno();
       double dzm = z(c, offset) - z(c, offset - 1);
       double dzp = z(c, offset + 1) - z(c, offset);
       bmatrix_soil(c, i, 3) = - (1.0 - cnfac) * fact(c, offset) * tk(c, offset - 1) / dzm;
@@ -267,17 +267,17 @@ namespace ELM::soil_temp::detail {
       bmatrix_soil(c, i, 1) = - (1.0 - cnfac) * fact(c, offset) * tk(c, offset) / dzp;
     }
 
-    const int bot = nlevgrnd + nlevsno - 1;
+    const int bot = nlevgrnd() + nlevsno() - 1;
     double dzm = z(c, bot) - z(c, bot - 1);
-    bmatrix_soil(c, nlevgrnd - 1, 3) = - (1.0 - cnfac) * fact(c, bot) * tk(c, bot - 1) / dzm;
-    bmatrix_soil(c, nlevgrnd - 1, 2) = 1.0 + (1.0 - cnfac) * fact(c, bot) * tk(c, bot - 1) / dzm;
-    bmatrix_soil(c, nlevgrnd - 1, 1) = 0.0;
+    bmatrix_soil(c, nlevgrnd() - 1, 3) = - (1.0 - cnfac) * fact(c, bot) * tk(c, bot - 1) / dzm;
+    bmatrix_soil(c, nlevgrnd() - 1, 2) = 1.0 + (1.0 - cnfac) * fact(c, bot) * tk(c, bot - 1) / dzm;
+    bmatrix_soil(c, nlevgrnd() - 1, 1) = 0.0;
 
     // diagonal element correction for presence of h2osfc
     if (frac_h2osfc(c) != 0.0) {
-      dzm = 0.5 * dz_h2osfc(c) + z(c, nlevsno);
+      dzm = 0.5 * dz_h2osfc(c) + z(c, nlevsno());
       bmatrix_soil(c, 0, 2) += frac_h2osfc(c) *
-        ((1.0 - cnfac) * fact(c, nlevsno) * tk_h2osfc(c) / dzm + fact(c, nlevsno) * dhsdT(c));
+        ((1.0 - cnfac) * fact(c, nlevsno()) * tk_h2osfc(c) / dzm + fact(c, nlevsno()) * dhsdT(c));
     }
   }
 
@@ -303,8 +303,8 @@ namespace ELM::soil_temp::detail {
       bmatrix_soil_snow(c, 4) = 0.0;
     } else {
       // this is the snow/soil interface layer
-      double dzm = (z(c, nlevsno) - z(c, nlevsno - 1));
-      bmatrix_soil_snow(c, 4) = -frac_sno_eff(c) * (1.0 - cnfac) * fact(c, nlevsno) * tk(c,nlevsno - 1) / dzm;
+      double dzm = (z(c, nlevsno()) - z(c, nlevsno() - 1));
+      bmatrix_soil_snow(c, 4) = -frac_sno_eff(c) * (1.0 - cnfac) * fact(c, nlevsno()) * tk(c,nlevsno() - 1) / dzm;
     }
   }
 
@@ -328,7 +328,7 @@ namespace ELM::soil_temp::detail {
     }
 
     bmatrix_ssw(c, 2) = 1.0 + (1.0 - cnfac) * (dtime / c_h2osfc(c)) * tk_h2osfc(c) /
-        (0.5 * dz_h2osfc(c) + z(c, nlevsno)) - (dtime / c_h2osfc(c)) * dhsdT(c);
+        (0.5 * dz_h2osfc(c) + z(c, nlevsno())) - (dtime / c_h2osfc(c)) * dhsdT(c);
   }
 
 
@@ -350,7 +350,7 @@ namespace ELM::soil_temp::detail {
     }
 
     bmatrix_ssw_soil(c, 1) = - (1.0 - cnfac) * (dtime / c_h2osfc(c)) * tk_h2osfc(c) /
-        (0.5 * dz_h2osfc(c) + z(c, nlevsno));
+        (0.5 * dz_h2osfc(c) + z(c, nlevsno()));
   }
 
 
@@ -373,8 +373,8 @@ namespace ELM::soil_temp::detail {
     }
 
     if (frac_h2osfc(c) != 0.0) {
-      bmatrix_soil_ssw(c, 3) = -frac_h2osfc(c) * (1.0 - cnfac) * fact(c, nlevsno) *
-        tk_h2osfc(c) / (0.5 * dz_h2osfc(c) + z(c, nlevsno));
+      bmatrix_soil_ssw(c, 3) = -frac_h2osfc(c) * (1.0 - cnfac) * fact(c, nlevsno()) *
+        tk_h2osfc(c) / (0.5 * dz_h2osfc(c) + z(c, nlevsno()));
     }
   }
 
@@ -418,24 +418,24 @@ namespace ELM::soil_temp::detail {
     // bmatrix(c,3:4,-1   ) = bmatrix_snow(c,3:4,-1   )
     // for lev idx 4 and band idx 2 - 3
     for (int bnd : {2, 3}) {
-      lhs_matrix(c, nlevsno-1, bnd) = bmatrix_snow(c, nlevsno-1, bnd);
+      lhs_matrix(c, nlevsno()-1, bnd) = bmatrix_snow(c, nlevsno()-1, bnd);
     }
 
     // SNOW-SOIL
     // bmatrix(c,1,-1) = bmatrix_snow_soil(c,1,-1)
     // for lev idx 4 and bnd idx 0
-    lhs_matrix(c, nlevsno-1, 0) = bmatrix_snow_soil(c, 0);
+    lhs_matrix(c, nlevsno()-1, 0) = bmatrix_snow_soil(c, 0);
 
 
     // SSW
     // bmatrix(c,3,0) = bmatrix_ssw(c,3,0)
     // for lev idx 5 and bnd idx 2
-    lhs_matrix(c, nlevsno, 2) = bmatrix_ssw(c, 2);
+    lhs_matrix(c, nlevsno(), 2) = bmatrix_ssw(c, 2);
 
     // SSW-SOIL
     // bmatrix(c,2,0) = bmatrix_ssw_soil(c,2,0)
     // for lev idx 5 and bnd idx 1
-    lhs_matrix(c, nlevsno, 1) = bmatrix_ssw_soil(c, 1);
+    lhs_matrix(c, nlevsno(), 1) = bmatrix_ssw_soil(c, 1);
 
     // SOIL
     // bmatrix(c,2:3,1           )  = bmatrix_soil(c,2:3,1           )
@@ -444,39 +444,39 @@ namespace ELM::soil_temp::detail {
     // bmatrix_soil lev idx 0
     // and band idx 1 - 2
     for (int bnd : {1, 2}) {
-      lhs_matrix(c, nlevsno + 1, bnd) = bmatrix_soil(c, 0, bnd);
+      lhs_matrix(c, nlevsno() + 1, bnd) = bmatrix_soil(c, 0, bnd);
     }
 
     // SOIL-SSW
     // bmatrix(c,4,1)  = bmatrix_soil_ssw(c,4,1)
     // for lev idx 6 and bnd idx 3
-    lhs_matrix(c, nlevsno + 1, 3) = bmatrix_soil_ssw(c, 3);
+    lhs_matrix(c, nlevsno() + 1, 3) = bmatrix_soil_ssw(c, 3);
 
     // SOIL-SNOW
     // bmatrix(c,5,1)  = bmatrix_soil_snow(c,5,1)
     // for lev idx 6 and bnd idx 4
-    lhs_matrix(c, nlevsno + 1, 4) = bmatrix_soil_snow(c, 4);
+    lhs_matrix(c, nlevsno() + 1, 4) = bmatrix_soil_snow(c, 4);
 
     // SOIL
-    // bmatrix(c,2:4,2:nlevgrnd-1)  = bmatrix_soil(c,2:4,2:nlevgrnd-1)
+    // bmatrix(c,2:4,2:nlevgrnd()-1)  = bmatrix_soil(c,2:4,2:nlevgrnd()-1)
     // for 
     // lhs_matrix lev idx 7 - 19
     // bmatrix_snow lev idx 1 - 13
     // and band idx 1 - 3
-    for (int lev = nlevsno + 2; lev < nlevgrnd + nlevsno; ++lev) {
+    for (int lev = nlevsno() + 2; lev < nlevgrnd() + nlevsno(); ++lev) {
       for (int bnd : {1, 2, 3}) {
         lhs_matrix(c, lev, bnd) = bmatrix_soil(c, lev - 6, bnd);
       }
     }
 
     // SOIL
-    // bmatrix(c,3:4,nlevgrnd    )  = bmatrix_soil(c,3:4,nlevgrnd    )
+    // bmatrix(c,3:4,nlevgrnd()    )  = bmatrix_soil(c,3:4,nlevgrnd()    )
     // for 
     // lhs_matrix lev idx 20
     // bmatrix_soil lev idx 14
     // and band idx 2 - 3
     for (int bnd : {2, 3}) {
-      lhs_matrix(c, nlevsno + nlevgrnd, bnd) = bmatrix_soil(c, nlevgrnd - 1, bnd);
+      lhs_matrix(c, nlevsno() + nlevgrnd(), bnd) = bmatrix_soil(c, nlevgrnd() - 1, bnd);
     }
   } // assemble_lhs()
 

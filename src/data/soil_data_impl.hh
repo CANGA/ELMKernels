@@ -171,10 +171,10 @@ void read_soil_colors(const Utils::DomainDecomposition<2>& dd,
 
   // resize albsat and albdry if needed
   if (albsat.extent(0) != static_cast<size_t>(mxsoil_color)) {
-    NS::resize(albsat, mxsoil_color, numrad);
+    NS::resize(albsat, mxsoil_color, numrad());
   }
   if (albdry.extent(0) != static_cast<size_t>(mxsoil_color)) {
-    NS::resize(albdry, mxsoil_color, numrad);
+    NS::resize(albdry, mxsoil_color, numrad());
   }
 
   // get correct albsat and albdry arrays based on mxsoil_color
@@ -192,16 +192,16 @@ void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::strin
   // get file start idx and size to read
   {
     std::array<size_t, 3> start = {0, dd.start[0], dd.start[1]};
-    std::array<size_t, 3> count = {nlevsoi, dd.n_local[0], dd.n_local[1]};
+    std::array<size_t, 3> count = {nlevsoi(), dd.n_local[0], dd.n_local[1]};
 
     // read pct_sand
-    Array<double, 3> arr_for_read(nlevsoi, dd.n_local[0], dd.n_local[1]);
+    Array<double, 3> arr_for_read(nlevsoi(), dd.n_local[0], dd.n_local[1]);
     IO::read_netcdf(dd.comm, fname_surfdata, "PCT_SAND", start, count, arr_for_read.data());
 
-    // place data into [ncells, nlevsoi] order
+    // place data into [ncells, nlevsoi()] order
     for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
       for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-        for (int k = 0; k != nlevsoi; ++k) {
+        for (int k = 0; k != nlevsoi(); ++k) {
           pct_sand(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
         }
       }
@@ -209,10 +209,10 @@ void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::strin
 
     // read pct_clay
     IO::read_netcdf(dd.comm, fname_surfdata, "PCT_CLAY", start, count, arr_for_read.data());
-    // place data into [ncells, nlevsoi] order
+    // place data into [ncells, nlevsoi()] order
     for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
       for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-        for (int k = 0; k != nlevsoi; ++k) {
+        for (int k = 0; k != nlevsoi(); ++k) {
           pct_clay(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
         }
       }
@@ -220,10 +220,10 @@ void read_soil_texture(const Utils::DomainDecomposition<2>& dd, const std::strin
 
     // read organic
     IO::read_netcdf(dd.comm, fname_surfdata, "ORGANIC", start, count, arr_for_read.data());
-    // place data into [ncells, nlevsoi] order
+    // place data into [ncells, nlevsoi()] order
     for (int i = 0; i != static_cast<int>(dd.n_local[0]); ++i) {
       for (int j = 0; j != static_cast<int>(dd.n_local[1]); ++j) {
-        for (int k = 0; k != nlevsoi; ++k) {
+        for (int k = 0; k != nlevsoi(); ++k) {
           organic(i * dd.n_local[1] + j, k) = arr_for_read(k, j, i);
         }
       }

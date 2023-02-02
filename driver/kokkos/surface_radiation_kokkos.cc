@@ -9,8 +9,8 @@ void ELM::kokkos_surface_radiation(ELMStateType& S)
   const int ncols = S.num_columns;
 
   // local work arrays
-  ViewD2 trd("trd", ncols, ELMdims::numrad);
-  ViewD2 tri("tri", ncols, ELMdims::numrad);
+  ViewD2 trd("trd", ncols, ELMdims::numrad());
+  ViewD2 tri("tri", ncols, ELMdims::numrad());
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // call surface_radiation kernels

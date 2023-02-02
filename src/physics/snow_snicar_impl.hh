@@ -19,13 +19,13 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
 
   if (!urbpoi) {
     // Zero absorbed radiative fluxes:
-    for (int i = 0; i <= nlevsno; ++i) {
-      for (int ib = 0; i < numrad; ++i) {
+    for (int i = 0; i <= nlevsno(); ++i) {
+      for (int ib = 0; i < numrad(); ++i) {
         flx_abs(i, ib) = 0.0;
       }
     }
-    for (int i = 0; i <= nlevsno; ++i) {
-      for (int ib = 0; i < numrad_snw; ++i) {
+    for (int i = 0; i <= nlevsno(); ++i) {
+      for (int ib = 0; i < numrad_snw(); ++i) {
         flx_abs_lcl(i, ib) = 0.0;
       }
     }
@@ -42,21 +42,21 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       if (snl == 0) {
         flg_nosnl = 1;
         snl_lcl = 1;
-        h2osoi_ice_lcl(nlevsno - 1) = h2osno;
-        h2osoi_liq_lcl(nlevsno - 1) = 0.0;
-        snw_rds_lcl(nlevsno - 1) = round(SNW_RDS_MIN);
+        h2osoi_ice_lcl(nlevsno() - 1) = h2osno;
+        h2osoi_liq_lcl(nlevsno() - 1) = 0.0;
+        snw_rds_lcl(nlevsno() - 1) = round(SNW_RDS_MIN());
       } else {
         flg_nosnl = 0;
         snl_lcl = snl;
-        for (int i = 0; i < nlevsno; ++i) {
+        for (int i = 0; i < nlevsno(); ++i) {
           h2osoi_liq_lcl(i) = h2osoi_liq(i);
           h2osoi_ice_lcl(i) = h2osoi_ice(i);
           snw_rds_lcl(i) = round(snw_rds(i));
         }
       }
 
-      snl_btm = nlevsno - 1;       // index of bottom snow layer
-      snl_top = nlevsno - snl_lcl; // index of top snow layer
+      snl_btm = nlevsno() - 1;       // index of bottom snow layer
+      snl_top = nlevsno() - snl_lcl; // index of top snow layer
 
       // Assume fixed BC effective radii of 100nm. This is close to
       // the effective radius of 95nm (number median radius of
@@ -65,7 +65,7 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       // snow.
 
       // put this in header
-      // for (int i = 0; i < nlevsno; ++i) {
+      // for (int i = 0; i < nlevsno(); ++i) {
       //  rds_bcint_lcl[i] = 100.0;
       //  rds_bcext_lcl[i] = 100.0;
       //}
@@ -86,12 +86,12 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
       // Set direct or diffuse incident irradiance to 1
       // (This has to be within the bnd loop because mu_not is adjusted in rare cases)
       if (flg_slr_in == 1) {
-        for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
-          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * ELMconst::ELM_PI); // this corresponds to incident irradiance of 1.0
+        for (int bnd_idx = 0; bnd_idx < numrad_snw(); ++bnd_idx) {
+          flx_slrd_lcl(bnd_idx) = 1.0 / (mu_not * ELMconst::ELM_PI()); // this corresponds to incident irradiance of 1.0
           flx_slri_lcl(bnd_idx) = 0.0;
         }
       } else if (flg_slr_in == 2) {
-        for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
+        for (int bnd_idx = 0; bnd_idx < numrad_snw(); ++bnd_idx) {
           flx_slrd_lcl(bnd_idx) = 0.0;
           flx_slri_lcl(bnd_idx) = 1.0;
         }
@@ -134,26 +134,26 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
     if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
 
       // Set local aerosol array
-      double mss_cnc_aer_lcl[nlevsno][sno_nbr_aer];
-      for (int i = 0; i < nlevsno; ++i) {
-        for (int j = 0; j < sno_nbr_aer; ++j) {
+      double mss_cnc_aer_lcl[nlevsno()][sno_nbr_aer()];
+      for (int i = 0; i < nlevsno(); ++i) {
+        for (int j = 0; j < sno_nbr_aer(); ++j) {
           mss_cnc_aer_lcl[i][j] = mss_cnc_aer_in(i, j);
         }
       }
 
-      for (int bnd_idx = 0; bnd_idx < numrad_snw; ++bnd_idx) {
+      for (int bnd_idx = 0; bnd_idx < numrad_snw(); ++bnd_idx) {
 
-        if ((numrad_snw == 5) && ((bnd_idx == 4) || (bnd_idx == 3))) {
-          for (int i = 0; i < nlevsno; ++i) {
-            for (int j = 0; j < sno_nbr_aer; ++j) {
+        if ((numrad_snw() == 5) && ((bnd_idx == 4) || (bnd_idx == 3))) {
+          for (int i = 0; i < nlevsno(); ++i) {
+            for (int j = 0; j < sno_nbr_aer(); ++j) {
               mss_cnc_aer_lcl[i][j] = 0.0;
             }
           }
         }
 
-        double ss_alb_snw_lcl[nlevsno];
-        double asm_prm_snw_lcl[nlevsno];
-        double ext_cff_mss_snw_lcl[nlevsno];
+        double ss_alb_snw_lcl[nlevsno()];
+        double asm_prm_snw_lcl[nlevsno()];
+        double ext_cff_mss_snw_lcl[nlevsno()];
         if (flg_slr_in == 1) {
           for (int i = snl_top; i <= snl_btm; ++i) {
             const int rds_idx = snw_rds_lcl(i) - detail::snw_rds_min_tbl;
@@ -174,9 +174,9 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
 
         // H. Wang
         //  aerosol species 3 optical properties
-        double ss_alb_aer_lcl[sno_nbr_aer];
-        double asm_prm_aer_lcl[sno_nbr_aer];
-        double ext_cff_mss_aer_lcl[sno_nbr_aer];
+        double ss_alb_aer_lcl[sno_nbr_aer()];
+        double asm_prm_aer_lcl[sno_nbr_aer()];
+        double ext_cff_mss_aer_lcl[sno_nbr_aer()];
         ss_alb_aer_lcl[2] = ss_alb_oc1(bnd_idx);
         asm_prm_aer_lcl[2] = asm_prm_oc1(bnd_idx);
         ext_cff_mss_aer_lcl[2] = ext_cff_mss_oc1(bnd_idx);
@@ -211,9 +211,9 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
         // 3. weighted Mie properties (tau, omega, g)
 
         // Weighted Mie parameters of each layer
-        double tau[nlevsno];
-        double omega[nlevsno];
-        double g[nlevsno];
+        double tau[nlevsno()];
+        double omega[nlevsno()];
+        double g[nlevsno()];
         for (int i = snl_top; i <= snl_btm; ++i) {
           // mgf++ within-ice and external BC optical properties
           // Lookup table indices for BC optical properties,
@@ -267,8 +267,8 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
           double L_snw = h2osoi_ice_lcl(i) + h2osoi_liq_lcl(i);
           double tau_snw = L_snw * ext_cff_mss_snw_lcl[i];
 
-          double tau_aer[sno_nbr_aer];
-          for (int j = 0; j < sno_nbr_aer; ++j) {
+          double tau_aer[sno_nbr_aer()];
+          for (int j = 0; j < sno_nbr_aer(); ++j) {
             double L_aer = L_snw * mss_cnc_aer_lcl[i][j];
             tau_aer[j] = L_aer * ext_cff_mss_aer_lcl[j];
           }
@@ -277,7 +277,7 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
           double omega_sum = 0.0;
           double g_sum = 0.0;
 
-          for (int j = 0; j < sno_nbr_aer; ++j) {
+          for (int j = 0; j < sno_nbr_aer(); ++j) {
             tau_sum += tau_aer[j];
             omega_sum += (tau_aer[j] * ss_alb_aer_lcl[j]);
             g_sum += (tau_aer[j] * ss_alb_aer_lcl[j] * asm_prm_aer_lcl[j]);
@@ -337,11 +337,11 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
   |-2|                         |2|
    --   -1                  3  ---
   |-1|                         |3|
-   --    0                  4  ---  [nlevsno - 1]
+   --    0                  4  ---  [nlevsno() - 1]
   | 0|                         |4|
-  -----  1 ground interface 5 ----- [nlevsno]
+  -----  1 ground interface 5 ----- [nlevsno()]
   | 1|                         |5|
-   --    2                  6  ---  [nlevsno + 1]  */
+   --    2                  6  ---  [nlevsno() + 1]  */
 
   using ELMdims::nlevsno;
 
@@ -359,29 +359,29 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
   if (!urbpoi) {
     if ((coszen > 0.0) && (h2osno > detail::min_snw)) {
       // local interface reflect/transmit vars
-      double trndir[nlevsno + 1]; // solar beam down transmission from top
-      double trntdr[nlevsno + 1]; // total transmission to direct beam for layers above
-      double trndif[nlevsno + 1]; // diffuse transmission to diffuse beam for layers above
-      double rupdir[nlevsno + 1]; // reflectivity to direct radiation for layers below
-      double rupdif[nlevsno + 1]; // reflectivity to diffuse radiation for layers below
-      double rdndif[nlevsno + 1]; // reflectivity to diffuse radiation for layers above
-      double dfdir[nlevsno + 1];  // down-up flux at interface due to direct beam at top surface
-      double dfdif[nlevsno + 1];  // down-up flux at interface due to diffuse beam at top surface
-      double dftmp[nlevsno + 1];  // temporary variable for down-up flux at interface
+      double trndir[nlevsno() + 1]; // solar beam down transmission from top
+      double trntdr[nlevsno() + 1]; // total transmission to direct beam for layers above
+      double trndif[nlevsno() + 1]; // diffuse transmission to diffuse beam for layers above
+      double rupdir[nlevsno() + 1]; // reflectivity to direct radiation for layers below
+      double rupdif[nlevsno() + 1]; // reflectivity to diffuse radiation for layers below
+      double rdndif[nlevsno() + 1]; // reflectivity to diffuse radiation for layers above
+      double dfdir[nlevsno() + 1];  // down-up flux at interface due to direct beam at top surface
+      double dfdif[nlevsno() + 1];  // down-up flux at interface due to diffuse beam at top surface
+      double dftmp[nlevsno() + 1];  // temporary variable for down-up flux at interface
       // local layer reflect/transmit vars
-      double rdir[nlevsno];   // layer reflectivity to direct radiation
-      double rdif_a[nlevsno]; // layer reflectivity to diffuse radiation from above
-      double rdif_b[nlevsno]; // layer reflectivity to diffuse radiation from below
-      double tdir[nlevsno];   // layer transmission to direct radiation (solar beam + diffuse)
-      double tdif_a[nlevsno]; // layer transmission to diffuse radiation from above
-      double tdif_b[nlevsno]; // layer transmission to diffuse radiation from below
-      double trnlay[nlevsno]; // solar beam transm for layer (direct beam only)
+      double rdir[nlevsno()];   // layer reflectivity to direct radiation
+      double rdif_a[nlevsno()]; // layer reflectivity to diffuse radiation from above
+      double rdif_b[nlevsno()]; // layer reflectivity to diffuse radiation from below
+      double tdir[nlevsno()];   // layer transmission to direct radiation (solar beam + diffuse)
+      double tdif_a[nlevsno()]; // layer transmission to diffuse radiation from above
+      double tdif_b[nlevsno()]; // layer transmission to diffuse radiation from below
+      double trnlay[nlevsno()]; // solar beam transm for layer (direct beam only)
       // net absorbed radiative energy (lyr) [W/m^2]
-      double F_abs[nlevsno];
+      double F_abs[nlevsno()];
 
-      const int snl_btm_itf = nlevsno; // index of ground/snow interface (same as snl_btm + 1)
+      const int snl_btm_itf = nlevsno(); // index of ground/snow interface (same as snl_btm + 1)
 
-      for (int bnd_idx = 0; bnd_idx < ELMdims::numrad_snw; ++bnd_idx) {
+      for (int bnd_idx = 0; bnd_idx < ELMdims::numrad_snw(); ++bnd_idx) {
 
         for (int i = snl_top; i <= snl_btm_itf; ++i) {
           trndir[i] = alg::c0;
@@ -623,7 +623,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
         const double F_btm_net{dftmp[snl_btm_itf]};
 
         // note here, snl_btm_itf = 1 by snow column set up in ELM
-        flx_abs_lcl(nlevsno, bnd_idx) = F_btm_net;
+        flx_abs_lcl(nlevsno(), bnd_idx) = F_btm_net;
 
         if (flg_nosnl == 1) {
           // If there are no snow layers (but still snow), all absorbed energy must be in top soil layer
@@ -634,12 +634,12 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
           // OK to put absorbed energy in the fictitous snow layer because routine SurfaceRadiation
           // handles the case of no snow layers. Then, if a snow layer is addded between now and
           // SurfaceRadiation (called in CanopyHydrology), absorbed energy will be properly distributed.
-          flx_abs_lcl(nlevsno - 1, bnd_idx) = F_abs[nlevsno - 1];
-          flx_abs_lcl(nlevsno, bnd_idx) = F_btm_net;
+          flx_abs_lcl(nlevsno() - 1, bnd_idx) = F_abs[nlevsno() - 1];
+          flx_abs_lcl(nlevsno(), bnd_idx) = F_btm_net;
         }
 
         // Underflow check (we've already tripped the error condition above)
-        for (int i = snl_top; i <= nlevsno; ++i) {
+        for (int i = snl_top; i <= nlevsno(); ++i) {
           if (flx_abs_lcl(i, bnd_idx) < 0.0) {
             flx_abs_lcl(i, bnd_idx) = 0.0;
           }
@@ -652,7 +652,7 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 
         // Energy conservation check:
         // Incident direct+diffuse radiation equals (absorbed+bulk_transmitted+bulk_reflected)
-        const double energy_sum{(mu_not * ELMconst::ELM_PI * flx_slrd_lcl(bnd_idx))
+        const double energy_sum{(mu_not * ELMconst::ELM_PI() * flx_slrd_lcl(bnd_idx))
             + flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls)};
         if (std::abs(energy_sum) > 0.00001) {
           throw std::runtime_error("ELM ERROR: SNICAR Energy conservation error.");
@@ -705,7 +705,7 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
 
       // 5-band weights
       // Direct:
-      double flx_wgt[ELMdims::numrad_snw];
+      double flx_wgt[ELMdims::numrad_snw()];
       if (flg_slr_in == 1) {
         flx_wgt[0] = 1.0;
         flx_wgt[1] = 0.49352158521175;
@@ -732,11 +732,11 @@ void snow_albedo_radiation_factor(const bool& urbpoi, const int& flg_slr_in, con
       albout(1) = flx_sum / flx_wgt_sum;
 
       // Weight output NIR absorbed layer fluxes (flx_abs) appropriately
-      for (int i = 0; i <= nlevsno; ++i) {
+      for (int i = 0; i <= nlevsno(); ++i) {
         flx_abs(i, 0) = flx_abs_lcl(i, 0);
       }
 
-      for (int i = snl_top; i <= nlevsno; ++i) {
+      for (int i = snl_top; i <= nlevsno(); ++i) {
         flx_sum = 0.0;
         for (int bnd_idx = nir_bnd_bgn; bnd_idx <= nir_bnd_end; ++bnd_idx) {
           flx_sum += flx_wgt[bnd_idx] * flx_abs_lcl(i, bnd_idx);

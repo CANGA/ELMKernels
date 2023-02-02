@@ -68,9 +68,9 @@ namespace ELM::canopy_fluxes {
 //    // check_for_irrig = false
 //    bool frozen_soil = false;
 //    if (check_for_irrig && !frozen_soil) {
-//      for (int i = 0; i < nlevgrnd; i++) {
+//      for (int i = 0; i < nlevgrnd(); i++) {
 //        // if level i was frozen, then we don't look at any levels below L
-//        if (t_soisno(nlevsno+i) <= ELMconst::TFRZ) {
+//        if (t_soisno(nlevsno()+i) <= ELMconst::TFRZ()) {
 //          frozen_soil = true;
 //        } else if (rootfr > 0.0) {
 //          // determine soil water deficit in this layer:
@@ -81,7 +81,7 @@ namespace ELM::canopy_fluxes {
 //          h2osoi_liq_so = vol_liq_so * denh2o * dz(i);
 //          h2osoi_liq_sat = eff_porosity(i) * denh2o * dz(i);
 //          deficit = std::max((h2osoi_liq_so + irrig_factor * (h2osoi_liq_sat - h2osoi_liq_so)) -
-//          h2osoi_liq(nlevsno+i), 0.0);
+//          h2osoi_liq(nlevsno()+i), 0.0);
 //          // Add deficit to irrig_rate, converting units from mm to mm/sec
 //          irrig_rate += deficit / (dtime*irrig_nsteps_per_day);
 //        }
@@ -121,11 +121,11 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
     if (frac_veg_nosno == 0) {
       btran = 0.0;
       t_veg = forc_t;
-      double cf_bare = forc_pbot / (ELMconst::RGAS * 0.001 * thm) * 1.e06; // heat transfer coefficient from bare ground [-]
+      double cf_bare = forc_pbot / (ELMconst::RGAS() * 0.001 * thm) * 1.e06; // heat transfer coefficient from bare ground [-]
       double rssun = 1.0 / 1.e15 * cf_bare;
       double rssha = 1.0 / 1.e15 * cf_bare;
       // lbl_rsc_h2o = 0.0;
-      for (int i = 0; i < nlevgrnd; i++) {
+      for (int i = 0; i < nlevgrnd(); i++) {
         rootr(i) = 0.0;
         // rresis(i) = 0.0;
       }
@@ -140,7 +140,7 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
       // compute effective soil porosity
       soil_moist_stress::calc_effective_soilporosity(watsat, h2osoi_ice, dz, eff_porosity);
       // compute volumetric liquid water content
-      double h2osoi_liqvol[nlevgrnd + nlevsno];
+      double h2osoi_liqvol[nlevgrnd() + nlevsno()];
       soil_moist_stress::calc_volumetric_h2oliq(eff_porosity, h2osoi_liq, dz, h2osoi_liqvol);
       // calculate root moisture stress
       soil_moist_stress::calc_root_moist_stress(h2osoi_liqvol, rootfr, t_soisno, tc_stress, sucsat, watsat, bsw, smpso,
@@ -157,8 +157,8 @@ void initialize_flux(const LandType& Land, const int& snl, const int& frac_veg_n
 
       // Net absorbed longwave radiation by canopy and ground
       air = emv * (1.0 + (1.0 - emv) * (1.0 - emg)) * forc_lwrad;
-      bir = -(2.0 - emv * (1.0 - emg)) * emv * ELMconst::STEBOL;
-      cir = emv * emg * ELMconst::STEBOL;
+      bir = -(2.0 - emv * (1.0 - emg)) * emv * ELMconst::STEBOL();
+      cir = emv * emg * ELMconst::STEBOL();
 
       // Saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       double deldT; // derivative of "el" on "t_veg" [pa/K]
@@ -229,7 +229,7 @@ void stability_iteration(
     double tstar, qstar, thvstar, wc, zeta, wtaq, wtlq, dele, det, deldT;
     double rssun, rssha;
 
-    double ci_z[nlevcan] = {0.0}; // solution to integration eval from previous iteration
+    double ci_z[nlevcan()] = {0.0}; // solution to integration eval from previous iteration
     while (itlef <= itmax && !stop) {
       // Determine friction velocity, and potential temperature and humidity profiles of the surface boundary layer
       friction_velocity::friction_velocity_wind(forc_hgt_u_patch, displa, um, obu, z0mv, ustar);
@@ -256,19 +256,19 @@ void stability_iteration(
       w = exp(-(elai + esai));
       // changed by K.Sakaguchi from here
       csoilb =
-          (VKC / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45))); // turbulent transfer coefficient over bare soil (unitless)
+          (VKC() / (0.13 * pow((z0mg * uaf / 1.5e-5), 0.45))); // turbulent transfer coefficient over bare soil (unitless)
       // compute the stability parameter for ricsoilc  ("S" in Sakaguchi&Zeng,2008)
       ri =
-          (ELMconst::GRAV * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0)); // stability parameter for under canopy air (unitless)
+          (ELMconst::GRAV() * htop * (taf - t_grnd)) / (taf * pow(uaf, 2.0)); // stability parameter for under canopy air (unitless)
 
       // modify csoilc value (0.004) if the under-canopy is in stable condition
       if ((taf - t_grnd) > 0.0) {
         // decrease the value of csoilc by dividing it with (1+gamma*min(S, 10.0))
         ricsoilc =
-            CSOILC / (1.0 + ria * std::min(ri, 10.0)); // modified transfer coefficient under dense canopy (unitless)
+            CSOILC() / (1.0 + ria * std::min(ri, 10.0)); // modified transfer coefficient under dense canopy (unitless)
         csoilcn = csoilb * w + ricsoilc * (1.0 - w);   // interpolated csoilc for dense (stable?) canopies
       } else {
-        csoilcn = csoilb * w + CSOILC * (1.0 - w); // interpolated csoilc for less than dense (less stable?) canopies
+        csoilcn = csoilb * w + CSOILC() * (1.0 - w); // interpolated csoilc for less than dense (less stable?) canopies
       }
 
       // Sakaguchi changes for stability formulation ends here
@@ -279,7 +279,7 @@ void stability_iteration(
       svpts = el;                    // pa
       eah = forc_pbot * qaf / 0.622; // pa
 
-      if (Land.vtype == PFT::nsoybean || Land.vtype == PFT::nsoybeanirrig) {
+      if (Land.vtype == PFT::nsoybean() || Land.vtype == PFT::nsoybeanirrig()) {
         btran = std::min(1.0, btran * 1.25);
       }
 
@@ -287,7 +287,7 @@ void stability_iteration(
       photosynthesis::photosynthesis(psn_pft, nrad, forc_pbot, t_veg, t10, svpts, eah, forc_po2, forc_pco2, rb, btran,
                                      dayl_factor, thm, tlai_z, vcmaxcintsun, parsun_z, laisun_z, ci_z, rssun);
 
-      if (Land.vtype == PFT::nsoybean || Land.vtype == PFT::nsoybeanirrig) {
+      if (Land.vtype == PFT::nsoybean() || Land.vtype == PFT::nsoybeanirrig()) {
         btran = std::min(1.0, btran * 1.25);
       }
 
@@ -356,8 +356,8 @@ void stability_iteration(
       wtaq0 = wtaq * wtsqi;  // air
       wtgaq = wtaq0 + wtgq0; // air + ground
       wtalq = wtaq0 + wtlq0; // air + leaf
-      dc1 = forc_rho * ELMconst::CPAIR * wtl;
-      dc2 = ELMconst::HVAP * forc_rho * wtlq;
+      dc1 = forc_rho * ELMconst::CPAIR() * wtl;
+      dc2 = ELMconst::HVAP() * forc_rho * wtlq;
       efsh = dc1 * (wtga * t_veg - wtg0 * t_grnd - wta0 * thm);
       efe = dc2 * (wtgaq * qsatl - wtgq0 * qg - wtaq0 * forc_q);
 
@@ -370,8 +370,8 @@ void stability_iteration(
       }
 
       // fractionate ground emitted longwave
-      lw_grnd = (frac_sno * pow(t_soisno(nlevsno - snl), 4.0) +
-                 (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
+      lw_grnd = (frac_sno * pow(t_soisno(nlevsno() - snl), 4.0) +
+                 (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno()), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
       dt_veg = (sabv + air + bir * pow(t_veg, 4.0) + cir * lw_grnd - efsh - efe) /
                (-4.0 * bir * pow(t_veg, 3.0) + dc1 * wtga + dc2 * wtgaq * qsatldT);
       t_veg = tlbef + dt_veg;
@@ -403,7 +403,7 @@ void stability_iteration(
       ecidif = std::max(0.0, qflx_evap_veg - qflx_tran_veg - h2ocan / dtime);
       qflx_evap_veg = std::min(qflx_evap_veg, qflx_tran_veg + h2ocan / dtime);
       // The energy loss due to above two limits is added to the sensible heat flux.
-      eflx_sh_veg = efsh + dc1 * wtga * dt_veg + err + erre + ELMconst::HVAP * ecidif;
+      eflx_sh_veg = efsh + dc1 * wtga * dt_veg + err + erre + ELMconst::HVAP() * ecidif;
       // Re-calculate saturated vapor pressure, specific humidity, and their derivatives at the leaf surface
       qsat(t_veg, forc_pbot, el, deldT, qsatl, qsatldT);
 
@@ -419,13 +419,13 @@ void stability_iteration(
       tstar = temp1 * dth;
       qstar = temp2 * dqh;
       thvstar = tstar * (1.0 + 0.61 * forc_q) + 0.61 * forc_th * qstar;
-      zeta = zldis * VKC * ELMconst::GRAV * thvstar / (pow(ustar, 2.0) * thv);
+      zeta = zldis * VKC() * ELMconst::GRAV() * thvstar / (pow(ustar, 2.0) * thv);
       if (zeta >= 0.0) { // stable
         zeta = std::min(2.0, std::max(zeta, 0.01));
         um = std::max(ur, 0.1);
       } else { // unstable
         zeta = std::max(-100.0, std::min(zeta, -0.01));
-        wc = beta * pow((-ELMconst::GRAV * ustar * thvstar * zii / thv), 0.333);
+        wc = beta * pow((-ELMconst::GRAV() * ustar * thvstar * zii / thv), 0.333);
         um = std::sqrt(ur * ur + wc * wc);
       }
       obu = zldis / zeta;
@@ -484,21 +484,21 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     double e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT;
 
     // Energy balance check in canopy
-    double lw_grnd = (frac_sno * pow(t_soisno(nlevsno - snl), 4.0) +
-                      (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
+    double lw_grnd = (frac_sno * pow(t_soisno(nlevsno() - snl), 4.0) +
+                      (1.0 - frac_sno - frac_h2osfc) * pow(t_soisno(nlevsno()), 4.0) + frac_h2osfc * pow(t_h2osfc, 4.0));
     double err = sabv + air + bir * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) + cir * lw_grnd - eflx_sh_veg -
-                 ELMconst::HVAP * qflx_evap_veg;
+                 ELMconst::HVAP() * qflx_evap_veg;
 
     // Fluxes from ground to canopy space
     double delt = wtal * t_grnd - wtl0 * t_veg - wta0 * thm;
-    eflx_sh_grnd = CPAIR * forc_rho * wtg * delt;
+    eflx_sh_grnd = CPAIR() * forc_rho * wtg * delt;
     // compute individual sensible heat fluxes
-    double delt_snow = wtal * t_soisno(nlevsno - snl) - wtl0 * t_veg - wta0 * thm;
-    eflx_sh_snow = CPAIR * forc_rho * wtg * delt_snow;
-    double delt_soil = wtal * t_soisno(nlevsno) - wtl0 * t_veg - wta0 * thm;
-    eflx_sh_soil = CPAIR * forc_rho * wtg * delt_soil;
+    double delt_snow = wtal * t_soisno(nlevsno() - snl) - wtl0 * t_veg - wta0 * thm;
+    eflx_sh_snow = CPAIR() * forc_rho * wtg * delt_snow;
+    double delt_soil = wtal * t_soisno(nlevsno()) - wtl0 * t_veg - wta0 * thm;
+    eflx_sh_soil = CPAIR() * forc_rho * wtg * delt_soil;
     double delt_h2osfc = wtal * t_h2osfc - wtl0 * t_veg - wta0 * thm;
-    eflx_sh_h2osfc = CPAIR * forc_rho * wtg * delt_h2osfc;
+    eflx_sh_h2osfc = CPAIR() * forc_rho * wtg * delt_h2osfc;
     qflx_evap_soi = forc_rho * wtgq * delq;
 
     // compute individual latent heat fluxes
@@ -520,13 +520,13 @@ void compute_flux(const LandType& Land, const double& dtime, const int& snl, con
     //rh_ref2m_r = rh_ref2m;
 
     // Downward longwave radiation below the canopy
-    dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * ELMconst::STEBOL * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);
+    dlrad = (1.0 - emv) * emg * forc_lwrad + emv * emg * ELMconst::STEBOL() * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg);
     // Upward longwave radiation above the canopy
     ulrad = ((1.0 - emg) * (1.0 - emv) * (1.0 - emv) * forc_lwrad +
-             emv * (1.0 + (1.0 - emg) * (1.0 - emv)) * ELMconst::STEBOL * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) +
-             emg * (1.0 - emv) * ELMconst::STEBOL * lw_grnd);
+             emv * (1.0 + (1.0 - emg) * (1.0 - emv)) * ELMconst::STEBOL() * pow(tlbef, 3.0) * (tlbef + 4.0 * dt_veg) +
+             emg * (1.0 - emv) * ELMconst::STEBOL() * lw_grnd);
     // Derivative of soil energy flux with respect to soil temperature
-    cgrnds += CPAIR * forc_rho * wtg * wtal;
+    cgrnds += CPAIR() * forc_rho * wtg * wtal;
     cgrndl += forc_rho * wtgq * wtalq * dqgdT;
     cgrnd = cgrnds + cgrndl * htvp;
     // Update dew accumulation (kg/m2)

@@ -99,8 +99,8 @@ int main(int argc, char **argv) {
     // hardwired params
     S.get()->lat = 71.323;
     S.get()->lon = 203.3886;
-    S.get()->lat_r = S.get()->lat * ELM::ELMconst::ELM_PI / 180.0;
-    S.get()->lon_r = S.get()->lon * ELM::ELMconst::ELM_PI / 180.0;
+    S.get()->lat_r = S.get()->lat * ELM::ELMconst::ELM_PI() / 180.0;
+    S.get()->lon_r = S.get()->lon * ELM::ELMconst::ELM_PI() / 180.0;
     const double dewmx = 0.1;
     const double irrig_rate = 0.0;
     const int n_irrig_steps_left = 0;
@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
       11.12615029420442, 13.851152141963599 };
       auto h_dz = Kokkos::create_mirror_view(S.get()->dz);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno() + nlevgrnd(); ++i) {
           h_dz(n, i) = dz_hardwire[i];
         }
       }
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
       21.32646906315379, 35.17762120511739 };
       auto h_zsoi = Kokkos::create_mirror_view(S.get()->zsoi);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno() + nlevgrnd(); ++i) {
           h_zsoi(n, i) = zsoi_hardwire[i];
         }
       }
@@ -183,7 +183,7 @@ int main(int argc, char **argv) {
       17.12589483993117, 28.252045134135592, 42.10319727609919 };
       auto h_zisoi = Kokkos::create_mirror_view(S.get()->zisoi);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevsno + nlevgrnd + 1; ++i) {
+        for (int i = 0; i < nlevsno() + nlevgrnd() + 1; ++i) {
           h_zisoi(n, i) = zisoi_hardwire[i];
         }
       }
@@ -223,7 +223,7 @@ int main(int argc, char **argv) {
       auto h_soi_ice = Kokkos::create_mirror_view(S.get()->h2osoi_ice);
       auto h_soi_liq = Kokkos::create_mirror_view(S.get()->h2osoi_liq);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno() + nlevgrnd(); ++i) {
           h_soi_ice(n, i) = h2osoi_ice_hardwire[i];
           h_soi_liq(n, i) = h2osoi_liq_hardwire[i];
         }
@@ -240,7 +240,7 @@ int main(int argc, char **argv) {
         3.0978122726178113e-06, 1.8789181213767733e-06, 1.5092697845407248e-06 };
       auto h_soi_vol = Kokkos::create_mirror_view(S.get()->h2osoi_vol);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevgrnd; ++i) {
+        for (int i = 0; i < nlevgrnd(); ++i) {
           h_soi_vol(n, i) = h2osoi_vol_hardwire[i];
         }
       }
@@ -261,12 +261,12 @@ int main(int argc, char **argv) {
       264.1163763444719, 263.88852987294865 };
       auto h_tsoi = Kokkos::create_mirror_view(S.get()->t_soisno);
       for (int n = 0; n < ncols; ++n) {
-        for (int i = 0; i < nlevsno + nlevgrnd; ++i) {
+        for (int i = 0; i < nlevsno() + nlevgrnd(); ++i) {
           h_tsoi(n, i) = tsoi_hardwire[i];
         }
       }
       auto h_tgrnd = Kokkos::create_mirror_view(S.get()->t_grnd);
-      h_tgrnd(idx) = h_tsoi(idx, nlevsno - S.get()->snl(idx));
+      h_tgrnd(idx) = h_tsoi(idx, nlevsno() - S.get()->snl(idx));
       Kokkos::deep_copy(S.get()->t_soisno, h_tsoi);
       Kokkos::deep_copy(S.get()->t_grnd, h_tgrnd);
     }
@@ -348,7 +348,7 @@ int main(int argc, char **argv) {
           << S.get()->eflx_lwrad_out(0) << "  "
           << S.get()->eflx_lwrad_net(0) << std::endl;
 
-      for (int i = 0; i < nlevsno + nlevgrnd; ++i)
+      for (int i = 0; i < nlevsno() + nlevgrnd(); ++i)
         std::cout << "column vars:  " << i <<
          "  t_soisno:  " << S.get()->t_soisno(0, i) <<
          "  h2osoi_ice:  " << S.get()->h2osoi_ice(0, i) <<
@@ -356,12 +356,12 @@ int main(int argc, char **argv) {
          "  dz:  " << S.get()->dz(0, i) <<
          "  zsoi:  " << S.get()->zsoi(0, i) <<
          "  zisoi:  " << S.get()->zisoi(0, i) << std::endl;
-         std::cout << "last   zisoi:  " << S.get()->zisoi(0, nlevsno+nlevgrnd) << std::endl;
+         std::cout << "last   zisoi:  " << S.get()->zisoi(0, nlevsno()+nlevgrnd()) << std::endl;
 
 
 
 
-         for (int i = 0; i < nlevgrnd; ++i)
+         for (int i = 0; i < nlevgrnd(); ++i)
          std::cout << i <<"  qflx_rootsoi:  " << S.get()->qflx_rootsoi(0, i) << "\n";
 
 

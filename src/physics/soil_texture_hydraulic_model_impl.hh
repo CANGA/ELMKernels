@@ -82,7 +82,7 @@ void soil_hydraulic_params(const double& pct_sand, const double& pct_clay,
   // added by K.Sakaguchi for beta from Lee and Pielke, 1992
   // water content at field capacity, defined as hk = 0.1 mm/day
   // used eqn (7.70) in CLM3 technote with k = 0.1 (mm/day) / secspday (day/sec)
-  watfc = watsat * pow((0.1 / (hksat * ELMconst::SECSPDAY)), (1.0 / (2.0 * bsw + 3.0)));
+  watfc = watsat * pow((0.1 / (hksat * ELMconst::SECSPDAY())), (1.0 / (2.0 * bsw + 3.0)));
 
   // this%sucmin_col(c,lev) = min_liquid_pressure
 
@@ -106,16 +106,16 @@ void init_soil_hydraulics(const double& organic_max, const ArrayD1 pct_sand,
   static constexpr double csol_bedrock{2.0e6}; // copied here for now
 
   double om_frac;
-  for (int i = 0; i < nlevsoi; ++i) {
+  for (int i = 0; i < nlevsoi(); ++i) {
     om_frac = pow((organic(i) / organic_max), 2.0);
-    soil_hydraulic_params(pct_sand(i), pct_clay(i), zsoi(i + nlevsno), om_frac, watsat(i), bsw(i), sucsat(i),
+    soil_hydraulic_params(pct_sand(i), pct_clay(i), zsoi(i + nlevsno()), om_frac, watsat(i), bsw(i), sucsat(i),
                           watdry(i), watopt(i), watfc(i),
                           tkmg(i), tkdry(i), csol(i));
   }
 
-  for (int i = nlevsoi; i < nlevgrnd; ++i) {
+  for (int i = nlevsoi(); i < nlevgrnd(); ++i) {
     om_frac = 0.0;
-    soil_hydraulic_params(pct_sand(nlevsoi - 1), pct_clay(nlevsoi - 1), zsoi(i + nlevsno), om_frac,
+    soil_hydraulic_params(pct_sand(nlevsoi() - 1), pct_clay(nlevsoi() - 1), zsoi(i + nlevsno()), om_frac,
                           watsat(i), bsw(i), sucsat(i), watdry(i), watopt(i), watfc(i), tkmg(i), tkdry(i), csol(i));
 
     csol(i) = csol_bedrock;

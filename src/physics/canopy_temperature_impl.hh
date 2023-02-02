@@ -15,9 +15,9 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
   using ELMconst::SPVAL;
   
   if (!Land.lakpoi) {
-    for (int i = 0; i < nlevgrnd + nlevsno; i++) {
-      if ((Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall || Land.ctype == LND::icol_roof) && i > nlevurb) {
-        tssbef(i) = SPVAL;
+    for (int i = 0; i < nlevgrnd() + nlevsno(); i++) {
+      if ((Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall || Land.ctype == LND::icol_roof) && i > nlevurb()) {
+        tssbef(i) = SPVAL();
       } else {
         tssbef(i) = t_soisno(i);
       }
@@ -38,10 +38,10 @@ void ground_temp(const LandType& Land, const int& snl, const double& frac_sno_ef
   // ground temperature is weighted average of exposed soil, snow, and h2osfc
   if (!Land.lakpoi) {
     if (snl > 0) {
-      t_grnd = frac_sno_eff * t_soisno(nlevsno - snl) + (1.0 - frac_sno_eff - frac_h2osfc) * t_soisno(nlevsno) +
+      t_grnd = frac_sno_eff * t_soisno(nlevsno() - snl) + (1.0 - frac_sno_eff - frac_h2osfc) * t_soisno(nlevsno()) +
                frac_h2osfc * t_h2osfc;
     } else {
-      t_grnd = (1.0 - frac_h2osfc) * t_soisno(nlevsno) + frac_h2osfc * t_h2osfc;
+      t_grnd = (1.0 - frac_h2osfc) * t_soisno(nlevsno()) + frac_h2osfc * t_h2osfc;
     }
   }
 } // ground_temp
@@ -66,8 +66,8 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 
     // urban off for now
     //double hr_road_perv; // relative humidity for urban pervious road
-    // rootfr_road_perv[nlevgrnd]   [double] fraction of roots in each soil layer for urban pervious road
-    // rootr_road_perv[nlevgrnd]    [double] effective fraction of roots in each soil layer for urban pervious road
+    // rootfr_road_perv[nlevgrnd()]   [double] fraction of roots in each soil layer for urban pervious road
+    // rootr_road_perv[nlevgrnd()]    [double] effective fraction of roots in each soil layer for urban pervious road
     double fac;          // soil wetness of surface layer
     double wx;           // partial volume of ice and water of surface layer
     double psit;         // negative potential of soil
@@ -80,23 +80,23 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
     //}
     if (Land.ltype != LND::istwet && Land.ltype != LND::istice && Land.ltype != LND::istice_mec) {
       if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
-        wx = (h2osoi_liq(nlevsno) / ELMconst::DENH2O + h2osoi_ice(nlevsno) / ELMconst::DENICE) / dz(nlevsno);
+        wx = (h2osoi_liq(nlevsno()) / ELMconst::DENH2O() + h2osoi_ice(nlevsno()) / ELMconst::DENICE()) / dz(nlevsno());
         fac = std::min(1.0, wx / watsat(0));
         fac = std::max(fac, 0.01);
         psit = -sucsat(0) * pow(fac, (-bsw(0)));
         psit = std::max(smpmin, psit);
         // modify qred to account for h2osfc
-        hr = exp(psit / ELMconst::ROVERG / t_soisno(nlevsno));
+        hr = exp(psit / ELMconst::ROVERG() / t_soisno(nlevsno()));
         qred = (1.0 - frac_sno - frac_h2osfc) * hr + frac_sno + frac_h2osfc;
         soilalpha = qred;
       //} else if (Land.ctype == LND::icol_road_perv) {
 
       //  // Pervious road depends on water in total soil column
-      //  for (int j = 0; j < nlevbed; j++) {
-      //    if (t_soisno(j + nlevsno) >= ELMconst::TFRZ) {
-      //      vol_ice = std::min(watsat(j), h2osoi_ice(j + nlevsno) / (dz(j + nlevsno) * ELMconst::DENICE));
+      //  for (int j = 0; j < nlevbed(); j++) {
+      //    if (t_soisno(j + nlevsno()) >= ELMconst::TFRZ()) {
+      //      vol_ice = std::min(watsat(j), h2osoi_ice(j + nlevsno()) / (dz(j + nlevsno()) * ELMconst::DENICE()));
       //      eff_porosity = watsat(j) - vol_ice;
-      //      vol_liq = std::min(eff_porosity, h2osoi_liq(j + nlevsno) / (dz(j + nlevsno) * ELMconst::DENH2O));
+      //      vol_liq = std::min(eff_porosity, h2osoi_liq(j + nlevsno()) / (dz(j + nlevsno()) * ELMconst::DENH2O()));
       //      fac = std::min(std::max(vol_liq - watdry(j), 0.0) / (watopt(j) - watdry(j)), 1.0);
       //    } else {
       //      fac = 0.0;
@@ -108,7 +108,7 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
       //  qred = (1.0 - frac_sno) * hr_road_perv + frac_sno;
       //  // Normalize root resistances to get layer contribution to total ET
       //  if (hr_road_perv > 0.0) {
-      //    for (int j = 0; j < nlevsoi; j++) {
+      //    for (int j = 0; j < nlevsoi(); j++) {
       //      rootr_road_perv(j) = rootr_road_perv(j) / hr_road_perv;
       //    }
       //  }
@@ -117,13 +117,13 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
         //soilalpha_u = qred;
       } else if (Land.ctype == LND::icol_sunwall || Land.ctype == LND::icol_shadewall) {
         qred = 0.0;
-        //soilalpha_u = SPVAL;
+        //soilalpha_u = SPVAL();
       } else if (Land.ctype == LND::icol_roof || Land.ctype == LND::icol_road_imperv) {
         qred = 1.0;
-        //soilalpha_u = SPVAL;
+        //soilalpha_u = SPVAL();
       }
     } else {
-      soilalpha = SPVAL;
+      soilalpha = SPVAL();
     }
   }
 } // calc_soilalpha
@@ -155,14 +155,14 @@ void humidities(const LandType& Land, const int& snl, const double& forc_q, cons
     double qsatgdT; // d(qsatg)/dT
 
     if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
-      qsat(t_soisno(nlevsno - snl), forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_soisno(nlevsno() - snl), forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
       }
       qg_snow = qsatg;
       dqgdT = frac_sno * qsatgdT;
-      qsat(t_soisno(nlevsno), forc_pbot, eg, degdT, qsatg, qsatgdT);
+      qsat(t_soisno(nlevsno()), forc_pbot, eg, degdT, qsatg, qsatgdT);
       if (qsatg > forc_q && forc_q > hr * qsatg) {
         qsatg = forc_q;
         qsatgdT = 0.0;
@@ -229,17 +229,17 @@ void ground_properties(const LandType& Land, const int& snl, const double& frac_
 
     // Latent heat. We arbitrarily assume that the sublimation occurs
     // only as h2osoi_liq = 0
-    htvp = ELMconst::HVAP;
-    if (h2osoi_liq(nlevsno - snl) <= 00 && h2osoi_ice(nlevsno - snl) > 0.0) {
-      htvp = ELMconst::HSUB;
+    htvp = ELMconst::HVAP();
+    if (h2osoi_liq(nlevsno() - snl) <= 00 && h2osoi_ice(nlevsno() - snl) > 0.0) {
+      htvp = ELMconst::HSUB();
     }
 
     // Ground roughness lengths over non-lake columns (includes bare ground, ground
     // underneath canopy, wetlands, etc.)
     if (frac_sno > 0.0) {
-      z0mg = ELMconst::ZSNO;
+      z0mg = ELMconst::ZSNO();
     } else {
-      z0mg = ELMconst::ZLND;
+      z0mg = ELMconst::ZLND();
     }
     z0hg = z0mg; // initial set only
     z0qg = z0mg; // initial set only

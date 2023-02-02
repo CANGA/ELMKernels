@@ -83,8 +83,8 @@ namespace ELM::snow {
 
    if (snl > 0) {
 
-      const int snl_btm = nlevsno - 1;
-      const int snl_top = nlevsno - snl;
+      const int snl_btm = nlevsno() - 1;
+      const int snl_top = nlevsno() - snl;
 
       // loop over snow layers
       for (int i = snl_top; i <= snl_btm; ++i) {
@@ -137,7 +137,7 @@ namespace ELM::snow {
 
         // change in snow effective radius, using best-fit parameters
         // added checks suggested by mgf. --HW 10/15/2015
-        double dr_fresh = snw_rds(i) - SNW_RDS_MIN; // difference between fresh snow r_e and current r_e [um]
+        double dr_fresh = snw_rds(i) - SNW_RDS_MIN(); // difference between fresh snow r_e and current r_e [um]
         if (std::abs(dr_fresh) < 1.0e-8) {
            dr_fresh = 0.0;
         } else if (dr_fresh < 0.0) {
@@ -159,7 +159,7 @@ namespace ELM::snow {
 
         // incremental change in snow effective radius from wet growth [um]
         double dr_wet = 1.0e18 * (dtime * (C2_liq_Brun89 * std::pow(frc_liq, 3.0)) /
-                        (4.0 * ELM_PI * std::pow(snw_rds(i), 2.0)));
+                        (4.0 * ELM_PI() * std::pow(snw_rds(i), 2.0)));
         dr += dr_wet;
 
         //
@@ -207,17 +207,17 @@ namespace ELM::snow {
         }
 
         // mass-weighted mean of fresh snow, old snow, and re-frozen snow effective radius
-        snw_rds(i) = (snw_rds(i) + dr) * frc_oldsnow + SNW_RDS_MIN * frc_newsnow + snw_rds_refrz * frc_refrz;
+        snw_rds(i) = (snw_rds(i) + dr) * frc_oldsnow + SNW_RDS_MIN() * frc_newsnow + snw_rds_refrz * frc_refrz;
         //
         //**********  5. CHECK BOUNDARIES   ***********
         //
         // boundary check
-        if (snw_rds(i) < SNW_RDS_MIN) {
-           snw_rds(i) = SNW_RDS_MIN;
+        if (snw_rds(i) < SNW_RDS_MIN()) {
+           snw_rds(i) = SNW_RDS_MIN();
         }
 
-        if (snw_rds(i) > SNW_RDS_MIN) {
-           snw_rds(i) = SNW_RDS_MIN;
+        if (snw_rds(i) > SNW_RDS_MIN()) {
+           snw_rds(i) = SNW_RDS_MIN();
         }
 
         // set top layer variables for history files
@@ -233,7 +233,7 @@ namespace ELM::snow {
     // Special case: snow on ground, but not enough to have defined a snow layer:
     //   set snw_rds to fresh snow grain size:
     if (snl == 0) {
-      if (h2osno > 0.0) { snw_rds(nlevsno-1) = SNW_RDS_MIN; }
+      if (h2osno > 0.0) { snw_rds(nlevsno()-1) = SNW_RDS_MIN(); }
     }
   } // snow_aging
 
@@ -293,7 +293,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     // surface snow layer resulting from sublimation (frost) / evaporation (condense)
     mflx_neg_snow  = 0.0;
 
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
     if (do_capsnow) {
       const double wgdif = h2osoi_ice(top) - frac_sno_eff * qflx_sub_snow * dtime;
       h2osoi_ice(top) = wgdif;
@@ -313,7 +313,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     }
     // if negative, reduce deeper layer's liquid water content sequentially
     if (h2osoi_liq(top) < 0.0) {
-      for (int i = top; i <= nlevsno; ++i) {
+      for (int i = top; i <= nlevsno(); ++i) {
         double wgdif = h2osoi_liq(i);
         if (wgdif >= 0.0) break;
         h2osoi_liq(i) = 0.0;
@@ -322,14 +322,14 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     }
 
     // porosity and partial volume
-    double vol_ice[nlevsno];
-    double vol_liq[nlevsno];
-    double eff_porosity[nlevsno];
-    for (int i = top; i < nlevsno; ++i) {
+    double vol_ice[nlevsno()];
+    double vol_liq[nlevsno()];
+    double eff_porosity[nlevsno()];
+    for (int i = top; i < nlevsno(); ++i) {
       // need to scale dz by frac_sno to convert to grid cell average depth
-      vol_ice[i]      = std::min(1.0, h2osoi_ice(i) / (dz(i) * frac_sno_eff * DENICE));
+      vol_ice[i]      = std::min(1.0, h2osoi_ice(i) / (dz(i) * frac_sno_eff * DENICE()));
       eff_porosity[i] = 1.0 - vol_ice[i];
-      vol_liq[i]      = std::min(eff_porosity[i], h2osoi_liq[i] / (dz(i) * frac_sno_eff * DENH2O));
+      vol_liq[i]      = std::min(eff_porosity[i], h2osoi_liq[i] / (dz(i) * frac_sno_eff * DENH2O()));
     }
         
     // Capillary forces within snow are usually two or m
@@ -366,7 +366,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     static constexpr double wimp = 0.05; // Water impremeable if porosity less than wimp
     static constexpr double ssi = 0.033; // irreducible water saturation of snow
 
-    for (int i = top; i < nlevsno; ++i) {
+    for (int i = top; i < nlevsno(); ++i) {
 
       h2osoi_liq(i) = h2osoi_liq(i) + qin;
       mss_bcphi(i) = mss_bcphi(i) + qin_bc_phi;
@@ -376,7 +376,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
       mss_dst3(i)  = mss_dst3(i) + qin_dst3;
       mss_dst4(i)  = mss_dst4(i) + qin_dst4;
 
-      if (i < nlevsno - 1) {
+      if (i < nlevsno() - 1) {
         // no runoff over snow surface, just ponding on surface
         if (eff_porosity[i] < wimp || eff_porosity[i+1] < wimp) {
           qout = 0.0;
@@ -463,8 +463,8 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     // it for all snow layers will catch problems with older initial files.
     // Layer interfaces (zi) and node depths (z) do not need adjustment here because they
     // are adjusted in CombineSnowLayers and are not used up to that point.
-    for (int i = top; i < nlevsno; ++i) {
-      dz(i) = std::max(dz(i), h2osoi_liq(i) / DENH2O + h2osoi_ice(i) / DENICE);
+    for (int i = top; i < nlevsno(); ++i) {
+      dz(i) = std::max(dz(i), h2osoi_liq(i) / DENH2O() + h2osoi_ice(i) / DENICE());
     }
 
     if (snl > 0) {
@@ -499,7 +499,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
   {
     using ELMdims::nlevsno;
 
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
 
     // snow that has sublimated [kg/m2] (top layer only)
     double subsnow = std::max(0.0, (qflx_sub_snow * dtime));
@@ -511,7 +511,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
       frc_sub = 0.0;
     }
 
-    for (int i = top; i < nlevsno; ++i) {
+    for (int i = top; i < nlevsno(); ++i) {
       // // snow that has re-frozen [kg/m2]
       // double refrzsnow = std::max(0.0, (qflx_snofrz_lyr(i) * dtime));
       // // fraction of layer mass that is re-frozen
@@ -573,21 +573,21 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
     static constexpr double dm = 100.0;    // Upper Limit on Destructive Metamorphism Compaction [kg/m3]
     static constexpr double eta0 = 9.0e+5;  // The Viscosity Coefficient Eta0 [kg-s/m2]
 
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
 
     double burden = 0.0;
-    for (int i = top; i < nlevsno; ++i) {
+    for (int i = top; i < nlevsno(); ++i) {
       double wx = h2osoi_ice(i) + h2osoi_liq(i);
-      double vd = 1.0 - (h2osoi_ice(i) / DENICE + h2osoi_liq(i) / DENH2O) / dz(i);
+      double vd = 1.0 - (h2osoi_ice(i) / DENICE() + h2osoi_liq(i) / DENH2O()) / dz(i);
       wx = (h2osoi_ice(i) + h2osoi_liq(i));
-      vd = 1.0 - (h2osoi_ice(i) / DENICE + h2osoi_liq(i) / DENH2O) / (frac_sno * dz(i));
+      vd = 1.0 - (h2osoi_ice(i) / DENICE() + h2osoi_liq(i) / DENH2O()) / (frac_sno * dz(i));
 
       // Allow compaction only for non-saturated node and higher ice lens node.
       if (vd > 0.001 && h2osoi_ice(i) > 0.1) {
 
         double bi = h2osoi_ice(i) / (frac_sno * dz(i));
         double fi = h2osoi_ice(i) / wx;
-        double td = TFRZ - t_soisno(i);
+        double td = TFRZ() - t_soisno(i);
         double dexpf = std::exp(-c4 * td);
 
         // Settling as a result of destructive metamorphism
@@ -602,18 +602,18 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
         double ddz3;
         // Compaction occurring during melt
         if (imelt(i) == 1) {
-          if (subgridflag == 1 && (ltype == istsoil || ltype == istcrop)) {
+          if (subgridflag() == 1 && (ltype == istsoil || ltype == istcrop)) {
             // first term is delta mass over mass
             ddz3 = std::max(0.0, std::min(1.0, (swe_old(i) - wx) / wx));
             // 2nd term is delta fsno over fsno, allowing for negative values for ddz3
             double wsum = 0.0;
             if ((swe_old(i) - wx) > 0.0) {
               if (i == top) {
-                for (int j = top; j < nlevsno; ++j) {
+                for (int j = top; j < nlevsno(); ++j) {
                   wsum += h2osoi_liq(j) + h2osoi_ice(j);
                 }
               }
-              double fsno_melt = 1.0 - std::pow(std::acos(2.0 * std::min(1.0, wsum / int_snow) - 1.0) / ELM_PI, n_melt);
+              double fsno_melt = 1.0 - std::pow(std::acos(2.0 * std::min(1.0, wsum / int_snow) - 1.0) / ELM_PI(), n_melt);
               ddz3 -= std::max(0.0, (fsno_melt - frac_sno) / frac_sno);
             }
             ddz3 = -1.0 / dtime * ddz3;
@@ -628,7 +628,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
 
         // The change in dz due to compaction
         // Limit compaction to be no greater than fully saturated layer thickness
-        dz(i) = std::max(dz(i) * (1.0 + pdzdtc * dtime), (h2osoi_ice(i) / DENICE + h2osoi_liq(i) / DENH2O) /frac_sno);
+        dz(i) = std::max(dz(i) * (1.0 + pdzdtc * dtime), (h2osoi_ice(i) / DENICE() + h2osoi_liq(i) / DENH2O()) /frac_sno);
       }
       burden += wx;
     }
@@ -684,18 +684,18 @@ clm\_combo.f90 then executes the combination of mass and energy.
     qflx_snow2topsoi = 0.0;
     mflx_snowlyr_col = 0.0;
 
-    int top_old = nlevsno - snl;
-    for (int i = top_old; i < nlevsno; ++i) {
+    int top_old = nlevsno() - snl;
+    for (int i = top_old; i < nlevsno(); ++i) {
       // use 0.01 to avoid runaway ice buildup
       if (h2osoi_ice(i) <= .01) {
         if (ltype == istsoil || urbpoi || ltype == istcrop) {
           h2osoi_liq(i+1) += h2osoi_liq(i);
           h2osoi_ice(i+1) += h2osoi_ice(i);
-          if (i == nlevsno - 1) {
+          if (i == nlevsno() - 1) {
              qflx_sl_top_soil = (h2osoi_liq(i) + h2osoi_ice(i)) / dtime;
              mflx_snowlyr_col += qflx_sl_top_soil;
           }
-          if (i != nlevsno - 1) { 
+          if (i != nlevsno() - 1) { 
 
             dz(i+1) += dz(i);
 
@@ -712,7 +712,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
             mss_dst4(i+1) += mss_dst4(i);
           }
 
-        } else if (ltype != istsoil && !urbpoi && ltype != istcrop && i != nlevsno - 1) {
+        } else if (ltype != istsoil && !urbpoi && ltype != istcrop && i != nlevsno() - 1) {
 
             h2osoi_liq(i+1) += h2osoi_liq(i);
             h2osoi_ice(i+1) += h2osoi_ice(i);
@@ -726,14 +726,14 @@ clm\_combo.f90 then executes the combination of mass and energy.
         }
 
         // shift all elements above this down one.
-        int top = nlevsno - snl;
+        int top = nlevsno() - snl;
         if (i > top && snl > 1) {
           for (int ii = i; ii > top; --ii) {
             // If the layer closest to the surface is less than 0.1 mm and the ltype is not
             // urban, soil or crop, the h2osoi_liq and h2osoi_ice associated with this layer is sent 
             // to qflx_qrgwl later on in the code.  To keep track of this for the snow balance
             // error check, we add this to qflx_sl_top_soil here
-            if (ltype != istsoil && ltype != istcrop &&  !urbpoi && ii == nlevsno - 1) {
+            if (ltype != istsoil && ltype != istcrop &&  !urbpoi && ii == nlevsno() - 1) {
               qflx_sl_top_soil = (h2osoi_liq(ii) + h2osoi_ice(ii)) / dtime;
             }
             t_soisno(ii) = t_soisno(ii-1);
@@ -758,8 +758,8 @@ clm\_combo.f90 then executes the combination of mass and energy.
     double zwice = 0.0;
     double zwliq = 0.0;
 
-    top_old = nlevsno - snl;
-    for (int i = top_old; i < nlevsno; ++i) {
+    top_old = nlevsno() - snl;
+    for (int i = top_old; i < nlevsno(); ++i) {
       h2osno += h2osoi_ice(i) + h2osoi_liq(i);
       snow_depth += dz(i);
       zwice += h2osoi_ice(i);
@@ -774,7 +774,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
       ((frac_sno_eff * snow_depth < 0.01) || (h2osno / (frac_sno_eff * snow_depth) < 50.0))) {
       snl = 0;
       h2osno = zwice;
-      for (int i = 0; i < nlevsno; ++i) {
+      for (int i = 0; i < nlevsno(); ++i) {
         mss_bcphi(i) = 0.0;
         mss_bcpho(i) = 0.0;
         mss_dst1(i)  = 0.0;
@@ -785,15 +785,15 @@ clm\_combo.f90 then executes the combination of mass and energy.
 
       if (h2osno <= 0.0) { snow_depth = 0.0; }
 
-      // this is where water is transfered from layer nlevsno - 1 (snow) to layer nlevsno (soil)
+      // this is where water is transfered from layer nlevsno() - 1 (snow) to layer nlevsno() (soil)
       if (ltype == istsoil || urbpoi || ltype == istcrop) {
-        h2osoi_liq(nlevsno - 1) = 0.0;
-        h2osoi_liq(nlevsno) += zwliq;
+        h2osoi_liq(nlevsno() - 1) = 0.0;
+        h2osoi_liq(nlevsno()) += zwliq;
         qflx_snow2topsoi = zwliq / dtime;
         mflx_snowlyr_col += zwliq / dtime;
       }
       if (ltype == istwet || ltype == istice || ltype == istice_mec) {
-        h2osoi_liq(nlevsno - 1) = 0.0;
+        h2osoi_liq(nlevsno() - 1) = 0.0;
       }
     }
     
@@ -811,18 +811,18 @@ clm\_combo.f90 then executes the combination of mass and energy.
     if (snl > 1) {
 
       int mssi = 0;
-      top_old = nlevsno - snl;
+      top_old = nlevsno() - snl;
 
-      for (int i = top_old; i < nlevsno; ++i) {
+      for (int i = top_old; i < nlevsno(); ++i) {
 
         if ((frac_sno_eff * dz(i) < dzmin[mssi]) ||
           ((h2osoi_ice(i) + h2osoi_liq(i)) / (frac_sno_eff * dz(i)) < 50.0)) {
 
           int neibor;
-          if (i == nlevsno - snl) {
+          if (i == nlevsno() - snl) {
              // If top node is removed, combine with bottom neighbor.
              neibor = i + 1;
-          } else if (i == nlevsno - 1) {
+          } else if (i == nlevsno() - 1) {
              // If the bottom neighbor is not snow, combine with the top neighbor.
              neibor = i - 1;
           } else {
@@ -860,8 +860,8 @@ clm\_combo.f90 then executes the combination of mass and energy.
                   dz(j), h2osoi_liq(j), h2osoi_ice(j), t_soisno(j));
 
           // Now shift all elements above this down one.
-          if (j-1 > nlevsno - snl) {
-            for (int k = j - 1; k > nlevsno - snl - 1; --k) {
+          if (j-1 > nlevsno() - snl) {
+            for (int k = j - 1; k > nlevsno() - snl - 1; --k) {
               t_soisno(k) = t_soisno(k-1);
               h2osoi_ice(k) = h2osoi_ice(k-1);
               h2osoi_liq(k) = h2osoi_liq(k-1);
@@ -888,7 +888,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
     }
 
     // Reset the node depth and the depth of layer interface
-    for (int i = nlevsno - 1; i >= nlevsno - snl; --i) {
+    for (int i = nlevsno() - 1; i >= nlevsno() - snl; --i) {
       z(i) = zi(i+1) - 0.5 * dz(i);
       zi(i) = zi(i+1) - dz(i);
     }
@@ -929,20 +929,20 @@ clm\_combo.f90 then executes the combination of mass and energy.
     // this is how ELM does it
     // I'm copying it for now
     // will likely change after everything is verified
-    double dzsno[nlevsno];
-    double swice[nlevsno];
-    double swliq[nlevsno];
-    double tsno[nlevsno];
-    double mbc_phi[nlevsno];
-    double mbc_pho[nlevsno];
-    double mdst1[nlevsno];
-    double mdst2[nlevsno];
-    double mdst3[nlevsno];
-    double mdst4[nlevsno];
-    double rds[nlevsno];
+    double dzsno[nlevsno()];
+    double swice[nlevsno()];
+    double swliq[nlevsno()];
+    double tsno[nlevsno()];
+    double mbc_phi[nlevsno()];
+    double mbc_pho[nlevsno()];
+    double mdst1[nlevsno()];
+    double mdst2[nlevsno()];
+    double mdst3[nlevsno()];
+    double mdst4[nlevsno()];
+    double rds[nlevsno()];
 
     int msno = snl;
-    int top = nlevsno - snl;
+    int top = nlevsno() - snl;
     for (int i = 0; i < snl; ++i) {
       dzsno[i] = frac_sno * dz(i+top);
       swice[i] = h2osoi_ice(i+top);
@@ -1036,7 +1036,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
           swliq[2] = swliq[1];
           tsno[2] = tsno[1] - dtdz * dzsno[1] / 2.0;
 
-          if (tsno[2] >= TFRZ) {
+          if (tsno[2] >= TFRZ()) {
             tsno[2] = tsno[1];
           } else {
             tsno[1] += dtdz * dzsno[1] / 2.0;
@@ -1113,7 +1113,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
           swice[3] = swice[2];
           swliq[3] = swliq[2];
           tsno[3] = tsno[2] - dtdz * dzsno[2] / 2.0;
-          if (tsno[2] >= TFRZ) {
+          if (tsno[2] >= TFRZ()) {
             tsno[3] = tsno[2];
           } else {
             tsno[2] += dtdz * dzsno[2] / 2.0;
@@ -1189,7 +1189,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
           swice[4] = swice[3];
           swliq[4] = swliq[3];
           tsno[4] = tsno[3] - dtdz * dzsno[3] / 2.0 ;
-          if (tsno[4] >= TFRZ) {
+          if (tsno[4] >= TFRZ()) {
             tsno[4] = tsno[3];
           } else {
             tsno[3] += dtdz * dzsno[3] / 2.0;
@@ -1260,8 +1260,8 @@ clm\_combo.f90 then executes the combination of mass and energy.
 
     // place into state variables
     snl = msno;
-    top = nlevsno - snl;
-    for (int i = top; i < nlevsno; ++i) {
+    top = nlevsno() - snl;
+    for (int i = top; i < nlevsno(); ++i) {
       dz(i) = dzsno[i-top] / frac_sno;
       h2osoi_ice(i) = swice[i-top];
       h2osoi_liq(i) = swliq[i-top];
@@ -1276,7 +1276,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
     }
 
     // adjust node depths and interfaces
-    for (int i = nlevsno - 1; i >= top; --i) {
+    for (int i = nlevsno() - 1; i >= top; --i) {
       z(i) = zi(i+1) - 0.5 * dz(i);
       zi(i) = zi(i+1) - dz(i);
     }
@@ -1314,11 +1314,11 @@ clm\_combo.f90 then executes the combination of mass and energy.
     using ELMconst::TFRZ;
     using ELMconst::HFUS;
 
-    double h = (CPICE * wice + CPWAT * wliq) * (t - TFRZ) + HFUS * wliq;
-    double h2 = (CPICE * wice2 + CPWAT * wliq2) * (t2 - TFRZ) + HFUS * wliq2;
+    double h = (CPICE() * wice + CPWAT() * wliq) * (t - TFRZ()) + HFUS() * wliq;
+    double h2 = (CPICE() * wice2 + CPWAT() * wliq2) * (t2 - TFRZ()) + HFUS() * wliq2;
     wice += wice2;
     wliq += wliq2;
-    double tc = TFRZ + (h + h2 - HFUS * wliq) / (CPICE * wice + CPWAT * wliq);
+    double tc = TFRZ() + (h + h2 - HFUS() * wliq) / (CPICE() * wice + CPWAT() * wliq);
     dz += dz2;
     t = tc;
   }
@@ -1337,7 +1337,7 @@ clm\_combo.f90 then executes the combination of mass and energy.
   {
     using ELMdims::nlevsno;
 
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
     for (int i = 0; i < top; ++i) {
       h2osoi_ice(i) = 0.0;
       h2osoi_liq(i) = 0.0;

@@ -5,7 +5,7 @@ namespace ELM {
 
 namespace detail {
   using ELMdims::mxpft;
-  const std::array<std::string, mxpft> expected_pftnames = 
+  const std::array<std::string, mxpft()> expected_pftnames = 
     { "not_vegetated",
       "needleleaf_evergreen_temperate_tree",
       "needleleaf_evergreen_boreal_tree",
@@ -121,7 +121,7 @@ void read_pft_data(std::unordered_map<std::string, h_ArrayD1>& pft_views,
                    const Comm_type& comm, const std::string& fname_pft)
 {
   using ELMdims::mxpft;
-  ELM::Array<std::string, 1> pftnames("pftnames", mxpft);
+  ELM::Array<std::string, 1> pftnames("pftnames", mxpft());
 
   // read pftnames
   const int strlen{40};

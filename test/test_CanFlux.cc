@@ -258,21 +258,21 @@ int main(int argc, char **argv) {
   auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
   //auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
 
-  auto rootr = create<ArrayD2>("rootr", n_grid_cells, nlevgrnd);
-  auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, nlevgrnd);
-  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan);
-  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan);
-  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan);
-  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan);
-  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan);
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno + nlevgrnd);
-  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevsno + nlevgrnd);
-  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevsno + nlevgrnd);
-  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevsno + nlevgrnd);
-  auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, nlevgrnd);
-  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd);
-  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd);
-  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd);
+  auto rootr = create<ArrayD2>("rootr", n_grid_cells, nlevgrnd());
+  auto eff_porosity = create<ArrayD2>("eff_porosity", n_grid_cells, nlevgrnd());
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan());
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan());
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan());
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan());
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan());
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno() + nlevgrnd());
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevsno() + nlevgrnd());
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevsno() + nlevgrnd());
+  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevsno() + nlevgrnd());
+  auto rootfr = create<ArrayD2>("rootfr", n_grid_cells, nlevgrnd());
+  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd());
+  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd());
+  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd());
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);

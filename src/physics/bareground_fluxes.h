@@ -101,7 +101,7 @@ void stability_iteration(const LandType& Land, const int& frac_veg_nosno, const 
 \param[in]  qg_snow                    [double] specific humidity at snow surface [kg/kg]
 \param[in]  qg_soil                    [double] specific humidity at soil surface [kg/kg]
 \param[in]  qg_h2osfc                  [double] specific humidity at h2osfc surface [kg/kg]
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] col soil temperature (Kelvin)
 \param[in]  forc_pbot                  [double] atmospheric pressure (Pa)
 \param[in]  dth                        [double] diff of virtual temp. between ref. height and surface
 \param[in]  dqh                        [double] diff of humidity between ref. height and surface

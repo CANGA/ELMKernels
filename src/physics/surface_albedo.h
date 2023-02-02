@@ -10,7 +10,7 @@ flux_absorption_factor()
 // need to figure out vcmaxcintsha vcmaxcintsun - probably do need to calc twice  - check!
 // will need to finish zenith angle ATS code, Aerosol functions
 // need to write coszen function
-// need to initialize h2osoi_vol[nlevgrnd]
+// need to initialize h2osoi_vol[nlevgrnd()]
 // need to read in soil color NetCDF, initialize isoicol, albsat, albdry
 
 // need to figure out doalb - during nstep == 0 SurfaceAlbedo doesn't get called and values for the outputs are provided
@@ -61,36 +61,36 @@ static constexpr double extkn = 0.30;   // nitrogen allocation coefficient
 inputs:
 urbpoi                                   [bool]   true if urban point, false otherwise
 elai                                     [double] one-sided leaf area index with burying by snow
-mss_cnc_bcphi[nlevsno]                   [double] mass concentration of hydrophilic BC in snow [kg/kg]
-mss_cnc_bcpho[nlevsno]                   [double] mass concentration of hydrophilic BC in snow [kg/kg]
-mss_cnc_dst1[nlevsno]                    [double] mass concentration of dust species 1 in snow [kg/kg]
-mss_cnc_dst2[nlevsno]                    [double] mass concentration of dust species 2 in snow [kg/kg]
-mss_cnc_dst3[nlevsno]                    [double] mass concentration of dust species 3 in snow [kg/kg]
-mss_cnc_dst4[nlevsno]                    [double] mass concentration of dust species 4 in snow [kg/kg]
+mss_cnc_bcphi[nlevsno()]                   [double] mass concentration of hydrophilic BC in snow [kg/kg]
+mss_cnc_bcpho[nlevsno()]                   [double] mass concentration of hydrophilic BC in snow [kg/kg]
+mss_cnc_dst1[nlevsno()]                    [double] mass concentration of dust species 1 in snow [kg/kg]
+mss_cnc_dst2[nlevsno()]                    [double] mass concentration of dust species 2 in snow [kg/kg]
+mss_cnc_dst3[nlevsno()]                    [double] mass concentration of dust species 3 in snow [kg/kg]
+mss_cnc_dst4[nlevsno()]                    [double] mass concentration of dust species 4 in snow [kg/kg]
 
 outputs:
 vcmaxcintsun                             [double] leaf to canopy scaling coefficient, sunlit leaf vcmax
 vcmaxcintsha                             [double] leaf to canopy scaling coefficient, shaded leaf vcmax
-albsod[numrad]                           [double] ground albedo (direct)
-albsoi[numrad]                           [double] ground albedo (diffuse)
-albgrd[numrad]                           [double] direct-beam soil albedo [frc]
-albgri[numrad]                           [double] diffuse soil albedo [frc]
-albd[numrad]                             [double] surface albedo (direct)
-albi[numrad]                             [double] surface albedo (diffuse)
-fabd[numrad]                             [double] flux absorbed by canopy per unit direct flux
-fabd_sun[numrad]                         [double] flux absorbed by sunlit canopy per unit direct flux
-fabd_sha[numrad]                         [double] flux absorbed by shaded canopy per unit direct flux
-fabi[numrad]                             [double] flux absorbed by canopy per unit diffuse flux
-fabi_sun[numrad]                         [double] flux absorbed by sunlit canopy per unit diffuse flux
-fabi_sha[numrad]                         [double] flux absorbed by shaded canopy per unit diffuse flux
-ftdd[numrad]                             [double] down direct flux below canopy per unit direct flux
-ftid[numrad]                             [double] down diffuse flux below canopy per unit direct flux
-ftii[numrad]                             [double] down diffuse flux below canopy per unit diffuse flux
-flx_absdv[nlevsno]                       [double] direct flux absorption factor : VIS [frc]
-flx_absdn[nlevsno]                       [double] direct flux absorption factor : NIR [frc]
-flx_absiv[nlevsno]                       [double] diffuse flux absorption factor : VIS [frc]
-flx_absin[nlevsno]                       [double] diffuse flux absorption factor : NIR [frc]
-mss_cnc_aer_in_fdb[nlevsno][sno_nbr_aer] [double] mass concentration of all aerosol species for feedback calculation [kg
+albsod[numrad()]                           [double] ground albedo (direct)
+albsoi[numrad()]                           [double] ground albedo (diffuse)
+albgrd[numrad()]                           [double] direct-beam soil albedo [frc]
+albgri[numrad()]                           [double] diffuse soil albedo [frc]
+albd[numrad()]                             [double] surface albedo (direct)
+albi[numrad()]                             [double] surface albedo (diffuse)
+fabd[numrad()]                             [double] flux absorbed by canopy per unit direct flux
+fabd_sun[numrad()]                         [double] flux absorbed by sunlit canopy per unit direct flux
+fabd_sha[numrad()]                         [double] flux absorbed by shaded canopy per unit direct flux
+fabi[numrad()]                             [double] flux absorbed by canopy per unit diffuse flux
+fabi_sun[numrad()]                         [double] flux absorbed by sunlit canopy per unit diffuse flux
+fabi_sha[numrad()]                         [double] flux absorbed by shaded canopy per unit diffuse flux
+ftdd[numrad()]                             [double] down direct flux below canopy per unit direct flux
+ftid[numrad()]                             [double] down diffuse flux below canopy per unit direct flux
+ftii[numrad()]                             [double] down diffuse flux below canopy per unit diffuse flux
+flx_absdv[nlevsno()]                       [double] direct flux absorption factor : VIS [frc]
+flx_absdn[nlevsno()]                       [double] direct flux absorption factor : NIR [frc]
+flx_absiv[nlevsno()]                       [double] diffuse flux absorption factor : VIS [frc]
+flx_absin[nlevsno()]                       [double] diffuse flux absorption factor : NIR [frc]
+mss_cnc_aer_in_fdb[nlevsno()][sno_nbr_aer()] [double] mass concentration of all aerosol species for feedback calculation [kg
 kg-1]
 */
 template <typename ArrayD1, typename ArrayD2>
@@ -110,14 +110,14 @@ inputs:
 urbpoi          [bool]     true if urban point, false otherwise
 coszen          [double]   solar zenith angle factor
 frac_sno        [double]   fraction of ground covered by snow (0 to 1)
-albsod[numrad]  [double]   direct-beam soil albedo [frc]
-albsoi[numrad]  [double]   diffuse soil albedo [frc]
-albsnd[numrad]  [double]   direct-beam snow albedo [frc]
-albsni[numrad]  [double]   diffuse snow albedo [frc]
+albsod[numrad()]  [double]   direct-beam soil albedo [frc]
+albsoi[numrad()]  [double]   diffuse soil albedo [frc]
+albsnd[numrad()]  [double]   direct-beam snow albedo [frc]
+albsni[numrad()]  [double]   diffuse snow albedo [frc]
 
 outputs:
-albgrd[numrad]  [double] direct-beam ground albedo [frc]
-albgri[numrad]  [double] diffuse ground albedo [frc]
+albgrd[numrad()]  [double] direct-beam ground albedo [frc]
+albgri[numrad()]  [double] diffuse ground albedo [frc]
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -131,18 +131,18 @@ inputs:
 Land            [LandType] struct containing information about landtype
 coszen          [double]   solar zenith angle factor
 frac_sno        [double]   fraction of ground covered by snow (0 to 1)
-albsod[numrad]  [double]   direct-beam soil albedo [frc]
-albsoi[numrad]  [double]   diffuse soil albedo [frc]
-albsnd[numrad]  [double]   direct-beam snow albedo [frc]
-albsni[numrad]  [double]   diffuse snow albedo [frc]
-flx_absd_snw[nlevsno+1][numrad] [double] flux absorption factor for just snow (direct) [frc]
-flx_absi_snw[nlevsno+1][numrad] [double] flux absorption factor for just snow (diffuse) [frc]
+albsod[numrad()]  [double]   direct-beam soil albedo [frc]
+albsoi[numrad()]  [double]   diffuse soil albedo [frc]
+albsnd[numrad()]  [double]   direct-beam snow albedo [frc]
+albsni[numrad()]  [double]   diffuse snow albedo [frc]
+flx_absd_snw[nlevsno()+1][numrad()] [double] flux absorption factor for just snow (direct) [frc]
+flx_absi_snw[nlevsno()+1][numrad()] [double] flux absorption factor for just snow (diffuse) [frc]
 
 outputs:
-flx_absdv[nlevsno]                       [double] direct flux absorption factor : VIS [frc]
-flx_absdn[nlevsno]                       [double] direct flux absorption factor : NIR [frc]
-flx_absiv[nlevsno]                       [double] diffuse flux absorption factor : VIS [frc]
-flx_absin[nlevsno]                       [double] diffuse flux absorption factor : NIR [frc]
+flx_absdv[nlevsno()]                       [double] direct flux absorption factor : VIS [frc]
+flx_absdn[nlevsno()]                       [double] direct flux absorption factor : NIR [frc]
+flx_absiv[nlevsno()]                       [double] diffuse flux absorption factor : VIS [frc]
+flx_absin[nlevsno()]                       [double] diffuse flux absorption factor : NIR [frc]
 */
 template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
@@ -157,7 +157,7 @@ Add to number of layers so long as cumulative leaf+stem area does not exceed tot
 leaf+stem area. Then add any remaining leaf+stem area to next layer and exit the loop.
 Do this first for elai and esai (not buried by snow) and then for the part of the
 canopy that is buried by snow. Sun/shade big leaf code uses only one layer
-(nrad = ncan = 1), triggered by nlevcan == 1.
+(nrad = ncan = 1), triggered by nlevcan() == 1.
 ------------------
 
 tlai_z summed from 1 to nrad = elai
@@ -177,13 +177,13 @@ tsai                 [double] one-sided stem area index, no burying by snow
 outputs:
 nrad                 [double] number of canopy layers above snow
 ncan                 [double] total number of canopy layers
-tlai_z[nlevcan]      [double] leaf area increment for a layer
-tsai_z[nlevcan]      [double] stem area increment for a layer
-fsun_z[nlevcan]      [double] sunlit fraction of canopy layer
-fabd_sun_z[nlevcan]  [double] absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-fabd_sha_z[nlevcan]  [double] absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-fabi_sun_z[nlevcan]  [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-fabi_sha_z[nlevcan]  [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
+tlai_z[nlevcan()]      [double] leaf area increment for a layer
+tsai_z[nlevcan()]      [double] stem area increment for a layer
+fsun_z[nlevcan()]      [double] sunlit fraction of canopy layer
+fabd_sun_z[nlevcan()]  [double] absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
+fabd_sha_z[nlevcan()]  [double] absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
+fabi_sun_z[nlevcan()]  [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
+fabi_sha_z[nlevcan()]  [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -233,30 +233,30 @@ t_veg                    [double] vegetation temperature (Kelvin)
 fwet                     [double] fraction of canopy that is wet (0 to 1)
 elai                     [double] one-sided leaf area index with burying by snow
 esai                     [double] one-sided stem area index with burying by snow
-tlai_z[nlevcan]          [double] tlai increment for canopy layer
-tsai_z[nlevcan]          [double] tsai increment for canopy layer
-albgrd[numrad]           [double] ground albedo (direct) (column-level)
-albgri[numrad]           [double] ground albedo (diffuse)(column-level)
+tlai_z[nlevcan()]          [double] tlai increment for canopy layer
+tsai_z[nlevcan()]          [double] tsai increment for canopy layer
+albgrd[numrad()]           [double] ground albedo (direct) (column-level)
+albgri[numrad()]           [double] ground albedo (diffuse)(column-level)
 
 outputs:
 vcmaxcintsun             [double] leaf to canopy scaling coefficient, sunlit leaf vcmax
 vcmaxcintsha             [double] leaf to canopy scaling coefficient, shaded leaf vcmax
-albd[numrad]             [double] Upward scattered flux above canopy (per unit direct beam flux)
-ftid[numrad]             [double] Downward scattered flux below canopy (per unit direct beam flux)
-ftdd[numrad]             [double] Transmitted direct beam flux below canopy (per unit direct beam flux)
-fabd[numrad]             [double] Flux absorbed by canopy (per unit direct beam flux)
-fabd_sun[numrad]         [double] Sunlit portion of fabd
-fabd_sha[numrad]         [double] Shaded portion of fabd
-albi[numrad]             [double] Upward scattered flux above canopy (per unit diffuse flux)
-ftii[numrad]             [double] Downward scattered flux below canopy (per unit diffuse flux)
-fabi[numrad]             [double] Flux absorbed by canopy (per unit diffuse flux)
-fabi_sun[numrad]         [double] Sunlit portion of fabi
-fabi_sha[numrad]         [double] Shaded portion of fabi
-fsun_z[nlevcan]          [double] sunlit fraction of canopy layer
-fabd_sun_z[nlevcan]      [double] absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
-fabd_sha_z[nlevcan]      [double] absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
-fabi_sun_z[nlevcan]      [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
-fabi_sha_z[nlevcan]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
+albd[numrad()]             [double] Upward scattered flux above canopy (per unit direct beam flux)
+ftid[numrad()]             [double] Downward scattered flux below canopy (per unit direct beam flux)
+ftdd[numrad()]             [double] Transmitted direct beam flux below canopy (per unit direct beam flux)
+fabd[numrad()]             [double] Flux absorbed by canopy (per unit direct beam flux)
+fabd_sun[numrad()]         [double] Sunlit portion of fabd
+fabd_sha[numrad()]         [double] Shaded portion of fabd
+albi[numrad()]             [double] Upward scattered flux above canopy (per unit diffuse flux)
+ftii[numrad()]             [double] Downward scattered flux below canopy (per unit diffuse flux)
+fabi[numrad()]             [double] Flux absorbed by canopy (per unit diffuse flux)
+fabi_sun[numrad()]         [double] Sunlit portion of fabi
+fabi_sha[numrad()]         [double] Shaded portion of fabi
+fsun_z[nlevcan()]          [double] sunlit fraction of canopy layer
+fabd_sun_z[nlevcan()]      [double] absorbed sunlit leaf direct  PAR (per unit lai+sai) for each canopy layer
+fabd_sha_z[nlevcan()]      [double] absorbed shaded leaf direct  PAR (per unit lai+sai) for each canopy layer
+fabi_sun_z[nlevcan()]      [double] absorbed sunlit leaf diffuse PAR (per unit lai+sai) for each canopy layer
+fabi_sha_z[nlevcan()]      [double] absorbed shaded leaf diffuse PAR (per unit lai+sai) for each canopy layer
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -278,14 +278,14 @@ snl                        [int]      number of snow layers
 t_grnd                     [double]   ground temperature (Kelvin)
 coszen                     [double]   solar zenith angle factor
 //lake_icefrac[nlevlak]      [double]   mass fraction of lake layer that is frozen -- removed for now
-h2osoi_vol[nlevgrnd]       [double]   volumetric soil water [m3/m3]
-albsat[numrad]             [double]   wet soil albedo by color class and waveband (color class designated in
-SurfaceAlbedoInitTimeConst) albdry[numrad]             [double]   dry soil albedo by color class and waveband (color
+h2osoi_vol[nlevgrnd()]       [double]   volumetric soil water [m3/m3]
+albsat[numrad()]             [double]   wet soil albedo by color class and waveband (color class designated in
+SurfaceAlbedoInitTimeConst) albdry[numrad()]             [double]   dry soil albedo by color class and waveband (color
 class designated in SurfaceAlbedoInitTimeConst)
 
 outputs:
-albsod[numrad]             [double]   direct-beam soil albedo [frc]
-albsoi[numrad]             [double]   diffuse soil albedo [frc]
+albsod[numrad()]             [double]   direct-beam soil albedo [frc]
+albsoi[numrad()]             [double]   diffuse soil albedo [frc]
 */
 template <typename ArrayD1>
 ACCELERATE

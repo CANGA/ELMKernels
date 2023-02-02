@@ -22,30 +22,30 @@ sabg_snow
 sabg
 sabv
 fsa
-sabg_lyr[nlevsno+1]
+sabg_lyr[nlevsno()+1]
 snl
-ftdd[numrad]
-ftid[numrad]
-ftii[numrad]
-forc_solad[numrad]
-forc_solai[numrad]
-fabd[numrad]
-fabi[numrad]
-albsod[numrad]
-albsoi[numrad]
-albsnd_hst[numrad]
-albsni_hst[numrad]
-albgrd[numrad]
-albgri[numrad]
-trd[numrad]
-tri[numrad]
+ftdd[numrad()]
+ftid[numrad()]
+ftii[numrad()]
+forc_solad[numrad()]
+forc_solai[numrad()]
+fabd[numrad()]
+fabi[numrad()]
+albsod[numrad()]
+albsoi[numrad()]
+albsnd_hst[numrad()]
+albsni_hst[numrad()]
+albgrd[numrad()]
+albgri[numrad()]
+trd[numrad()]
+tri[numrad()]
 snow_depth
-flx_absdv[nlevsno+1]
-flx_absdn[nlevsno+1]
-flx_absiv[nlevsno+1]
-flx_absin[nlevsno+1]
-albd[numrad]
-albi[numrad]
+flx_absdv[nlevsno()+1]
+flx_absdn[nlevsno()+1]
+flx_absiv[nlevsno()+1]
+flx_absin[nlevsno()+1]
+albd[numrad()]
+albi[numrad()]
 fsr
 */
 
@@ -91,33 +91,33 @@ int main(int argc, char **argv) {
   auto snl = create<ArrayI1>("snl", n_grid_cells);
   auto snow_depth = create<ArrayD1>("snow_depth", n_grid_cells);
   auto fsr = create<ArrayD1>("fsr", n_grid_cells);
-  auto sabg_lyr = create<ArrayD2>("sabg_lyr", n_grid_cells, nlevsno + 1);
-  auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, numrad);
-  auto ftid = create<ArrayD2>("ftid", n_grid_cells, numrad);
-  auto ftii = create<ArrayD2>("ftii", n_grid_cells, numrad);
-  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad);
-  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad);
-  auto fabd = create<ArrayD2>("fabd", n_grid_cells, numrad);
-  auto fabi = create<ArrayD2>("fabi", n_grid_cells, numrad);
-  auto albsod = create<ArrayD2>("albsod", n_grid_cells, numrad);
-  auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, numrad);
-  auto albsnd_hst = create<ArrayD2>("albsnd_hst", n_grid_cells, numrad);
-  auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, numrad);
-  auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, numrad);
-  auto albgri = create<ArrayD2>("albgri", n_grid_cells, numrad);
-  auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, nlevsno + 1);
-  auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, nlevsno + 1);
-  auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, nlevsno + 1);
-  auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, nlevsno + 1);
-  auto albd = create<ArrayD2>("albd", n_grid_cells, numrad);
-  auto albi = create<ArrayD2>("albi", n_grid_cells, numrad);
+  auto sabg_lyr = create<ArrayD2>("sabg_lyr", n_grid_cells, nlevsno() + 1);
+  auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, numrad());
+  auto ftid = create<ArrayD2>("ftid", n_grid_cells, numrad());
+  auto ftii = create<ArrayD2>("ftii", n_grid_cells, numrad());
+  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad());
+  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad());
+  auto fabd = create<ArrayD2>("fabd", n_grid_cells, numrad());
+  auto fabi = create<ArrayD2>("fabi", n_grid_cells, numrad());
+  auto albsod = create<ArrayD2>("albsod", n_grid_cells, numrad());
+  auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, numrad());
+  auto albsnd_hst = create<ArrayD2>("albsnd_hst", n_grid_cells, numrad());
+  auto albsni_hst = create<ArrayD2>("albsni_hst", n_grid_cells, numrad());
+  auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, numrad());
+  auto albgri = create<ArrayD2>("albgri", n_grid_cells, numrad());
+  auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, nlevsno() + 1);
+  auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, nlevsno() + 1);
+  auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, nlevsno() + 1);
+  auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, nlevsno() + 1);
+  auto albd = create<ArrayD2>("albd", n_grid_cells, numrad());
+  auto albi = create<ArrayD2>("albi", n_grid_cells, numrad());
 
-  // arrays to compare output (trd & tri are double[numrad])
-  auto trd_array = create<ArrayD2>("trd_array", n_grid_cells, numrad);
-  auto tri_array = create<ArrayD2>("tri_array", n_grid_cells, numrad);
+  // arrays to compare output (trd & tri are double[numrad()])
+  auto trd_array = create<ArrayD2>("trd_array", n_grid_cells, numrad());
+  auto tri_array = create<ArrayD2>("tri_array", n_grid_cells, numrad());
 
-  auto trd = create<ArrayD2>("trd", n_grid_cells, numrad);
-  auto tri = create<ArrayD2>("tri", n_grid_cells, numrad);
+  auto trd = create<ArrayD2>("trd", n_grid_cells, numrad());
+  auto tri = create<ArrayD2>("tri", n_grid_cells, numrad());
 
   // input and output utility class objects
   ELM::IO::ELMtestinput in(input_file);

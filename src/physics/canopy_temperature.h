@@ -25,9 +25,9 @@ namespace ELM::canopy_temperature {
 
 \param[in]  Land                       [LandType] struct containing information about landtype
 \param[in]  t_h2osfc                   [double] surface water temperature
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] col soil temperature (Kelvin)
 \param[out] t_h2osfc_bef               [double] saved surface water temperature
-\param[out] tssbef[nlevgrnd+nlevsno]   [double] soil/snow temperature before update
+\param[out] tssbef[nlevgrnd()+nlevsno()]   [double] soil/snow temperature before update
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -41,7 +41,7 @@ void old_ground_temp(const LandType& Land, const double& t_h2osfc, const ArrayD1
 \param[in]  frac_sno_eff               [double] eff. fraction of ground covered by snow (0 to 1)
 \param[in]  frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 \param[in]  t_h2osfc                   [double] surface water temperature
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] col soil temperature (Kelvin)
 \param[out] t_grnd                     [double] ground temperature (Kelvin)
 */
 template <typename ArrayD1>
@@ -55,15 +55,15 @@ It looks like soilalpha doesn't get used in maint-1.2 branch, but both qred and 
 \param[in]  Land                         [LandType] struct containing information about landtype
 \param[in]  frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 \param[in]  frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
-\param[in]  h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-\param[in]  h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-\param[in]  dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
-\param[in]  t_soisno[nlevgrnd+nlevsno]   [double] col soil temperature (Kelvin)
-\param[in]  watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-\param[in]  sucsat[nlevgrnd]             [double] minimum soil suction (mm)
-\param[in]  bsw[nlevgrnd]                [double] Clapp and Hornberger "b"
-\param[in]  watdry[nlevgrnd]             [double] btran parameter for btran = 0
-\param[in]  watopt[nlevgrnd]             [double] btran parameter for btran = 1
+\param[in]  h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
+\param[in]  h2osoi_ice[nlevgrnd()+nlevsno()] [double] ice lens (kg/m2)
+\param[in]  dz[nlevgrnd()+nlevsno()]         [double] layer thickness (m)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()]   [double] col soil temperature (Kelvin)
+\param[in]  watsat[nlevgrnd()]             [double] volumetric soil water at saturation (porosity)
+\param[in]  sucsat[nlevgrnd()]             [double] minimum soil suction (mm)
+\param[in]  bsw[nlevgrnd()]                [double] Clapp and Hornberger "b"
+\param[in]  watdry[nlevgrnd()]             [double] btran parameter for btran = 0
+\param[in]  watopt[nlevgrnd()]             [double] btran parameter for btran = 1
 \param[out] qred                         [double] soil surface relative humidity
 \param[out] hr                           [double] relative humidity
 \param[out] soilalpha                    [double] factor that reduces ground saturated specific humidity (-)
@@ -80,11 +80,11 @@ void calc_soilalpha(const LandType& Land, const double& frac_sno, const double& 
 \param[in]  Land                         [LandType] struct containing information about landtypet
 \param[in]  frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 \param[in]  frac_h2osfc                  [double] fraction of ground covered by surface water (0 to 1)
-\param[in]  watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-\param[in]  watfc[nlevgrnd]              [double] volumetric soil water at field capacity
-\param[in]  h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-\param[in]  h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-\param[in]  dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
+\param[in]  watsat[nlevgrnd()]             [double] volumetric soil water at saturation (porosity)
+\param[in]  watfc[nlevgrnd()]              [double] volumetric soil water at field capacity
+\param[in]  h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
+\param[in]  h2osoi_ice[nlevgrnd()+nlevsno()] [double] ice lens (kg/m2)
+\param[in]  dz[nlevgrnd()+nlevsno()]         [double] layer thickness (m)
 \param[out] soilbeta                     [double] factor that reduces ground evaporation
 */
 template <typename ArrayD1>
@@ -107,7 +107,7 @@ Compute humidities individually for snow, soil, h2osfc for vegetated landunits.
 \param[in]  frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 \param[in]  qred                       [double] soil surface relative humidity
 \param[in]  hr                         [double] relative humidity
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] soil temperature (Kelvin)
 \param[out] qg_snow                    [double] specific humidity at snow surface [kg/kg]
 \param[out] qg_soil                    [double] specific humidity at soil surface [kg/kg]
 \param[out] qg                         [double] ground specific humidity [kg/kg]
@@ -132,10 +132,10 @@ potential temp and wind speed.
 \param[in]  elai                         [double] one-sided leaf area index with burying by snow
 \param[in]  esai                         [double] one-sided stem area index with burying by snow
 \param[in]  htop                         [double] canopy top (m)
-\param[in]  displar[numpft]              [double] ratio of displacement height to canopy top height (-)
-\param[in]  z0mr[numpft]                 [double] ratio of momentum roughness length to canopy top height (-)
-\param[in]  h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-\param[in]  h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
+\param[in]  displar[numpft()]              [double] ratio of displacement height to canopy top height (-)
+\param[in]  z0mr[numpft()]                 [double] ratio of momentum roughness length to canopy top height (-)
+\param[in]  h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
+\param[in]  h2osoi_ice[nlevgrnd()+nlevsno()] [double] ice lens (kg/m2)
 \param[out] emg                          [double] ground emissivity
 \param[out] emv                          [double] vegetation emissivity
 \param[out] htvp                         [double] latent heat of vapor of water (or sublimation) [j/kg]

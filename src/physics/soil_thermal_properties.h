@@ -20,14 +20,14 @@ namespace ELM::soil_thermal {
 
 /*
 const int& ltype,
-const ArrayD1 h2osoi_liq  [nlevgrnd + nlevsno]
-const ArrayD1 h2osoi_ice [nlevgrnd + nlevsno]
-const ArrayD1 t_soisno [nlevgrnd + nlevsno]
-const ArrayD1 dz  [nlevgrnd + nlevsno]
-const ArrayD1 watsat, [nlevgrnd]
-tkmg [nlevgrnd]
-thk  [nlevgrnd + nlevsno]
-tkdry [nlevgrnd]
+const ArrayD1 h2osoi_liq  [nlevgrnd() + nlevsno()]
+const ArrayD1 h2osoi_ice [nlevgrnd() + nlevsno()]
+const ArrayD1 t_soisno [nlevgrnd() + nlevsno()]
+const ArrayD1 dz  [nlevgrnd() + nlevsno()]
+const ArrayD1 watsat, [nlevgrnd()]
+tkmg [nlevgrnd()]
+thk  [nlevgrnd() + nlevsno()]
+tkdry [nlevgrnd()]
 
 
 */

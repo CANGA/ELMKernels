@@ -5,8 +5,8 @@ using namespace ELM::ELMdims;
 
 namespace ELM {
 
-// cell_per_col_ fixed as nlevgrnd for now
-ELMInterface::ELMInterface(size_t ncols) : ncols_(ncols), cell_per_col_(nlevgrnd)
+// cell_per_col_ fixed as nlevgrnd() for now
+ELMInterface::ELMInterface(size_t ncols) : ncols_(ncols), cell_per_col_(nlevgrnd())
 {
   // temp dummy filepath
   std::string input_dir = INPUT_DATA_DIR;

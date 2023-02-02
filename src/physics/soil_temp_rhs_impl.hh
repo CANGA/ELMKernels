@@ -20,11 +20,11 @@ rvector = |    SSW    |
           !===========|
 
 original ELM bounds:
-rt(bounds%begc:bounds%endc,-nlevsno+1:nlevgrnd)         ! "r" vector for tridiagonal solution
+rt(bounds%begc:bounds%endc,-nlevsno()+1:nlevgrnd())         ! "r" vector for tridiagonal solution
 fn_h2osfc(bounds%begc:bounds%endc)                      ! heat diffusion through standing-water/soil interface [W/m2]
-rt_snow(bounds%begc:bounds%endc,-nlevsno:-1)            ! RHS vector corresponding to snow layers
+rt_snow(bounds%begc:bounds%endc,-nlevsno():-1)            ! RHS vector corresponding to snow layers
 rt_ssw(bounds%begc:bounds%endc,1)                       ! RHS vector corresponding to standing surface water
-rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector corresponding to soil layer
+rt_soil(bounds%begc:bounds%endc,1:nlevgrnd())             ! RHS vector corresponding to soil layer
 */
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
@@ -52,9 +52,9 @@ rt_soil(bounds%begc:bounds%endc,1:nlevgrnd)             ! RHS vector correspondi
 
     const int ncols = snl.extent(0);
     auto fn_h2osfc = create<ArrayD1>("fn_h2osfc", ncols);
-    auto rt_snow = create<ArrayD2>("rt_snow", ncols, nlevsno);
+    auto rt_snow = create<ArrayD2>("rt_snow", ncols, nlevsno());
     auto rt_ssw = create<ArrayD1>("rt_ssw", ncols);
-    auto rt_soil = create<ArrayD2>("rt_soil", ncols, nlevgrnd);
+    auto rt_soil = create<ArrayD2>("rt_soil", ncols, nlevgrnd());
 
     auto kernel = ELM_LAMBDA (const int& c) {
       detail::get_rhs_snow(c, snl, hs_top_snow, dhsdT, t_soisno,
@@ -90,7 +90,7 @@ namespace ELM::soil_temp::detail {
     using detail::cnfac;
 
 
-    const int top = nlevsno - snl(c);
+    const int top = nlevsno() - snl(c);
 
     // set inactive layers to zero
     for (int i = 0; i < top; ++i) {
@@ -101,7 +101,7 @@ namespace ELM::soil_temp::detail {
     rt_snow(c, top) = t_soisno(c, top) + fact(c, top) * (hs_top_snow(c) -
         dhsdT(c) * t_soisno(c, top) + cnfac * fn(c, top));
 
-    for (int i = top + 1; i < nlevsno; ++i) {
+    for (int i = top + 1; i < nlevsno(); ++i) {
       rt_snow(c, i) = t_soisno(c, i) + cnfac * fact(c, i) * (fn(c, i) - fn(c, i-1)) +
           fact(c, i) * sabg_lyr(c, i);
     }
@@ -127,8 +127,8 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevsno;
     using detail::cnfac;
     
-    fn_h2osfc(c) = tk_h2osfc(c) * (t_soisno(c, nlevsno) - t_h2osfc(c)) /
-        (0.5 * dz_h2osfc(c) + z(c, nlevsno));
+    fn_h2osfc(c) = tk_h2osfc(c) * (t_soisno(c, nlevsno()) - t_h2osfc(c)) /
+        (0.5 * dz_h2osfc(c) + z(c, nlevsno()));
     rt_ssw(c) = t_h2osfc(c) + (dtime / c_h2osfc(c)) * (hs_h2osfc(c) - dhsdT(c) *
         t_h2osfc(c) + cnfac * fn_h2osfc(c));
   }
@@ -153,25 +153,25 @@ namespace ELM::soil_temp::detail {
 
     // top subsurface layer
     if (snl(c) == 0) {
-      rt_soil(c, 0) = t_soisno(c, nlevsno) + fact(c, nlevsno) * (hs_top_snow(c) -
-          dhsdT(c) * t_soisno(c, nlevsno) + cnfac * fn(c,nlevsno));
+      rt_soil(c, 0) = t_soisno(c, nlevsno()) + fact(c, nlevsno()) * (hs_top_snow(c) -
+          dhsdT(c) * t_soisno(c, nlevsno()) + cnfac * fn(c,nlevsno()));
     } else {
       // this is the snow/soil interface layer
-      rt_soil(c, 0) = t_soisno(c, nlevsno) + fact(c, nlevsno) * ((1.0 - frac_sno_eff(c)) *
-          (hs_soil(c) - dhsdT(c) * t_soisno(c, nlevsno)) + cnfac * (fn(c, nlevsno) -
-          frac_sno_eff(c) * fn(c, nlevsno - 1)));
+      rt_soil(c, 0) = t_soisno(c, nlevsno()) + fact(c, nlevsno()) * ((1.0 - frac_sno_eff(c)) *
+          (hs_soil(c) - dhsdT(c) * t_soisno(c, nlevsno())) + cnfac * (fn(c, nlevsno()) -
+          frac_sno_eff(c) * fn(c, nlevsno() - 1)));
 
-      rt_soil(c, 0) += frac_sno_eff(c) * fact(c, nlevsno) * sabg_lyr(c, nlevsno);
+      rt_soil(c, 0) += frac_sno_eff(c) * fact(c, nlevsno()) * sabg_lyr(c, nlevsno());
     }
 
-    // layers from nlevsno + 1 (second from top) to nlevgrnd + nlevsno - 2 (second from bottom)
-    const int bot = nlevgrnd + nlevsno - 1;
-    for (int j = nlevsno + 1; j < bot; ++j) {
-      rt_soil(c,j - nlevsno) = t_soisno(c, j) + cnfac * fact(c, j) * (fn(c, j) - fn(c,j-1));
+    // layers from nlevsno() + 1 (second from top) to nlevgrnd() + nlevsno() - 2 (second from bottom)
+    const int bot = nlevgrnd() + nlevsno() - 1;
+    for (int j = nlevsno() + 1; j < bot; ++j) {
+      rt_soil(c,j - nlevsno()) = t_soisno(c, j) + cnfac * fact(c, j) * (fn(c, j) - fn(c,j-1));
     }
 
     // bottom layer
-    rt_soil(c, nlevgrnd - 1) = t_soisno(c, bot) - cnfac * fact(c, bot) * fn(c, bot - 1) +
+    rt_soil(c, nlevgrnd() - 1) = t_soisno(c, bot) - cnfac * fact(c, bot) * fn(c, bot - 1) +
         fact(c, bot) * fn(c, bot);
   }
 
@@ -188,16 +188,16 @@ namespace ELM::soil_temp::detail {
     using ELMdims::nlevgrnd;
 
     // assemble the RHS vector
-    // this has nlevsno + 1 + nlevgrnd entries
+    // this has nlevsno() + 1 + nlevgrnd() entries
     //          rt_snow + rt_ssw + rt_soil
-    for (int i = 0; i < nlevsno; ++i) {
+    for (int i = 0; i < nlevsno(); ++i) {
       rhs_vec(c, i) = rt_snow(c, i);
     }
 
-    rhs_vec(c, nlevsno) = rt_ssw(c);
+    rhs_vec(c, nlevsno()) = rt_ssw(c);
 
-    const int offset = nlevsno + 1;
-    for (int i = 0; i < nlevgrnd; ++i) {
+    const int offset = nlevsno() + 1;
+    for (int i = 0; i < nlevgrnd(); ++i) {
       rhs_vec(c, i + offset) = rt_soil(c, i);
     }
   }

@@ -143,9 +143,9 @@ double zisoi_hardwire[] = {
 3.8018819123227208, 6.284461609304053, 10.377543561925453,
 17.12589483993117, 28.252045134135592, 42.10319727609919 };
 
-auto dz = create<ArrayD2>("dz", ncells, ELM::nlevsno + ELM::nlevgrnd, dz_hardwire);
-auto zsoi = create<ArrayD2>("zsoi", ncells, ELM::nlevsno + ELM::nlevgrnd, zsoi_hardwire);
-auto zisoi = create<ArrayD2>("zisoi", ncells, ELM::nlevsno + ELM::nlevgrnd + 1, zisoi_hardwire);
+auto dz = create<ArrayD2>("dz", ncells, ELM::nlevsno() + ELM::nlevgrnd(), dz_hardwire);
+auto zsoi = create<ArrayD2>("zsoi", ncells, ELM::nlevsno() + ELM::nlevgrnd(), zsoi_hardwire);
+auto zisoi = create<ArrayD2>("zisoi", ncells, ELM::nlevsno() + ELM::nlevgrnd() + 1, zisoi_hardwire);
 
 
 // subsurface params that should be defined by hydrology code:
@@ -177,11 +177,11 @@ auto eflx_bot = create<ArrayD1>("eflx_bot", ncells);       // don't need this, e
 auto qflx_glcice = create<ArrayD1>("qflx_glcice", ncells); // don't need this, either
 
 auto frac_veg_nosno = create<ArrayI1>("frac_veg_nosno", ncells);
-auto frac_iceold = create<ArrayD2>("frac_iceold", ncells, ELM::nlevsno + ELM::nlevgrnd);
+auto frac_iceold = create<ArrayD2>("frac_iceold", ncells, ELM::nlevsno() + ELM::nlevgrnd());
 auto h2osno = create<ArrayD1>("h2osno", ncells);
-auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", ncells, ELM::nlevsno + ELM::nlevgrnd, 0.0);
-auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", ncells, ELM::nlevsno + ELM::nlevgrnd, 0.0);
-auto snw_rds = create<ArrayD2>("snw_rds", ncells, ELM::nlevsno);
+auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", ncells, ELM::nlevsno() + ELM::nlevgrnd(), 0.0);
+auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", ncells, ELM::nlevsno() + ELM::nlevgrnd(), 0.0);
+auto snw_rds = create<ArrayD2>("snw_rds", ncells, ELM::nlevsno());
 
 // forcing data
 auto forc_tbot = create<ArrayD1>("forc_tbot", ncells);
@@ -218,12 +218,12 @@ auto hbot = create<ArrayD1>("hbot", ncells);
 auto frac_veg_nosno_alb = create<ArrayI1>("frac_veg_nosno_alb", ncells);
 
 // soil hydraulics
-auto watsat = create<ArrayD2>("watsat", ncells, ELM::nlevgrnd);
-auto sucsat = create<ArrayD2>("sucsat", ncells, ELM::nlevgrnd);
-auto bsw = create<ArrayD2>("bsw", ncells, ELM::nlevgrnd);
-auto watdry = create<ArrayD2>("watdry", ncells, ELM::nlevgrnd);
-auto watopt = create<ArrayD2>("watopt", ncells, ELM::nlevgrnd);
-auto watfc = create<ArrayD2>("watfc", ncells, ELM::nlevgrnd);
+auto watsat = create<ArrayD2>("watsat", ncells, ELM::nlevgrnd());
+auto sucsat = create<ArrayD2>("sucsat", ncells, ELM::nlevgrnd());
+auto bsw = create<ArrayD2>("bsw", ncells, ELM::nlevgrnd());
+auto watdry = create<ArrayD2>("watdry", ncells, ELM::nlevgrnd());
+auto watopt = create<ArrayD2>("watopt", ncells, ELM::nlevgrnd());
+auto watfc = create<ArrayD2>("watfc", ncells, ELM::nlevgrnd());
 
 // topo, microtopography
 auto n_melt = create<ArrayD1>("n_melt", ncells);
@@ -242,29 +242,29 @@ auto qflx_snow_melt = create<ArrayD1>("qflx_snow_melt", ncells);
 auto h2osfc = create<ArrayD1>("h2osfc", ncells);
 auto frac_h2osfc = create<ArrayD1>("frac_h2osfc", ncells);
 auto frac_sno_eff = create<ArrayD1>("frac_sno_eff", ncells);
-auto swe_old = create<ArrayD2>("swe_old", ncells, ELM::nlevsno);
+auto swe_old = create<ArrayD2>("swe_old", ncells, ELM::nlevsno());
 
-auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno + ELM::nlevgrnd);
+auto t_soisno = create<ArrayD2>("t_soisno", ncells, ELM::nlevsno() + ELM::nlevgrnd());
 double tsoi[] = {0.0, 0.0, 0.0, 0.0, 0.0, 278.3081064745931, 276.1568781897738,
   275.55803480737063, 275.2677090940866, 274.7286996980052, 273.15, 272.4187794248787, 270.65049816473027,
   267.8224112387398, 265.7450135695632, 264.49481140089864, 264.14163363048056, 264.3351872934207, 264.1163763444719, 263.88852987294865};
-auto tsoi_test = create<ArrayD2>("tsoi_test", ncells, ELM::nlevsno + ELM::nlevgrnd, tsoi);
+auto tsoi_test = create<ArrayD2>("tsoi_test", ncells, ELM::nlevsno() + ELM::nlevgrnd(), tsoi);
 //t_soisno = tsoi_test;
 
 // for can_sun_shade
 auto nrad = create<ArrayI1>("nrad", ncells);
 auto laisun = create<ArrayD1>("laisun", ncells);
 auto laisha = create<ArrayD1>("laisha", ncells);
-auto tlai_z = create<ArrayD2>("tlai_z", ncells, ELM::nlevcan);
-auto fsun_z = create<ArrayD2>("fsun_z", ncells, ELM::nlevcan);
-auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", ncells, ELM::nlevcan);
-auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", ncells, ELM::nlevcan);
-auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", ncells, ELM::nlevcan);
-auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", ncells, ELM::nlevcan);
-auto parsun_z = create<ArrayD2>("parsun_z", ncells, ELM::nlevcan);
-auto parsha_z = create<ArrayD2>("parsha_z", ncells, ELM::nlevcan);
-auto laisun_z = create<ArrayD2>("laisun_z", ncells, ELM::nlevcan);
-auto laisha_z = create<ArrayD2>("laisha_z", ncells, ELM::nlevcan);
+auto tlai_z = create<ArrayD2>("tlai_z", ncells, ELM::nlevcan());
+auto fsun_z = create<ArrayD2>("fsun_z", ncells, ELM::nlevcan());
+auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", ncells, ELM::nlevcan());
+auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", ncells, ELM::nlevcan());
+auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", ncells, ELM::nlevcan());
+auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", ncells, ELM::nlevcan());
+auto parsun_z = create<ArrayD2>("parsun_z", ncells, ELM::nlevcan());
+auto parsha_z = create<ArrayD2>("parsha_z", ncells, ELM::nlevcan());
+auto laisun_z = create<ArrayD2>("laisun_z", ncells, ELM::nlevcan());
+auto laisha_z = create<ArrayD2>("laisha_z", ncells, ELM::nlevcan());
 
 // for surface rad
 auto sabg_soil = create<ArrayD1>("sabg_soil", ncells);
@@ -273,24 +273,24 @@ auto sabg = create<ArrayD1>("sabg", ncells);
 auto sabv = create<ArrayD1>("sabv", ncells);
 auto fsa = create<ArrayD1>("fsa", ncells);
 auto fsr = create<ArrayD1>("fsr", ncells);
-auto sabg_lyr = create<ArrayD2>("sabg_lyr", ncells, ELM::nlevsno + 1);
-auto ftdd = create<ArrayD2>("ftdd", ncells, ELM::numrad);
-auto ftid = create<ArrayD2>("ftid", ncells, ELM::numrad);
-auto ftii = create<ArrayD2>("ftii", ncells, ELM::numrad);
-auto fabd = create<ArrayD2>("fabd", ncells, ELM::numrad);
-auto fabi = create<ArrayD2>("fabi", ncells, ELM::numrad);
-auto albsod = create<ArrayD2>("albsod", ncells, ELM::numrad);
-auto albsoi = create<ArrayD2>("albsoi", ncells, ELM::numrad);
-auto albsnd_hst = create<ArrayD2>("albsnd_hst", ncells, ELM::numrad);
-auto albsni_hst = create<ArrayD2>("albsni_hst", ncells, ELM::numrad);
-auto albgrd = create<ArrayD2>("albgrd", ncells, ELM::numrad);
-auto albgri = create<ArrayD2>("albgri", ncells, ELM::numrad);
-auto flx_absdv = create<ArrayD2>("flx_absdv", ncells, ELM::nlevsno + 1);
-auto flx_absdn = create<ArrayD2>("flx_absdn", ncells, ELM::nlevsno + 1);
-auto flx_absiv = create<ArrayD2>("flx_absiv", ncells, ELM::nlevsno + 1);
-auto flx_absin = create<ArrayD2>("flx_absin", ncells, ELM::nlevsno + 1);
-auto albd = create<ArrayD2>("albd", ncells, ELM::numrad);
-auto albi = create<ArrayD2>("albi", ncells, ELM::numrad);
+auto sabg_lyr = create<ArrayD2>("sabg_lyr", ncells, ELM::nlevsno() + 1);
+auto ftdd = create<ArrayD2>("ftdd", ncells, ELM::numrad());
+auto ftid = create<ArrayD2>("ftid", ncells, ELM::numrad());
+auto ftii = create<ArrayD2>("ftii", ncells, ELM::numrad());
+auto fabd = create<ArrayD2>("fabd", ncells, ELM::numrad());
+auto fabi = create<ArrayD2>("fabi", ncells, ELM::numrad());
+auto albsod = create<ArrayD2>("albsod", ncells, ELM::numrad());
+auto albsoi = create<ArrayD2>("albsoi", ncells, ELM::numrad());
+auto albsnd_hst = create<ArrayD2>("albsnd_hst", ncells, ELM::numrad());
+auto albsni_hst = create<ArrayD2>("albsni_hst", ncells, ELM::numrad());
+auto albgrd = create<ArrayD2>("albgrd", ncells, ELM::numrad());
+auto albgri = create<ArrayD2>("albgri", ncells, ELM::numrad());
+auto flx_absdv = create<ArrayD2>("flx_absdv", ncells, ELM::nlevsno() + 1);
+auto flx_absdn = create<ArrayD2>("flx_absdn", ncells, ELM::nlevsno() + 1);
+auto flx_absiv = create<ArrayD2>("flx_absiv", ncells, ELM::nlevsno() + 1);
+auto flx_absin = create<ArrayD2>("flx_absin", ncells, ELM::nlevsno() + 1);
+auto albd = create<ArrayD2>("albd", ncells, ELM::numrad());
+auto albi = create<ArrayD2>("albi", ncells, ELM::numrad());
 
 // variables for CanopyTemperature
 auto t_h2osfc = create<ArrayD1>("t_h2osfc", ncells, 274.0);
@@ -328,17 +328,17 @@ auto eflx_sh_veg = create<ArrayD1>("eflx_sh_veg", ncells);
 auto qflx_evap_tot = create<ArrayD1>("qflx_evap_tot", ncells);
 auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", ncells);
 auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", ncells);
-auto tssbef = create<ArrayD2>("tssbef", ncells, ELM::nlevgrnd + ELM::nlevsno);
-//auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
-//auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
-//auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd);       // comes from SoilStateType.F90
-//auto watdry = create<ArrayD2>("watdry", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
-//auto watopt = create<ArrayD2>("watopt", n_grid_cells, ELM::nlevgrnd); // comes from SoilStateType.F90
+auto tssbef = create<ArrayD2>("tssbef", ncells, ELM::nlevgrnd() + ELM::nlevsno());
+//auto watsat = create<ArrayD2>("watsat", n_grid_cells, ELM::nlevgrnd()); // comes from SoilStateType.F90
+//auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, ELM::nlevgrnd()); // comes from SoilStateType.F90
+//auto bsw = create<ArrayD2>("bsw", n_grid_cells, ELM::nlevgrnd());       // comes from SoilStateType.F90
+//auto watdry = create<ArrayD2>("watdry", n_grid_cells, ELM::nlevgrnd()); // comes from SoilStateType.F90
+//auto watopt = create<ArrayD2>("watopt", n_grid_cells, ELM::nlevgrnd()); // comes from SoilStateType.F90
 auto rootfr_road_perv =
-    create<ArrayD2>("rootfr_road_perv", ncells, ELM::nlevgrnd); // comes from SoilStateType.F90
+    create<ArrayD2>("rootfr_road_perv", ncells, ELM::nlevgrnd()); // comes from SoilStateType.F90
 auto rootr_road_perv =
-    create<ArrayD2>("rootr_road_perv", ncells, ELM::nlevgrnd); // comes from SoilStateType.F90
-//auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd);  // comes from SoilStateType.F90
+    create<ArrayD2>("rootr_road_perv", ncells, ELM::nlevgrnd()); // comes from SoilStateType.F90
+//auto watfc = create<ArrayD2>("watfc", n_grid_cells, ELM::nlevgrnd());  // comes from SoilStateType.F90
 
 // bareground fluxes
 //auto forc_u = create<ArrayD1>("forc_u", ncells);
@@ -376,9 +376,9 @@ auto vcmaxcintsun = create<ArrayD1>("vcmaxcintsun", ncells);
 //auto forc_po2 = create<ArrayD1>("forc_po2", ncells);
 auto btran = create<ArrayD1>("btran", ncells);
 auto t_veg = create<ArrayD1>("t_veg", ncells, 283.0);
-auto rootfr = create<ArrayD2>("rootfr", ncells, ELM::nlevgrnd);
-auto rootr = create<ArrayD2>("rootr", ncells, ELM::nlevgrnd);
-auto eff_porosity = create<ArrayD2>("eff_porosity", ncells, ELM::nlevgrnd);
+auto rootfr = create<ArrayD2>("rootfr", ncells, ELM::nlevgrnd());
+auto rootr = create<ArrayD2>("rootr", ncells, ELM::nlevgrnd());
+auto eff_porosity = create<ArrayD2>("eff_porosity", ncells, ELM::nlevgrnd());
 
 // surface albedo and snicar
 // required for SurfaceAlbedo kernels
@@ -390,7 +390,7 @@ auto snl_btm = create<ArrayI1>("snl_btm", ncells);
 auto ncan = create<ArrayI1>("ncan", ncells);
 auto flg_nosnl = create<ArrayI1>("flg_nosnl", ncells);
 // I2
-auto snw_rds_lcl = create<ArrayI2>("snw_rds_lcl", ncells, ELM::nlevsno);
+auto snw_rds_lcl = create<ArrayI2>("snw_rds_lcl", ncells, ELM::nlevsno());
 // D1
 //auto coszen = create<ArrayD1>("coszen", n_grid_cells);
 //auto elai = create<ArrayD1>("elai", n_grid_cells);
@@ -405,96 +405,96 @@ auto snw_rds_lcl = create<ArrayI2>("snw_rds_lcl", ncells, ELM::nlevsno);
 //auto t_grnd = create<ArrayD1>("t_grnd", n_grid_cells);
 auto mu_not = create<ArrayD1>("mu_not", ncells);
 // D2
-//auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_bcphi = create<ArrayD2>("mss_cnc_bcphi", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_bcpho = create<ArrayD2>("mss_cnc_bcpho", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_dst1 = create<ArrayD2>("mss_cnc_dst1", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_dst2 = create<ArrayD2>("mss_cnc_dst2", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_dst3 = create<ArrayD2>("mss_cnc_dst3", n_grid_cells, ELM::nlevsno);
-//auto mss_cnc_dst4 = create<ArrayD2>("mss_cnc_dst4", n_grid_cells, ELM::nlevsno);
-//auto albsod = create<ArrayD2>("albsod", n_grid_cells, ELM::numrad);
-//auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, ELM::numrad);
-//auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad);
-//auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad);
-//auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad);
-//auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad);
-//auto fabd = create<ArrayD2>("fabd", n_grid_cells, ELM::numrad);
-auto fabd_sun = create<ArrayD2>("fabd_sun", ncells, ELM::numrad);
-auto fabd_sha = create<ArrayD2>("fabd_sha", ncells, ELM::numrad);
-//auto fabi = create<ArrayD2>("fabi", n_grid_cells, ELM::numrad);
-auto fabi_sun = create<ArrayD2>("fabi_sun", ncells, ELM::numrad);
-auto fabi_sha = create<ArrayD2>("fabi_sha", ncells, ELM::numrad);
-//auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, ELM::numrad);
-//auto ftid = create<ArrayD2>("ftid", n_grid_cells, ELM::numrad);
-//auto ftii = create<ArrayD2>("ftii", n_grid_cells, ELM::numrad);
-//auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno+1);
-//auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno+1);
-//auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno+1);
-//auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno+1);
-auto albsnd = create<ArrayD2>("albsnd", ncells, ELM::numrad);
-auto albsni = create<ArrayD2>("albsni", ncells, ELM::numrad);
-//auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan);
-auto tsai_z = create<ArrayD2>("tsai_z", ncells, ELM::nlevcan);
-//auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, ELM::nlevcan);
-//auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, ELM::nlevcan);
-//auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan);
-//auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan);
-//auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan);
-//auto albsat = create<ArrayD2>("albsat", n_grid_cells, ELM::numrad);
-//auto albdry = create<ArrayD2>("albdry", n_grid_cells, ELM::numrad);
-auto h2osoi_vol = create<ArrayD2>("h2osoi_vol", ncells, ELM::nlevgrnd);
+//auto snw_rds = create<ArrayD2>("snw_rds", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_bcphi = create<ArrayD2>("mss_cnc_bcphi", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_bcpho = create<ArrayD2>("mss_cnc_bcpho", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_dst1 = create<ArrayD2>("mss_cnc_dst1", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_dst2 = create<ArrayD2>("mss_cnc_dst2", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_dst3 = create<ArrayD2>("mss_cnc_dst3", n_grid_cells, ELM::nlevsno());
+//auto mss_cnc_dst4 = create<ArrayD2>("mss_cnc_dst4", n_grid_cells, ELM::nlevsno());
+//auto albsod = create<ArrayD2>("albsod", n_grid_cells, ELM::numrad());
+//auto albsoi = create<ArrayD2>("albsoi", n_grid_cells, ELM::numrad());
+//auto albgrd = create<ArrayD2>("albgrd", n_grid_cells, ELM::numrad());
+//auto albgri = create<ArrayD2>("albgri", n_grid_cells, ELM::numrad());
+//auto albd = create<ArrayD2>("albd", n_grid_cells, ELM::numrad());
+//auto albi = create<ArrayD2>("albi", n_grid_cells, ELM::numrad());
+//auto fabd = create<ArrayD2>("fabd", n_grid_cells, ELM::numrad());
+auto fabd_sun = create<ArrayD2>("fabd_sun", ncells, ELM::numrad());
+auto fabd_sha = create<ArrayD2>("fabd_sha", ncells, ELM::numrad());
+//auto fabi = create<ArrayD2>("fabi", n_grid_cells, ELM::numrad());
+auto fabi_sun = create<ArrayD2>("fabi_sun", ncells, ELM::numrad());
+auto fabi_sha = create<ArrayD2>("fabi_sha", ncells, ELM::numrad());
+//auto ftdd = create<ArrayD2>("ftdd", n_grid_cells, ELM::numrad());
+//auto ftid = create<ArrayD2>("ftid", n_grid_cells, ELM::numrad());
+//auto ftii = create<ArrayD2>("ftii", n_grid_cells, ELM::numrad());
+//auto flx_absdv = create<ArrayD2>("flx_absdv", n_grid_cells, ELM::nlevsno()+1);
+//auto flx_absdn = create<ArrayD2>("flx_absdn", n_grid_cells, ELM::nlevsno()+1);
+//auto flx_absiv = create<ArrayD2>("flx_absiv", n_grid_cells, ELM::nlevsno()+1);
+//auto flx_absin = create<ArrayD2>("flx_absin", n_grid_cells, ELM::nlevsno()+1);
+auto albsnd = create<ArrayD2>("albsnd", ncells, ELM::numrad());
+auto albsni = create<ArrayD2>("albsni", ncells, ELM::numrad());
+//auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, ELM::nlevcan());
+auto tsai_z = create<ArrayD2>("tsai_z", ncells, ELM::nlevcan());
+//auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, ELM::nlevcan());
+//auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, ELM::nlevcan());
+//auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, ELM::nlevcan());
+//auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, ELM::nlevcan());
+//auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, ELM::nlevcan());
+//auto albsat = create<ArrayD2>("albsat", n_grid_cells, ELM::numrad());
+//auto albdry = create<ArrayD2>("albdry", n_grid_cells, ELM::numrad());
+auto h2osoi_vol = create<ArrayD2>("h2osoi_vol", ncells, ELM::nlevgrnd());
 // D3
-auto mss_cnc_aer_in_fdb = create<ArrayD3>("mss_cnc_aer_in_fdb", ncells, ELM::nlevsno, ELM::snow_snicar::sno_nbr_aer);
-auto flx_absd_snw = create<ArrayD3>("flx_absd_snw", ncells, ELM::nlevsno+1, ELM::numrad);
-auto flx_absi_snw = create<ArrayD3>("flx_absi_snw", ncells, ELM::nlevsno+1, ELM::numrad);
-auto flx_abs_lcl = create<ArrayD3>("flx_abs_lcl", ncells, ELM::nlevsno+1, ELM::snow_snicar::numrad_snw);
-//auto flx_abs = create<ArrayD3>("flx_abs", n_grid_cells, ELM::nlevsno+1, ELM::numrad);
+auto mss_cnc_aer_in_fdb = create<ArrayD3>("mss_cnc_aer_in_fdb", ncells, ELM::nlevsno(), ELM::snow_snicar::sno_nbr_aer());
+auto flx_absd_snw = create<ArrayD3>("flx_absd_snw", ncells, ELM::nlevsno()+1, ELM::numrad());
+auto flx_absi_snw = create<ArrayD3>("flx_absi_snw", ncells, ELM::nlevsno()+1, ELM::numrad());
+auto flx_abs_lcl = create<ArrayD3>("flx_abs_lcl", ncells, ELM::nlevsno()+1, ELM::snow_snicar::numrad_snw());
+//auto flx_abs = create<ArrayD3>("flx_abs", n_grid_cells, ELM::nlevsno()+1, ELM::numrad());
 // remaining variables required for SNICAR kernels
 // D1
 //auto h2osno = create<ArrayD1>("h2osno", n_grid_cells);
-//auto ss_alb_oc1 = create<ArrayD1>("ss_alb_oc1", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_oc1 = create<ArrayD1>("asm_prm_oc1", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_oc1 = create<ArrayD1>("ext_cff_mss_oc1", ELM::snow_snicar::numrad_snw);
-//auto ss_alb_oc2 = create<ArrayD1>("ss_alb_oc2", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_oc2 = create<ArrayD1>("asm_prm_oc2", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_oc2 = create<ArrayD1>("ext_cff_mss_oc2", ELM::snow_snicar::numrad_snw);
-//auto ss_alb_dst1 = create<ArrayD1>("ss_alb_dst1", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_dst1 = create<ArrayD1>("asm_prm_dst1", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_dst1 = create<ArrayD1>("ext_cff_mss_dst1", ELM::snow_snicar::numrad_snw);
-//auto ss_alb_dst2 = create<ArrayD1>("ss_alb_dst2", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_dst2 = create<ArrayD1>("asm_prm_dst2", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_dst2 = create<ArrayD1>("ext_cff_mss_dst2", ELM::snow_snicar::numrad_snw);
-//auto ss_alb_dst3 = create<ArrayD1>("ss_alb_dst3", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_dst3 = create<ArrayD1>("asm_prm_dst3", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_dst3 = create<ArrayD1>("ext_cff_mss_dst3", ELM::snow_snicar::numrad_snw);
-//auto ss_alb_dst4 = create<ArrayD1>("ss_alb_dst4", ELM::snow_snicar::numrad_snw);
-//auto asm_prm_dst4 = create<ArrayD1>("asm_prm_dst4", ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_dst4 = create<ArrayD1>("ext_cff_mss_dst4", ELM::snow_snicar::numrad_snw);
+//auto ss_alb_oc1 = create<ArrayD1>("ss_alb_oc1", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_oc1 = create<ArrayD1>("asm_prm_oc1", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_oc1 = create<ArrayD1>("ext_cff_mss_oc1", ELM::snow_snicar::numrad_snw());
+//auto ss_alb_oc2 = create<ArrayD1>("ss_alb_oc2", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_oc2 = create<ArrayD1>("asm_prm_oc2", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_oc2 = create<ArrayD1>("ext_cff_mss_oc2", ELM::snow_snicar::numrad_snw());
+//auto ss_alb_dst1 = create<ArrayD1>("ss_alb_dst1", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_dst1 = create<ArrayD1>("asm_prm_dst1", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_dst1 = create<ArrayD1>("ext_cff_mss_dst1", ELM::snow_snicar::numrad_snw());
+//auto ss_alb_dst2 = create<ArrayD1>("ss_alb_dst2", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_dst2 = create<ArrayD1>("asm_prm_dst2", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_dst2 = create<ArrayD1>("ext_cff_mss_dst2", ELM::snow_snicar::numrad_snw());
+//auto ss_alb_dst3 = create<ArrayD1>("ss_alb_dst3", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_dst3 = create<ArrayD1>("asm_prm_dst3", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_dst3 = create<ArrayD1>("ext_cff_mss_dst3", ELM::snow_snicar::numrad_snw());
+//auto ss_alb_dst4 = create<ArrayD1>("ss_alb_dst4", ELM::snow_snicar::numrad_snw());
+//auto asm_prm_dst4 = create<ArrayD1>("asm_prm_dst4", ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_dst4 = create<ArrayD1>("ext_cff_mss_dst4", ELM::snow_snicar::numrad_snw());
 // D2
-//auto ss_alb_snw_drc = create<ArrayD2>("ss_alb_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto asm_prm_snw_drc = create<ArrayD2>("asm_prm_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto ext_cff_mss_snw_drc = create<ArrayD2>("ext_cff_mss_snw_drc", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto ss_alb_snw_dfs = create<ArrayD2>("ss_alb_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto asm_prm_snw_dfs = create<ArrayD2>("asm_prm_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto ext_cff_mss_snw_dfs = create<ArrayD2>("ext_cff_mss_snw_dfs", ELM::snow_snicar::numrad_snw, ELM::snow_snicar::idx_Mie_snw_mx);
-//auto ss_alb_bc1 = create<ArrayD2>("ss_alb_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-//auto asm_prm_bc1 = create<ArrayD2>("asm_prm_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_bc1 = create<ArrayD2>("ext_cff_mss_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-//auto ss_alb_bc2 = create<ArrayD2>("ss_alb_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-//auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-//auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-auto albout_lcl = create<ArrayD2>("albout_lcl", ncells, ELM::snow_snicar::numrad_snw);
-auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", ncells, ELM::snow_snicar::numrad_snw);
-auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", ncells, ELM::snow_snicar::numrad_snw);
-//auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-//auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno + ELM::nlevgrnd);
-auto h2osoi_ice_lcl = create<ArrayD2>("h2osoi_ice_lcl", ncells, ELM::nlevsno);
-auto h2osoi_liq_lcl = create<ArrayD2>("h2osoi_liq_lcl", ncells, ELM::nlevsno);
+//auto ss_alb_snw_drc = create<ArrayD2>("ss_alb_snw_drc", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto asm_prm_snw_drc = create<ArrayD2>("asm_prm_snw_drc", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ext_cff_mss_snw_drc = create<ArrayD2>("ext_cff_mss_snw_drc", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ss_alb_snw_dfs = create<ArrayD2>("ss_alb_snw_dfs", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto asm_prm_snw_dfs = create<ArrayD2>("asm_prm_snw_dfs", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ext_cff_mss_snw_dfs = create<ArrayD2>("ext_cff_mss_snw_dfs", ELM::snow_snicar::numrad_snw(), ELM::snow_snicar::idx_Mie_snw_mx);
+//auto ss_alb_bc1 = create<ArrayD2>("ss_alb_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+//auto asm_prm_bc1 = create<ArrayD2>("asm_prm_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_bc1 = create<ArrayD2>("ext_cff_mss_bc1", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+//auto ss_alb_bc2 = create<ArrayD2>("ss_alb_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+//auto asm_prm_bc2 = create<ArrayD2>("asm_prm_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+//auto ext_cff_mss_bc2 = create<ArrayD2>("ext_cff_mss_bc2", ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+auto albout_lcl = create<ArrayD2>("albout_lcl", ncells, ELM::snow_snicar::numrad_snw());
+auto flx_slrd_lcl = create<ArrayD2>("flx_slrd_lcl", ncells, ELM::snow_snicar::numrad_snw());
+auto flx_slri_lcl = create<ArrayD2>("flx_slri_lcl", ncells, ELM::snow_snicar::numrad_snw());
+//auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, ELM::nlevsno() + ELM::nlevgrnd());
+//auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, ELM::nlevsno() + ELM::nlevgrnd());
+auto h2osoi_ice_lcl = create<ArrayD2>("h2osoi_ice_lcl", ncells, ELM::nlevsno());
+auto h2osoi_liq_lcl = create<ArrayD2>("h2osoi_liq_lcl", ncells, ELM::nlevsno());
 // D3
-//auto bcenh = create<ArrayD3>("bcenh", ELM::snow_snicar::idx_bcint_icerds_max+1, ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw);
-auto g_star = create<ArrayD3>("g_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
-auto omega_star = create<ArrayD3>("omega_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
-auto tau_star = create<ArrayD3>("tau_star", ncells, ELM::snow_snicar::numrad_snw, ELM::nlevsno);
+//auto bcenh = create<ArrayD3>("bcenh", ELM::snow_snicar::idx_bcint_icerds_max+1, ELM::snow_snicar::idx_bc_nclrds_max+1, ELM::snow_snicar::numrad_snw());
+auto g_star = create<ArrayD3>("g_star", ncells, ELM::snow_snicar::numrad_snw(), ELM::nlevsno());
+auto omega_star = create<ArrayD3>("omega_star", ncells, ELM::snow_snicar::numrad_snw(), ELM::nlevsno());
+auto tau_star = create<ArrayD3>("tau_star", ncells, ELM::snow_snicar::numrad_snw(), ELM::nlevsno());
 
 
 
@@ -580,9 +580,9 @@ std::string fname_aerosol(
     auto albdry = create<ArrayD2>("albdry", ncells, 2);
     ELM::read_soil::read_soil_colors(dd, fname_surfdata, isoicol, albsat, albdry);
     
-    auto pct_sand = create<ArrayD2>("pct_sand", ncells, ELM::nlevgrnd);
-    auto pct_clay = create<ArrayD2>("pct_clay", ncells, ELM::nlevgrnd);
-    auto organic = create<ArrayD2>("organic", ncells, ELM::nlevgrnd);
+    auto pct_sand = create<ArrayD2>("pct_sand", ncells, ELM::nlevgrnd());
+    auto pct_clay = create<ArrayD2>("pct_clay", ncells, ELM::nlevgrnd());
+    auto organic = create<ArrayD2>("organic", ncells, ELM::nlevgrnd());
     ELM::read_soil::read_soil_texture(dd, fname_surfdata, pct_sand, pct_clay, organic);
     
     ELM::SnicarData *snicar_data = new ELM::SnicarData();
@@ -616,7 +616,7 @@ std::string fname_aerosol(
     for (int q = 0; q < 20; ++q) {
       t_soisno(0, q) = tsoi_test(0, q); // for testing
     }
-    t_grnd[0] = t_soisno(0, ELM::nlevsno - snl(0));
+    t_grnd[0] = t_soisno(0, ELM::nlevsno() - snl(0));
 
 
     ELM::init_snow_state::init_snow_state(Land.urbpoi, snl[0], h2osno[0], int_snow[0], snow_depth[0], h2osfc[0], h2ocan[0], frac_h2osfc[0], fwet[0], fdry[0], frac_sno[0], snw_rds[0]);
@@ -625,12 +625,12 @@ std::string fname_aerosol(
 double h2osoi_ice_test[] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 51.095355179469955, 131.99213225849098, 17.829256395227745, 95.72899575304584, 155.31526899797177, 0.01, 0.01, 0.01, 0.01, 0.01};
 double h2osoi_liq_test[] = {0.0, 0.0, 0.0, 0.0, 0.0, 7.045411435071487, 14.353496179256807, 36.308518784697064, 62.46145027256513, 97.14000248023912, 97.47148319510016, 78.52160092062527, 65.63904088905001, 41.25305599181871, 70.8566046019581, 0.01, 0.01, 0.01, 0.01, 0.01};
 double h2osoi_vol_test[] = {0.4016484663460637, 0.5196481455614503, 0.7967166638201649, 0.8331813710901114, 0.7859200286330449, 0.7517405589446893, 0.6621235242027332, 0.1535948180493002, 0.15947477948341815, 0.15954052527228618, 8.420726808634413e-06, 5.107428986500891e-06, 3.0978122726178113e-06, 1.8789181213767733e-06, 1.5092697845407248e-06};
-for (int q = 0; q < ELM::nlevgrnd+ELM::nlevsno; ++q) {
+for (int q = 0; q < ELM::nlevgrnd()+ELM::nlevsno(); ++q) {
   h2osoi_ice(0,q) = h2osoi_ice_test[q];
   h2osoi_liq(0,q) = h2osoi_liq_test[q];
 }
 
-for (int q = 0; q < ELM::nlevgrnd; ++q) {
+for (int q = 0; q < ELM::nlevgrnd(); ++q) {
   h2osoi_vol(0,q) = h2osoi_vol_test[q];
 }
 
@@ -978,8 +978,8 @@ time_plus_half_dt.increment_seconds(900);
 /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 {
   // local to these kernel calls
-    double trd[ELM::numrad] = {0.0,0.0};
-    double tri[ELM::numrad] = {0.0,0.0};
+    double trd[ELM::numrad()] = {0.0,0.0};
+    double tri[ELM::numrad()] = {0.0,0.0};
 
     // call canopy_sunshade_fractions kernel
     ELM::surface_radiation::canopy_sunshade_fractions(
@@ -1193,15 +1193,15 @@ time_plus_half_dt.increment_seconds(900);
 {
 
 
-ELM::surface_fluxes::initial_flux_calc(Land.urbpoi, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc_bef[idx], tssbef(idx, ELM::nlevsno-snl(idx)), tssbef(idx, ELM::nlevsno),
+ELM::surface_fluxes::initial_flux_calc(Land.urbpoi, snl[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc_bef[idx], tssbef(idx, ELM::nlevsno()-snl(idx)), tssbef(idx, ELM::nlevsno()),
   t_grnd[idx], cgrnds[idx], cgrndl[idx], eflx_sh_grnd[idx], qflx_evap_soi[idx], qflx_ev_snow[idx], qflx_ev_soil[idx],
   qflx_ev_h2osfc[idx]);
 
 
 
 ELM::surface_fluxes::update_surface_fluxes(Land.urbpoi, do_capsnow, snl[idx], dtime, t_grnd[idx], htvp[idx], frac_sno_eff[idx], frac_h2osfc[idx], t_h2osfc_bef[idx], sabg_soil[idx],
-  sabg_snow[idx], dlrad[idx], frac_veg_nosno[idx], emg[idx], forc_lwrad[idx], tssbef(idx, ELM::nlevsno-snl(idx)), tssbef(idx, ELM::nlevsno),
-  h2osoi_ice(idx, ELM::nlevsno-snl(idx)), h2osoi_liq(idx, ELM::nlevsno), 
+  sabg_snow[idx], dlrad[idx], frac_veg_nosno[idx], emg[idx], forc_lwrad[idx], tssbef(idx, ELM::nlevsno()-snl(idx)), tssbef(idx, ELM::nlevsno()),
+  h2osoi_ice(idx, ELM::nlevsno()-snl(idx)), h2osoi_liq(idx, ELM::nlevsno()), 
 eflx_sh_veg[idx],
 qflx_evap_veg[idx], qflx_evap_soi[idx], eflx_sh_grnd[idx], qflx_ev_snow[idx], qflx_ev_soil[idx], qflx_ev_h2osfc[idx],
   eflx_soil_grnd[idx], eflx_sh_tot[idx], qflx_evap_tot[idx], eflx_lh_tot[idx], qflx_evap_grnd[idx], qflx_sub_snow[idx], qflx_dew_snow[idx], qflx_dew_grnd[idx], qflx_snwcp_liq[idx],

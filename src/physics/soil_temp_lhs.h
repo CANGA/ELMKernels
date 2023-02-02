@@ -7,7 +7,7 @@
 
 namespace ELM::soil_temp {
 
-  // lhs_matrix(ncells, nlevgrnd+nlevsno+1, nband) LHS matrix for numerical solution of temperature
+  // lhs_matrix(ncells, nlevgrnd()+nlevsno()+1, nband()) LHS matrix for numerical solution of temperature
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3>
   void set_LHS(const double& dtime,
                const ArrayI1 snl,

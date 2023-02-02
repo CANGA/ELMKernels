@@ -64,21 +64,21 @@ using ELMdims::sno_nbr_aer;
 \param[in]coszen                              [double] solar zenith angle factor
 \param[in]h2osno                              [double] snow water (mm H2O)
 \param[in]snl                                 [int] number of snow layers
-\param[in]h2osoi_liq[nlevgrnd+nlevsno]        [double] liquid water content (col,lyr) [kg/m2]
-\param[in]h2osoi_ice[nlevgrnd+nlevsno]        [double] ice lens content (col,lyr) [kg/m2]
-\param[in]snw_rds[nlevsno]                    [double] snow grain radius (col,lyr) [microns]
+\param[in]h2osoi_liq[nlevgrnd()+nlevsno()]        [double] liquid water content (col,lyr) [kg/m2]
+\param[in]h2osoi_ice[nlevgrnd()+nlevsno()]        [double] ice lens content (col,lyr) [kg/m2]
+\param[in]snw_rds[nlevsno()]                    [double] snow grain radius (col,lyr) [microns]
 
 \param[out]snl_top                            [int] top snow layer index [idx]
 \param[out]snl_btm                            [int] bottom snow layer index [idx]
-\param[out]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack (lyr,bnd) [frc]
-\param[out]flx_abs[nlevsno+1][numrad]         [double] absorbed flux in each layer per unit flux incident [frc]
+\param[out]flx_abs_lcl[nlevsno()+1][numrad_snw()] [double] absorbed flux per unit incident flux at top of snowpack (lyr,bnd) [frc]
+\param[out]flx_abs[nlevsno()+1][numrad()]         [double] absorbed flux in each layer per unit flux incident [frc]
 \param[out]flg_nosnl                          [int] flag: =1 if there is snow, but zero snow layers
-\param[out]h2osoi_ice_lcl[nlevsno]            [double] liquid water mass [kg/m2]
-\param[out]h2osoi_liq_lcl[nlevsno]            [double] ice mass [kg/m2]
-\param[out]snw_rds_lcl[nlevsno]               [int] snow effective radius [m^-6]
+\param[out]h2osoi_ice_lcl[nlevsno()]            [double] liquid water mass [kg/m2]
+\param[out]h2osoi_liq_lcl[nlevsno()]            [double] ice mass [kg/m2]
+\param[out]snw_rds_lcl[nlevsno()]               [int] snow effective radius [m^-6]
 \param[out]mu_not                             [double] cosine solar zenith angle above the fresnel level
-\param[out]flx_slrd_lcl[numrad_snw]           [double] direct beam incident irradiance [W/m2]
-\param[out]flx_slri_lcl[numrad_snw]           [double] diffuse incident irradiance [W/m2]
+\param[out]flx_slrd_lcl[numrad_snw()]           [double] direct beam incident irradiance [W/m2]
+\param[out]flx_slri_lcl[numrad_snw()]           [double] diffuse incident irradiance [W/m2]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATE
@@ -95,45 +95,45 @@ void init_timestep(const bool& urbpoi, const int& flg_slr_in, const double& cosz
 \param[in]snl_btm                                                        [int] bottom snow layer index [idx]
 \param[in]coszen                                                         [double] solar zenith angle factor
 \param[in]h2osno                                                         [double] snow water (mm H2O)
-\param[in]snw_rds_lcl[nlevsno]                                           [int] snow effective radius [m^-6]
-\param[in]h2osoi_ice_lcl[nlevsno]                                        [double] liquid water mass [kg/m2]
-\param[in]h2osoi_liq_lcl[nlevsno]                                        [double] ice mass [kg/m2]
-\param[in]ss_alb_oc1[numrad_snw]                                         [double] Mie single scatter albedos for hydrophillic OC [frc]
-\param[in]asm_prm_oc1[numrad_snw]                                        [double] Mie asymmetry parameters for hydrophillic OC [frc]
-\param[in]ext_cff_mss_oc1[numrad_snw]                                    [double] Mie mass extinction coefficients for hydrophillic OC [frc]
-\param[in]ss_alb_oc2[numrad_snw]                                         [double] Mie single scatter albedos for hydrophobic OC [frc]
-\param[in]asm_prm_oc2[numrad_snw]                                        [double] Mie asymmetry parameters for hydrophobic OC [frc]
-\param[in]ext_cff_mss_oc2[numrad_snw]                                    [double] Mie mass extinction coefficients for hydrophobic OC [frc]
-\param[in]ss_alb_dst1[numrad_snw]                                        [double] Mie single scatter albedos for dust species 1 [frc]
-\param[in]asm_prm_dst1[numrad_snw]                                       [double] Mie asymmetry parameters for dust species 1 [frc]
-\param[in]ext_cff_mss_dst1[numrad_snw]                                   [double] Mie mass extinction coefficients for dust species 1 [frc]
-\param[in]ss_alb_dst2[numrad_snw]                                        [double] Mie single scatter albedos for dust species 2 [frc]
-\param[in]asm_prm_dst2[numrad_snw]                                       [double] Mie asymmetry parameters for dust species 2 [frc]
-\param[in]ext_cff_mss_dst2[numrad_snw]                                   [double] Mie mass extinction coefficients for dust species 2 [frc]
-\param[in]ss_alb_dst3[numrad_snw]                                        [double] Mie single scatter albedos for dust species 3 [frc]
-\param[in]asm_prm_dst3[numrad_snw]                                       [double] Mie asymmetry parameters for dust species 3 [frc]
-\param[in]ext_cff_mss_dst3[numrad_snw]                                   [double] Mie mass extinction coefficients for dust species 3 [frc]
-\param[in]ss_alb_dst4[numrad_snw]                                        [double] Mie single scatter albedos for dust species 4 [frc]
-\param[in]asm_prm_dst4[numrad_snw]                                       [double] Mie asymmetry parameters for dust species 4 [frc]
-\param[in]ext_cff_mss_dst4[numrad_snw]                                   [double] Mie mass extinction coefficients for dust species 4 [frc
-\param[in]ss_alb_snw_drc[numrad_snw][idx_Mie_snw_mx]                     [double] Mie single scatter albedos for direct-beam ice [frc]
-\param[in]asm_prm_snw_drc[numrad_snw][idx_Mie_snw_mx]                    [double] Mie asymmetry parameters for direct-beam ice [frc]
-\param[in]ext_cff_mss_snw_drc[numrad_snw][idx_Mie_snw_mx]                [double] Mie mass extinction coefficients for direct-beam ice [frc]
-\param[in]ss_alb_snw_dfs[numrad_snw][idx_Mie_snw_mx]                     [double] Mie single scatter albedos for diffuse ice [frc]
-\param[in]asm_prm_snw_dfs[numrad_snw][idx_Mie_snw_mx]                    [double] Mie asymmetry parameters for diffuse ice [frc]
-\param[in]ext_cff_mss_snw_dfs[numrad_snw][idx_Mie_snw_mx]                [double] Mie mass extinction coefficients for diffuse ice [frc
-\param[in]ss_alb_bc1[idx_bc_nclrds_max+1][numrad_snw]                    [double] Mie single scatter albedos for within-ice BC [frc]
-\param[in]asm_prm_bc1[idx_bc_nclrds_max+1][numrad_snw]                   [double] Mie asymmetry parameters for within-ice BC [frc]
-\param[in]ext_cff_mss_bc1[idx_bc_nclrds_max+1][numrad_snw]               [double] Mie mass extinction coefficients for within-ice BC [frc]
-\param[in]ss_alb_bc2[idx_bc_nclrds_max+1][numrad_snw]                    [double] Mie single scatter albedos for external BC [frc]
-\param[in]asm_prm_bc2[idx_bc_nclrds_max+1][numrad_snw]                   [double] Mie asymmetry parameters for external BC [frc]
-\param[in]ext_cff_mss_bc2[idx_bc_nclrds_max+1][numrad_snw]               [double] Mie mass extinction coefficients for external BC [frc]
-\param[in]mss_cnc_aer_in[nlevsno][sno_nbr_aer]                           [double] mass concentration of all aerosol species [kg/kg]
-\param[in]bcenh[idx_bcint_icerds_max+1][idx_bc_nclrds_max+1][numrad_snw] [double] Absorption enhancement factors for within-ice BC
+\param[in]snw_rds_lcl[nlevsno()]                                           [int] snow effective radius [m^-6]
+\param[in]h2osoi_ice_lcl[nlevsno()]                                        [double] liquid water mass [kg/m2]
+\param[in]h2osoi_liq_lcl[nlevsno()]                                        [double] ice mass [kg/m2]
+\param[in]ss_alb_oc1[numrad_snw()]                                         [double] Mie single scatter albedos for hydrophillic OC [frc]
+\param[in]asm_prm_oc1[numrad_snw()]                                        [double] Mie asymmetry parameters for hydrophillic OC [frc]
+\param[in]ext_cff_mss_oc1[numrad_snw()]                                    [double] Mie mass extinction coefficients for hydrophillic OC [frc]
+\param[in]ss_alb_oc2[numrad_snw()]                                         [double] Mie single scatter albedos for hydrophobic OC [frc]
+\param[in]asm_prm_oc2[numrad_snw()]                                        [double] Mie asymmetry parameters for hydrophobic OC [frc]
+\param[in]ext_cff_mss_oc2[numrad_snw()]                                    [double] Mie mass extinction coefficients for hydrophobic OC [frc]
+\param[in]ss_alb_dst1[numrad_snw()]                                        [double] Mie single scatter albedos for dust species 1 [frc]
+\param[in]asm_prm_dst1[numrad_snw()]                                       [double] Mie asymmetry parameters for dust species 1 [frc]
+\param[in]ext_cff_mss_dst1[numrad_snw()]                                   [double] Mie mass extinction coefficients for dust species 1 [frc]
+\param[in]ss_alb_dst2[numrad_snw()]                                        [double] Mie single scatter albedos for dust species 2 [frc]
+\param[in]asm_prm_dst2[numrad_snw()]                                       [double] Mie asymmetry parameters for dust species 2 [frc]
+\param[in]ext_cff_mss_dst2[numrad_snw()]                                   [double] Mie mass extinction coefficients for dust species 2 [frc]
+\param[in]ss_alb_dst3[numrad_snw()]                                        [double] Mie single scatter albedos for dust species 3 [frc]
+\param[in]asm_prm_dst3[numrad_snw()]                                       [double] Mie asymmetry parameters for dust species 3 [frc]
+\param[in]ext_cff_mss_dst3[numrad_snw()]                                   [double] Mie mass extinction coefficients for dust species 3 [frc]
+\param[in]ss_alb_dst4[numrad_snw()]                                        [double] Mie single scatter albedos for dust species 4 [frc]
+\param[in]asm_prm_dst4[numrad_snw()]                                       [double] Mie asymmetry parameters for dust species 4 [frc]
+\param[in]ext_cff_mss_dst4[numrad_snw()]                                   [double] Mie mass extinction coefficients for dust species 4 [frc
+\param[in]ss_alb_snw_drc[numrad_snw()][idx_Mie_snw_mx]                     [double] Mie single scatter albedos for direct-beam ice [frc]
+\param[in]asm_prm_snw_drc[numrad_snw()][idx_Mie_snw_mx]                    [double] Mie asymmetry parameters for direct-beam ice [frc]
+\param[in]ext_cff_mss_snw_drc[numrad_snw()][idx_Mie_snw_mx]                [double] Mie mass extinction coefficients for direct-beam ice [frc]
+\param[in]ss_alb_snw_dfs[numrad_snw()][idx_Mie_snw_mx]                     [double] Mie single scatter albedos for diffuse ice [frc]
+\param[in]asm_prm_snw_dfs[numrad_snw()][idx_Mie_snw_mx]                    [double] Mie asymmetry parameters for diffuse ice [frc]
+\param[in]ext_cff_mss_snw_dfs[numrad_snw()][idx_Mie_snw_mx]                [double] Mie mass extinction coefficients for diffuse ice [frc
+\param[in]ss_alb_bc1[idx_bc_nclrds_max+1][numrad_snw()]                    [double] Mie single scatter albedos for within-ice BC [frc]
+\param[in]asm_prm_bc1[idx_bc_nclrds_max+1][numrad_snw()]                   [double] Mie asymmetry parameters for within-ice BC [frc]
+\param[in]ext_cff_mss_bc1[idx_bc_nclrds_max+1][numrad_snw()]               [double] Mie mass extinction coefficients for within-ice BC [frc]
+\param[in]ss_alb_bc2[idx_bc_nclrds_max+1][numrad_snw()]                    [double] Mie single scatter albedos for external BC [frc]
+\param[in]asm_prm_bc2[idx_bc_nclrds_max+1][numrad_snw()]                   [double] Mie asymmetry parameters for external BC [frc]
+\param[in]ext_cff_mss_bc2[idx_bc_nclrds_max+1][numrad_snw()]               [double] Mie mass extinction coefficients for external BC [frc]
+\param[in]mss_cnc_aer_in[nlevsno()][sno_nbr_aer()]                           [double] mass concentration of all aerosol species [kg/kg]
+\param[in]bcenh[idx_bcint_icerds_max+1][idx_bc_nclrds_max+1][numrad_snw()] [double] Absorption enhancement factors for within-ice BC
 
-\param[out]g_star[numrad_snw][nlevsno]                                   [double] transformed (i.e. Delta-Eddington) asymmetry paramater of snow+aerosol layer
-\param[out]omega_star[numrad_snw][nlevsno]                               [double] transformed (i.e. Delta-Eddington) SSA of snow+aerosol layer [frc]
-\param[out]tau_star[numrad_snw][nlevsno]                                 [double] transformed (i.e. Delta-Eddington) optical depth of snow+aerosol layer [-]
+\param[out]g_star[numrad_snw()][nlevsno()]                                   [double] transformed (i.e. Delta-Eddington) asymmetry paramater of snow+aerosol layer
+\param[out]omega_star[numrad_snw()][nlevsno()]                               [double] transformed (i.e. Delta-Eddington) SSA of snow+aerosol layer [frc]
+\param[out]tau_star[numrad_snw()][nlevsno()]                                 [double] transformed (i.e. Delta-Eddington) optical depth of snow+aerosol layer [-]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2, typename ArrayD3, typename SubviewD1, typename SubviewD2>
 ACCELERATE
@@ -164,14 +164,14 @@ void snow_aerosol_mie_params(const bool& urbpoi, const int& flg_slr_in, const in
 \param[in]coszen                              [double] solar zenith angle factor
 \param[in]h2osno                              [double] snow water (mm H2O)
 \param[in]mu_not                              [double] cosine solar zenith angle above the fresnel level
-\param[in]flx_slrd_lcl[numrad_snw]            [double] direct beam incident irradiance [W/m2]
-\param[in]flx_slri_lcl[numrad_snw]            [double] diffuse incident irradiance [W/m2]
-\param[in]albsoi[numrad]                      [double] albedo of surface underlying snow [frc]
-\param[in]g_star[numrad_snw][nlevsno]         [double] transformed (i.e. Delta-Eddington) asymmetry paramater of snow+aerosol layer
-\param[in]omega_star[numrad_snw][nlevsno]     [double] transformed (i.e. Delta-Eddington) SSA of snow+aerosol layer [frc]
-\param[in]tau_star[numrad_snw][nlevsno]       [double] transformed (i.e. Delta-Eddington) optical depth of snow+aerosol layer [-]
-\param[out]albout_lcl[numrad_snw]             [double] snow albedo by band [frc]
-\param[out]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack [frc]
+\param[in]flx_slrd_lcl[numrad_snw()]            [double] direct beam incident irradiance [W/m2]
+\param[in]flx_slri_lcl[numrad_snw()]            [double] diffuse incident irradiance [W/m2]
+\param[in]albsoi[numrad()]                      [double] albedo of surface underlying snow [frc]
+\param[in]g_star[numrad_snw()][nlevsno()]         [double] transformed (i.e. Delta-Eddington) asymmetry paramater of snow+aerosol layer
+\param[in]omega_star[numrad_snw()][nlevsno()]     [double] transformed (i.e. Delta-Eddington) SSA of snow+aerosol layer [frc]
+\param[in]tau_star[numrad_snw()][nlevsno()]       [double] transformed (i.e. Delta-Eddington) optical depth of snow+aerosol layer [-]
+\param[out]albout_lcl[numrad_snw()]             [double] snow albedo by band [frc]
+\param[out]flx_abs_lcl[nlevsno()+1][numrad_snw()] [double] absorbed flux per unit incident flux at top of snowpack [frc]
 */
 template <typename ArrayD1, typename ArrayD2>
 ACCELERATE
@@ -188,12 +188,12 @@ void snow_radiative_transfer_solver(const bool& urbpoi, const int& flg_slr_in, c
 \param[in]coszen                             [double] solar zenith angle factor
 \param[in]mu_not                             [double] cosine solar zenith angle above the fresnel level
 \param[in]h2osno                             [double] snow water (mm H2O)
-\param[in]snw_rds_lcl[nlevsno]               [int] snow effective radius [m^-6]
-\param[in]albsoi[numrad]                     [double] albedo of surface underlying snow [frc]
-\param[in]albout_lcl[numrad_snw]             [double] snow albedo by band [frc]
-\param[in]flx_abs_lcl[nlevsno+1][numrad_snw] [double] absorbed flux per unit incident flux at top of snowpack [frc]
-\param[out]albout[numrad]                    [double] snow albedo, averaged into 2 bands (=0 if no sun or no snow) [frc]
-\param[out]flx_abs[nlevsno+1][numrad]        [double] absorbed flux in each layer per unit flux incident, averaged into 2 bands  [frc]
+\param[in]snw_rds_lcl[nlevsno()]               [int] snow effective radius [m^-6]
+\param[in]albsoi[numrad()]                     [double] albedo of surface underlying snow [frc]
+\param[in]albout_lcl[numrad_snw()]             [double] snow albedo by band [frc]
+\param[in]flx_abs_lcl[nlevsno()+1][numrad_snw()] [double] absorbed flux per unit incident flux at top of snowpack [frc]
+\param[out]albout[numrad()]                    [double] snow albedo, averaged into 2 bands (=0 if no sun or no snow) [frc]
+\param[out]flx_abs[nlevsno()+1][numrad()]        [double] absorbed flux in each layer per unit flux incident, averaged into 2 bands  [frc]
 */
 template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
 ACCELERATE

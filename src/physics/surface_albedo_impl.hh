@@ -5,7 +5,7 @@
 
 // will need to finish zenith angle ATS code, Aerosol functions
 
-// need to initialize h2osoi_vol[nlevgrnd]
+// need to initialize h2osoi_vol[nlevgrnd()]
 // need to read in soil color NetCDF, initialize isoicol, albsat, albdry
 // need to figure out doalb - during nstep == 0 SurfaceAlbedo doesn't get called and values for the outputs are provided
 // by SurfaceAlbedoType::InitCold
@@ -38,21 +38,21 @@ namespace ELM::surface_albedo {
 // maybe for nstep == 0 this should be run, don't call surfalb, but call evrything else?
 //  will need to investigate initialization of coupled system - ELM calls dummy nstep == 0 for a reason
 // void SurfaceAlbedo_InitCold() {
-// albgrd[numrad] = {0.2};
-// albgri[numrad] = {0.2};
-// albsod[numrad] = {0.2};
-// albsoi[numrad] = {0.2};
-// albd[numrad] = {0.2};
-// albi[numrad] = {0.2};
-// fabi[numrad] = {0.0};
-// fabd[numrad] = {0.0};
-// fabi_sun[numrad] = {0.0};
-// fabd_sun[numrad] = {0.0};
-// fabd_sha[numrad] = {0.0};
-// fabi_sha[numrad] = {0.0};
-// ftdd[numrad] = {1.0};
-// ftid[numrad] = {0.0};
-// ftii[numrad] = {1.0};
+// albgrd[numrad()] = {0.2};
+// albgri[numrad()] = {0.2};
+// albsod[numrad()] = {0.2};
+// albsoi[numrad()] = {0.2};
+// albd[numrad()] = {0.2};
+// albi[numrad()] = {0.2};
+// fabi[numrad()] = {0.0};
+// fabd[numrad()] = {0.0};
+// fabi_sun[numrad()] = {0.0};
+// fabd_sun[numrad()] = {0.0};
+// fabd_sha[numrad()] = {0.0};
+// fabi_sha[numrad()] = {0.0};
+// ftdd[numrad()] = {1.0};
+// ftid[numrad()] = {0.0};
+// ftii[numrad()] = {1.0};
 //}
 
 
@@ -61,7 +61,7 @@ namespace ELM::surface_albedo {
 ACCELERATE
 double calc_cosz(const double& jday, const double& lat, const double& lon, const double& declin)
 {
-  return sin(lat) * sin(declin) - cos(lat) * cos(declin) * cos((jday - floor(jday)) * 2.0 * ELMconst::ELM_PI + lon);
+  return sin(lat) * sin(declin) - cos(lat) * cos(declin) * cos((jday - floor(jday)) * 2.0 * ELMconst::ELM_PI() + lon);
 }
 
 ACCELERATE
@@ -101,7 +101,7 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
 
   // Initialize output because solar radiation only done if coszen > 0
   if (!urbpoi) {
-    for (int ib = 0; ib < numrad; ++ib) {
+    for (int ib = 0; ib < numrad(); ++ib) {
       albsod(ib) = 0.0;
       albsoi(ib) = 0.0;
       albgrd(ib) = 0.0;
@@ -118,13 +118,13 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
       ftid(ib) = 0.0;
       ftii(ib) = 0.0;
     }
-    for (int i = 0; i <= nlevsno; ++i) {
+    for (int i = 0; i <= nlevsno(); ++i) {
       flx_absdv(i) = 0.0;
       flx_absdn(i) = 0.0;
       flx_absiv(i) = 0.0;
       flx_absin(i) = 0.0;
     }
-    if (nlevcan == 1) {
+    if (nlevcan() == 1) {
       vcmaxcintsun = 0.0;
       vcmaxcintsha = (1.0 - exp(-detail::extkn * elai)) / detail::extkn;
       if (elai > 0.0) {
@@ -132,13 +132,13 @@ void init_timestep(const bool& urbpoi, const double& elai, const ArrayD1 mss_cnc
       } else {
         vcmaxcintsha = 0.0;
       }
-    } else if (nlevcan > 1) {
+    } else if (nlevcan() > 1) {
       vcmaxcintsun = 0.0;
       vcmaxcintsha = 0.0;
     }
   }
   // set soot and dust aerosol concentrations:
-  for (int i = 0; i < nlevsno; ++i) {
+  for (int i = 0; i < nlevsno(); ++i) {
     mss_cnc_aer_in_fdb(i, 0) = mss_cnc_bcphi(i);
     mss_cnc_aer_in_fdb(i, 1) = mss_cnc_bcpho(i);
     mss_cnc_aer_in_fdb(i, 2) = 0.0; // ignore OC concentrations due to poor constraint and negligible effect on snow
@@ -159,7 +159,7 @@ void ground_albedo(const bool& urbpoi, const double& coszen, const double& frac_
   using ELMdims::nlevcan;
 
   if (!urbpoi && coszen > 0.0) {
-    for (int ib = 0; ib < numrad; ++ib) {
+    for (int ib = 0; ib < numrad(); ++ib) {
       albgrd(ib) = albsod(ib) * (1.0 - frac_sno) + albsnd(ib) * frac_sno;
       albgri(ib) = albsoi(ib) * (1.0 - frac_sno) + albsni(ib) * frac_sno;
     }
@@ -179,12 +179,12 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
 
   // ground albedos and snow-fraction weighting of snow absorption factors
   if (!Land.urbpoi && coszen > 0.0) {
-    for (int i = 0; i <= nlevsno; ++i) {
-      for (int ib = 0; ib < numrad; ++ib) {
+    for (int i = 0; i <= nlevsno(); ++i) {
+      for (int ib = 0; ib < numrad(); ++ib) {
         // also in this loop (but optionally in a different loop for vectorized code)
         // weight snow layer radiative absorption factors based on snow fraction and soil albedo
         // (NEEDED FOR ENERGY CONSERVATION)
-        if (subgridflag == 0 || Land.ltype == LND::istdlak) {
+        if (subgridflag() == 0 || Land.ltype == LND::istdlak) {
           if (ib == 0) {
             flx_absdv(i) = flx_absd_snw(i, ib) * frac_sno +
                            ((1.0 - frac_sno) * (1.0 - albsod(ib)) * (flx_absd_snw(i, ib) / (1.0 - albsnd(ib))));
@@ -205,8 +205,8 @@ void flux_absorption_factor(const LandType& Land, const double& coszen, const do
             flx_absin(i) = flx_absi_snw(i, ib) * (1.0 - albsni(ib));
           }
         } // if subgridflag
-      }   // for numrad
-    }     // for nlevsno +1 layers
+      }   // for numrad()
+    }     // for nlevsno() +1 layers
   }       // if !Land.urbpoi && coszen > 0.0
 } // flux_absorption_factor
 
@@ -222,17 +222,17 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
   int ncan;
 
   if (!urbpoi) {
-    if (nlevcan == 1) {
+    if (nlevcan() == 1) {
       nrad = 1;
       ncan = 1;
       tlai_z(0) = elai;
       tsai_z(0) = esai;
-    } else if (nlevcan > 1) {
+    } else if (nlevcan() > 1) {
       if (elai + esai == 0.0) {
         nrad = 0;
       } else {
         double dincmax_sum = 0.0;
-        for (int iv = 0; iv < nlevcan; ++iv) {
+        for (int iv = 0; iv < nlevcan(); ++iv) {
           dincmax_sum += dincmax;
           if (((elai + esai) - dincmax_sum) > detail::mpe) {
             nrad = iv + 1;
@@ -271,14 +271,14 @@ void canopy_layer_lai(const int& urbpoi, const double& elai, const double& esai,
     }
 
     // Repeat to find canopy layers buried by snow
-    if (nlevcan > 1) {
+    if (nlevcan() > 1) {
       double blai = tlai - elai;
       double bsai = tsai - esai;
       if (blai + bsai == 0.0) {
         ncan = nrad;
       } else {
         double dincmax_sum = 0.0;
-        for (int iv = nrad; iv < nlevcan; ++iv) {
+        for (int iv = nrad; iv < nlevcan(); ++iv) {
           dincmax_sum += dincmax;
           if (((blai + bsai) - dincmax_sum) > detail::mpe) {
             ncan = iv + 1;
@@ -331,14 +331,14 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
   using ELMdims::numrad;
   using ELMdims::nlevcan;
 
-  static constexpr double omegas[numrad] = {0.8, 0.4}; // two-stream parameter omega for snow by band
+  static constexpr double omegas[numrad()] = {0.8, 0.4}; // two-stream parameter omega for snow by band
   static constexpr double betads{0.5};                // two-stream parameter betad for snow
   static constexpr double betais{0.5};                // two-stream parameter betai for snow
 
   if (vegsol(Land, coszen, elai, esai)) {
 
-    double omega[numrad]; // fraction of intercepted radiation that is scattered (0 to 1)
-    double rho[numrad], tau[numrad];
+    double omega[numrad()]; // fraction of intercepted radiation that is scattered (0 to 1)
+    double rho[numrad()], tau[numrad()];
 
     // Weight reflectance/transmittance by lai and sai
     const double wl{elai / std::max(elai + esai, detail::mpe)};
@@ -388,7 +388,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
     // fabi_sun_z - absorbed sunlit leaf diffuse PAR (per unit sunlit lai+sai) for each canopy layer
     // fabi_sha_z - absorbed shaded leaf diffuse PAR (per unit shaded lai+sai) for each canopy layer
 
-    for (int ib = 0; ib < numrad; ib++) {
+    for (int ib = 0; ib < numrad(); ib++) {
 
       rho[ib] = std::max(alb_pft.rhol[ib] * wl + alb_pft.rhos[ib] * ws, detail::mpe);
       tau[ib] = std::max(alb_pft.taul[ib] * wl + alb_pft.taus[ib] * ws, detail::mpe);
@@ -406,7 +406,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
       // Adjust omega, betad, and betai for intercepted snow
       double tmp0, tmp1, tmp2;
-      if (t_veg > ELMconst::TFRZ) { // no snow
+      if (t_veg > ELMconst::TFRZ()) { // no snow
         tmp0 = omegal;
         tmp1 = betadl;
         tmp2 = betail;
@@ -508,7 +508,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
 
       if (ib == 0) {
         double laisum;
-        if (nlevcan == 1) {
+        if (nlevcan() == 1) {
           // sunlit fraction of canopy
           fsun_z(0) = (1.0 - s2) / t1;
 
@@ -531,7 +531,7 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
             vcmaxcintsha = 0.0;
           }
 
-        } else if (nlevcan > 1) {
+        } else if (nlevcan() > 1) {
           for (int iv = 0; iv < nrad; iv++) {
             // Cumulative lai+sai at center of layer
             if (iv == 0) {
@@ -666,11 +666,11 @@ void two_stream_solver(const LandType& Land, const int& nrad, const double& cosz
             fabi_sun_z(iv) = fabi_sun_z(iv) / fsun_z(iv);
             fabi_sha_z(iv) = fabi_sha_z(iv) / (1.0 - fsun_z(iv));
           } // for nrad
-        }   // if nlevcan > 1
+        }   // if nlevcan() > 1
       }     // if ib == 0
-    }       // for numrad
+    }       // for numrad()
   } else if (novegsol(Land, coszen, elai, esai)) {
-    for (int ib = 0; ib < numrad; ++ib) {
+    for (int ib = 0; ib < numrad(); ++ib) {
       fabd(ib) = 0.0;
       fabd_sun(ib) = 0.0;
       fabd_sha(ib) = 0.0;
@@ -693,15 +693,15 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
   using ELMdims::numrad;
 
   // parameters from D. Mironov (2010)
-  static constexpr double albice[numrad] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
-  static constexpr double alblak[numrad] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
-  static constexpr double alblakwi[numrad] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
+  static constexpr double albice[numrad()] = {0.8, 0.55};    // albedo land ice by waveband (0=vis, 1=nir)
+  static constexpr double alblak[numrad()] = {0.60, 0.40};   // albedo frozen lakes by waveband (0=vis, 1=nir)
+  static constexpr double alblakwi[numrad()] = {0.10, 0.10}; // albedo of melting lakes due to puddling, open water, or white ice
   static constexpr double calb{95.6}; // Coefficient for calculating ice "fraction" for lake surface albedo
   static constexpr bool lakepuddling{false};          // puddling (not extensively tested and currently hardwired off)
 
   if (!Land.urbpoi) {
     if (coszen > 0.0) {
-      for (int ib = 0; ib < numrad; ib++) {
+      for (int ib = 0; ib < numrad(); ib++) {
         if (Land.ltype == LND::istsoil || Land.ltype == LND::istcrop) {
           double inc = std::max(0.11 - 0.40 * h2osoi_vol(0), 0.0); // soil water correction factor for soil albedo
           // double soilcol = isoicol;
@@ -711,7 +711,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           albsod(ib) = albice[ib];
           albsoi(ib) = albsod[ib];
           // comment out lake logic for now
-          // } else if (t_grnd > ELMconst::TFRZ || (lakepuddling && Land.ltype == LND::istdlak && t_grnd == ELMconst::TFRZ && lake_icefrac(0)
+          // } else if (t_grnd > ELMconst::TFRZ() || (lakepuddling && Land.ltype == LND::istdlak && t_grnd == ELMconst::TFRZ() && lake_icefrac(0)
           // < 1.0 &&
           //                              lake_icefrac(1) > 0.0)) { // maybe get rid of lake logic?
           //   albsod(ib) = 0.05 / (std::max(0.001, coszen) + 0.15);
@@ -736,7 +736,7 @@ void soil_albedo(const LandType& Land, const int& snl, const double& t_grnd, con
           if (Land.ltype == LND::istdlak && !lakepuddling && snl == 0) {
             // Need to reference snow layers here because t_grnd could be over snow or ice
             // but we really want the ice surface temperature with no snow
-            double sicefr = 1.0 - exp(-calb * (ELMconst::TFRZ - t_grnd) / ELMconst::TFRZ);
+            double sicefr = 1.0 - exp(-calb * (ELMconst::TFRZ() - t_grnd) / ELMconst::TFRZ());
             albsod(ib) =
                 sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.05 / (std::max(0.001, coszen) + 0.15));
             albsoi(ib) = sicefr * alblak[ib] + (1.0 - sicefr) * std::max(alblakwi[ib], 0.10);

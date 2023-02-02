@@ -12,7 +12,7 @@ I call calc_root_moist_stress() -> normalize_unfrozen_rootfr() -> array_normaliz
                                      soil_suction()
 
 
--- note: rootfr_unf[nlevgrnd] needs to be initialized to
+-- note: rootfr_unf[nlevgrnd()] needs to be initialized to
 
 soil_suction is SoilWaterRetentionCurveClappHornberg1978Mod, currently without derivative
 */
@@ -29,7 +29,7 @@ namespace ELM::soil_moist_stress {
 /*
 DESCRIPTION: normalize array elements with respect to array sum
 IN/OUT:
-arr_inout[>=nlevgrnd]  [double] double array to normalize
+arr_inout[>=nlevgrnd()]  [double] double array to normalize
 */
 ACCELERATE
 void array_normalization(double *arr_inout);
@@ -62,13 +62,13 @@ double dsuction_dsat(const double& bsw, const double& smp, const double& s);
 DESCRIPTION: normalize root fraction for total unfrozen depth
 
 INPUTS:
-t_soisno[nlevgrnd+nlevsno] [double] soil temperature (Kelvin)
-rootfr[nlevgrnd]           [double] fraction of roots in each soil layer
+t_soisno[nlevgrnd()+nlevsno()] [double] soil temperature (Kelvin)
+rootfr[nlevgrnd()]           [double] fraction of roots in each soil layer
 altmax_indx                [int] index corresponding to maximum active layer depth from current year
 altmax_lastyear_indx       [int] index corresponding to maximum active layer depth from prior year
 
 OUTPUTS:
-rootfr_unf[nlevgrnd]       [double] root fraction defined for unfrozen layers only
+rootfr_unf[nlevgrnd()]       [double] root fraction defined for unfrozen layers only
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -79,12 +79,12 @@ void normalize_unfrozen_rootfr(const ArrayD1 t_soisno, const ArrayD1 rootfr, con
 DESCRIPTION: compute the effective soil porosity
 
 INPUTS:
-watsat[nlevgrnd]             [double] volumetric soil water at saturation (porosity)
-h2osoi_ice[nlevgrnd+nlevsno] [double] ice lens (kg/m2)
-dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
+watsat[nlevgrnd()]             [double] volumetric soil water at saturation (porosity)
+h2osoi_ice[nlevgrnd()+nlevsno()] [double] ice lens (kg/m2)
+dz[nlevgrnd()+nlevsno()]         [double] layer thickness (m)
 
 OUTPUTS:
-eff_porosity[nlevgrnd]       [double] effective soil porosity
+eff_porosity[nlevgrnd()]       [double] effective soil porosity
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -94,12 +94,12 @@ void calc_effective_soilporosity(const ArrayD1 watsat, const ArrayD1 h2osoi_ice,
 DESCRIPTION: compute the volumetric liquid water content
 
 INPUTS:
-eff_porosity[nlevgrnd]       [double] effective soil porosity
-h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
-dz[nlevgrnd+nlevsno]         [double] layer thickness (m)
+eff_porosity[nlevgrnd()]       [double] effective soil porosity
+h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
+dz[nlevgrnd()+nlevsno()]         [double] layer thickness (m)
 
 OUTPUTS:
-vol_liq[nlevgrnd+nlevsno]    [double] volumetric liquid water content
+vol_liq[nlevgrnd()+nlevsno()]    [double] volumetric liquid water content
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -108,21 +108,21 @@ void calc_volumetric_h2oliq(const ArrayD1 eff_por, const ArrayD1 h2osoi_liq, con
 /*
 DESCRIPTION: compute integrated soil water stress (btran), also effective root fraction
 INPUTS:
-h2osoi_liqvol[nlevgrnd+nlevsno] [double] liquid volumetric moisture
-rootfr[nlevgrnd]                [double] fraction of roots in each soil layer
-t_soisno[nlevgrnd+nlevsno]      [double] col soil temperature (Kelvin)
+h2osoi_liqvol[nlevgrnd()+nlevsno()] [double] liquid volumetric moisture
+rootfr[nlevgrnd()]                [double] fraction of roots in each soil layer
+t_soisno[nlevgrnd()+nlevsno()]      [double] col soil temperature (Kelvin)
 tc_stress                       [double] critical soil temperature for soil water stress (C)
-sucsat[nlevgrnd]                [double] minimum soil suction (mm)
-watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
-bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
-smpso[numpft]                   [double] soil water potential at full stomatal opening (mm)
-smpsc[numpft]                   [double] soil water potential at full stomatal closure (mm)
-eff_porosity[nlevgrnd]          [double] effective soil porosity
+sucsat[nlevgrnd()]                [double] minimum soil suction (mm)
+watsat[nlevgrnd()]                [double] volumetric soil water at saturation (porosity)
+bsw[nlevgrnd()]                   [double] Clapp and Hornberger "b
+smpso[numpft()]                   [double] soil water potential at full stomatal opening (mm)
+smpsc[numpft()]                   [double] soil water potential at full stomatal closure (mm)
+eff_porosity[nlevgrnd()]          [double] effective soil porosity
 altmax_indx                     [int] index corresponding to maximum active layer depth from current year
 altmax_lastyear_indx            [int] index corresponding to maximum active layer depth from prior year
 
 OUTPUTS:
-rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
+rootr[nlevgrnd()]                 [double] effective fraction of roots in each soil layer
 btran                           [double] transpiration wetness factor (0 to 1) (integrated soil water stress)
 */
 template <typename ArrayD1>

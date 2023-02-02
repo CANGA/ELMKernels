@@ -43,7 +43,7 @@ roota_par [double] CLM rooting distribution parameter [1/m]
 rootb_par [double] CLM rooting distribution parameter [1/m]
 
 OUTPUT:
-rootfr_road_perv[nlevgrnd]   [double] fraction of roots in each soil layer
+rootfr_road_perv[nlevgrnd()]   [double] fraction of roots in each soil layer
 */
 template <typename ArrayD1>
 ACCELERATE

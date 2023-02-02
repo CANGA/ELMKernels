@@ -15,18 +15,18 @@ PrimaryVars<ArrayI1, ArrayD1, ArrayD2>::PrimaryVars(int ncols) :
   snow_depth("snow_depth", ncols),
   frac_sno("frac_sno", ncols),
   int_snow("int_snow", ncols), // calced in can_hydro, used in snow_hydro
-  snw_rds("snw_rds", ncols, ELMdims::nlevsno),
+  snw_rds("snw_rds", ncols, ELMdims::nlevsno()),
   // exchange state
   // exchange variables: soil water and soil ice in [kg/m2] and volumetric soil water in [m3/m3]
-  h2osoi_liq("h2osoi_liq", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  h2osoi_ice("h2osoi_ice", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  h2osoi_vol("h2osoi_vol", ncols, ELMdims::nlevgrnd),
+  h2osoi_liq("h2osoi_liq", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  h2osoi_ice("h2osoi_ice", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  h2osoi_vol("h2osoi_vol", ncols, ELMdims::nlevgrnd()),
   // time-variable state
   // need to retain value between timesteps
   h2ocan("h2ocan", ncols),
   h2osno("h2osno", ncols),
   h2osfc("h2osfc", ncols),
-  t_soisno("t_soisno", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+  t_soisno("t_soisno", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
   // should be calced from t_soisno
   t_grnd("t_grnd", ncols),
   // variables for CanopyTemperature
@@ -37,9 +37,9 @@ PrimaryVars<ArrayI1, ArrayD1, ArrayD2>::PrimaryVars(int ncols) :
   // may not stay in ELM state
   // subsurface layer data is likely constant in time
   // snow data is variable in time
-  dz("dz", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  zsoi("zsoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-  zisoi("zisoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd + 1)
+  dz("dz", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  zsoi("zsoi", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+  zisoi("zisoi", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd() + 1)
 {};
 
 template<typename ArrayB1, typename ArrayI1, typename ArrayI2, typename ArrayD1,
@@ -69,8 +69,8 @@ ELMState(size_t ncols,
     forc_hgt_q_patch("forc_hgt_q_patch", ncols),
     forc_rain("forc_rain", ncols),
     forc_snow("forc_snow", ncols),
-    forc_solai("forc_solai", ncols, ELMdims::numrad),
-    forc_solad("forc_solad", ncols, ELMdims::numrad),
+    forc_solai("forc_solai", ncols, ELMdims::numrad()),
+    forc_solad("forc_solad", ncols, ELMdims::numrad()),
     //forc_rho("forc_rho", ncols), // in canflux and baregroundflux - could be calculated on the fly
 
     // recalculated every dt
@@ -91,12 +91,12 @@ ELMState(size_t ncols,
     // based on soil texture
     // make congruent w Van Genuchten 
     // soil hydraulics
-    watsat("watsat", ncols, ELMdims::nlevgrnd),
-    sucsat("sucsat", ncols, ELMdims::nlevgrnd),
-    bsw("bsw", ncols, ELMdims::nlevgrnd),
-    watdry("watdry", ncols, ELMdims::nlevgrnd), // only used in canopy_temperature
-    watopt("watopt", ncols, ELMdims::nlevgrnd), // only used in canopy_temperature
-    watfc("watfc", ncols, ELMdims::nlevgrnd),
+    watsat("watsat", ncols, ELMdims::nlevgrnd()),
+    sucsat("sucsat", ncols, ELMdims::nlevgrnd()),
+    bsw("bsw", ncols, ELMdims::nlevgrnd()),
+    watdry("watdry", ncols, ELMdims::nlevgrnd()), // only used in canopy_temperature
+    watopt("watopt", ncols, ELMdims::nlevgrnd()), // only used in canopy_temperature
+    watfc("watfc", ncols, ELMdims::nlevgrnd()),
 
     // these are constant in time
     // topo, microtopography
@@ -115,9 +115,9 @@ ELMState(size_t ncols,
 
     // these are constant in time
     // soil thermal constants
-    tkmg("tkmg", ncols, ELMdims::nlevgrnd), // created in soil_texture_hydraulic, only used in soil_thermal and soil_temp
-    tkdry("tkdry", ncols, ELMdims::nlevgrnd),
-    csol("csol", ncols, ELMdims::nlevgrnd + ELMdims::nlevsno),
+    tkmg("tkmg", ncols, ELMdims::nlevgrnd()), // created in soil_texture_hydraulic, only used in soil_thermal and soil_temp
+    tkdry("tkdry", ncols, ELMdims::nlevgrnd()),
+    csol("csol", ncols, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
 
     // unchecked below this
     // may not be persistent
@@ -129,21 +129,21 @@ ELMState(size_t ncols,
     snow_depth("snow_depth", ncols),
     frac_sno("frac_sno", ncols),
     int_snow("int_snow", ncols), // calced in can_hydro, used in snow_hydro
-    snw_rds("snw_rds", ncols, ELMdims::nlevsno),
+    snw_rds("snw_rds", ncols, ELMdims::nlevsno()),
 
     // recalculated in can_hydro every dt
-    swe_old("swe_old", ncols, ELMdims::nlevsno), // calced in can_hydro, used in snow_hydro
+    swe_old("swe_old", ncols, ELMdims::nlevsno()), // calced in can_hydro, used in snow_hydro
 
     // soil/snow/surface h2o state
 
     // recalculated in init_timestep every dt
-    frac_iceold("frac_iceold", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+    frac_iceold("frac_iceold", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
 
     // exchange state
     // exchange variables: soil water and soil ice in [kg/m2] and volumetric soil water in [m3/m3]
-    h2osoi_liq("h2osoi_liq", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-    h2osoi_ice("h2osoi_ice", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-    h2osoi_vol("h2osoi_vol", ncols, ELMdims::nlevgrnd),
+    h2osoi_liq("h2osoi_liq", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+    h2osoi_ice("h2osoi_ice", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+    h2osoi_vol("h2osoi_vol", ncols, ELMdims::nlevgrnd()),
 
     // time-variable state
     // need to retain value between timesteps
@@ -172,7 +172,7 @@ ELMState(size_t ncols,
     // soil and snow temp
     // time-variable state
     // need to retain value between timesteps or exchange
-    t_soisno("t_soisno", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
+    t_soisno("t_soisno", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
     // should be calced from t_soisno
     t_grnd("t_grnd", ncols),
 
@@ -184,10 +184,10 @@ ELMState(size_t ncols,
     // recalculated every timestep
     laisun("laisun", ncols), // in cansunshade
     laisha("laisha", ncols),
-    parsun_z("parsun_z", ncols, ELMdims::nlevcan), // in cansunshade
-    parsha_z("parsha_z", ncols, ELMdims::nlevcan),
-    laisun_z("laisun_z", ncols, ELMdims::nlevcan),
-    laisha_z("laisha_z", ncols, ELMdims::nlevcan),
+    parsun_z("parsun_z", ncols, ELMdims::nlevcan()), // in cansunshade
+    parsha_z("parsha_z", ncols, ELMdims::nlevcan()),
+    laisun_z("laisun_z", ncols, ELMdims::nlevcan()),
+    laisha_z("laisha_z", ncols, ELMdims::nlevcan()),
 
     // from surface rad
     // recalculated every timestep
@@ -197,31 +197,31 @@ ELMState(size_t ncols,
     sabv("sabv", ncols),
     fsa("fsa", ncols),
     fsr("fsr", ncols),
-    sabg_lyr("sabg_lyr", ncols, ELMdims::nlevsno + 1),
+    sabg_lyr("sabg_lyr", ncols, ELMdims::nlevsno() + 1),
 
     // from albedo and snicar
     // recalculated every timestep
-    tlai_z("tlai_z", ncols, ELMdims::nlevcan), // in albedo
-    fsun_z("fsun_z", ncols, ELMdims::nlevcan),
-    fabd_sun_z("fabd_sun_z", ncols, ELMdims::nlevcan),
-    fabd_sha_z("fabd_sha_z", ncols, ELMdims::nlevcan),
-    fabi_sun_z("fabi_sun_z", ncols, ELMdims::nlevcan),
-    fabi_sha_z("fabi_sha_z", ncols, ELMdims::nlevcan),
-    ftdd("ftdd", ncols, ELMdims::numrad),
-    ftid("ftid", ncols, ELMdims::numrad),
-    ftii("ftii", ncols, ELMdims::numrad),
-    fabd("fabd", ncols, ELMdims::numrad),
-    fabi("fabi", ncols, ELMdims::numrad),
-    albsod("albsod", ncols, ELMdims::numrad),
-    albsoi("albsoi", ncols, ELMdims::numrad),
-    albgrd("albgrd", ncols, ELMdims::numrad),
-    albgri("albgri", ncols, ELMdims::numrad),
-    flx_absdv("flx_absdv", ncols, ELMdims::nlevsno + 1),
-    flx_absdn("flx_absdn", ncols, ELMdims::nlevsno + 1),
-    flx_absiv("flx_absiv", ncols, ELMdims::nlevsno + 1),
-    flx_absin("flx_absin", ncols, ELMdims::nlevsno + 1),
-    albd("albd", ncols, ELMdims::numrad),
-    albi("albi", ncols, ELMdims::numrad),
+    tlai_z("tlai_z", ncols, ELMdims::nlevcan()), // in albedo
+    fsun_z("fsun_z", ncols, ELMdims::nlevcan()),
+    fabd_sun_z("fabd_sun_z", ncols, ELMdims::nlevcan()),
+    fabd_sha_z("fabd_sha_z", ncols, ELMdims::nlevcan()),
+    fabi_sun_z("fabi_sun_z", ncols, ELMdims::nlevcan()),
+    fabi_sha_z("fabi_sha_z", ncols, ELMdims::nlevcan()),
+    ftdd("ftdd", ncols, ELMdims::numrad()),
+    ftid("ftid", ncols, ELMdims::numrad()),
+    ftii("ftii", ncols, ELMdims::numrad()),
+    fabd("fabd", ncols, ELMdims::numrad()),
+    fabi("fabi", ncols, ELMdims::numrad()),
+    albsod("albsod", ncols, ELMdims::numrad()),
+    albsoi("albsoi", ncols, ELMdims::numrad()),
+    albgrd("albgrd", ncols, ELMdims::numrad()),
+    albgri("albgri", ncols, ELMdims::numrad()),
+    flx_absdv("flx_absdv", ncols, ELMdims::nlevsno() + 1),
+    flx_absdn("flx_absdn", ncols, ELMdims::nlevsno() + 1),
+    flx_absiv("flx_absiv", ncols, ELMdims::nlevsno() + 1),
+    flx_absin("flx_absin", ncols, ELMdims::nlevsno() + 1),
+    albd("albd", ncols, ELMdims::numrad()),
+    albi("albi", ncols, ELMdims::numrad()),
 
     // variables for CanopyTemperature
     // time-variable state
@@ -254,7 +254,7 @@ ELMState(size_t ncols,
     qflx_evap_tot("qflx_evap_tot", ncols),
     qflx_evap_veg("qflx_evap_veg", ncols),
     qflx_tran_veg("qflx_tran_veg", ncols),
-    tssbef("tssbef", ncols, ELMdims::nlevgrnd + ELMdims::nlevsno),
+    tssbef("tssbef", ncols, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
 
     // recalculated every dt
     // bareground fluxes
@@ -288,11 +288,11 @@ ELMState(size_t ncols,
     t_veg("t_veg", ncols),
 
     // constant value, initialized once
-    rootfr("rootfr", ncols, ELMdims::nlevgrnd),
+    rootfr("rootfr", ncols, ELMdims::nlevgrnd()),
 
     // recalculated every dt
-    rootr("rootr", ncols, ELMdims::nlevgrnd),
-    eff_porosity("eff_porosity", ncols, ELMdims::nlevgrnd),
+    rootr("rootr", ncols, ELMdims::nlevgrnd()),
+    eff_porosity("eff_porosity", ncols, ELMdims::nlevgrnd()),
 
     // soil fluxes (outputs)
     eflx_soil_grnd("eflx_soil_grnd", ncols),
@@ -308,24 +308,24 @@ ELMState(size_t ncols,
     sabg_chk("sabg_chk", ncols),
     // could be moved into more local scope
     // recalculate every dt
-    fact("fact", ncols, ELMdims::nlevgrnd + ELMdims::nlevsno), // factors used in computing tridiagonal matrix
+    fact("fact", ncols, ELMdims::nlevgrnd() + ELMdims::nlevsno()), // factors used in computing tridiagonal matrix
 
     // surface albedo and snicar
     // required for SurfaceAlbedo kernels
     // recalculate every dt
     coszen("coszen", ncols),
-    fabd_sun("fabd_sun", ncols, ELMdims::numrad),
-    fabd_sha("fabd_sha", ncols, ELMdims::numrad),
-    fabi_sun("fabi_sun", ncols, ELMdims::numrad),
-    fabi_sha("fabi_sha", ncols, ELMdims::numrad),
-    albsnd("albsnd", ncols, ELMdims::numrad),
-    albsni("albsni", ncols, ELMdims::numrad),
+    fabd_sun("fabd_sun", ncols, ELMdims::numrad()),
+    fabd_sha("fabd_sha", ncols, ELMdims::numrad()),
+    fabi_sun("fabi_sun", ncols, ELMdims::numrad()),
+    fabi_sha("fabi_sha", ncols, ELMdims::numrad()),
+    albsnd("albsnd", ncols, ELMdims::numrad()),
+    albsni("albsni", ncols, ELMdims::numrad()),
 
     // outputs from soil temp/snow hydro
     // many of these could be removed if not desired for output
 
     // recalculate every dt
-    imelt("imelt", ncols, ELMdims::nlevgrnd + ELMdims::nlevsno),
+    imelt("imelt", ncols, ELMdims::nlevgrnd() + ELMdims::nlevsno()),
     xmf("xmf", ncols),
     xmf_h2osfc("xmf_h2osfc", ncols),
 
@@ -340,12 +340,12 @@ ELMState(size_t ncols,
     eflx_h2osfc_snow("eflx_h2osfc_to_snow", ncols),
     qflx_h2osfc_ice("qflx_h2osfc_to_ice", ncols),
     qflx_snofrz("qflx_snofrz", ncols),
-    qflx_snofrz_lyr("qflx_snofrz_lyr", ncols, ELMdims::nlevsno),
+    qflx_snofrz_lyr("qflx_snofrz_lyr", ncols, ELMdims::nlevsno()),
 
     // main exchange variables
     // transpiration
     // vegetation/soil water exchange (m H2O/s) (+ = to atm)
-    qflx_rootsoi("qflx_rootsoi", ncols, ELMdims::nlevgrnd),
+    qflx_rootsoi("qflx_rootsoi", ncols, ELMdims::nlevgrnd()),
 
     // column-integrated mass of h2o at dt start   
     dtbegin_column_h2o("dtbegin_column_h2o", ncols),
@@ -354,9 +354,9 @@ ELMState(size_t ncols,
     // may not stay in ELM state
     // subsurface layer data is likely constant in time
     // snow data is variable in time
-    dz("dz", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-    zsoi("zsoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd),
-    zisoi("zisoi", ncols, ELMdims::nlevsno + ELMdims::nlevgrnd + 1),
+    dz("dz", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+    zsoi("zsoi", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd()),
+    zisoi("zisoi", ncols, ELMdims::nlevsno() + ELMdims::nlevgrnd() + 1),
 
     // hardwired pft type
     // this is the format phenology reader wants 
@@ -382,7 +382,7 @@ ELMState(size_t ncols,
     aerosol_masses(std::make_shared<ELM::AerosolMasses<ArrayD2>>(ncols)),
     aerosol_concentrations(std::make_shared<ELM::AerosolConcentrations<ArrayD2>>(ncols)),
     // container for satellite phenology forcing data
-    phen_data(std::make_shared<ELM::PhenologyDataManager<ArrayD2>>(domain, ncols, ELMdims::numveg)),
+    phen_data(std::make_shared<ELM::PhenologyDataManager<ArrayD2>>(domain, ncols, ELMdims::numveg())),
     // container for atmospheric forcing data
     atm_forcing(std::make_shared<ELM::AtmForcObjects<ArrayD1, ArrayD2>>(filename, file_start_time, forc_steps, ncols)),
 

@@ -306,9 +306,9 @@ void ELM::initialize_kokkos_elm (
   }
 
   const int ncols = S.num_columns;
-  auto pct_sand = ELM::Utils::create<ViewD2>("pct_sand", ncols, nlevgrnd); // only used in init_soil_hydraulics()
-  auto pct_clay = ELM::Utils::create<ViewD2>("pct_clay", ncols, nlevgrnd); // only used in init_soil_hydraulics()
-  auto organic = ELM::Utils::create<ViewD2>("organic", ncols, nlevgrnd); // only used in init_soil_hydraulics()
+  auto pct_sand = ELM::Utils::create<ViewD2>("pct_sand", ncols, nlevgrnd()); // only used in init_soil_hydraulics()
+  auto pct_clay = ELM::Utils::create<ViewD2>("pct_clay", ncols, nlevgrnd()); // only used in init_soil_hydraulics()
+  auto organic = ELM::Utils::create<ViewD2>("organic", ncols, nlevgrnd()); // only used in init_soil_hydraulics()
   auto organic_max = ELM::Utils::create<ViewD1>("organic_max", 1); // only used in init_soil_hydraulics()
 
   {

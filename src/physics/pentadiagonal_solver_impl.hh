@@ -27,7 +27,7 @@ namespace ELM::solver {
     // maximum size of system
     const int N = RHS.extent(1);
     // top active layer
-    const int top = nlevsno - snl(c);
+    const int top = nlevsno() - snl(c);
 
     // form coefficients
     // forward sweep

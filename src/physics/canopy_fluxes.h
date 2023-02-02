@@ -38,15 +38,15 @@ namespace ELM::canopy_fluxes {
 \param[in]  dayl                            [double] daylength (seconds)
 \param[in]  altmax_indx                     [int] index corresponding to maximum active layer depth from current year
 \param[in]  altmax_lastyear_indx            [int] index corresponding to maximum active layer depth from prior year
-\param[in]  t_soisno[nlevgrnd+nlevsno]      [double] col soil temperature (Kelvin)
-\param[in]  h2osoi_ice[nlevgrnd+nlevsno]    [double] ice lens (kg/m2)
-\param[in]  h2osoi_liq[nlevgrnd+nlevsno]    [double] liquid water (kg/m2)
-\param[in]  dz[nlevgrnd+nlevsno]            [double] layer thickness (m)
-\param[in]  rootfr[nlevgrnd]                [double] fraction of roots in each soil layer
+\param[in]  t_soisno[nlevgrnd()+nlevsno()]      [double] col soil temperature (Kelvin)
+\param[in]  h2osoi_ice[nlevgrnd()+nlevsno()]    [double] ice lens (kg/m2)
+\param[in]  h2osoi_liq[nlevgrnd()+nlevsno()]    [double] liquid water (kg/m2)
+\param[in]  dz[nlevgrnd()+nlevsno()]            [double] layer thickness (m)
+\param[in]  rootfr[nlevgrnd()]                [double] fraction of roots in each soil layer
 \param[in]  tc_stress                       [double] critical soil temperature for soil water stress (C)
-\param[in]  sucsat[nlevgrnd]                [double] minimum soil suction (mm)
-\param[in]  watsat[nlevgrnd]                [double] volumetric soil water at saturation (porosity)
-\param[in]  bsw[nlevgrnd]                   [double] Clapp and Hornberger "b
+\param[in]  sucsat[nlevgrnd()]                [double] minimum soil suction (mm)
+\param[in]  watsat[nlevgrnd()]                [double] volumetric soil water at saturation (porosity)
+\param[in]  bsw[nlevgrnd()]                   [double] Clapp and Hornberger "b
 \param[in]  smpso                           [double] soil water potential at full stomatal opening (mm)
 \param[in]  smpsc                           [double] soil water potential at full stomatal closure (mm)
 \param[in]  elai                            [double] one-sided leaf area index with burying by snow
@@ -68,8 +68,8 @@ namespace ELM::canopy_fluxes {
 \param[out] z0hv                            [double] roughness length over vegetation, sensible heat [m]
 \param[out] z0qv                            [double] roughness length over vegetation, latent heat [m]
 \param[out] displa                          [double]  displacement height (m)
-\param[out] rootr[nlevgrnd]                 [double] effective fraction of roots in each soil layer
-\param[out] eff_porosity[nlevgrnd]          [double] effective soil porosity
+\param[out] rootr[nlevgrnd()]                 [double] effective fraction of roots in each soil layer
+\param[out] eff_porosity[nlevgrnd()]          [double] effective soil porosity
 \param[out] dayl_factor                     [double] scalar (0-1) for daylength effect on Vcmax
 \param[out] air                             [double] atmos. radiation temporay set
 \param[out] bir                             [double] atmos. radiation temporay set
@@ -126,7 +126,7 @@ photosynthesis for both sun & shade.
 \param[in]  sabv                       [double] solar radiation absorbed by vegetation (W/m**2)
 \param[in]  h2ocan                     [double] canopy water (mm H2O)
 \param[in]  htop                       [double] canopy top(m)
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] col soil temperature (Kelvin)
 \param[in]  air                        [double] atmos. radiation temporay set
 \param[in]  bir                        [double] atmos. radiation temporay set
 \param[in]  cir                        [double] atmos. radiation temporay set
@@ -149,13 +149,13 @@ photosynthesis for both sun & shade.
 \param[in]  psn_pft                    [PFTDataPSN] constant vegetation data for current pft
 \param[in]  nrad                       [int]  number of canopy layers above snow for radiative transfer
 \param[in]  t10                        [double] 10-day running mean of the 2 m temperature (K)
-\param[in]  tlai_z[nlevcan]            [double] pft total leaf area index for canopy layer
+\param[in]  tlai_z[nlevcan()]            [double] pft total leaf area index for canopy layer
 \param[in]  vcmaxcintsha               [double] leaf to canopy scaling coefficient - shade
 \param[in]  vcmaxcintsun               [double] leaf to canopy scaling coefficient - sun
-\param[in]  parsha_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - shade
-\param[in]  parsun_z[nlevcan]          [double] par absorbed per unit lai for canopy layer (w/m**2) - sun
-\param[in]  laisha_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - shade
-\param[in]  laisun_z[nlevcan]          [double] leaf area index for canopy layer, sunlit or shaded - sun
+\param[in]  parsha_z[nlevcan()]          [double] par absorbed per unit lai for canopy layer (w/m**2) - shade
+\param[in]  parsun_z[nlevcan()]          [double] par absorbed per unit lai for canopy layer (w/m**2) - sun
+\param[in]  laisha_z[nlevcan()]          [double] leaf area index for canopy layer, sunlit or shaded - shade
+\param[in]  laisun_z[nlevcan()]          [double] leaf area index for canopy layer, sunlit or shaded - sun
 \param[in]  forc_pco2                  [double]  partial pressure co2 (Pa)
 \param[in]  forc_po2                   [double]  partial pressure o2 (Pa))
 \param[in]  dayl_factor                [double] scalar (0-1) for daylength effect on Vcmax
@@ -215,7 +215,7 @@ void stability_iteration(
 \param[in]  snl                        [int] number of snow layers
 \param[in]  frac_veg_nosno             [int]  fraction of vegetation not covered by snow (0 OR 1) [-]
 \param[in]  frac_sno                   [double] fraction of ground covered by snow (0 to 1)
-\param[in]  t_soisno[nlevgrnd+nlevsno] [double] col soil temperature (Kelvin)
+\param[in]  t_soisno[nlevgrnd()+nlevsno()] [double] col soil temperature (Kelvin)
 \param[in]  frac_h2osfc                [double] fraction of ground covered by surface water (0 to 1)
 \param[in]  t_h2osfc                   [double] surface water temperature
 \param[in]  sabv                       [double] solar radiation absorbed by vegetation (W/m**2)

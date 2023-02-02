@@ -73,19 +73,19 @@ eflx_sh_veg
 qflx_evap_tot
 qflx_evap_veg
 qflx_tran_veg
-t_soisno[nlevgrnd+nlevsno]
-tssbef[nlevgrnd+nlevsno]
-h2osoi_liq[nlevgrnd+nlevsno]
-h2osoi_ice[nlevgrnd+nlevsno]
-dz[nlevgrnd+nlevsno]
-watsat[nlevgrnd]
-sucsat[nlevgrnd]
-bsw[nlevgrnd]
-watdry[nlevgrnd]
-watopt[nlevgrnd]
-watfc[nlevgrnd]
-displar[numpft]
-z0mr[numpft]
+t_soisno[nlevgrnd()+nlevsno()]
+tssbef[nlevgrnd()+nlevsno()]
+h2osoi_liq[nlevgrnd()+nlevsno()]
+h2osoi_ice[nlevgrnd()+nlevsno()]
+dz[nlevgrnd()+nlevsno()]
+watsat[nlevgrnd()]
+sucsat[nlevgrnd()]
+bsw[nlevgrnd()]
+watdry[nlevgrnd()]
+watopt[nlevgrnd()]
+watfc[nlevgrnd()]
+displar[numpft()]
+z0mr[numpft()]
 */
 
 using namespace ELM::ELMdims;
@@ -177,21 +177,21 @@ int main(int argc, char **argv) {
   auto qflx_evap_veg = create<ArrayD1>("qflx_evap_veg", n_grid_cells);
   auto qflx_tran_veg = create<ArrayD1>("qflx_tran_veg", n_grid_cells);
 
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevgrnd+nlevsno);
-  auto tssbef = create<ArrayD2>("tssbef", n_grid_cells, nlevgrnd+nlevsno);
-  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevgrnd+nlevsno);
-  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevgrnd+nlevsno);
-  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevgrnd+nlevsno);
-  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd);
-  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd);
-  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd);
-  auto watdry = create<ArrayD2>("watdry", n_grid_cells, nlevgrnd);
-  auto watopt = create<ArrayD2>("watopt", n_grid_cells, nlevgrnd);
-  //auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", n_grid_cells, nlevgrnd);
-  //auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", n_grid_cells, nlevgrnd);
-  auto watfc = create<ArrayD2>("watfc", n_grid_cells, nlevgrnd);
-  auto displar = create<ArrayD2>("displar", n_grid_cells, numpft);
-  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, numpft);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevgrnd()+nlevsno());
+  auto tssbef = create<ArrayD2>("tssbef", n_grid_cells, nlevgrnd()+nlevsno());
+  auto h2osoi_liq = create<ArrayD2>("h2osoi_liq", n_grid_cells, nlevgrnd()+nlevsno());
+  auto h2osoi_ice = create<ArrayD2>("h2osoi_ice", n_grid_cells, nlevgrnd()+nlevsno());
+  auto dz = create<ArrayD2>("dz", n_grid_cells, nlevgrnd()+nlevsno());
+  auto watsat = create<ArrayD2>("watsat", n_grid_cells, nlevgrnd());
+  auto sucsat = create<ArrayD2>("sucsat", n_grid_cells, nlevgrnd());
+  auto bsw = create<ArrayD2>("bsw", n_grid_cells, nlevgrnd());
+  auto watdry = create<ArrayD2>("watdry", n_grid_cells, nlevgrnd());
+  auto watopt = create<ArrayD2>("watopt", n_grid_cells, nlevgrnd());
+  //auto rootfr_road_perv = create<ArrayD2>("rootfr_road_perv", n_grid_cells, nlevgrnd());
+  //auto rootr_road_perv = create<ArrayD2>("rootr_road_perv", n_grid_cells, nlevgrnd());
+  auto watfc = create<ArrayD2>("watfc", n_grid_cells, nlevgrnd());
+  auto displar = create<ArrayD2>("displar", n_grid_cells, numpft());
+  auto z0mr = create<ArrayD2>("z0mr", n_grid_cells, numpft());
 
 
   // input and output utility class objects

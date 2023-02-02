@@ -8,7 +8,7 @@ double column_water_mass(const double& h2ocan, const double& h2osno, const doubl
                          const ArrayD1 h2osoi_ice, const ArrayD1 h2osoi_liq)
 {
   double water = h2ocan + h2osno + h2osfc;
-  for (int i = 0; i < ELMdims::nlevgrnd + ELMdims::nlevsno; ++i) {
+  for (int i = 0; i < ELMdims::nlevgrnd() + ELMdims::nlevsno(); ++i) {
     water += h2osoi_ice(i) + h2osoi_liq(i);
   }
   return water;

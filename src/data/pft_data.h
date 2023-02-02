@@ -25,8 +25,8 @@ struct PFTDataPSN {
 
 // struct for single pft vegetation parameters used in surface_albedo
 struct PFTDataAlb {
-  double rhol[ELMdims::numrad], rhos[ELMdims::numrad];
-  double taul[ELMdims::numrad], taus[ELMdims::numrad];
+  double rhol[ELMdims::numrad()], rhos[ELMdims::numrad()];
+  double taul[ELMdims::numrad()], taus[ELMdims::numrad()];
   double xl;
 };
 
@@ -34,7 +34,7 @@ struct PFTDataAlb {
 template <typename ArrayD1>
 struct PFTData {
 
-  const int numpft_{ELMdims::numpft};
+  const int numpft_{ELMdims::numpft()};
 
   PFTData();
   ~PFTData() = default;

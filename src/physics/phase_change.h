@@ -10,7 +10,7 @@ namespace ELM::soil_temp {
 
 // h2osoi_ice, t_soisno, and fact are single elements of 
 // larger column arrays - they are located at the level
-// of the first snow layer (nlevsno - 1)
+// of the first snow layer (nlevsno() - 1)
 ACCELERATE
 void phase_change_h2osfc(const int& snl,
                          const double& dtime,

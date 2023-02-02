@@ -60,22 +60,22 @@ void ELM::read_snicar_data(
   using snow_snicar::detail::idx_bc_nclrds_max;
   using snow_snicar::detail::idx_bcint_icerds_max;
 
-  // read 1D arrays of size numrad_snw
+  // read 1D arrays of size numrad_snw()
   {
     std::array<size_t, 1> start = {0};
-    std::array<size_t, 1> count = {numrad_snw};
-    Array<double, 1> arr_for_read(numrad_snw);
+    std::array<size_t, 1> count = {numrad_snw()};
+    Array<double, 1> arr_for_read(numrad_snw());
 
     for (auto& [varname, arr] : snicar_views_d1) {
       read_and_fill_array(comm, filename, varname, arr_for_read, arr);
     }
   }
 
-  // read 2D arrays of size [numrad_snw, idx_Mie_snw_mx]
+  // read 2D arrays of size [numrad_snw(), idx_Mie_snw_mx]
   {
     std::array<size_t, 2> start = {0};
-    std::array<size_t, 2> count = {numrad_snw, idx_Mie_snw_mx};
-    Array<double, 2> arr_for_read(numrad_snw, idx_Mie_snw_mx);
+    std::array<size_t, 2> count = {numrad_snw(), idx_Mie_snw_mx};
+    Array<double, 2> arr_for_read(numrad_snw(), idx_Mie_snw_mx);
 
     std::vector<std::string> names =
     {
@@ -93,11 +93,11 @@ void ELM::read_snicar_data(
     }
   }
 
-  // read 2D arrays of size [idx_bc_nclrds_max+1, numrad_snw]
+  // read 2D arrays of size [idx_bc_nclrds_max+1, numrad_snw()]
   {
     std::array<size_t, 2> start = {0};
-    std::array<size_t, 2> count = {idx_bc_nclrds_max + 1, numrad_snw};
-    Array<double, 2> arr_for_read(idx_bc_nclrds_max + 1, numrad_snw);
+    std::array<size_t, 2> count = {idx_bc_nclrds_max + 1, numrad_snw()};
+    Array<double, 2> arr_for_read(idx_bc_nclrds_max + 1, numrad_snw());
 
     std::vector<std::string> names =
     {
@@ -115,13 +115,13 @@ void ELM::read_snicar_data(
     }
   }
 
-  // read 3D array of size [idx_bcint_icerds_max+1, idx_bc_nclrds_max+1, numrad_snw]
+  // read 3D array of size [idx_bcint_icerds_max+1, idx_bc_nclrds_max+1, numrad_snw()]
   {
     std::array<size_t, 3> start = {0};
     std::array<size_t, 3> count = {idx_bcint_icerds_max + 1, idx_bc_nclrds_max + 1,
-                                  numrad_snw};
+                                  numrad_snw()};
     Array<double, 3> arr_for_read(idx_bcint_icerds_max + 1, idx_bc_nclrds_max + 1,
-                                 numrad_snw);
+                                 numrad_snw());
 
     std::string varname("bcint_enh_mam");
     auto& arr = snicar_views_d3[varname];

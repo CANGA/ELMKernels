@@ -6,7 +6,7 @@
 namespace ELM::soil_temp {
 
 // h2osoi_ice_sl1, t_soisno_sl1, and fact_sl1 are all from the
-// first snow layer (closest to ground) (nlevsno - 1)
+// first snow layer (closest to ground) (nlevsno() - 1)
 // they are single elements of larger column arrays and the
 // driver code is responsible for passing in the correct values
 ACCELERATE
@@ -38,14 +38,14 @@ void phase_change_h2osfc(const int& snl,
   xmf_h2osfc = 0.0;
 
   // if liquid exists below melt point, freeze some to ice.
-  if (frac_h2osfc > 0.0 && t_h2osfc <= TFRZ) {
+  if (frac_h2osfc > 0.0 && t_h2osfc <= TFRZ()) {
 
-    const double tinc = TFRZ - t_h2osfc;
-    t_h2osfc = TFRZ;
+    const double tinc = TFRZ() - t_h2osfc;
+    t_h2osfc = TFRZ();
     // energy absorbed beyond freezing temperature
     double hm = frac_h2osfc * (dhsdT * tinc - tinc * c_h2osfc / dtime);
     // mass of water converted from liquid to ice
-    double xm = hm * dtime / HFUS;
+    double xm = hm * dtime / HFUS();
     const double temp1 = h2osfc + xm;
     const double z_avg = frac_sno * snow_depth;
     double rho_avg;
@@ -69,7 +69,7 @@ void phase_change_h2osfc(const int& snl,
       if (frac_sno > 0 && snl > 0) {
         snow_depth = h2osno / (rho_avg * frac_sno);
       } else {
-        snow_depth = h2osno / DENICE;
+        snow_depth = h2osno / DENICE();
       }
       // adjust temperature of lowest snow layer to account for addition of ice
       if (snl == 0) {
@@ -84,7 +84,7 @@ void phase_change_h2osfc(const int& snl,
           c1 = frac_sno / fact_sl1 * dtime;
         }
         if (frac_h2osfc != 0.0) {
-          c2 = (-CPWAT * xm - frac_h2osfc * dhsdT * dtime);
+          c2 = (-CPWAT() * xm - frac_h2osfc * dhsdT * dtime);
         } else {
           c2 = 0.0;
         }
@@ -94,7 +94,7 @@ void phase_change_h2osfc(const int& snl,
        //=========================  xm > h2osfc  =============================
     } else { //all h2osfc converted to ice
 
-      rho_avg = (h2osno * rho_avg + h2osfc * DENICE) / (h2osno + h2osfc);
+      rho_avg = (h2osno * rho_avg + h2osfc * DENICE()) / (h2osno + h2osfc);
       h2osno += h2osfc;
       int_snow += h2osfc;
 
@@ -109,9 +109,9 @@ void phase_change_h2osfc(const int& snl,
       // compute heat capacity of frozen h2osfc layer
 
       // cool frozen h2osfc layer with extra heat
-      t_h2osfc = t_h2osfc - temp1 * HFUS / (dtime * dhsdT - c_h2osfc);
+      t_h2osfc = t_h2osfc - temp1 * HFUS() / (dtime * dhsdT - c_h2osfc);
 
-      xmf_h2osfc = hm - frac_h2osfc * temp1 * HFUS / dtime;
+      xmf_h2osfc = hm - frac_h2osfc * temp1 * HFUS() / dtime;
 
       // next, determine equilibrium temperature of combined ice/snow layer
       double c1, c2;
@@ -146,7 +146,7 @@ void phase_change_h2osfc(const int& snl,
       if (frac_sno > 0.0 && snl > 0) { 
         snow_depth = h2osno / (rho_avg * frac_sno);
       } else {
-        snow_depth = h2osno / DENICE;
+        snow_depth = h2osno / DENICE();
       }
     }
   }
@@ -173,12 +173,12 @@ Calculation of the phase change within snow and soil layers:
 
 qflx_snomelt                snow melt (mm H2O /s)
 qflx_snow_melt              snow melt (net)
-qflx_snofrz_lyr[nlevsno]    snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1] 
+qflx_snofrz_lyr[nlevsno()]    snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1] 
 qflx_snofrz                 column-integrated snow freezing rate (positive definite) (col) [kg m-2 s-1]
 
 xmf                     (:)   => null() ! total latent heat of phase change of ground water
 xmf_h2osfc              (:)   => null() ! latent heat of phase change of surface water
-imelt                   (:,:) ! flag for melting (=1), freezing (=2), Not=0 (-nlevsno+1:nlevgrnd) 
+imelt                   (:,:) ! flag for melting (=1), freezing (=2), Not=0 (-nlevsno()+1:nlevgrnd()) 
 */
 
 template<typename ArrayI1, typename ArrayD1>
@@ -222,72 +222,72 @@ void phase_change_soisno(const int& snl,
   qflx_snofrz = 0.0;
   qflx_snow_melt = 0.0;
   qflx_snomelt = 0.0;
-  for (int i = 0; i < nlevsno; ++i) { qflx_snofrz_lyr(i) = 0.0; }
+  for (int i = 0; i < nlevsno(); ++i) { qflx_snofrz_lyr(i) = 0.0; }
 
-  const int top = nlevsno - snl;
-  for (int i = top; i < nlevsno + nlevgrnd; ++i) { imelt(i) = 0; }
+  const int top = nlevsno() - snl;
+  for (int i = top; i < nlevsno() + nlevgrnd(); ++i) { imelt(i) = 0; }
 
   // local arrays
-  double tinc[nlevgrnd+nlevsno];
-  double supercool[nlevgrnd]; 
+  double tinc[nlevgrnd()+nlevsno()];
+  double supercool[nlevgrnd()]; 
 
   //--  snow layers  --------------------------------------------------- 
-  for (int i = top; i < nlevsno; ++i) {
+  for (int i = top; i < nlevsno(); ++i) {
     // melting identification
     // if ice exists above melt point, melt some to liquid.
-    if (h2osoi_ice(i) > 0.0 && t_soisno(i) > TFRZ) {
+    if (h2osoi_ice(i) > 0.0 && t_soisno(i) > TFRZ()) {
       imelt(i) = 1;
-      tinc[i] = TFRZ - t_soisno(i); 
-      t_soisno(i) = TFRZ;
+      tinc[i] = TFRZ() - t_soisno(i); 
+      t_soisno(i) = TFRZ();
     }
 
     // Freezing identification
     // If liquid exists below melt point, freeze some to ice.
-    if (h2osoi_liq(i) > 0.0 && t_soisno(i) < TFRZ) {
+    if (h2osoi_liq(i) > 0.0 && t_soisno(i) < TFRZ()) {
       imelt(i) = 2;
-      tinc[i] = TFRZ - t_soisno(i);
-      t_soisno(i) = TFRZ;
+      tinc[i] = TFRZ() - t_soisno(i);
+      t_soisno(i) = TFRZ();
     }
   }
 
   //-- soil layers   ---------------------------------------------------
-  for (int i = nlevsno; i < nlevsno + nlevgrnd; ++i) {
+  for (int i = nlevsno(); i < nlevsno() + nlevgrnd(); ++i) {
 
-    if (h2osoi_ice(i) > 0.0 && t_soisno(i) > TFRZ) {
+    if (h2osoi_ice(i) > 0.0 && t_soisno(i) > TFRZ()) {
       imelt(i) = 1;
-      tinc[i] = TFRZ - t_soisno(i);
-      t_soisno(i) = TFRZ;
+      tinc[i] = TFRZ() - t_soisno(i);
+      t_soisno(i) = TFRZ();
     }
 
     // from Zhao (1997) and Koren (1999)
-    supercool[i-nlevsno] = 0.0;
+    supercool[i-nlevsno()] = 0.0;
     if (ltype == istsoil || ltype == istcrop || ltype == icol_road_perv) {
-      if(t_soisno(i) < TFRZ) {
-        double smp = HFUS * (TFRZ - t_soisno(i)) / (GRAV * t_soisno(i)) * 1000.0; // (mm)
-        supercool[i-nlevsno] = watsat(i-nlevsno) * pow(smp / sucsat(i-nlevsno), -1.0 / bsw(i-nlevsno));
-        supercool[i-nlevsno] *= dz(i) * 1000.0; // (mm)
+      if(t_soisno(i) < TFRZ()) {
+        double smp = HFUS() * (TFRZ() - t_soisno(i)) / (GRAV() * t_soisno(i)) * 1000.0; // (mm)
+        supercool[i-nlevsno()] = watsat(i-nlevsno()) * pow(smp / sucsat(i-nlevsno()), -1.0 / bsw(i-nlevsno()));
+        supercool[i-nlevsno()] *= dz(i) * 1000.0; // (mm)
       }
     }
 
-    if (h2osoi_liq(i) > supercool[i-nlevsno] && t_soisno(i) < TFRZ) {
+    if (h2osoi_liq(i) > supercool[i-nlevsno()] && t_soisno(i) < TFRZ()) {
       imelt(i) = 2;
-      tinc[i] = TFRZ - t_soisno(i);
-      t_soisno(i) = TFRZ;
+      tinc[i] = TFRZ() - t_soisno(i);
+      t_soisno(i) = TFRZ();
     }
 
     // if snow exists, but its thickness is less than the critical value (0.01 m)
-    if (snl == 0 && h2osno > 0.0 && i == nlevsno) {
-      if (t_soisno(i) > TFRZ) {
+    if (snl == 0 && h2osno > 0.0 && i == nlevsno()) {
+      if (t_soisno(i) > TFRZ()) {
         imelt(i) = 1;
-        tinc[i] = TFRZ - t_soisno(i);
-        t_soisno(i) = TFRZ;
+        tinc[i] = TFRZ() - t_soisno(i);
+        t_soisno(i) = TFRZ();
       }
     }
   }
 
 
   //-- all layers   ---------------------------------------------------
-  for (int i = top; i < nlevsno + nlevgrnd; ++i) {
+  for (int i = top; i < nlevsno() + nlevgrnd(); ++i) {
     
     double hm = 0.0;
     // Calculate the energy surplus and loss for melting and freezing
@@ -301,16 +301,16 @@ void phase_change_soisno(const int& snl,
       // interior snow layer
       //=================================================================
       if (i == top) { // top active layer
-        if (i < nlevsno) { // top layer is snow
+        if (i < nlevsno()) { // top layer is snow
            hm = frac_sno_eff * (dhsdT * tinc[i] - tinc[i] / fact(i));
         } else {
           double temp_hm = dhsdT * tinc[i] - tinc[i] / fact(i); // top layer is soil or soil with surface water
           hm = (frac_h2osfc != 0.0) ? temp_hm - frac_h2osfc * (dhsdT * tinc[i]) : temp_hm;
         }
-      } else if (i == nlevsno) { // top soil layer under snow
+      } else if (i == nlevsno()) { // top soil layer under snow
         hm = (1.0 - frac_sno_eff - frac_h2osfc) * dhsdT * tinc[i] - tinc[i] / fact(i);
       } else { // non-interfacial layers
-        if (i < nlevsno) { // snow
+        if (i < nlevsno()) { // snow
           hm = -frac_sno_eff * (tinc[i] / fact(i));
         } else { // soil
           hm = -tinc[i] / fact(i);
@@ -331,26 +331,26 @@ void phase_change_soisno(const int& snl,
 
     // The rate of melting and freezing
     if (imelt(i) > 0 && std::abs(hm) > 0.0) {
-      double xm = hm * dtime / HFUS; // kg/m2
+      double xm = hm * dtime / HFUS(); // kg/m2
       // If snow exists, but its thickness is less than the critical value
       // (1 cm). Note: more work is needed to determine how to tune the
       // snow depth for this case
-      if (i == nlevsno) {
+      if (i == nlevsno()) {
         if (snl == 0 && h2osno > 0.0 && xm > 0.0) {
           double temp1 = h2osno; // kg/m2
           h2osno = std::max(0.0, temp1 - xm);
           double propor = h2osno / temp1;
           snow_depth *= propor;
-          double heatr = hm - HFUS * (temp1 - h2osno) / dtime; // W/m2
+          double heatr = hm - HFUS() * (temp1 - h2osno) / dtime; // W/m2
           if (heatr > 0.0) {
-            xm = heatr * dtime / HFUS; // kg/m2
+            xm = heatr * dtime / HFUS(); // kg/m2
             hm = heatr; // W/m2
           } else {
             xm = 0.0;
             hm = 0.0;
           }
           qflx_snomelt = std::max(0.0, temp1 - h2osno) / dtime; // kg/(m2 s)
-          xmf = HFUS * qflx_snomelt;
+          xmf = HFUS() * qflx_snomelt;
           qflx_snow_melt = qflx_snomelt;
         }
       }
@@ -360,18 +360,18 @@ void phase_change_soisno(const int& snl,
       double wice0 = h2osoi_ice(i);
       if (xm > 0.0) {
         h2osoi_ice(i) = std::max(0.0, wice0 - xm);
-        heatr = hm - HFUS * (wice0 - h2osoi_ice(i)) / dtime;
+        heatr = hm - HFUS() * (wice0 - h2osoi_ice(i)) / dtime;
       } else if (xm < 0.0) {
-        if (i < nlevsno) {
+        if (i < nlevsno()) {
           h2osoi_ice(i) = std::min(wmass0, wice0 - xm); // snow
         } else {
-          if (wmass0 < supercool[i-nlevsno]) {
+          if (wmass0 < supercool[i-nlevsno()]) {
             h2osoi_ice(i) = 0.0;
           } else {
-            h2osoi_ice(i) = std::min(wmass0 - supercool[i-nlevsno], wice0 - xm);
+            h2osoi_ice(i) = std::min(wmass0 - supercool[i-nlevsno()], wice0 - xm);
           }
         }
-        heatr = hm - HFUS * (wice0 - h2osoi_ice(i)) / dtime;
+        heatr = hm - HFUS() * (wice0 - h2osoi_ice(i)) / dtime;
       }
 
       h2osoi_liq(i) = std::max(0.0, wmass0 - h2osoi_ice(i));
@@ -382,35 +382,35 @@ void phase_change_soisno(const int& snl,
           } else {
             t_soisno(i) += (fact(i) / frac_sno_eff) * heatr / (1.0 - fact(i) * dhsdT);
           }
-        } else if (i == nlevsno) {
+        } else if (i == nlevsno()) {
           t_soisno(i) += fact(i) * heatr / (1.0 - (1.0 - frac_sno_eff - frac_h2osfc) * fact(i) * dhsdT);
         } else {
-          if (i >= nlevsno) {
+          if (i >= nlevsno()) {
             t_soisno(i) += fact(i) * heatr;
           } else {
             if (frac_sno_eff > 0.0) t_soisno(i) += (fact(i) / frac_sno_eff) * heatr;
           }
         }
-        if (i < nlevsno) { // snow
-          if (h2osoi_liq(i) * h2osoi_ice(i) > 0.0) { t_soisno(i) = TFRZ; }
+        if (i < nlevsno()) { // snow
+          if (h2osoi_liq(i) * h2osoi_ice(i) > 0.0) { t_soisno(i) = TFRZ(); }
         }
       } // end of heatr > 0 if-block
 
-      xmf += HFUS * (wice0 - h2osoi_ice(i)) / dtime;
-      if (imelt(i) == 1 && i < nlevsno) {
+      xmf += HFUS() * (wice0 - h2osoi_ice(i)) / dtime;
+      if (imelt(i) == 1 && i < nlevsno()) {
         qflx_snomelt += std::max(0.0, (wice0 - h2osoi_ice(i))) / dtime;
       }
       // layer freezing mass flux (positive):
-      if (imelt(i) == 2 && i < nlevsno) {
+      if (imelt(i) == 2 && i < nlevsno()) {
         qflx_snofrz_lyr(i) = std::max(0.0, (h2osoi_ice(i) - wice0)) / dtime;
       }
     } // if (imelt(i) > 0 && abs(hm) > 0.0)
   } // all layers loop
 
 
-  eflx_snomelt = qflx_snomelt * HFUS;
-  for (int i = 0; i < nlevsno; ++i) {
-    if (imelt(i) == 2 && i < nlevsno) {
+  eflx_snomelt = qflx_snomelt * HFUS();
+  for (int i = 0; i < nlevsno(); ++i) {
+    if (imelt(i) == 2 && i < nlevsno()) {
       qflx_snofrz += qflx_snofrz_lyr(i);
     }
   }
@@ -428,11 +428,11 @@ void phase_change_correction(const int& snl,
   using ELMdims::nlevsno;
   using ELMdims::nlevgrnd;
 
-  const int top = nlevsno - snl;
-  for (int i = top; i < nlevgrnd + nlevsno - 1; ++i) {
+  const int top = nlevsno() - snl;
+  for (int i = top; i < nlevgrnd() + nlevsno() - 1; ++i) {
     fn1(i) = tk(i) * (t_soisno(i+1) - t_soisno(i)) / (z(i+1)-z(i));
   }
-  fn1(nlevgrnd + nlevsno - 1) = 0.0;
+  fn1(nlevgrnd() + nlevsno() - 1) = 0.0;
 }
 
 

@@ -112,16 +112,16 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 \param[in,out] snow_depth                    [double] snow height (m)
 \param[in,out] h2osno                        [double] snow water (mm H2O)
 \param[in,out] int_snow                      [double] integrated snowfall [mm]
-\param[out]    swe_old[nlevsno]              [double] snow water before update
-\param[out]    h2osoi_liq[nlevgrnd+nlevsno]  [double] liquid water (kg/m2)
-\param[out]    h2osoi_ice[nlevgrnd+nlevsno]  [double] ice lens (kg/m2)
-\param[out]    t_soisno[nlevgrnd+nlevsno]    [double] soil temperature (Kelvin)
-\param[out]    frac_iceold[nlevgrnd+nlevsno] [double] fraction of ice relative to the tot water
+\param[out]    swe_old[nlevsno()]              [double] snow water before update
+\param[out]    h2osoi_liq[nlevgrnd()+nlevsno()]  [double] liquid water (kg/m2)
+\param[out]    h2osoi_ice[nlevgrnd()+nlevsno()]  [double] ice lens (kg/m2)
+\param[out]    t_soisno[nlevgrnd()+nlevsno()]    [double] soil temperature (Kelvin)
+\param[out]    frac_iceold[nlevgrnd()+nlevsno()] [double] fraction of ice relative to the tot water
 \param[out]    snl                           [int] number of snow layers
 \param[out]    dz                            [double] layer thickness (m)
 \param[out]    z                             [double] layer cell center elevation (m)
 \param[out]    zi                            [double] layer interface elevation (m)
-\param[out]    snw_rds[nlevsno]              [double] snow grain radius [m^-6, microns]
+\param[out]    snw_rds[nlevsno()]              [double] snow grain radius [m^-6, microns]
 \param[out]    frac_sno_eff                  [double] fraction of ground covered by snow (0 to 1)
 \param[out]    frac_sno                      [double] fraction of ground covered by snow (0 to 1)
 */
@@ -142,7 +142,7 @@ based on surface microtopography and surface water storage.
 \param[in]  micro_sigma                  [double] microtopography pdf sigma (m)
 \param[in]  h2osno                       [double] snow water (mm H2O)
 \param[out] h2osfc                       [double] surface water (mm)
-\param[out] h2osoi_liq[nlevgrnd+nlevsno] [double] liquid water (kg/m2)
+\param[out] h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
 \param[out] frac_sno                     [double] fraction of ground covered by snow (0 to 1)
 \param[out] frac_sno_eff                 [double] effective fraction of ground covered by snow (0 to 1)
 \param[out] frac_h2osfc                  [double] fractional area with surface water greater than zero (0 to 1)

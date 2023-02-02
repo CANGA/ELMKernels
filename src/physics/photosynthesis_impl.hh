@@ -10,7 +10,7 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,
                     const double& cair, const double& rb, const double& btran, const double& dayl_factor,
                     const double& thm, const ArrayD1 tlai_z, const double& vcmaxcint, const ArrayD1 par_z,
-                    const ArrayD1 lai_z, double ci_z[ELMdims::nlevcan], double& rs)
+                    const ArrayD1 lai_z, double ci_z[ELMdims::nlevcan()], double& rs)
 {
   using ELMdims::nlevcan;
 
@@ -38,7 +38,7 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
   vcmax25top *= psnveg.fnitr;
   // Parameters derived from vcmax25top. Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
   // canopy top: maximum electron transport rate at 25C (umol electrons/m**2/s)
-  double jmax25top = (2.59 - 0.035 * std::min(std::max((t10 - ELMconst::TFRZ), 11.0), 35.0)) * vcmax25top;
+  double jmax25top = (2.59 - 0.035 * std::min(std::max((t10 - ELMconst::TFRZ()), 11.0), 35.0)) * vcmax25top;
   double tpu25top = 0.167 * vcmax25top;  // canopy top: triose phosphate utilization rate at 25C (umol CO2/m**2/s)
   double kp25top = 20000.0 * vcmax25top; // canopy top: initial slope of CO2 response curve (C4 plants) at 25C
 
@@ -63,11 +63,11 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
   // Loop through canopy layers (above snow). Respiration needs to be calculated every timestep. Others are calculated
   // only if daytime
   double laican = 0.0;     // canopy sum of lai_z
-  double lmr_z[nlevcan];   // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
-  double vcmax_z[nlevcan]; // maximum rate of carboxylation (umol co2/m**2/s)
-  double tpu_z[nlevcan];   // patch triose phosphate utilization rate (umol CO2/m**2/s)
-  double kp_z[nlevcan];    // patch initial slope of CO2 response curve (C4 plants)
-  double jmax_z[nlevcan];  // maximum electron transport rate (umol electrons/m**2/s)
+  double lmr_z[nlevcan()];   // canopy layer: leaf maintenance respiration rate (umol CO2/m**2/s)
+  double vcmax_z[nlevcan()]; // maximum rate of carboxylation (umol co2/m**2/s)
+  double tpu_z[nlevcan()];   // patch triose phosphate utilization rate (umol CO2/m**2/s)
+  double kp_z[nlevcan()];    // patch initial slope of CO2 response curve (C4 plants)
+  double jmax_z[nlevcan()];  // maximum electron transport rate (umol electrons/m**2/s)
   for (int iv = 0; iv < nrad; iv++) {
     // Cumulative lai at middle of layer
     if (iv == 0) {
@@ -79,9 +79,9 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
     // Scale for leaf nitrogen profile. If multi-layer code, use explicit profile. If sun/shade big leaf code, use
     // canopy integrated factor.
     double nscaler; // leaf nitrogen scaling coefficient
-    if (nlevcan == 1) {
+    if (nlevcan() == 1) {
       nscaler = vcmaxcint;
-    } else if (nlevcan > 1) {
+    } else if (nlevcan() > 1) {
       nscaler = exp(-kn * laican);
     }
 
@@ -91,8 +91,8 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
       double lmrc = fth25(psnveg.lmrhd, psnveg.lmrse); // scaling factor for high temperature inhibition (25 C = 1.0)
       lmr_z[iv] = lmr25 * ft(t_veg, psnveg.lmrha) * fth(t_veg, psnveg.lmrhd, psnveg.lmrse, lmrc);
     } else {
-      lmr_z[iv] = lmr25 * pow(2.0, ((t_veg - (ELMconst::TFRZ + 25.0)) / 10.0));
-      lmr_z[iv] /= (1.0 + exp(1.3 * (t_veg - (ELMconst::TFRZ + 55.0))));
+      lmr_z[iv] = lmr25 * pow(2.0, ((t_veg - (ELMconst::TFRZ() + 25.0)) / 10.0));
+      lmr_z[iv] /= (1.0 + exp(1.3 * (t_veg - (ELMconst::TFRZ() + 55.0))));
     }
 
     if (par_z[iv] <= 0.0) { // night time
@@ -106,8 +106,8 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
       double tpu25 = tpu25top * nscaler;     // leaf layer: triose phosphate utilization rate at 25C (umol CO2/m**2/s)
       double kp25 = kp25top * nscaler;       // leaf layer: Initial slope of CO2 response curve (C4 plants) at 25C
       // Adjust for temperature
-      double vcmaxse = 668.39 - 1.07 * std::min(std::max((t10 - ELMconst::TFRZ), 11.0), 35.0); // entropy term for vcmax (J/mol/K)
-      double jmaxse = 659.70 - 0.75 * std::min(std::max((t10 - ELMconst::TFRZ), 11.0), 35.0);  // entropy term for jmax (J/mol/K)
+      double vcmaxse = 668.39 - 1.07 * std::min(std::max((t10 - ELMconst::TFRZ()), 11.0), 35.0); // entropy term for vcmax (J/mol/K)
+      double jmaxse = 659.70 - 0.75 * std::min(std::max((t10 - ELMconst::TFRZ()), 11.0), 35.0);  // entropy term for jmax (J/mol/K)
       double tpuse = vcmaxse;                                                        // entropy term for tpu (J/mol/K)
       double vcmaxc = fth25(psnveg.vcmaxhd, vcmaxse); // scaling factor for high temperature inhibition (25 C = 1.0)
       double jmaxc = fth25(psnveg.jmaxhd, jmaxse);    // scaling factor for high temperature inhibition (25 C = 1.0)
@@ -117,11 +117,11 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
       tpu_z[iv] = tpu25 * ft(t_veg, psnveg.tpuha) * fth(t_veg, psnveg.tpuhd, tpuse, tpuc);
 
       if (!c3flag) {
-        vcmax_z[iv] = vcmax25 * pow(2.0, ((t_veg - (ELMconst::TFRZ + 25.0)) / 10.0));
-        vcmax_z[iv] /= (1.0 + exp(0.2 * ((ELMconst::TFRZ + 15.0) - t_veg)));
-        vcmax_z[iv] /= (1.0 + exp(0.3 * (t_veg - (ELMconst::TFRZ + 40.0))));
+        vcmax_z[iv] = vcmax25 * pow(2.0, ((t_veg - (ELMconst::TFRZ() + 25.0)) / 10.0));
+        vcmax_z[iv] /= (1.0 + exp(0.2 * ((ELMconst::TFRZ() + 15.0) - t_veg)));
+        vcmax_z[iv] /= (1.0 + exp(0.3 * (t_veg - (ELMconst::TFRZ() + 40.0))));
       }
-      kp_z[iv] = kp25 * pow(2.0, ((t_veg - (ELMconst::TFRZ + 25.0)) / 10.0));
+      kp_z[iv] = kp25 * pow(2.0, ((t_veg - (ELMconst::TFRZ() + 25.0)) / 10.0));
     }
 
     // Adjust for soil water
@@ -132,20 +132,20 @@ void photosynthesis(const PFTDataPSN& psnveg, const int& nrad, const double& for
   // Leaf-level photosynthesis and stomatal conductance
 
   // Leaf boundary layer conductance, umol/m**2/s
-  double cf = forc_pbot / (ELMconst::RGAS * 1.0e-3 * thm) * 1.e06; // s m**2/umol -> s/m
+  double cf = forc_pbot / (ELMconst::RGAS() * 1.0e-3 * thm) * 1.e06; // s m**2/umol -> s/m
   double gb = 1.0 / rb;                                      // leaf boundary layer conductance (m/s)
   double gb_mol = gb * cf;                                   // leaf boundary layer conductance (umol H2O/m**2/s)
 
   double psn;               // foliage photosynthesis (umol co2 /m**2/ s) [always +]
-  double psn_z[nlevcan];    // canopy layer: foliage photosynthesis (umol co2 /m**2/ s) [always +]
+  double psn_z[nlevcan()];    // canopy layer: foliage photosynthesis (umol co2 /m**2/ s) [always +]
   double psn_wc;            // Rubisco-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
   double psn_wj;            // RuBP-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
   double psn_wp;            // product-limited foliage photosynthesis (umol co2 /m**2/ s) [always +]
-  double psn_wc_z[nlevcan]; // Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
-  double psn_wj_z[nlevcan]; // RuBP-limited contribution to psn_z (umol CO2/m**2/s)
-  double psn_wp_z[nlevcan]; // product-limited contribution to psn_z (umol CO2/m**2/s)
-  double rs_z[nlevcan];     // canopy layer: leaf stomatal resistance (s/m)
-  double gs_mol[nlevcan];   // leaf stomatal conductance (umol H2O/m**2/s)
+  double psn_wc_z[nlevcan()]; // Rubisco-limited contribution to psn_z (umol CO2/m**2/s)
+  double psn_wj_z[nlevcan()]; // RuBP-limited contribution to psn_z (umol CO2/m**2/s)
+  double psn_wp_z[nlevcan()]; // product-limited contribution to psn_z (umol CO2/m**2/s)
+  double rs_z[nlevcan()];     // canopy layer: leaf stomatal resistance (s/m)
+  double gs_mol[nlevcan()];   // leaf stomatal conductance (umol H2O/m**2/s)
   double bbb = std::max(psnveg.bbbopt * btran, 1.0); // Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
   double rsmax0 = 2.0e4;                             // maximum stomatal resistance [s/m]
 
@@ -621,17 +621,17 @@ void hybrid(
 
 ACCELERATE
 double ft(const double& tl, const double& ha) {
-  return exp(ha / (ELMconst::RGAS * 1.0e-3 * (ELMconst::TFRZ + 25.0)) * (1.0 - (ELMconst::TFRZ + 25.0) / tl));
+  return exp(ha / (ELMconst::RGAS() * 1.0e-3 * (ELMconst::TFRZ() + 25.0)) * (1.0 - (ELMconst::TFRZ() + 25.0) / tl));
 }
 
 ACCELERATE
 double fth(const double& tl, const double& hd, const double& se, const double& scaleFactor) {
-  return scaleFactor / (1.0 + exp((-hd + se * tl) / (ELMconst::RGAS * 1.0e-3 * tl)));
+  return scaleFactor / (1.0 + exp((-hd + se * tl) / (ELMconst::RGAS() * 1.0e-3 * tl)));
 }
 
 ACCELERATE
 double fth25(const double& hd, const double& se) {
-  return 1.0 + exp((-hd + se * (ELMconst::TFRZ + 25.0)) / (ELMconst::RGAS * 1.0e-3 * (ELMconst::TFRZ + 25.0)));
+  return 1.0 + exp((-hd + se * (ELMconst::TFRZ() + 25.0)) / (ELMconst::RGAS() * 1.0e-3 * (ELMconst::TFRZ() + 25.0)));
 }
 
 /* none of these variables do anything - diagnostics maybe??

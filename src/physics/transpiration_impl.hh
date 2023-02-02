@@ -22,7 +22,7 @@ void transpiration(const bool& veg_active,
 {
   using ELMdims::nlevsoi;
   if (veg_active) {
-    for (int i = 0; i < nlevsoi; ++i) {
+    for (int i = 0; i < nlevsoi(); ++i) {
       qflx_rootsoi(i) = rootr(i) * qflx_tran_veg;
     }
   }

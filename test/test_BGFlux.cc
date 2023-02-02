@@ -62,7 +62,7 @@ double t_ref2m_r
 double q_ref2m
 double rh_ref2m
 double rh_ref2m_r
-ArrayD1 t_soisno[nlevsno+nlevgrnd]
+ArrayD1 t_soisno[nlevsno()+nlevgrnd()]
 
 */
 
@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
   auto rh_ref2m = create<ArrayD1>("rh_ref2m", n_grid_cells);
   //auto rh_ref2m_r = create<ArrayD1>("rh_ref2m_r", n_grid_cells);
   
-  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno + nlevgrnd);
+  auto t_soisno = create<ArrayD2>("t_soisno", n_grid_cells, nlevsno() + nlevgrnd());
 
 
   // input and output utility class objects

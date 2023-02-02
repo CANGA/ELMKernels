@@ -4,8 +4,8 @@
 namespace ELM::surface_fluxes {
 
 // calculate previous t_grnd for flux correction
-// tssbef_snotop = tssbef(nlevsno-snl)
-// tssbef_soitop = tssbef(EML::nlevsno)
+// tssbef_snotop = tssbef(nlevsno()-snl)
+// tssbef_soitop = tssbef(EML::nlevsno())
 ACCELERATE
 double prev_tgrnd(const int& snl, const double& frac_sno_eff,
                   const double& frac_h2osfc, const double& t_h2osfc_bef,
@@ -26,8 +26,8 @@ double delta_t(const double& t_grnd, const double& t_grnd0) { return t_grnd - t_
 // get the ratio of evaporative demand to h2o availability
 // if demand is greater than availability, or 1.0 otherwise.
 // !!!! ATTENTION: call AFTER qflx_evap_soi is updated by initial_flux_calc()
-// h2osoi_ice_snotop = (nlevsno-snl)
-// h2osoi_liq_snotop = (nlevsno-snl)
+// h2osoi_ice_snotop = (nlevsno()-snl)
+// h2osoi_liq_snotop = (nlevsno()-snl)
 ACCELERATE
 double evap_ratio(const double& h2osoi_ice_snotop, const double& h2osoi_liq_snotop,
                   const double& dtime, const double& qflx_evap_soi)
@@ -68,8 +68,8 @@ qflx_ev_h2osfc
 */
 // corrct fluxes for changing temperature during timestep
 // must CALL BEFORE any other surface flux functions
-// tssbef_snotop = tssbef(nlevsno-snl)
-// tssbef_soitop = tssbef(EML::nlevsno)
+// tssbef_snotop = tssbef(nlevsno()-snl)
+// tssbef_soitop = tssbef(EML::nlevsno())
 ACCELERATE
 void initial_flux_calc(const bool& urbpoi, const int& snl, const double& frac_sno_eff,
                        const double& frac_h2osfc, const double& t_h2osfc_bef,
@@ -139,10 +139,10 @@ qflx_snwcp_ice
 
 */
 // calculate new surface fluxes for current timestep
-// h2osoi_ice_snotop = (nlevsno-snl)
-// h2osoi_liq_snotop = (nlevsno-snl)
-// tssbef_snotop = tssbef(nlevsno-snl)
-// tssbef_soitop = tssbef(EML::nlevsno)
+// h2osoi_ice_snotop = (nlevsno()-snl)
+// h2osoi_liq_snotop = (nlevsno()-snl)
+// tssbef_snotop = tssbef(nlevsno()-snl)
+// tssbef_soitop = tssbef(EML::nlevsno())
 ACCELERATE
 void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime,
                            const double& t_grnd, const double& htvp, const double& frac_sno_eff,
@@ -178,17 +178,17 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
     const double t_grnd0{prev_tgrnd(snl, frac_sno_eff, frac_h2osfc, t_h2osfc_bef, tssbef_snotop, tssbef_soitop)};
     const double tinc{delta_t(t_grnd, t_grnd0)};
     eflx_soil_grnd = ((1.0 - frac_sno_eff) * sabg_soil + frac_sno_eff * sabg_snow) + dlrad +
-                     (1.0 - frac_veg_nosno) * emg * forc_lwrad - emg * ELMconst::STEBOL * lw_grnd -
-                     pow(emg * ELMconst::STEBOL * t_grnd0, 3.0) * (4.0 * tinc) - (eflx_sh_grnd + qflx_evap_soi * htvp);
+                     (1.0 - frac_veg_nosno) * emg * forc_lwrad - emg * ELMconst::STEBOL() * lw_grnd -
+                     pow(emg * ELMconst::STEBOL() * t_grnd0, 3.0) * (4.0 * tinc) - (eflx_sh_grnd + qflx_evap_soi * htvp);
   } else {
     // For all urban columns we use the net longwave radiation (eflx_lwrad_net) since
     // the term (emg*sb*tssbef(col_pp%snl+1)**4) is not the upward longwave flux because of
     // interactions between urban columns.
-    // eflx_lwrad_del = 4.0 * emg * ELMconst::STEBOL * pow(t_grnd0, 3.0) * tinc;
+    // eflx_lwrad_del = 4.0 * emg * ELMconst::STEBOL() * pow(t_grnd0, 3.0) * tinc;
     // ! Include transpiration term because needed for pervious road
     // ! and wasteheat and traffic flux
     // eflx_soil_grnd = sabg + dlrad - eflx_lwrad_net - eflx_lwrad_del
-    //      - (eflx_sh_grnd + qflx_evap_soi * htvp + qflx_tran_veg * ELMconst::HVAP)
+    //      - (eflx_sh_grnd + qflx_evap_soi * htvp + qflx_tran_veg * ELMconst::HVAP())
     //      + eflx_wasteheat_patch + eflx_heat_from_ac_patch + eflx_traffic_patch;
     // eflx_soil_grnd_u = eflx_soil_grnd;
   }
@@ -196,7 +196,7 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
   // Total fluxes (vegetation + ground)
   eflx_sh_tot = eflx_sh_veg + eflx_sh_grnd;
   qflx_evap_tot = qflx_evap_veg + qflx_evap_soi;
-  eflx_lh_tot = ELMconst::HVAP * qflx_evap_veg + htvp * qflx_evap_soi;
+  eflx_lh_tot = ELMconst::HVAP() * qflx_evap_veg + htvp * qflx_evap_soi;
 
   // Assign ground evaporation to sublimation from soil ice or to dew
   // on snow or ground
@@ -215,7 +215,7 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
     }
     qflx_sub_snow = qflx_ev_snow - qflx_evap_grnd;
   } else {
-    if (t_grnd < ELMconst::TFRZ) {
+    if (t_grnd < ELMconst::TFRZ()) {
       qflx_dew_snow = std::abs(qflx_ev_snow);
     } else {
       qflx_dew_grnd = std::abs(qflx_ev_snow);
@@ -234,8 +234,8 @@ void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int
 // For urban patches, ulrad=0 and (1-fracveg_nosno)=1, and eflx_lwrad_out and eflx_lwrad_net
 // are calculated in UrbanRadiation. The increase of ground longwave is added directly
 // to the outgoing longwave and the net longwave.
-// tssbef_snotop = tssbef(nlevsno-snl)
-// tssbef_soitop = tssbef(EML::nlevsno)
+// tssbef_snotop = tssbef(nlevsno()-snl)
+// tssbef_soitop = tssbef(EML::nlevsno())
 ACCELERATE
 void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosno, const double& forc_lwrad,
                         const double& frac_sno_eff, const double& tssbef_snotop, const double& tssbef_soitop,
@@ -249,8 +249,8 @@ void lwrad_outgoing(const bool& urbpoi, const int& snl, const int& frac_veg_nosn
     const double t_grnd0{prev_tgrnd(snl, frac_sno_eff, frac_h2osfc, t_h2osfc_bef, tssbef_snotop, tssbef_soitop)};
     const double tinc{delta_t(t_grnd, t_grnd0)};
     eflx_lwrad_out = ulrad + (1 - frac_veg_nosno) * (1.0 - emg) * forc_lwrad +
-                     (1 - frac_veg_nosno) * emg * ELMconst::STEBOL * lw_grnd +
-                     4.0 * emg * ELMconst::STEBOL * pow(t_grnd0, 3.0) * tinc;
+                     (1 - frac_veg_nosno) * emg * ELMconst::STEBOL() * lw_grnd +
+                     4.0 * emg * ELMconst::STEBOL() * pow(t_grnd0, 3.0) * tinc;
     eflx_lwrad_net = eflx_lwrad_out - forc_lwrad;
   } else {
     //  eflx_lwrad_out = eflx_lwrad_out + eflx_lwrad_del;
@@ -279,13 +279,13 @@ double soil_energy_balance(const int& ctype, const int& snl, const double& eflx_
   if (ctype == LND::icol_sunwall || ctype == LND::icol_shadewall || ctype == LND::icol_roof) {
     errsoi += eflx_building_heat;
   }
-  for (int j = 0; j < nlevgrnd + nlevsno; ++j) {
-    if ((ctype != LND::icol_sunwall && ctype != LND::icol_shadewall && ctype != LND::icol_roof) || (j < nlevurb)) {
+  for (int j = 0; j < nlevgrnd() + nlevsno(); ++j) {
+    if ((ctype != LND::icol_sunwall && ctype != LND::icol_shadewall && ctype != LND::icol_roof) || (j < nlevurb())) {
       // area weight heat absorbed by snow layers
-      if (j >= nlevsno - snl && j < nlevsno) {
+      if (j >= nlevsno() - snl && j < nlevsno()) {
         errsoi -= frac_sno_eff * (t_soisno(j) - tssbef(j)) / fact(j);
       }
-      if (j >= nlevsno) {
+      if (j >= nlevsno()) {
         errsoi -= (t_soisno(j) - tssbef(j)) / fact(j);
       }
     }

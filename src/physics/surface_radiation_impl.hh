@@ -19,7 +19,7 @@ void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow,
     sabv = 0.0;
     fsa = 0.0;
 
-    for (int j = 0; j < nlevsno + 1; j++) {
+    for (int j = 0; j < nlevsno() + 1; j++) {
       sabg_lyr(j) = 0.0;
     }
   }
@@ -37,9 +37,9 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
   using ELMconfig::subgridflag;
   using ELMdims::numrad;
 
-  double absrad, cad[numrad], cai[numrad];
+  double absrad, cad[numrad()], cai[numrad()];
   if (!Land.urbpoi) {
-    for (int ib = 0; ib < numrad; ib++) {
+    for (int ib = 0; ib < numrad(); ib++) {
 
       cad[ib] = forc_solad(ib) * fabd(ib);
       cai[ib] = forc_solai(ib) * fabi(ib);
@@ -64,11 +64,11 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
         sabg_soil = sabg;
       }
 
-      if (subgridflag == 0) {
+      if (subgridflag() == 0) {
         sabg_snow = sabg;
         sabg_soil = sabg;
       }
-    } // end of numrad
+    } // end of numrad()
   }   // end if not urban
 }
 
@@ -92,18 +92,18 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
 
     // CASE1: No snow layers: all energy is absorbed in top soil layer
     if (snl == 0) {
-      for (int i = 0; i <= nlevsno; i++) {
+      for (int i = 0; i <= nlevsno(); i++) {
         sabg_lyr(i) = 0.0;
       }
-      sabg_lyr(nlevsno) = sabg;
-      sabg_snl_sum = sabg_lyr(nlevsno);
+      sabg_lyr(nlevsno()) = sabg;
+      sabg_snl_sum = sabg_lyr(nlevsno());
     } else { // CASE 2: Snow layers present: absorbed radiation is scaled according to flux factors computed by SNICAR
 
-      for (int i = 0; i < nlevsno + 1; i++) {
+      for (int i = 0; i < nlevsno() + 1; i++) {
         sabg_lyr(i) = flx_absdv(i) * trd(0) + flx_absdn(i) * trd(1) + flx_absiv(i) * tri(0) + flx_absin(i) * tri(1);
         // summed radiation in active snow layers:
         // if snow layer is at or below snow surface
-        if (i >= nlevsno - snl) {
+        if (i >= nlevsno() - snl) {
           sabg_snl_sum += sabg_lyr(i);
         }
       }
@@ -120,54 +120,54 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
 
       if (std::abs(sabg_snl_sum - sabg_snow) > 0.00001) {
         if (snl == 0) {
-          for (int j = 0; j < nlevsno; j++) {
+          for (int j = 0; j < nlevsno(); j++) {
             sabg_lyr(j) = 0.0;
           }
-          sabg_lyr(nlevsno) = sabg;
+          sabg_lyr(nlevsno()) = sabg;
         } else if (snl == 1) {
-          for (int j = 0; j < nlevsno - 1; j++) {
+          for (int j = 0; j < nlevsno() - 1; j++) {
             sabg_lyr(j) = 0.0;
           }
-          sabg_lyr(nlevsno - 1) = sabg_snow * 0.6;
-          sabg_lyr(nlevsno) = sabg_snow * 0.4;
+          sabg_lyr(nlevsno() - 1) = sabg_snow * 0.6;
+          sabg_lyr(nlevsno()) = sabg_snow * 0.4;
         } else {
-          for (int j = 0; j <= nlevsno; j++) {
+          for (int j = 0; j <= nlevsno(); j++) {
             sabg_lyr(j) = 0.0;
           }
-          sabg_lyr(nlevsno - snl) = sabg_snow * 0.75;
-          sabg_lyr(nlevsno - snl + 1) = sabg_snow * 0.25;
+          sabg_lyr(nlevsno() - snl) = sabg_snow * 0.75;
+          sabg_lyr(nlevsno() - snl + 1) = sabg_snow * 0.25;
         }
       }
 
       // If shallow snow depth, all solar radiation absorbed in top or top two snow layers
       // to prevent unrealistic timestep soil warming
 
-      if (subgridflag == 0) {
+      if (subgridflag() == 0) {
         if (snow_depth < 0.1) {
           if (snl == 0) {
-            for (int j = 0; j < nlevsno; j++) {
+            for (int j = 0; j < nlevsno(); j++) {
               sabg_lyr(j) = 0.0;
             }
-            sabg_lyr(nlevsno) = sabg;
+            sabg_lyr(nlevsno()) = sabg;
           } else if (snl == 1) {
-            for (int j = 0; j < nlevsno - 1; j++) {
+            for (int j = 0; j < nlevsno() - 1; j++) {
               sabg_lyr(j) = 0.0;
             }
-            sabg_lyr(nlevsno - 1) = sabg;
-            sabg_lyr(nlevsno) = 0.0;
+            sabg_lyr(nlevsno() - 1) = sabg;
+            sabg_lyr(nlevsno()) = 0.0;
           } else {
-            for (int j = 0; j <= nlevsno; j++) {
+            for (int j = 0; j <= nlevsno(); j++) {
               sabg_lyr(j) = 0.0;
             }
-            sabg_lyr(nlevsno - snl) = sabg_snow * 0.75;
-            sabg_lyr(nlevsno - snl + 1) = sabg_snow * 0.25;
+            sabg_lyr(nlevsno() - snl) = sabg_snow * 0.75;
+            sabg_lyr(nlevsno() - snl + 1) = sabg_snow * 0.25;
           }
         }
       }
     }
 
     // Error check - This situation should not happen:
-    for (int j = 0; j <= nlevsno; j++) {
+    for (int j = 0; j <= nlevsno(); j++) {
       err_sum += sabg_lyr(j);
     }
     assert(!(std::abs(err_sum - sabg_snow) > 0.00001));

@@ -22,11 +22,11 @@ namespace ELM::soil_temp {
 /*
 generic function to calc surface heat fluxes
 can calc:
-hs_soil: sabg_soil, t_soisno(nlevsno), eflx_sh_soil, qflx_ev_soil
+hs_soil: sabg_soil, t_soisno(nlevsno()), eflx_sh_soil, qflx_ev_soil
 hs_h2osfc: sabg_soil, t_h2osfc, eflx_sh_h2osfc, qflx_ev_h2osfc
-hs_snow: sabg_snow, t_soisno(nlevsno - snl), eflx_sh_snow, qflx_ev_snow
-hs_top: sabg_lyr(nlevsno - snl), t_grnd, eflx_sh_grnd, qflx_evap_soi
-hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qflx_ev_snow
+hs_snow: sabg_snow, t_soisno(nlevsno() - snl), eflx_sh_snow, qflx_ev_snow
+hs_top: sabg_lyr(nlevsno() - snl), t_grnd, eflx_sh_grnd, qflx_evap_soi
+hs_top_snow: sabg_lyr(nlevsno() - snl), t_soisno(nlevsno() - snl), eflx_sh_snow, qflx_ev_snow
 */
   ACCELERATE
   double calc_surface_heat_flux(const int& frac_veg_nosno,
@@ -119,10 +119,10 @@ hs_top_snow: sabg_lyr(nlevsno - snl), t_soisno(nlevsno - snl), eflx_sh_snow, qfl
   double calc_dlwrad_emit(const double& emg, const double& t_grnd);
 
 
-  // cv[nlevsno+nlevgrnd]     heat capacity [J/(m2 K)]
-  // tk[nlevsno+nlevgrnd]     thermal conductivity [W/(m K)]
-  // fn[nlevsno+nlevgrnd]     heat diffusion through the layer interface [W/m2]
-  // fact[nlevsno+nlevgrnd]   used in computing matrix
+  // cv[nlevsno()+nlevgrnd()]     heat capacity [J/(m2 K)]
+  // tk[nlevsno()+nlevgrnd()]     thermal conductivity [W/(m K)]
+  // fn[nlevsno()+nlevgrnd()]     heat diffusion through the layer interface [W/m2]
+  // fact[nlevsno()+nlevgrnd()]   used in computing matrix
   template <typename ArrayD1>
   ACCELERATE
   void calc_heat_flux_matrix_factor(const int& snl,

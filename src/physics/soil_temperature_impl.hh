@@ -41,7 +41,7 @@ namespace ELM::soil_temp {
 
 
   // calculates fn, the diffusive heat flux through layer interfaces
-  // fn[nlevgrnd+nlevsno]
+  // fn[nlevgrnd()+nlevsno()]
   // fn(i) is the interface between cells i and i+1
   // this is different than zi, where zi(i) is between cells i-1 and i 
   template <typename ArrayD1>
@@ -56,13 +56,13 @@ namespace ELM::soil_temp {
     using ELMdims::nlevsno;
 
     // zero out inactive layer interfaces
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
     for (int i = 0; i < top; ++i) {
       fn(i) = 0.0;
     }
 
     // all active layer interfaces above bottom interface
-    for (int i = top; i < nlevgrnd + nlevsno - 1; ++i) {
+    for (int i = top; i < nlevgrnd() + nlevsno() - 1; ++i) {
       fn(i) = tk(i) * (t_soisno(i+1) - t_soisno(i)) / (z(i+1)-z(i));
     }
 
@@ -71,21 +71,21 @@ namespace ELM::soil_temp {
     // could add external eflx_bot in the future
     // eg to represent geothermal heat or
     // coupling condition from driving model  
-    fn(nlevgrnd + nlevsno - 1) = 0.0;
+    fn(nlevgrnd() + nlevsno() - 1) = 0.0;
   }
 
 
   ACCELERATE
   double calc_lwrad_emit(const double& emg, const double& temp)
   {
-    return emg * ELMconst::STEBOL * pow(temp, 4.0);
+    return emg * ELMconst::STEBOL() * pow(temp, 4.0);
   }
 
 
   ACCELERATE
   double calc_dlwrad_emit(const double& emg, const double& t_grnd)
   {
-    return 4.0 * emg * ELMconst::STEBOL * pow(t_grnd, 3.0);
+    return 4.0 * emg * ELMconst::STEBOL() * pow(t_grnd, 3.0);
   }
 
 
@@ -104,7 +104,7 @@ namespace ELM::soil_temp {
     using ELMdims::nlevsno;
 
     // zero out inactive layers
-    const int top = nlevsno - snl;
+    const int top = nlevsno() - snl;
     for (int i = 0; i < top; ++i) {
       fact(i) = 0.0;
     }
@@ -114,7 +114,7 @@ namespace ELM::soil_temp {
         zi(top) + capr * (z(top+1) - zi(top))));
 
     // all layers below top active layer
-    for (int i = top + 1; i < nlevgrnd + nlevsno; ++i) {
+    for (int i = top + 1; i < nlevgrnd() + nlevsno(); ++i) {
       fact(i) = dtime / cv(i);
     }
   }
@@ -130,21 +130,21 @@ namespace ELM::soil_temp {
   {
     using ELMdims::nlevsno;
     using ELMdims::nlevgrnd;
-    const int top = nlevsno - snl(c);
+    const int top = nlevsno() - snl(c);
     
     // zero inactive layers
     for (int i = 0; i < top; ++i)
       tvector(c, i) = 0.0;
 
     // snow layers
-    for (int i = top; i < nlevsno; ++i)
+    for (int i = top; i < nlevsno(); ++i)
       tvector(c, i) = t_soisno(c, i);
 
     // surface water
-    tvector(c, nlevsno) = t_h2osfc(c);
+    tvector(c, nlevsno()) = t_h2osfc(c);
 
     // soil
-    for (int i = nlevsno; i < nlevsno + nlevgrnd; ++i)
+    for (int i = nlevsno(); i < nlevsno() + nlevgrnd(); ++i)
       tvector(c, i + 1) = t_soisno(c, i);
   }
 
@@ -160,19 +160,19 @@ namespace ELM::soil_temp {
   {
     using ELMdims::nlevsno;
     using ELMdims::nlevgrnd;
-    const int top = nlevsno - snl(c);
+    const int top = nlevsno() - snl(c);
 
     // snow layers
-    for (int i = top; i < nlevsno; ++i)
+    for (int i = top; i < nlevsno(); ++i)
       t_soisno(c, i) = tvector(c, i);
 
     // soil
-    for (int i = nlevsno; i < nlevsno + nlevgrnd; ++i)
+    for (int i = nlevsno(); i < nlevsno() + nlevgrnd(); ++i)
       t_soisno(c, i) = tvector(c, i + 1);
 
     // surface water
     // ? first subsurface cell : surface water
-    t_h2osfc(c) = (frac_h2osfc(c) != 0.0) ? tvector(c, nlevsno) : t_soisno(c, nlevsno);
+    t_h2osfc(c) = (frac_h2osfc(c) != 0.0) ? tvector(c, nlevsno()) : t_soisno(c, nlevsno());
   }
 
   template <typename ArrayI1, typename ArrayD1, typename ArrayD2>
@@ -188,18 +188,18 @@ namespace ELM::soil_temp {
     using ELMdims::nlevsno;
 
     if (snl(c) > 0) {
-      const int top = nlevsno - snl(c);
+      const int top = nlevsno() - snl(c);
       if(frac_h2osfc(c) != 0.0) {
         t_grnd(c) = frac_sno_eff(c) * t_soisno(c, top) + (1.0 - frac_sno_eff(c) - frac_h2osfc(c)) *
-          t_soisno(c, nlevsno) + frac_h2osfc(c) * t_h2osfc(c);
+          t_soisno(c, nlevsno()) + frac_h2osfc(c) * t_h2osfc(c);
       } else {
-        t_grnd(c) = frac_sno_eff(c) * t_soisno(c, top) + (1.0 - frac_sno_eff(c)) * t_soisno(c, nlevsno);
+        t_grnd(c) = frac_sno_eff(c) * t_soisno(c, top) + (1.0 - frac_sno_eff(c)) * t_soisno(c, nlevsno());
       }
     } else {
       if(frac_h2osfc(c) != 0.0) {
-        t_grnd(c) = (1.0 - frac_h2osfc(c)) * t_soisno(c, nlevsno) + frac_h2osfc(c) * t_h2osfc(c);
+        t_grnd(c) = (1.0 - frac_h2osfc(c)) * t_soisno(c, nlevsno()) + frac_h2osfc(c) * t_h2osfc(c);
       } else {
-        t_grnd(c) = t_soisno(c, nlevsno);
+        t_grnd(c) = t_soisno(c, nlevsno());
       }
     }
   }

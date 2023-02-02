@@ -68,18 +68,18 @@ int main(int argc, char **argv) {
   auto elai = create<ArrayD1>("elai", n_grid_cells);
   auto laisun = create<ArrayD1>("laisun", n_grid_cells);
   auto laisha = create<ArrayD1>("laisha", n_grid_cells);
-  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan);
-  auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, nlevcan);
-  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad);
-  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad);
-  auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, nlevcan);
-  auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, nlevcan);
-  auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, nlevcan);
-  auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, nlevcan);
-  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan);
-  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan);
-  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan);
-  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan);
+  auto tlai_z = create<ArrayD2>("tlai_z", n_grid_cells, nlevcan());
+  auto fsun_z = create<ArrayD2>("fsun_z", n_grid_cells, nlevcan());
+  auto forc_solad = create<ArrayD2>("forc_solad", n_grid_cells, numrad());
+  auto forc_solai = create<ArrayD2>("forc_solai", n_grid_cells, numrad());
+  auto fabd_sun_z = create<ArrayD2>("fabd_sun_z", n_grid_cells, nlevcan());
+  auto fabd_sha_z = create<ArrayD2>("fabd_sha_z", n_grid_cells, nlevcan());
+  auto fabi_sun_z = create<ArrayD2>("fabi_sun_z", n_grid_cells, nlevcan());
+  auto fabi_sha_z = create<ArrayD2>("fabi_sha_z", n_grid_cells, nlevcan());
+  auto parsun_z = create<ArrayD2>("parsun_z", n_grid_cells, nlevcan());
+  auto parsha_z = create<ArrayD2>("parsha_z", n_grid_cells, nlevcan());
+  auto laisun_z = create<ArrayD2>("laisun_z", n_grid_cells, nlevcan());
+  auto laisha_z = create<ArrayD2>("laisha_z", n_grid_cells, nlevcan());
 
 
   // input and output utility class objects

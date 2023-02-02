@@ -12,7 +12,7 @@ void ELM::kokkos_surface_fluxes(ELMStateType& S,
   // call surface_fluxes kernels
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-  const auto soitop = ELMdims::nlevsno;
+  const auto soitop = ELMdims::nlevsno();
 
   auto surf_flux_kernels = ELM_LAMBDA (const int& idx) {
     const auto snotop = soitop - S.snl(idx);

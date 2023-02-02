@@ -142,7 +142,7 @@ void photosynthesis(const PFTDataPSN& psn_pft, const int& nrad, const double& fo
                     const double& t10, const double& esat_tv, const double& eair, const double& oair,
                     const double& cair, const double& rb, const double& btran, const double& dayl_factor,
                     const double& thm, const ArrayD1 tlai_z, const double& vcmaxcint, const ArrayD1 par_z,
-                    const ArrayD1 lai_z, double ci_z[ELMdims::nlevcan], double& rs);
+                    const ArrayD1 lai_z, double ci_z[ELMdims::nlevcan()], double& rs);
 
 /*! Compute photosynthesis totals. (internal)
 note: none of these variables do anything - diagnostics maybe??

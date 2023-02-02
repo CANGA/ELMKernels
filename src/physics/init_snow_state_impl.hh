@@ -39,25 +39,25 @@ void init_snow_state(const bool& urbpoi, const int& snl, double& h2osno, double&
       const double fmelt{pow(snowbd / 100.0, 1.0)};
       // 100 is the assumed fresh snow density; 1 is a melting factor that could be
       // reconsidered, optimal value of 1.5 in Niu et al., 2007
-      frac_sno = tanh(snow_depth / (2.5 * ELMconst::ZLND * fmelt));
+      frac_sno = tanh(snow_depth / (2.5 * ELMconst::ZLND() * fmelt));
     }
   }
 
   // initial snow radius
   if (snl > 0) {
-    for (int i = 0; i < nlevsno - snl; ++i) {
+    for (int i = 0; i < nlevsno() - snl; ++i) {
       snw_rds(i) = 0.0;
     }
-    for (int i = nlevsno - snl; i < nlevsno; ++i) {
-      snw_rds(i) = ELMconst::SNW_RDS_MIN;
+    for (int i = nlevsno() - snl; i < nlevsno(); ++i) {
+      snw_rds(i) = ELMconst::SNW_RDS_MIN();
     }
   } else if (h2osno > 0.0) {
-    snw_rds(nlevsno - 1) = ELMconst::SNW_RDS_MIN;
-    for (int i = 0; i < nlevsno - 1; ++i) {
+    snw_rds(nlevsno() - 1) = ELMconst::SNW_RDS_MIN();
+    for (int i = 0; i < nlevsno() - 1; ++i) {
       snw_rds(i) = 0.0;
     }
   } else {
-    for (int i = 0; i < nlevsno; ++i) {
+    for (int i = 0; i < nlevsno(); ++i) {
       snw_rds(i) = 0.0;
     }
   }
@@ -70,21 +70,21 @@ void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, Ar
   using ELMdims::nlevsno;
   using ELMconst::SPVAL;
 
-  for (int i = 0; i < nlevsno; i++) {
-    dz[i] = SPVAL;
-    z[i] = SPVAL;
-    zi[i] = SPVAL;
+  for (int i = 0; i < nlevsno(); i++) {
+    dz[i] = SPVAL();
+    z[i] = SPVAL();
+    zi[i] = SPVAL();
   }
 
   if (!lakpoi) {
     if (snow_depth < 0.01) {
       snl = 0;
-      for (int i = 0; i < nlevsno; i++) {
+      for (int i = 0; i < nlevsno(); i++) {
         dz[i] = 0.0;
         z[i] = 0.0;
         zi[i] = 0.0;
       }
-      zi[nlevsno] = 0.0;
+      zi[nlevsno()] = 0.0;
     } else {
       if ((snow_depth >= 0.01) && (snow_depth <= 0.03)) {
         snl = 1;
@@ -135,18 +135,18 @@ void init_snow_layers(const double& snow_depth, const bool& lakpoi, int& snl, Ar
         dz[4] = snow_depth - dz[0] - dz[1] - dz[2] - dz[3];
       }
     }
-    for (int j = nlevsno - 1; j >= nlevsno - snl; j--) {
+    for (int j = nlevsno() - 1; j >= nlevsno() - snl; j--) {
       z[j] = zi[j + 1] - 0.5 * dz[j];
       zi[j] = zi[j + 1] - dz[j];
     }
   } else {
     snl = 0;
-    for (int i = 0; i < nlevsno; i++) {
+    for (int i = 0; i < nlevsno(); i++) {
       dz[i] = 0.0;
       z[i] = 0.0;
       zi[i] = 0.0;
     }
-    zi[nlevsno] = 0.0;
+    zi[nlevsno()] = 0.0;
   }
 }
 

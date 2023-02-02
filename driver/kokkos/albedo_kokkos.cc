@@ -16,26 +16,26 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S)
 
   // local variables
   const int ncols = S.num_columns;
-  ViewI2 snw_rds_lcl("snw_rds_lcl", ncols, ELM::ELMdims::nlevsno);
-  ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", ncols, ELM::ELMdims::nlevsno);
-  ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", ncols, ELM::ELMdims::nlevsno);
-  ViewD2 albout_lcl("albout_lcl", ncols, ELM::ELMdims::numrad_snw);
-  ViewD2 flx_slrd_lcl("flx_slrd_lcl", ncols, ELM::ELMdims::numrad_snw);
-  ViewD2 flx_slri_lcl("flx_slri_lcl", ncols, ELM::ELMdims::numrad_snw);
-  ViewD2 tsai_z("tsai_z", ncols, ELM::ELMdims::nlevcan);
+  ViewI2 snw_rds_lcl("snw_rds_lcl", ncols, ELM::ELMdims::nlevsno());
+  ViewD2 h2osoi_ice_lcl("h2osoi_ice_lcl", ncols, ELM::ELMdims::nlevsno());
+  ViewD2 h2osoi_liq_lcl("h2osoi_liq_lcl", ncols, ELM::ELMdims::nlevsno());
+  ViewD2 albout_lcl("albout_lcl", ncols, ELM::ELMdims::numrad_snw());
+  ViewD2 flx_slrd_lcl("flx_slrd_lcl", ncols, ELM::ELMdims::numrad_snw());
+  ViewD2 flx_slri_lcl("flx_slri_lcl", ncols, ELM::ELMdims::numrad_snw());
+  ViewD2 tsai_z("tsai_z", ncols, ELM::ELMdims::nlevcan());
 
-  ViewD2 fabd_sun("fabd_sun", ncols, ELM::ELMdims::numrad);
-  ViewD2 fabd_sha("fabd_sha", ncols, ELM::ELMdims::numrad);
-  ViewD2 fabi_sun("fabi_sun", ncols, ELM::ELMdims::numrad);
-  ViewD2 fabi_sha("fabi_sha", ncols, ELM::ELMdims::numrad);
+  ViewD2 fabd_sun("fabd_sun", ncols, ELM::ELMdims::numrad());
+  ViewD2 fabd_sha("fabd_sha", ncols, ELM::ELMdims::numrad());
+  ViewD2 fabi_sun("fabi_sun", ncols, ELM::ELMdims::numrad());
+  ViewD2 fabi_sha("fabi_sha", ncols, ELM::ELMdims::numrad());
 
-  ViewD3 flx_abs_lcl("flx_abs_lcl", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad_snw);
-  ViewD3 mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", ncols, ELM::ELMdims::nlevsno, ELM::ELMdims::sno_nbr_aer);
-  ViewD3 g_star("g_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 omega_star("omega_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 tau_star("tau_star", ncols, ELM::ELMdims::numrad_snw, ELM::ELMdims::nlevsno);
-  ViewD3 flx_absd_snw("flx_absd_snw", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
-  ViewD3 flx_absi_snw("flx_absi_snw", ncols, ELM::ELMdims::nlevsno+1, ELM::ELMdims::numrad);
+  ViewD3 flx_abs_lcl("flx_abs_lcl", ncols, ELM::ELMdims::nlevsno()+1, ELM::ELMdims::numrad_snw());
+  ViewD3 mss_cnc_aer_in_fdb("mss_cnc_aer_in_fdb", ncols, ELM::ELMdims::nlevsno(), ELM::ELMdims::sno_nbr_aer());
+  ViewD3 g_star("g_star", ncols, ELM::ELMdims::numrad_snw(), ELM::ELMdims::nlevsno());
+  ViewD3 omega_star("omega_star", ncols, ELM::ELMdims::numrad_snw(), ELM::ELMdims::nlevsno());
+  ViewD3 tau_star("tau_star", ncols, ELM::ELMdims::numrad_snw(), ELM::ELMdims::nlevsno());
+  ViewD3 flx_absd_snw("flx_absd_snw", ncols, ELM::ELMdims::nlevsno()+1, ELM::ELMdims::numrad());
+  ViewD3 flx_absi_snw("flx_absi_snw", ncols, ELM::ELMdims::nlevsno()+1, ELM::ELMdims::numrad());
 
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/

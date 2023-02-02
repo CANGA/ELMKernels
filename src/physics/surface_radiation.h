@@ -27,7 +27,7 @@ namespace ELM::surface_radiation {
 \param[out] sabg                [double] solar radiation absorbed by ground (W/m**2)
 \param[out] sabv                [double] solar radiation absorbed by vegetation (W/m**2)
 \param[out] fsa                 [double] solar radiation absorbed (total) (W/m**2)
-\param[out] sabg_lyr[nlevsno+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
+\param[out] sabg_lyr[nlevsno()+1] [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -38,26 +38,26 @@ void initialize_flux(const LandType& Land, double& sabg_soil, double& sabg_snow,
 
 \param[in] Land               [LandType] struct containing information about landtype
 \param[in] snl                [int] number of snow layers
-\param[in] ftdd[numrad]       [double] down direct flux below canopy per unit direct flux
-\param[in] ftid[numrad]       [double] down diffuse flux below canopy per unit direct flux
-\param[in] ftii[numrad]       [double] down diffuse flux below canopy per unit diffuse flux
-\param[in] forc_solad[numrad] [double] direct beam radiation (W/m**2)
-\param[in] forc_solai[numrad] [double] diffuse radiation (W/m**2)
-\param[in] fabd[numrad]       [double] flux absorbed by canopy per unit direct flux
-\param[in] fabi[numrad]       [double] flux absorbed by canopy per unit diffuse flux
-\param[in] albsod[numrad]     [double] soil albedo, direct
-\param[in] albsoi[numrad]     [double] soil albedo, diffuse
-\param[in] albsnd[numrad] [double] snow albedo, direct
-\param[in] albsni[numrad] [double] snow albedo, diffuse
-\param[in] albgrd[numrad]     [double] ground albedo, direct
-\param[in] albgri[numrad]     [double] ground albedo, diffuse
+\param[in] ftdd[numrad()]       [double] down direct flux below canopy per unit direct flux
+\param[in] ftid[numrad()]       [double] down diffuse flux below canopy per unit direct flux
+\param[in] ftii[numrad()]       [double] down diffuse flux below canopy per unit diffuse flux
+\param[in] forc_solad[numrad()] [double] direct beam radiation (W/m**2)
+\param[in] forc_solai[numrad()] [double] diffuse radiation (W/m**2)
+\param[in] fabd[numrad()]       [double] flux absorbed by canopy per unit direct flux
+\param[in] fabi[numrad()]       [double] flux absorbed by canopy per unit diffuse flux
+\param[in] albsod[numrad()]     [double] soil albedo, direct
+\param[in] albsoi[numrad()]     [double] soil albedo, diffuse
+\param[in] albsnd[numrad()] [double] snow albedo, direct
+\param[in] albsni[numrad()] [double] snow albedo, diffuse
+\param[in] albgrd[numrad()]     [double] ground albedo, direct
+\param[in] albgri[numrad()]     [double] ground albedo, diffuse
 \param[out] sabv              [double] solar radiation absorbed by vegetation (W/m**2)
 \param[out] fsa               [double] solar radiation absorbed (total) (W/m**2)
 \param[out] sabg              [double] solar radiation absorbed by ground (W/m**2)
 \param[out] sabg_soil         [double] solar radiation absorbed by soil (W/m**2)
 \param[out] sabg_snow         [double] solar radiation absorbed by snow (W/m**2))
-\param[out] trd[numrad]       [double] transmitted solar radiation: direct (W/m**2)
-\param[out] tri[numrad]       [double] transmitted solar radiation: diffuse (W/m**2)
+\param[out] trd[numrad()]       [double] transmitted solar radiation: direct (W/m**2)
+\param[out] tri[numrad()]       [double] transmitted solar radiation: diffuse (W/m**2)
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -75,13 +75,13 @@ void total_absorbed_radiation(const LandType& Land, const int& snl, const ArrayD
 \param[in]  sabg                 [double] solar radiation absorbed by ground (W/m**2)
 \param[in]  sabg_snow            [double] solar radiation absorbed by snow (W/m**2)
 \param[in]  snow_depth           [double] snow height (m)
-\param[in]  flx_absdv[nlevsno+1] [double] direct flux absorption factor: VIS
-\param[in]  flx_absdn[nlevsno+1] [double] direct flux absorption factor: NIR
-\param[in]  flx_absiv[nlevsno+1] [double] diffuse flux absorption factor: VIS
-\param[in]  flx_absin[nlevsno+1] [double] diffuse flux absorption factor: NIR
-\param[in]  trd[numrad]          [double] transmitted solar radiation: direct (W/m**2)
-\param[in]  tri[numrad]          [double] transmitted solar radiation: diffuse (W/m**2)
-\param[out] sabg_lyr[nlevsno+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
+\param[in]  flx_absdv[nlevsno()+1] [double] direct flux absorption factor: VIS
+\param[in]  flx_absdn[nlevsno()+1] [double] direct flux absorption factor: NIR
+\param[in]  flx_absiv[nlevsno()+1] [double] diffuse flux absorption factor: VIS
+\param[in]  flx_absin[nlevsno()+1] [double] diffuse flux absorption factor: NIR
+\param[in]  trd[numrad()]          [double] transmitted solar radiation: direct (W/m**2)
+\param[in]  tri[numrad()]          [double] transmitted solar radiation: diffuse (W/m**2)
+\param[out] sabg_lyr[nlevsno()+1]  [double] absorbed radiative flux (pft,lyr) [W/m2]
 */
 template <typename ArrayD1>
 ACCELERATE
@@ -93,10 +93,10 @@ void layer_absorbed_radiation(const LandType& Land, const int& snl, const double
 /*! Calculate reflected solar radiation.
 
 \param[in]  Land               [LandType] struct containing information about landtype
-\param[in]  albd[numrad]       [double] surface albedo (direct)
-\param[in]  albi[numrad]       [double] surface albedo (diffuse)
-\param[in]  forc_solad[numrad] [double] direct beam radiation (W/m**2)
-\param[in]  forc_solai[numrad] [double] diffuse radiation (W/m**2)
+\param[in]  albd[numrad()]       [double] surface albedo (direct)
+\param[in]  albi[numrad()]       [double] surface albedo (diffuse)
+\param[in]  forc_solad[numrad()] [double] direct beam radiation (W/m**2)
+\param[in]  forc_solai[numrad()] [double] diffuse radiation (W/m**2)
 \param[out] fsr                [double] solar radiation reflected (W/m**2)
 */
 template <typename ArrayD1>
@@ -116,18 +116,18 @@ This subroutine calculates and returns:
 \param[in]  Land                [LandType] struct containing information about landtype
 \param[in]  nrad                [int] number of canopy layers above snow for radiative transfer
 \param[in]  elai                [double] one-sided leaf area index
-\param[in]  tlai_z[nlevcan]     [double] tlai increment for canopy layer
-\param[in]  fsun_z[nlevcan]     [double] sunlit fraction of canopy layer
-\param[in]  forc_solad[numrad]  [double] direct beam radiation (W/m**2)
-\param[in]  forc_solai[numrad]  [double] diffuse radiation (W/m**2))
-\param[in]  fabd_sun_z[nlevcan] [double] absorbed sunlit leaf direct PAR
-\param[in]  fabd_sha_z[nlevcan] [double] absorbed shaded leaf direct PAR
-\param[in]  fabi_sun_z[nlevcan] [double] absorbed sunlit leaf diffuse PAR
-\param[in]  fabi_sha_z[nlevcan] [double] absorbed shaded leaf diffuse PAR
-\param[out] parsun_z[nlevcan]   [double] absorbed PAR for sunlit leaves
-\param[out] parsha_z[nlevcan]   [double] absorbed PAR for shaded leaves
-\param[out] laisun_z[nlevcan]   [double] sunlit leaf area for canopy layer
-\param[out] laisha_z[nlevcan]   [double] shaded leaf area for canopy layer
+\param[in]  tlai_z[nlevcan()]     [double] tlai increment for canopy layer
+\param[in]  fsun_z[nlevcan()]     [double] sunlit fraction of canopy layer
+\param[in]  forc_solad[numrad()]  [double] direct beam radiation (W/m**2)
+\param[in]  forc_solai[numrad()]  [double] diffuse radiation (W/m**2))
+\param[in]  fabd_sun_z[nlevcan()] [double] absorbed sunlit leaf direct PAR
+\param[in]  fabd_sha_z[nlevcan()] [double] absorbed shaded leaf direct PAR
+\param[in]  fabi_sun_z[nlevcan()] [double] absorbed sunlit leaf diffuse PAR
+\param[in]  fabi_sha_z[nlevcan()] [double] absorbed shaded leaf diffuse PAR
+\param[out] parsun_z[nlevcan()]   [double] absorbed PAR for sunlit leaves
+\param[out] parsha_z[nlevcan()]   [double] absorbed PAR for shaded leaves
+\param[out] laisun_z[nlevcan()]   [double] sunlit leaf area for canopy layer
+\param[out] laisha_z[nlevcan()]   [double] shaded leaf area for canopy layer
 \param[out] laisun              [double] sunlit leaf area
 \param[out] laisha              [double] shaded  leaf area
 */
