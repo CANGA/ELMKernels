@@ -6,6 +6,8 @@ monthly_data.cc
 )
 
 set(data_inc_files
+aerosol_data_new.h
+aerosol_data_new_impl.hh
 aerosol_data.h
 aerosol_data_impl.hh
 elm_constants.h

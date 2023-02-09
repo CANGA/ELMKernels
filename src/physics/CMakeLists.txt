@@ -6,6 +6,8 @@ incident_shortwave.cc
 )
 
 set(physics_inc_files
+aerosol_physics_new.h
+aerosol_physics_new_impl.hh
 aerosol_physics.h
 aerosol_physics_impl.hh
 atm_physics.h
