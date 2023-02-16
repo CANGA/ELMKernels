@@ -31,23 +31,23 @@ ELM::aero_data::AerosolFileInput<ArrayD1>::AerosolFileInput(
 {}
 
 template <typename ArrayD2>
-ELM::aero_data::AerosolMassess<ArrayD2>::AerosolMassess(int ncols)
+ELM::aero_data::AerosolMasses<ArrayD2>::AerosolMasses(int ncols)
 :
-  mss_bcphi("mss_bcphi", ncols, nlev_sno),
-  mss_bcpho("mss_bcpho", ncols, nlev_sno),
-  mss_dst1("mss_dst1", ncols, nlev_sno),
-  mss_dst2("mss_dst2", ncols, nlev_sno),
-  mss_dst3("mss_dst3", ncols, nlev_sno),
-  mss_dst4("mss_dst4", ncols, nlev_sno)
+  mss_bcphi("mss_bcphi", ncols, ELMdims::nlevsno()),
+  mss_bcpho("mss_bcpho", ncols, ELMdims::nlevsno()),
+  mss_dst1("mss_dst1", ncols, ELMdims::nlevsno()),
+  mss_dst2("mss_dst2", ncols, ELMdims::nlevsno()),
+  mss_dst3("mss_dst3", ncols, ELMdims::nlevsno()),
+  mss_dst4("mss_dst4", ncols, ELMdims::nlevsno())
 {}
 
 template <typename ArrayD2>
-ELM::aero_data::AerosolConcentrationss<ArrayD2>::AerosolConcentrationss(int ncols)
+ELM::aero_data::AerosolConcentrations<ArrayD2>::AerosolConcentrations(int ncols)
 :
-  cnc_bcphi("cnc_bcphi", ncols, nlev_sno),
-  cnc_bcpho("cnc_bcpho", ncols, nlev_sno),
-  cnc_dst1("cnc_dst1", ncols, nlev_sno),
-  cnc_dst2("cnc_dst2", ncols, nlev_sno),
-  cnc_dst3("cnc_dst3", ncols, nlev_sno),
-  cnc_dst4("cnc_dst4", ncols, nlev_sno)
+  cnc_bcphi("cnc_bcphi", ncols, ELMdims::nlevsno()),
+  cnc_bcpho("cnc_bcpho", ncols, ELMdims::nlevsno()),
+  cnc_dst1("cnc_dst1", ncols, ELMdims::nlevsno()),
+  cnc_dst2("cnc_dst2", ncols, ELMdims::nlevsno()),
+  cnc_dst3("cnc_dst3", ncols, ELMdims::nlevsno()),
+  cnc_dst4("cnc_dst4", ncols, ELMdims::nlevsno())
 {}

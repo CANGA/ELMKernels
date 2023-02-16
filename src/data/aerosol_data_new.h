@@ -30,7 +30,6 @@ namespace ELM::aero_data {
 
   template <typename ArrayD2>
   struct AerosolMasses {
-    static constexpr int nlev_sno{ELMdims::nlevsno()};
     ArrayD2 mss_bcphi;
     ArrayD2 mss_bcpho;
     ArrayD2 mss_dst1;
@@ -42,7 +41,6 @@ namespace ELM::aero_data {
 
   template <typename ArrayD2>
   struct AerosolConcentrations {
-    static constexpr int nlev_sno{ELMdims::nlevsno()};
     ArrayD2 cnc_bcphi;
     ArrayD2 cnc_bcpho;
     ArrayD2 cnc_dst1;
