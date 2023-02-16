@@ -10,7 +10,7 @@ namespace ELM::snow {
 
   template <typename ArrayD1, typename ArrayD3>
   ACCELERATE
-  void snow_aging(const bool& do_capsnow,
+  void snow_aging(const int& do_capsnow,
                  const int& snl,
                  const double& frac_sno,
                  const double& dtime,
@@ -28,7 +28,7 @@ namespace ELM::snow {
 
   template<typename ArrayD1>
   ACCELERATE
-  void snow_water(const bool& do_capsnow,
+  void snow_water(const int& do_capsnow,
                   const int& snl,
                   const double& dtime,
                   const double& frac_sno_eff,

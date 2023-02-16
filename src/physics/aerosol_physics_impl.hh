@@ -5,7 +5,7 @@
 #include <utility>
 
 #include "invoke_kernel.hh"
-#include "aerosol_physics_new.h"
+#include "aerosol_physics.h"
 
 
 template<typename T>

@@ -2,7 +2,6 @@
 #include "init_timestep_kokkos.hh"
 #include "atm_forcing_kokkos.hh"
 #include "phenology_kokkos.hh"
-#include "aerosol_kokkos.hh"
 #include "helper_functions.hh"
 #include "invoke_kernel.hh"
 
@@ -47,9 +46,10 @@ t_centered.increment_seconds(static_cast<size_t>((dtime + 1.0)/2)); // round to 
   ELM::get_forcing(*S, dtime_d, t_centered);
 
   // get aerosol mass (mss) and concentration in snowpack (cnc)
-  ELM::invoke_aerosol_source(*S, dtime, t_centered);
-  ELM::invoke_aerosol_concen_and_mass(*S, dtime);
+  //ELM::invoke_aerosol_source(*S, dtime, t_centered);
+  //ELM::invoke_aerosol_concen_and_mass(*S, dtime);
 
+  // init a few more variables each dt
   auto init_step_kernel = ELM_LAMBDA (const int& idx) {
 
     S->h2osno_old(idx) = S->h2osno(idx);

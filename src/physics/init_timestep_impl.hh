@@ -9,7 +9,7 @@ ACCELERATE
 void init_timestep(const bool& lakpoi, const bool& veg_active,
                    const int& frac_veg_nosno_alb, const int& snl,
                    const double& h2osno, const ArrayD1 h2osoi_ice,
-                   const ArrayD1 h2osoi_liq, bool& do_capsnow,
+                   const ArrayD1 h2osoi_liq, int& do_capsnow,
                    int& frac_veg_nosno, ArrayD1 frac_iceold)
 {
   using ELMdims::nlevsno;

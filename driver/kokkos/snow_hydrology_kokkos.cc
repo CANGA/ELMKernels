@@ -2,19 +2,29 @@
 #include "invoke_kernel.hh"
 #include "snow_hydrology.h"
 #include "aerosol_physics.h"
-#include "aerosol_data.h"
 #include "transpiration.h"
 #include "date_time.hh"
 #include "snow_hydrology_kokkos.hh"
-#include "aerosol_kokkos.hh"
 
 
+//namespace ELM::aero_data {
+//
+//  template<typename ArrayD1>
+//  struct AerosolFileInput;
+//
+//  template<typename ArrayD2>
+//  struct AerosolMasses;
+//
+//  template<typename ArrayD2>
+//  struct AerosolConcentrations;
+//
+//} // namespace ELM::aero_data
 
 void ELM::kokkos_snow_hydrology(ELMStateType& S,
                                const double& dtime,
                                const ELM::Utils::Date& time_plus_half_dt)
 {
-  auto& aerosol_masses = *S.aerosol_masses.get();
+  auto& aerosol_masses = *S.aero_mass.get();
 
   // call snow hydrology kernels
   // evaluate change in snow mass due to water movement
@@ -52,7 +62,10 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
     
   // aerosol deposition must be called between these two snow hydrology functions
   // invokes it's own parallel loop
-  ELM::invoke_aerosol_source(S, dtime, time_plus_half_dt);
+  ELM::compute_aerosol_deposition(dtime,
+                                  S.snl,
+                                  *S.aero_input.get(),
+                                  *S.aero_mass.get());
 
   // evolve snowpack - adds/combines/divides/removes snow layers
   // updates snow mesh
@@ -143,23 +156,33 @@ void ELM::kokkos_snow_hydrology(ELMStateType& S,
         Kokkos::subview(S.zsoi, idx, Kokkos::ALL),
         Kokkos::subview(S.zisoi, idx, Kokkos::ALL));
 
-
-    ELM::snow::snow_aging(
-        S.do_capsnow(idx),
-        S.snl(idx),
-        S.frac_sno(idx),
-        dtime,
-        S.qflx_snwcp_ice(idx),
-        S.qflx_snow_grnd(idx),
-        S.h2osno(idx),
-        Kokkos::subview(S.dz, idx, Kokkos::ALL),
-        Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
-        Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
-        Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
-        Kokkos::subview(S.qflx_snofrz_lyr, idx, Kokkos::ALL),
-        *S.snw_rds_table.get(),
-        Kokkos::subview(S.snw_rds, idx, Kokkos::ALL));
-
   }; // end snow_update_kernels kernels
   apply_parallel_for(snow_update_kernels, "kokkos_snow_hydrology::snow_update", ncols);
+
+  // update aerosol mass and concentration due to changes in snowpack
+  ELM::update_aerosol_mass_and_concen(dtime, S.snl,
+                                    S.do_capsnow, S.qflx_snwcp_ice,
+                                    S.h2osoi_ice, S.h2osoi_liq,
+                                    *S.aero_mass.get(),
+                                    *S.aero_concen.get());
+
+  // call snow aging to update snow grain radius
+  auto snow_aging = ELM_LAMBDA (const int& idx) {
+    ELM::snow::snow_aging(
+          S.do_capsnow(idx),
+          S.snl(idx),
+          S.frac_sno(idx),
+          dtime,
+          S.qflx_snwcp_ice(idx),
+          S.qflx_snow_grnd(idx),
+          S.h2osno(idx),
+          Kokkos::subview(S.dz, idx, Kokkos::ALL),
+          Kokkos::subview(S.h2osoi_liq, idx, Kokkos::ALL),
+          Kokkos::subview(S.h2osoi_ice, idx, Kokkos::ALL),
+          Kokkos::subview(S.t_soisno, idx, Kokkos::ALL),
+          Kokkos::subview(S.qflx_snofrz_lyr, idx, Kokkos::ALL),
+          *S.snw_rds_table.get(),
+          Kokkos::subview(S.snw_rds, idx, Kokkos::ALL));
+  };
+  apply_parallel_for(snow_aging, "kokkos_snow_hydrology::snow_aging", ncols);
 }

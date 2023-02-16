@@ -366,7 +366,7 @@ ELMState(size_t ncols,
     psn_pft("psn_pft", ncols),
 
     veg_active("veg_active", ncols), // not sure this is needed - investigate - set as true for now
-    do_capsnow("do_capsnow", ncols), // calced in init_timestep
+    do_capsnow("do_capsnow", ncols), // calced in init_timestep - no, in snow_hydrology
 
     // const in time
     // containers for SNICAR model parameters
@@ -375,12 +375,13 @@ ELMState(size_t ncols,
     // container for PFT type parameters
     pft_data(std::make_shared<ELM::PFTData<ArrayD1>>()),
     // container for aerosol deposition forcing - 1 year repeating
-    aerosol_data(std::make_shared<ELM::AerosolDataManager<ArrayD1>>()),
+    //aerosol_data(std::make_shared<ELM::AerosolDataManager<ArrayD1>>()),
 
     // time variable
-    // containers for aerosol deposition and concentration within snowpack layers
-    aerosol_masses(std::make_shared<ELM::AerosolMasses<ArrayD2>>(ncols)),
-    aerosol_concentrations(std::make_shared<ELM::AerosolConcentrations<ArrayD2>>(ncols)),
+    // containers for aerosol forcing and mass/concentration within snowpack layers
+    aero_input(std::make_shared<ELM::aero_data::AerosolFileInput<ArrayD1>>(ncols)),
+    aero_mass(std::make_shared<ELM::aero_data::AerosolMasses<ArrayD2>>(ncols)),
+    aero_concen(std::make_shared<ELM::aero_data::AerosolConcentrations<ArrayD2>>(ncols)),
     // container for satellite phenology forcing data
     phen_data(std::make_shared<ELM::PhenologyDataManager<ArrayD2>>(domain, ncols, ELMdims::numveg())),
     // container for atmospheric forcing data

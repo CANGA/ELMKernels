@@ -56,7 +56,7 @@ void Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_ste
 canopy storage losses.
 
 \param[in]  Land              [LandType] struct containing information about landtype
-\param[in]  do_capsnow        [bool]     true => do snow capping
+\param[in]  do_capsnow        [int]      true => do snow capping
 \param[in]  frac_veg_nosno    [int]      fraction of veg not covered by snow (0/1 now) [-]
 \param[in]  forc_rain         [double]   rain rate (kg H2O/m**2/s, or mm liquid H2O/s)
 \param[in]  forc_snow         [double]   snow rate (kg H2O/m**2/s, or mm liquid H2O/s)
@@ -72,7 +72,7 @@ canopy storage losses.
 \param[out] qflx_rain_grnd    [double]   rain on ground after interception (mm H2O/s) [+]
 */
 ACCELERATE
-void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
+void ground_flux(const LandType& Land, const int& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
                  const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
                  const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
                  const double& fracrain, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
@@ -102,7 +102,7 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 
 \param[in]     Land                          [LandType] struct containing information about landtype
 \param[in]     dtime                         [double] time step length (sec)
-\param[in]     do_capsnow                    [bool] true => do snow capping
+\param[in]     do_capsnow                    [int]    true => do snow capping
 \param[in]     oldfflag                      [int]  use old fsno parameterization
 \param[in]     forc_t                        [double] atmospheric temperature (Kelvin)
 \param[in]     t_grnd                        [double] ground temperature (Kelvin)
@@ -127,7 +127,7 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 */
 template <typename ArrayD1>
 ACCELERATE
-void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow, const int& oldfflag,
+void snow_init(const LandType& Land, const double& dtime, const int& do_capsnow, const int& oldfflag,
                const double& forc_t, const double& t_grnd, const double& qflx_snow_grnd, const double& qflx_snow_melt,
                const double& n_melt,
 

@@ -5,7 +5,7 @@
 #include "soil_data.h"
 #include "atm_data.h"
 #include "snicar_data.h"
-#include "aerosol_data.h"
+//#include "aerosol_data_old.h"
 
 // initialization routines
 #include "init_soil_state.h"
@@ -229,37 +229,37 @@ void copy_pft_host_views(std::unordered_map<std::string, h_ViewD1>& pft_host_vie
 
 
 
-std::unordered_map<std::string, h_ViewD1> get_aero_host_views(const ELM::AerosolDataManager<ViewD1>& aero_data)
-{
-  std::unordered_map<std::string, h_ViewD1> aero_host_views;
-  aero_host_views["BCDEPWET"] = Kokkos::create_mirror_view(aero_data.bcdep);
-  aero_host_views["BCPHODRY"] = Kokkos::create_mirror_view(aero_data.bcpho);
-  aero_host_views["BCPHIDRY"] = Kokkos::create_mirror_view(aero_data.bcphi);
-  aero_host_views["DSTX01DD"] = Kokkos::create_mirror_view(aero_data.dst1_1);
-  aero_host_views["DSTX02DD"] = Kokkos::create_mirror_view(aero_data.dst1_2);
-  aero_host_views["DSTX03DD"] = Kokkos::create_mirror_view(aero_data.dst2_1);
-  aero_host_views["DSTX04DD"] = Kokkos::create_mirror_view(aero_data.dst2_2);
-  aero_host_views["DSTX01WD"] = Kokkos::create_mirror_view(aero_data.dst3_1);
-  aero_host_views["DSTX02WD"] = Kokkos::create_mirror_view(aero_data.dst3_2);
-  aero_host_views["DSTX03WD"] = Kokkos::create_mirror_view(aero_data.dst4_1);
-  aero_host_views["DSTX04WD"] = Kokkos::create_mirror_view(aero_data.dst4_2);
-  return aero_host_views;
-}
+//std::unordered_map<std::string, h_ViewD1> get_aero_host_views(const ELM::AerosolDataManager<ViewD1>& aero_data)
+//{
+//  std::unordered_map<std::string, h_ViewD1> aero_host_views;
+//  aero_host_views["BCDEPWET"] = Kokkos::create_mirror_view(aero_data.bcdep);
+//  aero_host_views["BCPHODRY"] = Kokkos::create_mirror_view(aero_data.bcpho);
+//  aero_host_views["BCPHIDRY"] = Kokkos::create_mirror_view(aero_data.bcphi);
+//  aero_host_views["DSTX01DD"] = Kokkos::create_mirror_view(aero_data.dst1_1);
+//  aero_host_views["DSTX02DD"] = Kokkos::create_mirror_view(aero_data.dst1_2);
+//  aero_host_views["DSTX03DD"] = Kokkos::create_mirror_view(aero_data.dst2_1);
+//  aero_host_views["DSTX04DD"] = Kokkos::create_mirror_view(aero_data.dst2_2);
+//  aero_host_views["DSTX01WD"] = Kokkos::create_mirror_view(aero_data.dst3_1);
+//  aero_host_views["DSTX02WD"] = Kokkos::create_mirror_view(aero_data.dst3_2);
+//  aero_host_views["DSTX03WD"] = Kokkos::create_mirror_view(aero_data.dst4_1);
+//  aero_host_views["DSTX04WD"] = Kokkos::create_mirror_view(aero_data.dst4_2);
+//  return aero_host_views;
+//}
 
-void copy_aero_host_views(std::unordered_map<std::string, h_ViewD1>& aero_host_views, ELM::AerosolDataManager<ViewD1>& aero_data)
-{
-  Kokkos::deep_copy(aero_data.bcdep, aero_host_views["BCDEPWET"]);
-  Kokkos::deep_copy(aero_data.bcpho, aero_host_views["BCPHODRY"]);
-  Kokkos::deep_copy(aero_data.bcphi, aero_host_views["BCPHIDRY"]);
-  Kokkos::deep_copy(aero_data.dst1_1, aero_host_views["DSTX01DD"]);
-  Kokkos::deep_copy(aero_data.dst1_2, aero_host_views["DSTX02DD"]);
-  Kokkos::deep_copy(aero_data.dst2_1, aero_host_views["DSTX03DD"]);
-  Kokkos::deep_copy(aero_data.dst2_2, aero_host_views["DSTX04DD"]);
-  Kokkos::deep_copy(aero_data.dst3_1, aero_host_views["DSTX01WD"]);
-  Kokkos::deep_copy(aero_data.dst3_2, aero_host_views["DSTX02WD"]);
-  Kokkos::deep_copy(aero_data.dst4_1, aero_host_views["DSTX03WD"]);
-  Kokkos::deep_copy(aero_data.dst4_2, aero_host_views["DSTX04WD"]);
-}
+//void copy_aero_host_views(std::unordered_map<std::string, h_ViewD1>& aero_host_views, ELM::AerosolDataManager<ViewD1>& aero_data)
+//{
+//  Kokkos::deep_copy(aero_data.bcdep, aero_host_views["BCDEPWET"]);
+//  Kokkos::deep_copy(aero_data.bcpho, aero_host_views["BCPHODRY"]);
+//  Kokkos::deep_copy(aero_data.bcphi, aero_host_views["BCPHIDRY"]);
+//  Kokkos::deep_copy(aero_data.dst1_1, aero_host_views["DSTX01DD"]);
+//  Kokkos::deep_copy(aero_data.dst1_2, aero_host_views["DSTX02DD"]);
+//  Kokkos::deep_copy(aero_data.dst2_1, aero_host_views["DSTX03DD"]);
+//  Kokkos::deep_copy(aero_data.dst2_2, aero_host_views["DSTX04DD"]);
+//  Kokkos::deep_copy(aero_data.dst3_1, aero_host_views["DSTX01WD"]);
+//  Kokkos::deep_copy(aero_data.dst3_2, aero_host_views["DSTX02WD"]);
+//  Kokkos::deep_copy(aero_data.dst4_1, aero_host_views["DSTX03WD"]);
+//  Kokkos::deep_copy(aero_data.dst4_2, aero_host_views["DSTX04WD"]);
+//}
 
 } // namespace ELM::kokkos_init
 
@@ -278,7 +278,7 @@ void ELM::initialize_kokkos_elm (
   auto& snicar_data = *S.snicar_data.get();
   auto& snw_rds_table = *S.snw_rds_table.get();
   auto& pft_data = *S.pft_data.get();
-  auto& aerosol_data = *S.aerosol_data.get();
+  //auto& aerosol_data = *S.aerosol_data.get();
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   /* =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
   // read data from files into host mirrors
@@ -354,12 +354,12 @@ void ELM::initialize_kokkos_elm (
     kokkos_init::copy_pft_host_views(host_pft_views, pft_data);
   }
 
-  // aerosol deposition data manager
-  {
-    auto host_aero_views = kokkos_init::get_aero_host_views(aerosol_data);
-    read_aerosol_data(host_aero_views, S.dd.comm, fname_aerosol, S.lon, S.lat);
-    kokkos_init::copy_aero_host_views(host_aero_views, aerosol_data);
-  }
+  //// aerosol deposition data manager
+  //{
+  //  auto host_aero_views = kokkos_init::get_aero_host_views(aerosol_data);
+  //  read_aerosol_data(host_aero_views, S.dd.comm, fname_aerosol, S.lon, S.lat);
+  //  kokkos_init::copy_aero_host_views(host_aero_views, aerosol_data);
+  //}
 
   // Kokkos view of struct PSNVegData
   auto psn_pft = ELM::Utils::create<Kokkos::View<PFTDataPSN *>>("psn_pft", ncols);

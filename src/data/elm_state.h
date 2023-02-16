@@ -4,7 +4,6 @@
 #include "land_data.h"
 #include "pft_data.h"
 #include "snicar_data.h"
-#include "aerosol_physics.h"
 #include "aerosol_data.h"
 #include "atm_data.h"
 #include "phenology_data.h"
@@ -179,15 +178,20 @@ struct PrimaryVars {
       ArrayPSN1 psn_pft;
       
       // snow and veg indicators
-      ArrayB1 veg_active, do_capsnow;
+      ArrayB1 veg_active;
+      ArrayI1 do_capsnow;
 
       // pointers to data manager objects
       std::shared_ptr<ELM::SnicarData<ArrayD1, ArrayD2, ArrayD3>> snicar_data;
       std::shared_ptr<ELM::SnwRdsTable<ArrayD3>> snw_rds_table;
       std::shared_ptr<ELM::PFTData<ArrayD1>> pft_data;
-      std::shared_ptr<ELM::AerosolDataManager<ArrayD1>> aerosol_data;
-      std::shared_ptr<ELM::AerosolMasses<ArrayD2>> aerosol_masses;
-      std::shared_ptr<ELM::AerosolConcentrations<ArrayD2>> aerosol_concentrations;
+      //std::shared_ptr<ELM::AerosolDataManager<ArrayD1>> aerosol_data;
+      //std::shared_ptr<ELM::AerosolMasses<ArrayD2>> aerosol_masses;
+      //std::shared_ptr<ELM::AerosolConcentrations<ArrayD2>> aerosol_concentrations;
+
+      std::shared_ptr<ELM::aero_data::AerosolFileInput<ArrayD1>> aero_input;
+      std::shared_ptr<ELM::aero_data::AerosolMasses<ArrayD2>> aero_mass;
+      std::shared_ptr<ELM::aero_data::AerosolConcentrations<ArrayD2>> aero_concen;
 
       // time-variable - initialize outside of constructor
       std::shared_ptr<ELM::PhenologyDataManager<ArrayD2>> phen_data;

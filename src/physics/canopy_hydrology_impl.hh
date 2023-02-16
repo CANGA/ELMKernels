@@ -80,7 +80,7 @@ void Irrigation(const LandType& Land, const double& irrig_rate, int& n_irrig_ste
 } // Irrigation
 
 ACCELERATE
-void ground_flux(const LandType& Land, const bool& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
+void ground_flux(const LandType& Land, const int& do_capsnow, const int& frac_veg_nosno, const double& forc_rain,
                      const double& forc_snow, const double& qflx_irrig, const double& qflx_candrip,
                      const double& qflx_through_snow, const double& qflx_through_rain, const double& fracsnow,
                      const double& fracrain, double& qflx_snwcp_liq, double& qflx_snwcp_ice,
@@ -143,7 +143,7 @@ void fraction_wet(const LandType& Land, const int& frac_veg_nosno, const double&
 
 template <typename ArrayD1>
 ACCELERATE
-void snow_init(const LandType& Land, const double& dtime, const bool& do_capsnow,
+void snow_init(const LandType& Land, const double& dtime, const int& do_capsnow,
                const int& oldfflag, const double& forc_t, const double& t_grnd,
                const double& qflx_snow_grnd, const double& qflx_snow_melt,
                const double& n_melt, double& snow_depth, double& h2osno,

@@ -23,7 +23,6 @@
 #include "init_timestep_kokkos.hh"
 
 // parallel physics
-#include "aerosol_kokkos.hh"
 #include "albedo_kokkos.hh"
 #include "canopy_hydrology_kokkos.hh"
 #include "surface_radiation_kokkos.hh"

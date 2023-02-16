@@ -110,7 +110,7 @@ qflx_snwcp_ice
 // tssbef_snotop = tssbef(nlevsno()-snl)
 // tssbef_soitop = tssbef(EML::nlevsno())
 ACCELERATE
-void update_surface_fluxes(const bool& urbpoi, const bool& do_capsnow, const int& snl, const double& dtime,
+void update_surface_fluxes(const bool& urbpoi, const int& do_capsnow, const int& snl, const double& dtime,
                            const double& t_grnd, const double& htvp, const double& frac_sno_eff,
                            const double& frac_h2osfc, const double& t_h2osfc_bef, const double& sabg_soil,
                            const double& sabg_snow, const double& dlrad, const double& frac_veg_nosno,

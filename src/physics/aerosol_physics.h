@@ -54,4 +54,4 @@ namespace ELM {
 
 } // namespace ELM
 
-#include "aerosol_physics_new_impl.hh"
+#include "aerosol_physics_impl.hh"

@@ -52,4 +52,4 @@ namespace ELM::aero_data {
 
 } // namespace ELM::aero_data
 
-#include "aerosol_data_new_impl.hh"
+#include "aerosol_data_impl.hh"

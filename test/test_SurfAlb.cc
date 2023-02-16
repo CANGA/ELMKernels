@@ -10,7 +10,6 @@
 #include "surface_albedo.h"
 #include "snicar_data.h"
 #include "snow_snicar.h"
-#include "aerosol_physics.h"
 
 #include <iostream>
 #include <string>

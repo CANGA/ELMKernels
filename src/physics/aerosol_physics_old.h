@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "aerosol_data.h"
+#include "aerosol_data_old.h"
 #include "array.hh"
 #include "elm_constants.h"
 
@@ -76,4 +76,4 @@ private:
 
 } // namespace ELM::aerosols
 
-#include "aerosol_physics_impl.hh"
+#include "aerosol_physics_old_impl.hh"

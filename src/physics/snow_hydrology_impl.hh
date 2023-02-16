@@ -48,7 +48,7 @@ namespace ELM::snow {
 
   template <typename ArrayD1, typename ArrayD3>
   ACCELERATE
-  void snow_aging(const bool& do_capsnow,
+  void snow_aging(const int& do_capsnow,
                  const int& snl,
                  const double& frac_sno,
                  const double& dtime,
@@ -86,6 +86,8 @@ namespace ELM::snow {
       const int snl_btm = nlevsno() - 1;
       const int snl_top = nlevsno() - snl;
 
+      // reset layers without snow to 0
+      for (int i = 0; i < snl_top; ++i) snw_rds(i) = 0.0;
       // loop over snow layers
       for (int i = snl_top; i <= snl_btm; ++i) {
         //
@@ -259,7 +261,7 @@ mflx_neg_snow_col_1d =>  col_wf%mflx_neg_snow_1d , & ! Output:  [real(r8) (:)   
 */
   template<typename ArrayD1>
   ACCELERATE
-  void snow_water(const bool& do_capsnow,
+  void snow_water(const int& do_capsnow,
                   const int& snl,
                   const double& dtime,
                   const double& frac_sno_eff,

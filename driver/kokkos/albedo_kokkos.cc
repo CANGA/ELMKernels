@@ -2,7 +2,7 @@
 #include "invoke_kernel.hh"
 #include "surface_albedo.h"
 #include "snow_snicar.h"
-#include "aerosol_physics.h"
+#include "aerosol_data.h"
 #include "snicar_data.h"
 #include "albedo_kokkos.hh"
 
@@ -10,7 +10,7 @@
 void ELM::kokkos_albedo_snicar(ELMStateType& S)
 {
   // get data managers from state
-  auto& aerosol_concentrations = *S.aerosol_concentrations.get();
+  auto& aerosol_concentrations = *S.aero_concen.get();
   auto& snicar_data = *S.snicar_data.get();
   auto& pft_data = *S.pft_data.get();
 
@@ -53,12 +53,12 @@ void ELM::kokkos_albedo_snicar(ELMStateType& S)
     ELM::surface_albedo::init_timestep(
         S.Land.urbpoi,
         S.elai(idx),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_bcphi, idx, Kokkos::ALL),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_bcpho, idx, Kokkos::ALL),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_dst1, idx, Kokkos::ALL),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_dst2, idx, Kokkos::ALL),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_dst3, idx, Kokkos::ALL),
-        Kokkos::subview(aerosol_concentrations.mss_cnc_dst4, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_bcphi, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_bcpho, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_dst1, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_dst2, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_dst3, idx, Kokkos::ALL),
+        Kokkos::subview(aerosol_concentrations.cnc_dst4, idx, Kokkos::ALL),
         S.vcmaxcintsun(idx),
         S.vcmaxcintsha(idx),
         Kokkos::subview(S.albsod, idx, Kokkos::ALL),

@@ -20,7 +20,7 @@ namespace ELM {
 \param[in]  h2osno                       [double] snow water (mm H2O)
 \param[in]  h2osoi_ice[nlevgrnd()+nlevsno()] [double] ice lens (kg/m2)
 \param[in]  h2osoi_liq[nlevgrnd()+nlevsno()] [double] liquid water (kg/m2)
-\param[out] do_capsnow                   [bool] true => do snow capping
+\param[out] do_capsnow                   [int] true => do snow capping
 \param[out] frac_veg_nosno               [int] fraction of vegetation not covered by snow (0 OR 1) [-]
 \param[out] frac_iceold                  [double] fraction of ice relative to the tot water
 */
@@ -29,7 +29,7 @@ ACCELERATE
 void init_timestep(const bool& lakpoi, const bool& veg_active,
                    const int& frac_veg_nosno_alb, const int& snl,
                    const double& h2osno, const ArrayD1 h2osoi_ice,
-                   const ArrayD1 h2osoi_liq, bool& do_capsnow,
+                   const ArrayD1 h2osoi_liq, int& do_capsnow,
                    int& frac_veg_nosno, ArrayD1 frac_iceold);
 
 } // namespace ELM
