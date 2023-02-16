@@ -1,55 +1,53 @@
 
 #pragma once
 
-namespace ELM::aerosol_utils {
+#include "aerosol_data_new.h"
 
-template <typename h_ArrayD1>
-void read_variable_slice(const Comm_type& comm, const std::string& filename,
-                         const std::string& varname, const size_t& lon_idx,
-                         const size_t& lat_idx, h_ArrayD1 arr)
-{
-  Array<double, 3> file_data(12, 1, 1); // one year of monthly data
-  std::array<size_t, 3> start{0, lat_idx, lon_idx};
-  std::array<size_t, 3> count{12, 1, 1};
-  IO::read_netcdf(comm, filename, varname, start, count, file_data.data());
 
-  for (int i = 0; i < 12; ++i) {
-    arr(i) = file_data(i, 0, 0);
-  }
-}
+template<typename ArrayD1>
+ELM::aero_data::AerosolFileInput<ArrayD1>::AerosolFileInput(int ncols)
+:
+  bcphi("bcphi", ncols), bcpho("bcpho", ncols),
+  bcdep("bcdep", ncols), dst1_1("dst1_1", ncols),
+  dst1_2("dst1_2", ncols), dst2_1("dst2_1", ncols),
+  dst2_2("dst2_2", ncols), dst3_1("dst3_1", ncols),
+  dst3_2("dst3_2", ncols), dst4_1("dst4_1", ncols),
+  dst4_2("dst4_2", ncols)
+{}
 
-} // namespace ELM::aerosol_utils
+template<typename ArrayD1>
+ELM::aero_data::AerosolFileInput<ArrayD1>::AerosolFileInput(
+  const ArrayD1& bcphi_in, const ArrayD1& bcpho_in, const ArrayD1& bcdep_in,
+  const ArrayD1& dst1_1_in, const ArrayD1& dst1_2_in, const ArrayD1& dst2_1_in,
+  const ArrayD1& dst2_2_in, const ArrayD1& dst3_1_in, const ArrayD1& dst3_2_in,
+  const ArrayD1& dst4_1_in, const ArrayD1& dst4_2_in)
+:
+  bcphi(bcphi_in), bcpho(bcpho_in),
+  bcdep(bcdep_in), dst1_1(dst1_1_in),
+  dst1_2(dst1_2_in), dst2_1(dst2_1_in),
+  dst2_2(dst2_2_in), dst3_1(dst3_1_in),
+  dst3_2(dst3_2_in), dst4_1(dst4_1_in),
+  dst4_2(dst4_2_in)
+{}
 
-template <typename ArrayD1>
-ELM::AerosolDataManager<ArrayD1>::AerosolDataManager()
-    : bcdep("bcdep", 12), bcpho("bcpho", 12), bcphi("bcphi", 12),
-      dst1_1("dst1_1", 12), dst1_2("dst1_2", 12), dst2_1("dst2_1", 12),
-      dst2_2("dst2_2", 12), dst3_1("dst3_1", 12), dst3_2("dst3_2", 12),
-      dst4_1("dst4_1", 12), dst4_2("dst4_2", 12)
-    {}
+template <typename ArrayD2>
+ELM::aero_data::AerosolMasses<ArrayD2>::AerosolMasses(int ncols)
+:
+  mss_bcphi("mss_bcphi", ncols, ELMdims::nlevsno()),
+  mss_bcpho("mss_bcpho", ncols, ELMdims::nlevsno()),
+  mss_dst1("mss_dst1", ncols, ELMdims::nlevsno()),
+  mss_dst2("mss_dst2", ncols, ELMdims::nlevsno()),
+  mss_dst3("mss_dst3", ncols, ELMdims::nlevsno()),
+  mss_dst4("mss_dst4", ncols, ELMdims::nlevsno())
+{}
 
-template <typename ArrayD1>
-auto ELM::AerosolDataManager<ArrayD1>::
-get_aerosol_source(const Utils::Date& model_time, const double& dtime) const
-{
-  auto [wt1, wt2] = monthly_data::monthly_data_weights(model_time);
-  auto [m1, m2] = monthly_data::month_indices(model_time);
-  double forc_bcphi = (wt1 * bcphi(m1) + wt2 * bcphi(m2)) * dtime;
-  double forc_bcpho = (wt1 * (bcdep(m1) + bcpho(m1)) + wt2 * (bcdep(m2) + bcpho(m2))) * dtime;
-  double forc_dst1 = (wt1 * (dst1_1(m1) + dst1_2(m1)) + wt2 * (dst1_1(m2) + dst1_2(m2))) * dtime;
-  double forc_dst2 = (wt1 * (dst2_1(m1) + dst2_2(m1)) + wt2 * (dst2_1(m2) + dst2_2(m2))) * dtime;
-  double forc_dst3 = (wt1 * (dst3_1(m1) + dst3_2(m1)) + wt2 * (dst3_1(m2) + dst3_2(m2))) * dtime;
-  double forc_dst4 = (wt1 * (dst4_1(m1) + dst4_2(m1)) + wt2 * (dst4_1(m2) + dst4_2(m2))) * dtime;
-  return std::make_tuple(forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4);
-}
-
-template <typename h_ArrayD1>
-void ELM::read_aerosol_data(std::unordered_map<std::string, h_ArrayD1>& aerosol_views, 
-  const Comm_type& comm, const std::string& filename, const double& lon_d, const double& lat_d)
-{
-  const auto [lon_idx, lat_idx] = aerosol_utils::get_nearest_indices(comm, filename, lon_d, lat_d);
-
-  for (auto& [varname, arr] : aerosol_views) {
-    aerosol_utils::read_variable_slice(comm, filename, varname, lon_idx, lat_idx, arr);
-  }
-}
+template <typename ArrayD2>
+ELM::aero_data::AerosolConcentrations<ArrayD2>::AerosolConcentrations(int ncols)
+:
+  cnc_bcphi("cnc_bcphi", ncols, ELMdims::nlevsno()),
+  cnc_bcpho("cnc_bcpho", ncols, ELMdims::nlevsno()),
+  cnc_dst1("cnc_dst1", ncols, ELMdims::nlevsno()),
+  cnc_dst2("cnc_dst2", ncols, ELMdims::nlevsno()),
+  cnc_dst3("cnc_dst3", ncols, ELMdims::nlevsno()),
+  cnc_dst4("cnc_dst4", ncols, ELMdims::nlevsno())
+{}

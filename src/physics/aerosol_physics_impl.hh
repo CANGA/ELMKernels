@@ -1,104 +1,107 @@
 
 #pragma once
 
-template <typename ArrayD2>
-ELM::AerosolMasses<ArrayD2>::AerosolMasses(const size_t& ncells)
-    : mss_bcphi("mss_bcphi", ncells, nlevsno_),
-      mss_bcpho("mss_bcpho", ncells, nlevsno_),
-      mss_dst1("mss_dst1", ncells, nlevsno_),
-      mss_dst2("mss_dst2", ncells, nlevsno_),
-      mss_dst3("mss_dst3", ncells, nlevsno_),
-      mss_dst4("mss_dst4", ncells, nlevsno_)
-    {}
+#include <cassert>
+#include <utility>
 
-template <typename ArrayD2>
-ELM::AerosolConcentrations<ArrayD2>::AerosolConcentrations(const size_t& ncells)
-    : mss_cnc_bcphi("mss_cnc_bcphi", ncells, nlevsno_),
-      mss_cnc_bcpho("mss_cnc_bcpho", ncells, nlevsno_),
-      mss_cnc_dst1("mss_cnc_dst1", ncells, nlevsno_),
-      mss_cnc_dst2("mss_cnc_dst2", ncells, nlevsno_),
-      mss_cnc_dst3("mss_cnc_dst3", ncells, nlevsno_),
-      mss_cnc_dst4("mss_cnc_dst4", ncells, nlevsno_)
-    {}
+#include "invoke_kernel.hh"
+#include "aerosol_physics_new.h"
 
-namespace ELM::aerosols {
 
-template <typename T, typename ArrayI1, typename ArrayD2>
-ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::
-ComputeAerosolDeposition(const T& aerosol_forc,
-                         const ArrayI1 snl,
-                         AerosolMasses<ArrayD2>& aerosol_masses)
-    : snl_{snl}, aerosol_masses_{aerosol_masses}
-    {
-      const auto& [forc_bcphi, forc_bcpho, forc_dst1, forc_dst2, forc_dst3, forc_dst4] = aerosol_forc;
-      forc_bcphi_ = forc_bcphi;
-      forc_bcpho_ = forc_bcpho;
-      forc_dst1_ = forc_dst1;
-      forc_dst2_ = forc_dst2;
-      forc_dst3_ = forc_dst3;
-      forc_dst4_ = forc_dst4;
-    }
-
-template <typename T, typename ArrayI1, typename ArrayD2>
+template<typename T>
 ACCELERATE
-void ComputeAerosolDeposition<T, ArrayI1, ArrayD2>::
-operator()(const int i) const {
-  if (snl_(i) > 0) {
-    const int j = ELMdims::nlevsno() - snl_(i);
-    aerosol_masses_.mss_bcphi(i, j) += forc_bcphi_;
-    aerosol_masses_.mss_bcpho(i, j) += forc_bcpho_;
-    aerosol_masses_.mss_dst1(i, j) += forc_dst1_;
-    aerosol_masses_.mss_dst2(i, j) += forc_dst2_;
-    aerosol_masses_.mss_dst3(i, j) += forc_dst3_;
-    aerosol_masses_.mss_dst4(i, j) += forc_dst4_;
-  }
+T ELM::aero_impl::
+get_snow_mass(const int& snow_idx, const int& snotop, const T& h2osoi_ice, const T& h2osoi_liq)
+{
+  return (snow_idx < snotop) ? 1.e-12 : h2osoi_ice + h2osoi_liq;
 }
 
-template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
-ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
-ComputeAerosolConcenAndMass(const double& dtime, const ArrayB1 do_capsnow,
-                            const ArrayI1 snl, const ArrayD2 h2osoi_liq,
-                            const ArrayD2 h2osoi_ice, const ArrayD2 snw_rds,
-                            const ArrayD1 qflx_snwcp_ice, AerosolMasses<ArrayD2>& aerosol_masses,
-                            AerosolConcentrations<ArrayD2>& aerosol_concentrations)
-    : dtime_{dtime}, do_capsnow_{do_capsnow}, snl_{snl}, h2osoi_liq_{h2osoi_liq}, h2osoi_ice_{h2osoi_ice},
-      snw_rds_{snw_rds}, qflx_snwcp_ice_{qflx_snwcp_ice}, aerosol_masses_{aerosol_masses},
-      aerosol_concentrations_{aerosol_concentrations} {}
 
-template <typename ArrayB1, typename ArrayI1, typename ArrayD1, typename ArrayD2>
+template<typename T>
 ACCELERATE
-void ComputeAerosolConcenAndMass<ArrayB1, ArrayI1, ArrayD1, ArrayD2>::
-operator()(const int i) const {
-  for (int sl = 0; sl < ELMdims::nlevsno(); ++sl) {
-    double snowmass = h2osoi_ice_(i, sl) + h2osoi_liq_(i, sl);
-    if (sl == ELMdims::nlevsno() - snl_(i) && do_capsnow_(i)) {
-      const double snowcap_scl_fct = snowmass / (snowmass + qflx_snwcp_ice_(i) * dtime_);
-      aerosol_masses_.mss_bcpho(i, sl) *= snowcap_scl_fct;
-      aerosol_masses_.mss_bcphi(i, sl) *= snowcap_scl_fct;
-      aerosol_masses_.mss_dst1(i, sl) *= snowcap_scl_fct;
-      aerosol_masses_.mss_dst2(i, sl) *= snowcap_scl_fct;
-      aerosol_masses_.mss_dst3(i, sl) *= snowcap_scl_fct;
-      aerosol_masses_.mss_dst4(i, sl) *= snowcap_scl_fct;
-    }
-
-    if (sl < ELMdims::nlevsno() - snl_(i)) {
-      snw_rds_(i, sl) = 0.0;
-      aerosol_masses_.mss_bcpho(i, sl) = 0.0;
-      aerosol_masses_.mss_bcphi(i, sl) = 0.0;
-      aerosol_masses_.mss_dst1(i, sl) = 0.0;
-      aerosol_masses_.mss_dst2(i, sl) = 0.0;
-      aerosol_masses_.mss_dst3(i, sl) = 0.0;
-      aerosol_masses_.mss_dst4(i, sl) = 0.0;
-      snowmass = 1.e-12; // protect against divide by 0
-    }
-
-    aerosol_concentrations_.mss_cnc_bcphi(i, sl) = aerosol_masses_.mss_bcphi(i, sl) / snowmass;
-    aerosol_concentrations_.mss_cnc_bcpho(i, sl) = aerosol_masses_.mss_bcpho(i, sl) / snowmass;
-    aerosol_concentrations_.mss_cnc_dst1(i, sl) = aerosol_masses_.mss_dst1(i, sl) / snowmass;
-    aerosol_concentrations_.mss_cnc_dst2(i, sl) = aerosol_masses_.mss_dst2(i, sl) / snowmass;
-    aerosol_concentrations_.mss_cnc_dst3(i, sl) = aerosol_masses_.mss_dst3(i, sl) / snowmass;
-    aerosol_concentrations_.mss_cnc_dst4(i, sl) = aerosol_masses_.mss_dst4(i, sl) / snowmass;
-  }
+T ELM::aero_impl::
+get_snowcap_scl_fct(const int& snow_idx, const int& snotop,
+                    const int& do_capsnow, const T& snowmass,
+                    const T& qflx_snwcp_ice, const T& dtime)
+{
+  return (snow_idx == snotop && do_capsnow) ?
+         (snowmass / (snowmass + qflx_snwcp_ice * dtime)) : // snowcap_scl_fct
+         (snow_idx < snotop) ?
+         0.0 : 1.0; // 0.0 for layers above snow, 1.0 (no change) for layers within snowpack
 }
 
-} // namespace ELM::aerosols
+
+template<typename ArrayI1, typename ArrayD1, typename ArrayD2>
+void
+ELM::compute_aerosol_deposition(const double& dtime,
+                                const ArrayI1& snl,
+                                const aero_data::AerosolFileInput<ArrayD1>& aero_input,
+                                aero_data::AerosolMasses<ArrayD2>& aero_mass)
+{
+  const int aero_mss_size = aero_mass.mss_bcphi.extent(0);
+  assert( (aero_mss_size == aero_input.bcphi.extent(0)) &&
+        "Error: different size views in AerosolFileInput and AerosolMasses");
+  assert( (aero_mss_size == snl.extent(0)) &&
+    "Error: different size ncols dimension (0) in AerosolMasses and snl (snow layers)");
+
+  auto aero_deposition = ELM_LAMBDA (const int i) {
+
+    if (snl(i) > 0) {
+      const int j = ELMdims::nlevsno() - snl(i);
+      aero_mass.mss_bcphi(i,j) += (aero_input.bcphi(i) * dtime);
+      aero_mass.mss_bcpho(i,j) += ((aero_input.bcpho(i) + aero_input.bcdep(i)) * dtime);
+      aero_mass.mss_dst1(i,j)  += ((aero_input.dst1_1(i) + aero_input.dst1_2(i)) * dtime);
+      aero_mass.mss_dst2(i,j)  += ((aero_input.dst2_1(i) + aero_input.dst2_2(i)) * dtime);
+      aero_mass.mss_dst3(i,j)  += ((aero_input.dst3_1(i) + aero_input.dst3_2(i)) * dtime);
+      aero_mass.mss_dst4(i,j)  += ((aero_input.dst4_1(i) + aero_input.dst4_2(i)) * dtime);
+    }
+  };
+  apply_parallel_for(aero_deposition, "aero_deposition", aero_mss_size);
+}
+
+
+template<typename ArrayI1, typename ArrayD1, typename ArrayD2>
+void
+ELM::update_aerosol_mass_and_concen(const double& dtime, const ArrayI1& snl,
+                                    const ArrayI1& do_capsnow, const ArrayD1& qflx_snwcp_ice,
+                                    const ArrayD2& h2osoi_ice, const ArrayD2& h2osoi_liq,
+                                    aero_data::AerosolMasses<ArrayD2>& aero_mass,
+                                    aero_data::AerosolConcentrations<ArrayD2>& aero_conc)
+{
+  const int aero_mass_size = aero_mass.mss_bcphi.extent(0);
+  const int aero_conc_size = aero_conc.cnc_bcphi.extent(0);
+  assert( (aero_mass_size == aero_conc_size) &&
+        "Error: different size views in AerosolConcentrations and AerosolMasses");
+  assert( (aero_mass_size == snl.extent(0)) &&
+    "Error: different size ncols dimension (0) in AerosolMasses and snl (snow layers)");
+
+  auto aero_mass_concen = ELM_LAMBDA (const int i) {
+    // top snow layer index
+    const int snotop = ELMdims::nlevsno() - snl(i);
+    // loop through snow layers
+    for (int sl = 0; sl < ELMdims::nlevsno(); sl++) {
+
+      // get mass of water in snow layer and snowcap scaling factor
+      const double snowmass = aero_impl::get_snow_mass(sl, snotop, h2osoi_ice(i,sl), h2osoi_liq(i,sl));
+      const double snowcap_scl_fct = aero_impl::get_snowcap_scl_fct(sl, snotop, do_capsnow(i),
+                                                         snowmass, qflx_snwcp_ice(i), dtime);
+      // update aerosol masses
+      aero_mass.mss_bcphi(i,sl) *= snowcap_scl_fct;
+      aero_mass.mss_bcpho(i,sl) *= snowcap_scl_fct;
+      aero_mass.mss_dst1(i,sl)  *= snowcap_scl_fct;
+      aero_mass.mss_dst2(i,sl)  *= snowcap_scl_fct;
+      aero_mass.mss_dst3(i,sl)  *= snowcap_scl_fct;
+      aero_mass.mss_dst4(i,sl)  *= snowcap_scl_fct;
+
+      // update aerosol concentration
+      const double snwmss_inv = 1.0 / snowmass;
+      aero_conc.cnc_bcphi(i,sl) = aero_mass.mss_bcphi(i,sl) * snwmss_inv;
+      aero_conc.cnc_bcpho(i,sl) = aero_mass.mss_bcpho(i,sl) * snwmss_inv;
+      aero_conc.cnc_dst1(i,sl)  = aero_mass.mss_dst1(i,sl)  * snwmss_inv;
+      aero_conc.cnc_dst2(i,sl)  = aero_mass.mss_dst2(i,sl)  * snwmss_inv;
+      aero_conc.cnc_dst3(i,sl)  = aero_mass.mss_dst3(i,sl)  * snwmss_inv;
+      aero_conc.cnc_dst4(i,sl)  = aero_mass.mss_dst4(i,sl)  * snwmss_inv;
+    }
+  };
+  apply_parallel_for(aero_mass_concen, "update_aerosol_mass_and_concen", aero_mass_size);
+}
