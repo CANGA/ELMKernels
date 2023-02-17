@@ -12,6 +12,8 @@ atm_data.h
 atm_data_impl.hh
 elm_state.h
 elm_state_impl.hh
+input_containers.h
+input_containers_impl.hh
 land_data.h
 monthly_data.h
 pft_data.h

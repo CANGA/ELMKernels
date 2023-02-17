@@ -31,19 +31,59 @@ double esati(const double& t);
 // rho, pO2, pCO2
 // eq 26.10 in CLM tech note
 // derive atmospheric vapor pressure from specific humidity and pressure
+template<typename T>
 ACCELERATE
-double derive_forc_vp(const double& forc_qbot, const double& forc_pbot);
+T derive_forc_vp(const double& forc_qbot, const double& forc_pbot);
 
 // derive atmospheric density from pressure, specific humidity, and temperature
+template<typename T>
 ACCELERATE
-double derive_forc_rho(const double& forc_pbot, const double& forc_qbot, const double& forc_tbot);
+T derive_forc_rho(const double& forc_pbot, const double& forc_qbot, const double& forc_tbot);
 
 // derive partial O2 pressure from atmospheric pressure
+template<typename T>
 ACCELERATE
-double derive_forc_po2(const double& forc_pbot);
+T derive_forc_po2(const double& forc_pbot);
 // derive partial CO2 pressure from atmospheric pressure
+template<typename T>
 ACCELERATE
-double derive_forc_pco2(const double& forc_pbot);
+T derive_forc_pco2(const double& forc_pbot);
+
+//template<typename T>
+//ACCELERATE
+//T get_tbot(const T atm_tbot);
+//
+//template<typename T>
+//ACCELERATE
+//T get_pbot(const T atm_pbot);
+//
+//template<typename T>
+//ACCELERATE
+//T get_qbot_from_specific_humidity(const T atm_qbot);
+//
+//template<typename T>
+//ACCELERATE
+//T get_qbot_from_relative_humidity(const T atm_rh, const T forc_tbot, const T forc_pbot);
+//
+//template<typename T>
+//ACCELERATE
+//T get_flds(const T atm_flds, const T forc_tbot, const T forc_pbot, const T forc_qbot);
+//
+//template<typename T, typename ArrayD1>
+//ACCELERATE
+//void get_fsds(const T atm_flds, ArrayD1 forc_solad, ArrayD1 forc_solai);
+//
+//template<typename T>
+//ACCELERATE
+//void get_precip(const T atm_prec, T& forc_rain, T& forc_snow);
+//
+//template<typename T>
+//ACCELERATE
+//void get_wind(const T atm_wind, T& forc_u, T& forc_v);
+//
+//template<typename T>
+//ACCELERATE
+//void get_forc_hgt(const T atm_hgt, T& forc_hgt, T& forc_hgt_u, T& forc_hgt_t, T& forc_hgt_q);
 
 // functor to calculate all derived forcing quantities
 template <typename ArrayD1>
