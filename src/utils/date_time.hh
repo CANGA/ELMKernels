@@ -3,6 +3,8 @@
 
 #include <iomanip>
 #include <cassert>
+#include <array>
+#include <tuple>
 
 namespace ELM {
 namespace Utils {

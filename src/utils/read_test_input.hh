@@ -3,11 +3,12 @@
 */
 
 #include <iostream>
+#include <iomanip>
 #include <iterator>
+#include <vector>
 #include <assert.h>
 
 #include "array.hh"
-#include <iomanip>
 
 
 namespace ELM {
