@@ -1,13 +1,13 @@
-ELM column variables are indexed in a manner that result in the top subsurface layer's 
-index = 1 in every type of column-based data structure. This indexing cannot be reproduced 
-using the basic subset of C++ we have constrained ourselves to without introducing unacceptable 
-overhead. 
+Much of ELM's data is column-based. The total maximum size of the column domain is nlevsno +
+nlevgrnd (typically 20), and it is indexed from -nlevsno+1 to nlevgrnd (top snow layer to bottom
+subsurface layer). Column variables may contain data over the full range of the column or over
+only a portion of the column. To align the data, ELM uses Fortran's variable array indexing to
+spatially align the start indices of every column-based variable with the global column index.
 
-In this project,we use basic C-style arrays with an index starting at 0 for storage of all column 
-data. This shouldn't cause problems, but will require index conversion to occur throughout the 
-code, and special consideration when concurrently operating on subsurface only and above ground 
-data.  Described below are the conventions we use to map column data indices between ELM and 
-this project.  
+In this project, all column data are stored in arrays with a zero-based index. This requires index
+conversion (from the original ELM algorithms) throughout the code, and special consideration when
+concurrently operating on subsurface and above ground data. Described below are the conventions
+we use to map column data indices between ELM and this project.
 
 SUBSURFACE ONLY VARIABLES (ELM example: (1:nlevgrnd) or (1:nlevsoi))
 SHIFT ELM INDEX BY -1
