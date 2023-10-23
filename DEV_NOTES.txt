@@ -1,0 +1,127 @@
+IMPROVEMENTS TODO:
+
+immediate:
+decouple data containers from data managers
+
+soon:
+replace GPU incompatible std:: functionality with Kokkos utilities
+make all loop indices int instead of unsigned int
+replace boolean with int for better alignment
+
+replace all variable size loops with fixed size loop + logic
+eg (for int i = nlevsno-snl; i < nlevsno) ...; should be
+   (for int i = 0; i < nlevsno;) if (i >= nlevsno-snl) ...;
+
+remove column index from kernels - started doing this around soil temp - kernels take col idx as arg and access data(col,cell,xx) insrtead of data(cell,xx)
+
+investigate kernel invoker performance
+
+replace ncells with ncols where correct
+
+pft_data - get rid of structs?
+
+physics/soil_temp*(.h/_impl.hh)
+replace all 1.0 - cnfac with const one_minus_cnfac  - constexpr double one_minus_cnfac = 1.0 - cnfac;
+stop relying on snl.extent(0) for num_cols count
+rewrite - forget about pentadiagonal algorithm and use kokkos general blas function to solve - likely dense block form
+remove parallel calls from physics - put in driver frontend
+
+investigate making kokkos physics interfaces into generic driver
+maybe remove self-invoking kernels?
+
+
+pass views (and everything else) to kernels via copy
+
+use constexpr if everywhere
+
+FINISH INVESTIGATING AEROSOL PLACEMENT - NEEDS TO BE CALLED DURING SNOW HYDROLOGY- 
+DEPOSITION IN THE MIDDLE, CONCEN_MASS AT END BUT BEFORE SNOW_AGING
+investigate qflx_snow_melt vs qflx_snomelt
+separate lib physics functions from driver or kokkos references
+
+Make compilation configuration header more useful and robust -
+  - define useful macros for switching between utility functions 
+  - define programming model and associated data types
+  - define typedefs for data types
+  - forward declare classes in ELM namespace, maybe typedef 
+
+build system improvements?
+file/directory organization improvements?
+
+MAKE THINGS CONSISTENT
+naming - vars, funcs, objs, templates, file names, etc
+style - choose clangformat style, apply it
+kernel dispatch
+kernel order and access
+
+
+MAJOR REFACTOR:
+goal: physically delineated, stateless FP-style computation allowing asynchronous and non-sequential computation of kernels from a set of core state variables
+
+may/will require recomputation of intermediate variables many times, but composable async physics gained - device also unlikely to be saturated
+
+possibly explore expression templates to make compile time composable
+  
+PLAN:
+determine core set of primary state vars (current set adequate? static analysis?)
+refactor kernels into physics-based configuration using only primary state vars as inputs
+this will require recomputation of the intermediate state varioables in elm, possibly many times
+analyze performance and correctness
+
+
+
+
+
+
+
+
+
+
+
+
+INPUTS NEEDED:
+
+Aerosols:
+"BCDEPWET"  bcdep
+"BCPHODRY"  bcpho
+"BCPHIDRY"  bcphi
+"DSTX01DD"  dst1_1
+"DSTX02DD"  dst1_2
+"DSTX03DD"  dst2_1
+"DSTX04DD"  dst2_2
+"DSTX01WD"  dst3_1
+"DSTX02WD"  dst3_2
+"DSTX03WD"  dst4_1
+"DSTX04WD"  dst4_2
+
+Atomsphere
+"TBOT"
+"PSRF"
+"QBOT" or "RH"
+"FLDS"
+"FSDS"
+"PRECTmms"
+"WIND"
+"ZBOT"
+
+Satellite phenology
+"MONTHLY_LAI"
+"MONTHLY_SAI"
+"MONTHLY_HEIGHT_TOP"
+"MONTHLY_HEIGHT_BOT"
+
+Soil 
+"SOIL_COLOR" (ncols)
+"mxsoil_color" - scalar int
+"organic_max" - scalar double
+"PCT_SAND" (ncols, nlevsoi)
+"PCT_CLAY" (ncols, nlevsoi)
+"ORGANIC" (ncols, nlevsoi)
+
+Land use
+ltype, ctype, vtype, urbpoi, lakpoi
+
+need to adapt phenology data processing
+replace ComputePhenology
+decouple PhenologyDataManager
+
